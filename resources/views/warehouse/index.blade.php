@@ -386,10 +386,10 @@
                      @click.self="formModalOpen = false"
                      @keydown.escape.window="formModalOpen = false">
                     
-                    <div class="bg-white rounded-2xl w-[760px] max-w-full max-h-[92vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                    <div class="bg-white rounded-2xl w-[780px] max-w-full max-h-[90vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
                         
-                        <!-- Modal Header -->
-                        <div class="flex items-center justify-between p-5 sm:p-6 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0">
+                        <!-- Modal Header (Fixed) -->
+                        <div class="flex items-center justify-between px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-9 h-9 rounded-xl bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 border border-red-100">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -401,267 +401,270 @@
                                     <p class="text-xs text-slate-400 mt-0.5">Kelola data spesifikasi, serial number, kepemilikan, dan lokasi unit</p>
                                 </div>
                             </div>
-                            <button type="button" @click="formModalOpen = false" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1">
+                            <button type="button" @click="formModalOpen = false" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
 
-                        <!-- Modal Body Form -->
-                        <form @submit.prevent="submitForm()" class="overflow-y-auto p-5 sm:p-6 space-y-5 text-xs">
+                        <!-- Modal Body Form (Flex container with fixed footer) -->
+                        <form @submit.prevent="submitForm()" class="flex flex-col flex-1 min-h-0 overflow-hidden m-0">
                             
-                            <!-- SEKSI 1: IDENTITAS PERANGKAT -->
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                    <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">1. Informasi Perangkat</h4>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                    <div class="sm:col-span-2">
-                                        <label class="block font-semibold text-slate-700 mb-1">Nama Barang / Model <span class="text-red-500">*</span></label>
-                                        <input type="text" x-model="form.name" required placeholder="Contoh: Cisco Catalyst 3850 48-Port PoE+ Switch" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                            <!-- Scrollable Inputs Area -->
+                            <div class="p-6 overflow-y-auto space-y-5 text-xs flex-1 min-h-0">
+                                <!-- SEKSI 1: IDENTITAS PERANGKAT -->
+                                <div class="space-y-3">
+                                    <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">1. Informasi Perangkat</h4>
                                     </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 mb-1">Merk / Brand</label>
-                                        <input type="text" x-model="form.brand" placeholder="Cisco, Fortinet, Mikrotik, Ruijie..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 mb-1">Jenis Perangkat <span class="text-red-500">*</span></label>
-                                        <select x-model="form.item_type" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
-                                            @foreach($itemTypes as $t)
-                                                <option value="{{ $t }}">{{ $t }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 mb-1">Tipe Komponen / Peripheral</label>
-                                        <select x-model="form.component_type" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
-                                            @foreach($componentTypes as $ct)
-                                                <option value="{{ $ct }}">{{ $ct }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <!-- Conditional Sub-tipe Kabel -->
-                                    <div x-show="form.item_type === 'Kabel' || form.component_type === 'Kabel'">
-                                        <label class="block font-semibold text-slate-700 mb-1">Tipe / Varian Kabel</label>
-                                        <select x-model="form.cable_type" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
-                                            <option value="">— Pilih Tipe Kabel —</option>
-                                            @foreach($cableTypes as $cbt)
-                                                <option value="{{ $cbt }}">{{ $cbt }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- SEKSI 2: IDENTITAS SERIAL & DOKUMEN -->
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                    <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">2. Serial Number &amp; Dokumen Referensi</h4>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 mb-1">Serial Number (S/N)</label>
-                                        <input type="text" x-model="form.serial_number" placeholder="Nomor S/N fisik perangkat" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 mb-1">Part / Product Number (P/N)</label>
-                                        <input type="text" x-model="form.product_number" placeholder="Nomor P/N produk" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 mb-1">Nomor PO</label>
-                                        <input type="text" x-model="form.po_number" placeholder="PO-IPN-2026-..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 mb-1">Nomor Kontrak</label>
-                                        <input type="text" x-model="form.contract_number" placeholder="CTR-..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- SEKSI 3: KATEGORI & KEPEMILIKAN -->
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                    <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">3. Kategori Kepemilikan</h4>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                    <div class="sm:col-span-2">
-                                        <label class="block font-semibold text-slate-700 mb-1">Kategori Barang <span class="text-red-500">*</span></label>
-                                        <select x-model="form.category" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium">
-                                            @foreach($categories as $c)
-                                                <option value="{{ $c }}">{{ $c }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <!-- DETAIL JIKA KATEGORI = PINJAMAN -->
-                                    <template x-if="form.category === 'Pinjaman'">
-                                        <div class="sm:col-span-2 p-3.5 rounded-xl bg-purple-50/70 border border-purple-200/80 space-y-3">
-                                            <div class="flex items-center justify-between">
-                                                <span class="font-bold text-purple-900 text-xs">Detail Sumber Pinjaman</span>
-                                                <div class="flex items-center gap-3">
-                                                    <label class="flex items-center gap-1.5 cursor-pointer">
-                                                        <input type="radio" value="disti" x-model="form.loan_source_type" class="text-purple-700">
-                                                        <span class="text-xs text-purple-900 font-medium">Distributor (Disti)</span>
-                                                    </label>
-                                                    <label class="flex items-center gap-1.5 cursor-pointer">
-                                                        <input type="radio" value="ipnet" x-model="form.loan_source_type" class="text-purple-700">
-                                                        <span class="text-xs text-purple-900 font-medium">Internal IPNET</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            <!-- Opsi Disti -->
-                                            <div x-show="form.loan_source_type === 'disti'" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-purple-900 mb-1">Nama PT Distributor</label>
-                                                    <input type="text" x-model="form.disti_name" placeholder="PT Synnex Metrodata..." class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-purple-900 mb-1">PIC Distributor</label>
-                                                    <input type="text" x-model="form.disti_pic" placeholder="Nama PIC Disti" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-purple-900 mb-1">No. Telp PIC</label>
-                                                    <input type="text" x-model="form.disti_phone" placeholder="08..." class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-purple-900 mb-1">Durasi Pinjaman</label>
-                                                    <input type="text" x-model="form.disti_duration" placeholder="Contoh: 30 Hari, s/d 15 Nov 2026" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div class="sm:col-span-2">
-                                                    <label class="block text-[11px] font-semibold text-purple-900 mb-1">Alamat Distributor</label>
-                                                    <textarea x-model="form.disti_address" rows="1" placeholder="Alamat kantor distributor" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white"></textarea>
-                                                </div>
-                                            </div>
-
-                                            <!-- Opsi IPNET Internal -->
-                                            <div x-show="form.loan_source_type === 'ipnet'" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-purple-900 mb-1">Nama PIC IPNET</label>
-                                                    <input type="text" x-model="form.ipnet_pic_name" placeholder="Nama teknisi / lead" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-purple-900 mb-1">Unit / Tim Kerja IPNET</label>
-                                                    <select x-model="form.ipnet_work_unit" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
-                                                        <option value="">— Pilih Tim Kerja —</option>
-                                                        @foreach($workUnits as $wu)
-                                                            <option value="{{ $wu }}">{{ $wu }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-purple-900 mb-1">No. Telp PIC</label>
-                                                    <input type="text" x-model="form.ipnet_phone" placeholder="08..." class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-purple-900 mb-1">Durasi Pinjaman</label>
-                                                    <input type="text" x-model="form.ipnet_duration" placeholder="Contoh: 14 Hari" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                            </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        <div class="sm:col-span-2">
+                                            <label class="block font-semibold text-slate-700 mb-1">Nama Barang / Model <span class="text-red-500">*</span></label>
+                                            <input type="text" x-model="form.name" required placeholder="Contoh: Cisco Catalyst 3850 48-Port PoE+ Switch" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
                                         </div>
-                                    </template>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Merk / Brand</label>
+                                            <input type="text" x-model="form.brand" placeholder="Cisco, Fortinet, Mikrotik, Ruijie..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Jenis Perangkat <span class="text-red-500">*</span></label>
+                                            <select x-model="form.item_type" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                                @foreach($itemTypes as $t)
+                                                    <option value="{{ $t }}">{{ $t }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Tipe Komponen / Peripheral</label>
+                                            <select x-model="form.component_type" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                                @foreach($componentTypes as $ct)
+                                                    <option value="{{ $ct }}">{{ $ct }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <!-- Conditional Sub-tipe Kabel -->
+                                        <div x-show="form.item_type === 'Kabel' || form.component_type === 'Kabel'">
+                                            <label class="block font-semibold text-slate-700 mb-1">Tipe / Varian Kabel</label>
+                                            <select x-model="form.cable_type" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                                <option value="">— Pilih Tipe Kabel —</option>
+                                                @foreach($cableTypes as $cbt)
+                                                    <option value="{{ $cbt }}">{{ $cbt }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <!-- SEKSI 4: LOKASI & STATUS OPERASIONAL -->
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                    <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">4. Lokasi Fisik &amp; Status Distribusi</h4>
+                                <!-- SEKSI 2: IDENTITAS SERIAL & DOKUMEN -->
+                                <div class="space-y-3">
+                                    <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">2. Serial Number &amp; Dokumen Referensi</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Serial Number (S/N)</label>
+                                            <input type="text" x-model="form.serial_number" placeholder="Nomor S/N fisik perangkat" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Part / Product Number (P/N)</label>
+                                            <input type="text" x-model="form.product_number" placeholder="Nomor P/N produk" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Nomor PO</label>
+                                            <input type="text" x-model="form.po_number" placeholder="PO-IPN-2026-..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Nomor Kontrak</label>
+                                            <input type="text" x-model="form.contract_number" placeholder="CTR-..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 mb-1">Lokasi Fisik <span class="text-red-500">*</span></label>
-                                        <select x-model="form.location_type" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
-                                            <option value="Warehouse IPNET">Warehouse IPNET</option>
-                                            <option value="Customer">Customer (Klien Luar)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-semibold text-slate-700 mb-1">Status Operasional <span class="text-red-500">*</span></label>
-                                        <select x-model="form.status" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium">
-                                            @foreach($statuses as $st)
-                                                <option value="{{ $st }}">{{ $st }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
 
-                                    <!-- Detail jika Lokasi = Warehouse IPNET -->
-                                    <div x-show="form.location_type === 'Warehouse IPNET'" class="sm:col-span-2">
-                                        <label class="block font-semibold text-slate-700 mb-1">Posisi Rak / Ruang Simpan Gudang</label>
-                                        <input type="text" x-model="form.warehouse_rack" placeholder="Contoh: Rak Utama A-01, Bin 03" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                <!-- SEKSI 3: KATEGORI & KEPEMILIKAN -->
+                                <div class="space-y-3">
+                                    <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">3. Kategori Kepemilikan</h4>
                                     </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        <div class="sm:col-span-2">
+                                            <label class="block font-semibold text-slate-700 mb-1">Kategori Barang <span class="text-red-500">*</span></label>
+                                            <select x-model="form.category" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium">
+                                                @foreach($categories as $c)
+                                                    <option value="{{ $c }}">{{ $c }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
 
-                                    <!-- Detail jika Lokasi = Customer -->
-                                    <template x-if="form.location_type === 'Customer'">
-                                        <div class="sm:col-span-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
-                                            <span class="font-bold text-slate-800 text-xs">Detail Lokasi Customer</span>
-                                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">PIC Customer</label>
-                                                    <input type="text" x-model="form.customer_pic" placeholder="Nama PIC" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+                                        <!-- DETAIL JIKA KATEGORI = PINJAMAN -->
+                                        <template x-if="form.category === 'Pinjaman'">
+                                            <div class="sm:col-span-2 p-3.5 rounded-xl bg-purple-50/70 border border-purple-200/80 space-y-3">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="font-bold text-purple-900 text-xs">Detail Sumber Pinjaman</span>
+                                                    <div class="flex items-center gap-3">
+                                                        <label class="flex items-center gap-1.5 cursor-pointer">
+                                                            <input type="radio" value="disti" x-model="form.loan_source_type" class="text-purple-700">
+                                                            <span class="text-xs text-purple-900 font-medium">Distributor (Disti)</span>
+                                                        </label>
+                                                        <label class="flex items-center gap-1.5 cursor-pointer">
+                                                            <input type="radio" value="ipnet" x-model="form.loan_source_type" class="text-purple-700">
+                                                            <span class="text-xs text-purple-900 font-medium">Internal IPNET</span>
+                                                        </label>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">No. Telp PIC</label>
-                                                    <input type="text" x-model="form.customer_phone" placeholder="08..." class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+
+                                                <!-- Opsi Disti -->
+                                                <div x-show="form.loan_source_type === 'disti'" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-purple-900 mb-1">Nama PT Distributor</label>
+                                                        <input type="text" x-model="form.disti_name" placeholder="PT Synnex Metrodata..." class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-purple-900 mb-1">PIC Distributor</label>
+                                                        <input type="text" x-model="form.disti_pic" placeholder="Nama PIC Disti" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-purple-900 mb-1">No. Telp PIC</label>
+                                                        <input type="text" x-model="form.disti_phone" placeholder="08..." class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-purple-900 mb-1">Durasi Pinjaman</label>
+                                                        <input type="text" x-model="form.disti_duration" placeholder="Contoh: 30 Hari, s/d 15 Nov 2026" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div class="sm:col-span-2">
+                                                        <label class="block text-[11px] font-semibold text-purple-900 mb-1">Alamat Distributor</label>
+                                                        <textarea x-model="form.disti_address" rows="1" placeholder="Alamat kantor distributor" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white"></textarea>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">AM / Sales In-Charge</label>
-                                                    <input type="text" x-model="form.customer_sales_name" placeholder="Nama Sales" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div class="sm:col-span-3">
-                                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Alamat Customer (Manual)</label>
-                                                    <textarea x-model="form.customer_address" rows="1.5" placeholder="Gedung / Alamat lengkap customer" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white"></textarea>
+
+                                                <!-- Opsi IPNET Internal -->
+                                                <div x-show="form.loan_source_type === 'ipnet'" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-purple-900 mb-1">Nama PIC IPNET</label>
+                                                        <input type="text" x-model="form.ipnet_pic_name" placeholder="Nama teknisi / lead" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-purple-900 mb-1">Unit / Tim Kerja IPNET</label>
+                                                        <select x-model="form.ipnet_work_unit" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
+                                                            <option value="">— Pilih Tim Kerja —</option>
+                                                            @foreach($workUnits as $wu)
+                                                                <option value="{{ $wu }}">{{ $wu }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-purple-900 mb-1">No. Telp PIC</label>
+                                                        <input type="text" x-model="form.ipnet_phone" placeholder="08..." class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-purple-900 mb-1">Durasi Pinjaman</label>
+                                                        <input type="text" x-model="form.ipnet_duration" placeholder="Contoh: 14 Hari" class="w-full px-2.5 py-1.5 border border-purple-200 rounded-lg text-xs bg-white">
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </template>
+                                        </template>
+                                    </div>
+                                </div>
 
-                                    <!-- Detail jika Status = POC / Pinjaman -->
-                                    <template x-if="form.status === 'POC / Pinjaman'">
-                                        <div class="sm:col-span-2 p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 space-y-2.5">
-                                            <span class="font-bold text-blue-900 text-xs">Detail Peminjaman POC (Proof of Concept)</span>
-                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-blue-900 mb-1">Nama Pelanggan POC</label>
-                                                    <input type="text" x-model="form.poc_customer_name" placeholder="PT Bank Mandiri..." class="w-full px-2.5 py-1.5 border border-blue-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-blue-900 mb-1">Durasi POC</label>
-                                                    <input type="text" x-model="form.poc_duration" placeholder="Contoh: 14 Hari (20 Okt - 03 Nov 2026)" class="w-full px-2.5 py-1.5 border border-blue-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-blue-900 mb-1">PIC Pelanggan</label>
-                                                    <input type="text" x-model="form.poc_pic_name" placeholder="Nama PIC" class="w-full px-2.5 py-1.5 border border-blue-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div>
-                                                    <label class="block text-[11px] font-semibold text-blue-900 mb-1">No. Telp Pelanggan</label>
-                                                    <input type="text" x-model="form.poc_pic_phone" placeholder="08..." class="w-full px-2.5 py-1.5 border border-blue-200 rounded-lg text-xs bg-white">
-                                                </div>
-                                                <div class="sm:col-span-2">
-                                                    <label class="block text-[11px] font-semibold text-blue-900 mb-1">Sales / AM Penanggung Jawab</label>
-                                                    <input type="text" x-model="form.poc_sales_name" placeholder="Nama Account Manager / Sales" class="w-full px-2.5 py-1.5 border border-blue-200 rounded-lg text-xs bg-white">
+                                <!-- SEKSI 4: LOKASI & STATUS OPERASIONAL -->
+                                <div class="space-y-3">
+                                    <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">4. Lokasi Fisik &amp; Status Distribusi</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Lokasi Fisik <span class="text-red-500">*</span></label>
+                                            <select x-model="form.location_type" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                                <option value="Warehouse IPNET">Warehouse IPNET</option>
+                                                <option value="Customer">Customer (Klien Luar)</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Status Operasional <span class="text-red-500">*</span></label>
+                                            <select x-model="form.status" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium">
+                                                @foreach($statuses as $st)
+                                                    <option value="{{ $st }}">{{ $st }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Detail jika Lokasi = Warehouse IPNET -->
+                                        <div x-show="form.location_type === 'Warehouse IPNET'" class="sm:col-span-2">
+                                            <label class="block font-semibold text-slate-700 mb-1">Posisi Rak / Ruang Simpan Gudang</label>
+                                            <input type="text" x-model="form.warehouse_rack" placeholder="Contoh: Rak Utama A-01, Bin 03" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
+
+                                        <!-- Detail jika Lokasi = Customer -->
+                                        <template x-if="form.location_type === 'Customer'">
+                                            <div class="sm:col-span-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+                                                <span class="font-bold text-slate-800 text-xs">Detail Lokasi Customer</span>
+                                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-slate-700 mb-1">PIC Customer</label>
+                                                        <input type="text" x-model="form.customer_pic" placeholder="Nama PIC" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-slate-700 mb-1">No. Telp PIC</label>
+                                                        <input type="text" x-model="form.customer_phone" placeholder="08..." class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-slate-700 mb-1">AM / Sales In-Charge</label>
+                                                        <input type="text" x-model="form.customer_sales_name" placeholder="Nama Sales" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div class="sm:col-span-3">
+                                                        <label class="block text-[11px] font-semibold text-slate-700 mb-1">Alamat Customer (Manual)</label>
+                                                        <textarea x-model="form.customer_address" rows="1.5" placeholder="Gedung / Alamat lengkap customer" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white"></textarea>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </template>
+                                        </template>
+
+                                        <!-- Detail jika Status = POC / Pinjaman -->
+                                        <template x-if="form.status === 'POC / Pinjaman'">
+                                            <div class="sm:col-span-2 p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 space-y-2.5">
+                                                <span class="font-bold text-blue-900 text-xs">Detail Peminjaman POC (Proof of Concept)</span>
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-blue-900 mb-1">Nama Pelanggan POC</label>
+                                                        <input type="text" x-model="form.poc_customer_name" placeholder="PT Bank Mandiri..." class="w-full px-2.5 py-1.5 border border-blue-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-blue-900 mb-1">Durasi POC</label>
+                                                        <input type="text" x-model="form.poc_duration" placeholder="Contoh: 14 Hari (20 Okt - 03 Nov 2026)" class="w-full px-2.5 py-1.5 border border-blue-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-blue-900 mb-1">PIC Pelanggan</label>
+                                                        <input type="text" x-model="form.poc_pic_name" placeholder="Nama PIC" class="w-full px-2.5 py-1.5 border border-blue-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-semibold text-blue-900 mb-1">No. Telp Pelanggan</label>
+                                                        <input type="text" x-model="form.poc_pic_phone" placeholder="08..." class="w-full px-2.5 py-1.5 border border-blue-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                    <div class="sm:col-span-2">
+                                                        <label class="block text-[11px] font-semibold text-blue-900 mb-1">Sales / AM Penanggung Jawab</label>
+                                                        <input type="text" x-model="form.poc_sales_name" placeholder="Nama Account Manager / Sales" class="w-full px-2.5 py-1.5 border border-blue-200 rounded-lg text-xs bg-white">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Catatan Tambahan -->
+                                <div>
+                                    <label class="block font-semibold text-slate-700 mb-1">Catatan Tambahan (Opsional)</label>
+                                    <textarea x-model="form.notes" rows="2" placeholder="Catatan kondisi fisik, kelengkapan aksesoris, dll..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800"></textarea>
                                 </div>
                             </div>
 
-                            <!-- Catatan Tambahan -->
-                            <div>
-                                <label class="block font-semibold text-slate-700 mb-1">Catatan Tambahan (Opsional)</label>
-                                <textarea x-model="form.notes" rows="2" placeholder="Catatan kondisi fisik, kelengkapan aksesoris, dll..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800"></textarea>
-                            </div>
-
-                            <!-- Modal Footer -->
-                            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                                <button type="button" @click="formModalOpen = false" class="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                            <!-- Fixed Modal Footer (Permanently Pinned, Never Scrolls) -->
+                            <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-3 shrink-0">
+                                <button type="button" @click="formModalOpen = false" class="py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-xs hover:bg-[#F1F5F9] transition cursor-pointer">
                                     Batal
                                 </button>
-                                <button type="submit" :disabled="isSubmitting" class="btn-ipnet-gradient px-5 py-2 text-xs font-semibold rounded-xl text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+                                <button type="submit" :disabled="isSubmitting" class="btn-ipnet-gradient py-2.5 px-5 rounded-xl font-bold text-xs text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
                                     <span x-text="isSubmitting ? 'Menyimpan...' : (isEditing ? 'Perbarui Perangkat' : 'Simpan ke Inventaris')"></span>
                                 </button>
                             </div>
@@ -688,7 +691,8 @@
                     
                     <div class="bg-white rounded-2xl w-[640px] max-w-full max-h-[90vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
                         
-                        <div class="p-5 sm:p-6 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-start justify-between shrink-0">
+                        <!-- Fixed Header -->
+                        <div class="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-start justify-between shrink-0">
                             <div>
                                 <div class="flex items-center gap-2 mb-1">
                                     <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold border border-slate-200" x-text="selectedItem?.item_code"></span>
@@ -697,12 +701,13 @@
                                 <h3 class="text-base font-bold text-slate-900 leading-snug" x-text="selectedItem?.name"></h3>
                                 <p class="text-xs text-slate-500 mt-0.5" x-text="'Merk: ' + (selectedItem?.brand || '-') + ' • Jenis: ' + (selectedItem?.item_type || '-')"></p>
                             </div>
-                            <button type="button" @click="detailModalOpen = false" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1">
+                            <button type="button" @click="detailModalOpen = false" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
 
-                        <div class="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs">
+                        <!-- Scrollable Body Only -->
+                        <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1 min-h-0">
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                     <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Serial Number (S/N)</p>
@@ -771,8 +776,9 @@
                             </div>
                         </div>
 
-                        <div class="p-4 bg-white border-t border-[#E2E8F0] flex justify-end shrink-0">
-                            <button type="button" @click="detailModalOpen = false" class="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer">
+                        <!-- Fixed Footer -->
+                        <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex justify-end shrink-0">
+                            <button type="button" @click="detailModalOpen = false" class="py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-xs hover:bg-[#F1F5F9] transition cursor-pointer">
                                 Tutup
                             </button>
                         </div>
