@@ -196,10 +196,7 @@
                     <div class="space-y-2.5">
                         @forelse($byType as $type)
                             <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-white hover:border-[#CBD5E1] transition">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></div>
-                                    <span class="text-[13px] font-bold text-[#1E293B]">{{ $type->item_type }}</span>
-                                </div>
+                                <span class="text-[13px] font-bold text-[#1E293B]">{{ $type->item_type }}</span>
                                 <span class="text-[12.5px] font-bold text-[#475569]">{{ $type->total }} unit</span>
                             </div>
                         @empty
@@ -221,10 +218,7 @@
                                 $unitCount = $found ? $found->total : 0;
                             @endphp
                             <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></div>
-                                    <span class="text-[13px] font-bold text-[#1E293B]">{{ $unit }}</span>
-                                </div>
+                                <span class="text-[13px] font-bold text-[#1E293B]">{{ $unit }}</span>
                                 <span class="text-[12.5px] font-bold text-[#475569]">{{ $unitCount }} unit terhubung</span>
                             </div>
                         @endforeach
