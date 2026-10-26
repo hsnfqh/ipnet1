@@ -1405,35 +1405,23 @@
                         @forelse($availableEngineers as $eng)
                             @php
                                 $isAssigned = in_array($eng->id, $assignedIds);
-                                $existingRole = $assignedMapById[$eng->id]['role'] ?? '';
                             @endphp
-                            <div class="p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-[#8F0A0D]/50 transition space-y-1.5">
-                                <label class="flex items-center justify-between cursor-pointer">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <input type="checkbox" 
-                                               name="engineer_ids[]" 
-                                               value="{{ $eng->id }}" 
-                                               {{ $isAssigned ? 'checked' : '' }}
-                                               class="w-4 h-4 rounded text-[#8F0A0D] focus:ring-[#8F0A0D] border-slate-300">
-                                        <div class="min-w-0">
-                                            <p class="text-xs font-bold text-slate-800 truncate">{{ $eng->name }}</p>
-                                            <p class="text-[10.5px] text-slate-400 truncate">{{ $eng->position ?? 'Field Engineer' }}</p>
-                                        </div>
+                            <label class="p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-[#8F0A0D]/50 transition flex items-center justify-between cursor-pointer">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <input type="checkbox" 
+                                           name="engineer_ids[]" 
+                                           value="{{ $eng->id }}" 
+                                           {{ $isAssigned ? 'checked' : '' }}
+                                           class="w-4 h-4 rounded text-[#8F0A0D] focus:ring-[#8F0A0D] border-slate-300">
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-bold text-slate-800 truncate">{{ $eng->name }}</p>
+                                        <p class="text-[10.5px] text-slate-400 truncate">{{ $eng->position ?? 'Field Engineer' }}</p>
                                     </div>
-                                    <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                                        {{ preg_replace('/^Divisi\s+/i', 'Tim ', $eng->division->name ?? 'Tim Teknis') }}
-                                    </span>
-                                </label>
-                                
-                                {{-- Input Peran / Tanggung Jawab Spesifik dari Lead --}}
-                                <div class="pl-6.5">
-                                    <input type="text" 
-                                           name="roles[{{ $eng->id }}]" 
-                                           value="{{ $existingRole }}"
-                                           placeholder="Tugas/peran personil, misal: Staging APS / Penarikan Kabel..." 
-                                           class="w-full px-2.5 py-1 rounded-lg border border-slate-200 text-[11px] text-slate-800 focus:border-[#8F0A0D] outline-none bg-slate-50/50 focus:bg-white transition">
                                 </div>
-                            </div>
+                                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">
+                                    {{ preg_replace('/^Divisi\s+/i', 'Tim ', $eng->division->name ?? 'Tim Teknis') }}
+                                </span>
+                            </label>
                         @empty
                             <div class="p-3 text-center text-xs text-slate-400">
                                 Tidak ada data engineer aktif pada tim ini.
