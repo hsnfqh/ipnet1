@@ -1791,6 +1791,8 @@ Route::middleware(['auth'])->prefix('warehouse')->name('warehouse.')->group(func
     // Transaksi Inventori
     Route::get('/transactions/in', [\App\Http\Controllers\WarehouseController::class, 'barangMasuk'])->name('transactions.in');
     Route::get('/transactions/out', [\App\Http\Controllers\WarehouseController::class, 'barangKeluar'])->name('transactions.out');
+    Route::post('/transactions/out/allocate', [\App\Http\Controllers\WarehouseController::class, 'allocateOut'])->name('transactions.out.allocate');
+    Route::post('/transactions/out/return/{item}', [\App\Http\Controllers\WarehouseController::class, 'returnToWarehouse'])->name('transactions.out.return');
     Route::get('/transactions/poc', [\App\Http\Controllers\WarehouseController::class, 'peminjamanPoc'])->name('transactions.poc');
     Route::get('/stock-opname', [\App\Http\Controllers\WarehouseController::class, 'stockOpname'])->name('stock_opname.index');
 

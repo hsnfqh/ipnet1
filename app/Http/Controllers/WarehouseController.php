@@ -281,8 +281,121 @@ class WarehouseController extends Controller
         }
 
         $items = $query->latest()->paginate(15)->withQueryString();
+        $availableItems = WarehouseItem::where('location_type', 'Warehouse IPNET')->orderBy('name')->get();
+        $workUnits = WarehouseItem::getWorkUnits();
 
-        return view('warehouse.barang_keluar', compact('items', 'metrics', 'counts'));
+        return view('warehouse.barang_keluar', compact('items', 'metrics', 'counts', 'availableItems', 'workUnits'));
+    }
+
+    /**
+     * Alokasikan Pengeluaran Barang / Peminjaman
+     */
+    public function allocateOut(Request $request)
+    {
+        $this->ensureTableReady();
+
+        $validated = $request->validate([
+            'warehouse_item_id'   => 'required|exists:warehouse_items,id',
+            'allocation_type'     => 'required|string|in:proyek,poc,pinjaman_disti,pinjaman_ipnet',
+            'recipient_name'      => 'required|string|max:255',
+            'pic_name'            => 'nullable|string|max:150',
+            'pic_phone'           => 'nullable|string|max:50',
+            'sales_name'          => 'nullable|string|max:150',
+            'duration'            => 'nullable|string|max:100',
+            'reference_number'    => 'nullable|string|max:100',
+            'delivery_address'    => 'nullable|string',
+            'ipnet_work_unit'     => 'nullable|string|max:50',
+            'notes'               => 'nullable|string',
+        ]);
+
+        $item = WarehouseItem::findOrFail($validated['warehouse_item_id']);
+
+        if ($validated['allocation_type'] === 'poc') {
+            $item->location_type      = 'Customer';
+            $item->status             = 'POC / Pinjaman';
+            $item->category           = 'Pinjaman';
+            $item->poc_customer_name  = $validated['recipient_name'];
+            $item->poc_pic_name       = $validated['pic_name'];
+            $item->poc_pic_phone      = $validated['pic_phone'];
+            $item->poc_sales_name     = $validated['sales_name'];
+            $item->poc_duration       = $validated['duration'];
+            if (!empty($validated['reference_number'])) {
+                $item->contract_number = $validated['reference_number'];
+            }
+            if (!empty($validated['delivery_address'])) {
+                $item->customer_address = $validated['delivery_address'];
+            }
+        } elseif ($validated['allocation_type'] === 'pinjaman_disti') {
+            $item->location_type      = 'Customer';
+            $item->status             = 'POC / Pinjaman';
+            $item->category           = 'Pinjaman';
+            $item->loan_source_type   = 'disti';
+            $item->disti_name         = $validated['recipient_name'];
+            $item->disti_pic          = $validated['pic_name'];
+            $item->disti_phone        = $validated['pic_phone'];
+            $item->disti_duration     = $validated['duration'];
+            if (!empty($validated['delivery_address'])) {
+                $item->disti_address = $validated['delivery_address'];
+            }
+            if (!empty($validated['reference_number'])) {
+                $item->contract_number = $validated['reference_number'];
+            }
+        } elseif ($validated['allocation_type'] === 'pinjaman_ipnet') {
+            $item->location_type      = 'Warehouse IPNET';
+            $item->status             = 'POC / Pinjaman';
+            $item->category           = 'Pinjaman';
+            $item->loan_source_type   = 'ipnet';
+            $item->ipnet_pic_name     = $validated['pic_name'] ?: $validated['recipient_name'];
+            $item->ipnet_phone        = $validated['pic_phone'];
+            $item->ipnet_duration     = $validated['duration'];
+            $item->ipnet_work_unit    = $validated['ipnet_work_unit'] ?: 'IPNET 1 - Core';
+            if (!empty($validated['reference_number'])) {
+                $item->contract_number = $validated['reference_number'];
+            }
+        } else {
+            // Proyek Pelanggan
+            $item->location_type       = 'Customer';
+            $item->status              = 'Terpasang';
+            $item->customer_pic        = $validated['pic_name'];
+            $item->customer_phone      = $validated['pic_phone'];
+            $item->customer_sales_name = $validated['sales_name'];
+            if (!empty($validated['delivery_address'])) {
+                $item->customer_address = $validated['delivery_address'];
+            }
+            if (!empty($validated['reference_number'])) {
+                $item->contract_number = $validated['reference_number'];
+            }
+        }
+
+        if (!empty($validated['notes'])) {
+            $prefix = "[Pengeluaran " . date('d/m/Y') . "]: ";
+            $item->notes = $item->notes ? ($item->notes . "\n" . $prefix . $validated['notes']) : ($prefix . $validated['notes']);
+        }
+
+        $item->save();
+
+        return redirect()->route('warehouse.transactions.out')->with('success', "Pengeluaran perangkat {$item->item_code} ({$item->name}) berhasil dicatat & dialokasikan!");
+    }
+
+    /**
+     * Kembalikan Perangkat ke Gudang (Return to Warehouse)
+     */
+    public function returnToWarehouse(Request $request, WarehouseItem $item)
+    {
+        $this->ensureTableReady();
+
+        $rack = $request->input('warehouse_rack', 'Rak Utama A-01');
+
+        $item->location_type = 'Warehouse IPNET';
+        $item->warehouse_rack = $rack;
+        $item->status = 'Tersedia';
+        if ($request->filled('notes')) {
+            $prefix = "[Kembali ke Gudang " . date('d/m/Y') . "]: ";
+            $item->notes = $item->notes ? ($item->notes . "\n" . $prefix . $request->notes) : ($prefix . $request->notes);
+        }
+        $item->save();
+
+        return redirect()->route('warehouse.transactions.out')->with('success', "Perangkat {$item->item_code} ({$item->name}) berhasil dikembalikan ke Gudang IPNET (Rak: {$rack})!");
     }
 
     /**
