@@ -66,19 +66,66 @@
                     </div>
                 </div>
 
-                <!-- RACK SUMMARY PILLS -->
-                <div class="pt-4 flex flex-wrap items-center gap-2">
-                    <a href="{{ route('warehouse.stock_opname.index', ['rack' => 'all']) }}" 
-                       class="px-3 py-1.5 rounded-xl text-[12.5px] font-bold transition {{ (!request('rack') || request('rack') === 'all') ? 'bg-[#8F0A0D] text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}">
-                        Semua Rak ({{ $metrics['warehouse_stock'] }} Unit)
-                    </a>
-                    @foreach($racks as $r)
-                        <a href="{{ route('warehouse.stock_opname.index', ['rack' => $r->warehouse_rack]) }}" 
-                           class="px-3 py-1.5 rounded-xl text-[12.5px] font-bold transition {{ request('rack') === $r->warehouse_rack ? 'bg-[#8F0A0D] text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}">
-                            {{ $r->warehouse_rack }} ({{ $r->count }})
-                        </a>
-                    @endforeach
-                </div>
+                <!-- FILTER BAR (PILIHAN RAK & PENCARIAN) -->
+                <form method="GET" action="{{ route('warehouse.stock_opname.index') }}" class="pt-4 flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                    <!-- Search Input -->
+                    <div class="relative flex-1">
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}" 
+                               placeholder="Cari S/N, nama barang, kode item, atau nomor PO..."
+                               class="w-full pl-10 pr-4 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[13px] font-medium text-[#1E293B] placeholder-[#94A3B8] focus:bg-white focus:border-[#8F0A0D] outline-none transition">
+                        <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+
+                    <!-- Dropdown Lokasi Rak Gudang -->
+                    <div class="w-full md:w-64">
+                        <select name="rack" 
+                                onchange="this.form.submit()" 
+                                class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[13px] font-medium text-[#1E293B] focus:bg-white focus:border-[#8F0A0D] outline-none transition cursor-pointer">
+                            <option value="all">Semua Lokasi Rak ({{ $metrics['warehouse_stock'] ?? 0 }} Unit)</option>
+                            @foreach($racks as $r)
+                                <option value="{{ $r->warehouse_rack }}" {{ request('rack') === $r->warehouse_rack ? 'selected' : '' }}>
+                                    {{ $r->warehouse_rack }} ({{ $r->count }} Unit)
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Dropdown Kategori Barang -->
+                    <div class="w-full md:w-48">
+                        <select name="category" 
+                                onchange="this.form.submit()" 
+                                class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[13px] font-medium text-[#1E293B] focus:bg-white focus:border-[#8F0A0D] outline-none transition cursor-pointer">
+                            <option value="all">Semua Kategori</option>
+                            @php
+                                $opnameCategories = $categories ?? ['Stock', 'Backup / Spare', 'Pinjaman', 'Konsinyasi'];
+                            @endphp
+                            @foreach($opnameCategories as $cat)
+                                <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>
+                                    {{ $cat }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="submit" class="px-5 py-2.5 bg-[#1E293B] hover:bg-[#0F172A] text-white rounded-xl text-[13px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                            </svg>
+                            <span>Filter</span>
+                        </button>
+                        @if(request('search') || (request('rack') && request('rack') !== 'all') || (request('category') && request('category') !== 'all'))
+                            <a href="{{ route('warehouse.stock_opname.index') }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-semibold transition text-center">
+                                Reset
+                            </a>
+                        @endif
+                    </div>
+                </form>
             </div>
 
             <!-- OPNAME TABLE -->

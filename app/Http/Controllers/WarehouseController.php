@@ -347,6 +347,10 @@ class WarehouseController extends Controller
             $query->where('warehouse_rack', $request->rack);
         }
 
+        if ($request->filled('category') && $request->category !== 'all') {
+            $query->where('category', $request->category);
+        }
+
         if ($request->filled('search')) {
             $s = trim($request->search);
             $query->where(function($q) use ($s) {
@@ -357,9 +361,10 @@ class WarehouseController extends Controller
             });
         }
 
+        $categories = WarehouseItem::getCategories();
         $items = $query->latest()->paginate(15)->withQueryString();
 
-        return view('warehouse.stock_opname', compact('items', 'racks', 'metrics'));
+        return view('warehouse.stock_opname', compact('items', 'racks', 'metrics', 'categories'));
     }
 
     /**
