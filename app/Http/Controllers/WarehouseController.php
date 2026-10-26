@@ -131,7 +131,25 @@ class WarehouseController extends Controller
         $items = $query->latest()->paginate(15)->withQueryString();
         $metrics = $this->getMetrics();
 
-        return view('warehouse.index', compact('items', 'metrics'));
+        $itemTypes      = WarehouseItem::getItemTypes();
+        $componentTypes = WarehouseItem::getComponentTypes();
+        $cableTypes     = WarehouseItem::getCableTypes();
+        $workUnits      = WarehouseItem::getWorkUnits();
+        $categories     = WarehouseItem::getCategories();
+        $statuses       = WarehouseItem::getStatuses();
+        $locations      = ['Warehouse IPNET', 'Customer'];
+
+        return view('warehouse.index', compact(
+            'items', 
+            'metrics',
+            'itemTypes',
+            'componentTypes',
+            'cableTypes',
+            'workUnits',
+            'categories',
+            'statuses',
+            'locations'
+        ));
     }
 
     /**

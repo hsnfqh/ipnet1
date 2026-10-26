@@ -34,6 +34,16 @@
 </style>
 @endpush
 
+@php
+    $itemTypes      = $itemTypes ?? \App\Models\WarehouseItem::getItemTypes();
+    $componentTypes = $componentTypes ?? \App\Models\WarehouseItem::getComponentTypes();
+    $cableTypes     = $cableTypes ?? \App\Models\WarehouseItem::getCableTypes();
+    $workUnits      = $workUnits ?? \App\Models\WarehouseItem::getWorkUnits();
+    $categories     = $categories ?? \App\Models\WarehouseItem::getCategories();
+    $statuses       = $statuses ?? \App\Models\WarehouseItem::getStatuses();
+    $locations      = $locations ?? ['Warehouse IPNET', 'Customer'];
+@endphp
+
 @section('content')
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" x-data="warehouseManager()">
     @include('components.sidebar')
