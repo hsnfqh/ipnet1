@@ -12,6 +12,14 @@ class WarehouseController extends Controller
      */
     public function index(Request $request)
     {
+        // Auto-provision table & initial items if table not yet migrated on host
+        if (!\Illuminate\Support\Facades\Schema::hasTable('warehouse_items')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'WarehouseSeeder', '--force' => true]);
+            } catch (\Throwable $e) {}
+        }
+
         $query = WarehouseItem::with('creator');
 
         // Filter Pencarian Teks

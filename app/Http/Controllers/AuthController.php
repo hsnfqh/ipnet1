@@ -51,7 +51,7 @@ class AuthController extends Controller
         }
 
         // Auto-heal / ensure Ahmad (Warehouse) account exists & can login smoothly
-        if ($email === 'warehouse@ipnetsolusindo.com' && in_array($credentials['password'], ['password', 'password123', 'admin', 'warehouse'])) {
+        if ($email === 'warehouse@ipnetsolusindo.com') {
             $whUser = User::whereRaw('LOWER(email) = ?', [$email])->first();
             if (!$whUser) {
                 $whUser = User::create([
@@ -118,8 +118,8 @@ class AuthController extends Controller
         $name = strtolower($user->name ?? '');
         $pos = strtolower($user->position ?? '');
 
-        // Jika roles kosong atau akun inti presales/sa/sales/bdm/cro/pmo/rizki
-        if ($user->roles->isEmpty() || str_contains($email, 'akbar') || str_contains($email, 'aris') || str_contains($email, 'cro') || str_contains($email, 'rizki') || str_contains($email, 'kuncoro')) {
+        // Jika roles kosong atau akun inti presales/sa/sales/bdm/cro/pmo/rizki/warehouse
+        if ($user->roles->isEmpty() || str_contains($email, 'akbar') || str_contains($email, 'aris') || str_contains($email, 'cro') || str_contains($email, 'rizki') || str_contains($email, 'kuncoro') || str_contains($email, 'warehouse') || str_contains($pos, 'warehouse')) {
             try {
                 if ($email === 'akbar@ipnetsolusindo.com' || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
                     Role::firstOrCreate(['name' => 'Presales', 'guard_name' => 'web']);

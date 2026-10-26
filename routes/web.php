@@ -1295,6 +1295,11 @@ Route::get('/', function () {
         $name = strtolower($user->name ?? '');
         $pos = strtolower($user->position ?? '');
 
+        // Warehouse & Logistics Staff -> Selalu ke Dashboard Warehouse
+        if ($user->hasRole('Warehouse') || str_contains($email, 'warehouse') || str_contains($pos, 'warehouse')) {
+            return redirect()->route('warehouse.dashboard');
+        }
+
         // PMO & Project Manager -> Selalu ke Dashboard PMO
         if ($user->hasAnyRole(['PMO', 'Project Manager']) || str_contains($email, 'rizki') || str_contains($email, 'kuncoro') || str_contains($pos, 'project manager')) {
             return redirect()->route('pmo.dashboard');

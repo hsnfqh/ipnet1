@@ -62,6 +62,11 @@ class CheckRole
             }
         }
 
+        // Fallback: Check if user is Warehouse - safely redirect to warehouse dashboard instead of 403
+        if ($user->hasRole('Warehouse') || str_contains($email, 'warehouse') || str_contains($pos, 'warehouse')) {
+            return redirect()->route('warehouse.dashboard');
+        }
+
         abort(403, 'Anda tidak memiliki akses ke halaman ini.');
     }
 }
