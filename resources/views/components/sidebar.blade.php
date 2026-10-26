@@ -10,10 +10,16 @@
     $isAdminSupport = $user && $user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin']);
     $isCro = $user && $user->hasAnyRole(['CRO', 'Customer Relation Officer', 'Customer Relationship Officer']);
     $isSales = $user && $user->hasAnyRole(['Sales', 'Account Manager']);
+    $isWarehouse = $user && ($user->hasRole('Warehouse') || str_contains(strtolower($user->email ?? ''), 'warehouse') || str_contains(strtolower($user->position ?? ''), 'warehouse'));
 
     $navItems = [];
 
-    if ($isExecutiveOrGl) {
+    if ($isWarehouse) {
+        $navItems = [
+            ['key' => 'warehouse',          'label' => 'Warehouse (Gudang)',    'route' => 'warehouse.dashboard'],
+            ['key' => 'digital_signatures', 'label' => 'Digital Signature',     'route' => 'digital_signatures.index'],
+        ];
+    } elseif ($isExecutiveOrGl) {
         $navItems = [
             ['key' => 'dashboard',          'label' => 'Dashboard',         'route' => 'dashboard.lead'],
             ['key' => 'projects',           'label' => 'Projects',          'route' => 'sales.pipeline.index'],
@@ -21,6 +27,7 @@
             ['key' => 'schedules',          'label' => 'Work Schedule',     'route' => 'schedules.index'],
             ['key' => 'clients',            'label' => 'Clients',           'route' => 'clients.index'],
             ['key' => 'inventory',          'label' => 'Inventory',         'route' => 'inventory.index'],
+            ['key' => 'warehouse',          'label' => 'Warehouse',         'route' => 'warehouse.dashboard'],
             ['key' => 'vendors',            'label' => 'Vendors',           'route' => 'vendors.index'],
             ['key' => 'digital_signatures', 'label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             // ['key' => 'timesheets',         'label' => 'Timesheet',         'route' => 'timesheets.index'],
@@ -31,6 +38,7 @@
             ['key' => 'admin_documents',    'label' => 'Document Register',     'route' => 'admin_support.documents.index'],
             ['key' => 'admin_checklists',   'label' => 'Document Checklists',   'route' => 'admin_support.checklists.index'],
             ['key' => 'admin_logistics',    'label' => 'Logistics & DO',        'route' => 'admin_support.logistics.index'],
+            ['key' => 'warehouse',          'label' => 'Warehouse (Gudang)',    'route' => 'warehouse.dashboard'],
             ['key' => 'admin_inventory',    'label' => 'Serial Number Master',  'route' => 'admin_support.inventory.index'],
             ['key' => 'admin_assets',       'label' => 'Assets & Work Tools',   'route' => 'admin_support.assets.index'],
             ['key' => 'admin_handovers',    'label' => 'Archives & Handover',   'route' => 'admin_support.handovers.index'],
@@ -539,6 +547,7 @@
                     </svg>
                     @break
                     @case('inventory')
+                    @case('warehouse')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                     </svg>

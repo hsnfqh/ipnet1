@@ -129,6 +129,9 @@ class AuthController extends Controller
                 } elseif (str_contains($email, 'hariyadi') || str_contains($name, 'hariyadi')) {
                     Role::firstOrCreate(['name' => 'Director', 'guard_name' => 'web']);
                     $user->syncRoles(['Director', 'Direktur', 'HD / Direktur']);
+                } elseif (str_contains($email, 'warehouse') || str_contains($pos, 'warehouse')) {
+                    Role::firstOrCreate(['name' => 'Warehouse', 'guard_name' => 'web']);
+                    $user->syncRoles(['Warehouse']);
                 }
                 $user->load('roles');
             } catch (\Throwable $e) {
@@ -147,6 +150,11 @@ class AuthController extends Controller
         $email = strtolower($user->email ?? '');
         $name  = strtolower($user->name ?? '');
         $pos   = strtolower($user->position ?? '');
+
+        // Warehouse & Logistics Staff -> Dashboard Warehouse
+        if ($user->hasRole('Warehouse') || str_contains($email, 'warehouse') || str_contains($pos, 'warehouse')) {
+            return route('warehouse.dashboard');
+        }
 
         // PMO & Project Manager -> Selalu ke Dashboard PMO
         if ($user->hasAnyRole(['PMO', 'Project Manager']) || str_contains($email, 'rizki') || str_contains($email, 'kuncoro') || str_contains($pos, 'project manager')) {

@@ -1770,3 +1770,34 @@ Route::get('/fix-rizki-access', function () {
         ], 500);
     }
 });
+
+// =========================================================================
+// WAREHOUSE & INVENTORY MANAGEMENT SYSTEM
+// =========================================================================
+Route::middleware(['auth'])->prefix('warehouse')->name('warehouse.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\WarehouseController::class, 'index'])->name('dashboard');
+    Route::get('/items', [\App\Http\Controllers\WarehouseController::class, 'index'])->name('items.index');
+    Route::post('/items', [\App\Http\Controllers\WarehouseController::class, 'store'])->name('items.store');
+    Route::put('/items/{item}', [\App\Http\Controllers\WarehouseController::class, 'update'])->name('items.update');
+    Route::delete('/items/{item}', [\App\Http\Controllers\WarehouseController::class, 'destroy'])->name('items.destroy');
+});
+
+// Helper 1-Click Init & Seed Warehouse Dummy
+Route::get('/seed-warehouse-official', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'WarehouseSeeder', '--force' => true]);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Sistem & data dummy Warehouse berhasil diinisialisasi!',
+            'credentials' => [
+                'email' => 'warehouse@ipnetsolusindo.com',
+                'password' => 'password',
+                'role' => 'Warehouse',
+            ],
+            'url' => route('warehouse.dashboard'),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+    }
+});
