@@ -16,23 +16,13 @@
 
     if ($isWarehouse) {
         $navItems = [
-            // Section 1: MENU UTAMA
-            ['is_header' => true, 'label' => 'MENU UTAMA'],
             ['key' => 'wh_dashboard',     'label' => 'Dashboard',             'route' => 'warehouse.dashboard'],
-            ['key' => 'wh_items',         'label' => 'Master Barang',         'route' => 'warehouse.items.index'],
-            ['key' => 'wh_categories',    'label' => 'Kategori & Satuan',     'route' => 'warehouse.categories.index'],
-
-            // Section 2: TRANSAKSI INVENTORI
-            ['is_header' => true, 'label' => 'TRANSAKSI INVENTORI'],
+            ['key' => 'wh_items',         'label' => 'Inventory',             'route' => 'warehouse.items.index'],
             ['key' => 'wh_in',            'label' => 'Barang Masuk',          'route' => 'warehouse.transactions.in'],
             ['key' => 'wh_out',           'label' => 'Barang Keluar',         'route' => 'warehouse.transactions.out'],
             ['key' => 'wh_poc',           'label' => 'Peminjaman & POC',      'route' => 'warehouse.transactions.poc'],
             ['key' => 'wh_stock_opname',  'label' => 'Stock Opname',          'route' => 'warehouse.stock_opname.index'],
-
-            // Section 3: MONITORING & LAPORAN
-            ['is_header' => true, 'label' => 'MONITORING & LAPORAN'],
             ['key' => 'wh_reports',       'label' => 'Laporan Inventori',     'route' => 'warehouse.reports.index'],
-            ['key' => 'wh_history',       'label' => 'Riwayat Pergerakan Stok', 'route' => 'warehouse.history.index'],
         ];
     } elseif ($isExecutiveOrGl) {
         $navItems = [
@@ -346,9 +336,7 @@
 
     <!-- NAVIGATION -->
     <div style="position:relative; z-index:10; flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:3px; overflow-y:auto;">
-        @if(!$isWarehouse)
-            <div x-show="isExpanded" x-cloak style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.48); padding:0 10px 8px; white-space:nowrap;">MAIN MENU</div>
-        @endif
+        <div x-show="isExpanded" x-cloak style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.48); padding:0 10px 8px; white-space:nowrap;">MAIN MENU</div>
 
         @foreach($navItems as $item)
             @if(!empty($item['is_header']))
