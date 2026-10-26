@@ -57,7 +57,7 @@
                             <span class="ipnet-badge-dot"></span> PUSAT KONTROL WAREHOUSE &amp; INVENTARIS
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">
-                            Ikhtisar Operasional Gudang &amp; Logistik Perangkat
+                            Ringkasan Operasional Gudang &amp; Logistik Perangkat
                         </h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">
                             Monitoring ketersediaan stok fisik perangkat jaringan, alokasi unit proyek, perangkat POC aktif, dan pergerakan aset logistik.
