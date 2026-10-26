@@ -131,7 +131,7 @@
                                     {{-- Nama Project & Tipe --}}
                                     <td class="py-3 px-4">
                                         <div class="flex items-center gap-1.5 flex-wrap">
-                                            <span class="font-medium text-[#1E293B] text-[13px] leading-snug" x-text="project.name"></span>
+                                            <a :href="'/projects/' + project.id" class="font-medium text-[#1E293B] hover:text-[#8F0A0D] hover:underline text-[13px] leading-snug transition-colors" x-text="project.name"></a>
                                             <template x-if="project.sla_tier">
                                                 <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold border"
                                                       :class="{
@@ -202,13 +202,6 @@
                                     {{-- Aksi --}}
                                     <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                         <div class="flex justify-end items-center gap-1">
-                                            {{-- Buka Halaman Proyek & Approval --}}
-                                            <a :href="'/projects/' + project.id" title="Buka Detail Proyek & Alur Approval" class="p-1.5 rounded-lg text-[#8F0A0D] hover:bg-[#FEF2F2] transition cursor-pointer flex items-center justify-center">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                                </svg>
-                                            </a>
-
                                             @if($isLead ?? false)
                                             {{-- Delegasikan Tim Teknis Lapangan (Lead) --}}
                                             <button type="button" 
@@ -221,14 +214,6 @@
                                                 </svg>
                                             </button>
                                             @endif
-
-                                            {{-- Quick Modal View --}}
-                                            <button @click="viewProject(project)" title="Lihat Ringkasan Modal" class="p-1.5 rounded-lg text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition cursor-pointer">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                                </svg>
-                                            </button>
                                             
                                             @if($canCreate ?? false)
                                             {{-- Edit --}}
