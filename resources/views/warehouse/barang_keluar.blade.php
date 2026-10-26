@@ -343,55 +343,115 @@
                                     </div>
 
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                        <div>
+                                        <!-- Nama Peminjam: Dropdown IPNET 1 - 5 jika Pinjaman Internal -->
+                                        <div x-show="form.allocation_type === 'pinjaman_ipnet'">
                                             <label class="block font-semibold text-slate-700 mb-1">
-                                                <span x-text="form.allocation_type === 'poc' ? 'Nama Pelanggan POC' : (form.allocation_type === 'pinjaman_disti' ? 'Nama PT Distributor' : (form.allocation_type === 'pinjaman_ipnet' ? 'Nama Peminjam / Divisi IPNET' : 'Nama Pelanggan / Klien Proyek'))"></span>
+                                                Divisi Peminjam IPNET <span class="text-red-500">*</span>
+                                            </label>
+                                            <select name="recipient_name_select" 
+                                                    x-model="form.recipient_name" 
+                                                    @change="form.ipnet_work_unit = form.recipient_name"
+                                                    :disabled="form.allocation_type !== 'pinjaman_ipnet'"
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-bold">
+                                                <option value="IPNET 1">IPNET 1</option>
+                                                <option value="IPNET 2">IPNET 2</option>
+                                                <option value="IPNET 3">IPNET 3</option>
+                                                <option value="IPNET 4">IPNET 4</option>
+                                                <option value="IPNET 5">IPNET 5</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Nama Pihak jika Pelanggan POC / Distributor / Proyek -->
+                                        <div x-show="form.allocation_type !== 'pinjaman_ipnet'">
+                                            <label class="block font-semibold text-slate-700 mb-1">
+                                                <span x-text="form.allocation_type === 'poc' ? 'Nama Pelanggan POC' : (form.allocation_type === 'pinjaman_disti' ? 'Nama PT Distributor' : 'Nama Pelanggan / Klien Proyek')"></span>
                                                 <span class="text-red-500">*</span>
                                             </label>
                                             <input type="text" 
-                                                   name="recipient_name" 
+                                                   name="recipient_name_input" 
                                                    x-model="form.recipient_name" 
-                                                   required 
-                                                   :placeholder="form.allocation_type === 'poc' ? 'Contoh: PT Bank Mandiri (Persero) Tbk' : (form.allocation_type === 'pinjaman_disti' ? 'PT Synnex Metrodata Indonesia' : 'Nama Klien / Tim')" 
+                                                   :disabled="form.allocation_type === 'pinjaman_ipnet'"
+                                                   :placeholder="form.allocation_type === 'poc' ? 'Contoh: PT Bank Mandiri (Persero) Tbk' : (form.allocation_type === 'pinjaman_disti' ? 'PT Synnex Metrodata Indonesia' : 'Nama Klien / Pelanggan')" 
                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-medium">
                                         </div>
 
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">
-                                                Durasi Peminjaman / Periode
-                                                <span x-show="form.allocation_type !== 'proyek'" class="text-xs text-red-500">*</span>
-                                            </label>
-                                            <input type="text" 
-                                                   name="duration" 
-                                                   x-model="form.duration" 
-                                                   :required="form.allocation_type !== 'proyek'"
-                                                   placeholder="Contoh: 14 Hari (20 Okt - 03 Nov 2026) / 30 Hari" 
-                                                   class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                        </div>
+                                        <!-- Hidden input to submit recipient_name to backend -->
+                                        <input type="hidden" name="recipient_name" :value="form.recipient_name">
+                                        <input type="hidden" name="ipnet_work_unit" :value="form.allocation_type === 'pinjaman_ipnet' ? form.recipient_name : ''">
 
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Nama PIC Penerima / Lapangan</label>
-                                            <input type="text" name="pic_name" x-model="form.pic_name" placeholder="Nama PIC yang menerima unit" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                        </div>
-
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">No. Telp / WhatsApp PIC</label>
-                                            <input type="text" name="pic_phone" x-model="form.pic_phone" placeholder="0812..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                        </div>
-
+                                        <!-- Sales / AM Penanggung Jawab -->
                                         <div>
                                             <label class="block font-semibold text-slate-700 mb-1">Sales / AM Penanggung Jawab</label>
                                             <input type="text" name="sales_name" x-model="form.sales_name" placeholder="Nama Sales / Account Manager" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
                                         </div>
 
-                                        <!-- Unit Kerja jika Pinjaman Internal -->
-                                        <div x-show="form.allocation_type === 'pinjaman_ipnet'">
-                                            <label class="block font-semibold text-slate-700 mb-1">Unit Kerja IPNET</label>
-                                            <select name="ipnet_work_unit" x-model="form.ipnet_work_unit" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
-                                                @foreach($workUnits ?? ['IPNET 1 - Core Network', 'IPNET 2 - Enterprise System', 'IPNET 3 - Data Center & Cloud', 'IPNET 4 - Security & Surveillance', 'IPNET 5 - Telco Infrastructure'] as $wu)
-                                                    <option value="{{ $wu }}">{{ $wu }}</option>
-                                                @endforeach
-                                            </select>
+                                        <!-- Nama PIC Lapangan -->
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Nama PIC Penerima / Lapangan</label>
+                                            <input type="text" name="pic_name" x-model="form.pic_name" placeholder="Nama PIC yang menerima unit" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
+
+                                        <!-- No Telp PIC -->
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">No. Telp / WhatsApp PIC</label>
+                                            <input type="text" name="pic_phone" x-model="form.pic_phone" placeholder="0812..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
+
+                                        <!-- RENTANG TANGGAL & DURASI HARI (ANGKA) -->
+                                        <div class="sm:col-span-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                                            <div class="flex items-center justify-between">
+                                                <label class="block font-bold text-slate-800 text-xs">
+                                                    Durasi Peminjaman &amp; Rentang Tanggal
+                                                    <span x-show="form.allocation_type !== 'proyek'" class="text-xs text-red-500">*</span>
+                                                </label>
+                                                <div class="flex items-center gap-1.5 text-xs text-[#8F0A0D] font-bold bg-red-50 border border-red-200/60 px-2.5 py-1 rounded-lg">
+                                                    <span>Total Durasi:</span>
+                                                    <span x-text="(form.duration_days || 0) + ' Hari'"></span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Hidden input to submit full duration string -->
+                                            <input type="hidden" name="duration" :value="form.duration">
+
+                                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                <!-- Durasi Angka Hari -->
+                                                <div>
+                                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Durasi (Angka)</label>
+                                                    <div class="relative">
+                                                        <input type="number" 
+                                                               min="1" 
+                                                               x-model="form.duration_days" 
+                                                               @input="updateDatesFromDays()" 
+                                                               placeholder="14" 
+                                                               class="w-full pl-3 pr-12 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-bold bg-white">
+                                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs pointer-events-none">Hari</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Dari Tanggal -->
+                                                <div>
+                                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Dari Tanggal (Mulai)</label>
+                                                    <input type="date" 
+                                                           x-model="form.start_date" 
+                                                           @change="updateDatesFromDays()" 
+                                                           class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs font-medium">
+                                                </div>
+
+                                                <!-- Sampai Tanggal -->
+                                                <div>
+                                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Sampai Tanggal (Selesai)</label>
+                                                    <input type="date" 
+                                                           x-model="form.end_date" 
+                                                           @change="updateDaysFromRange()" 
+                                                           class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs font-medium">
+                                                </div>
+                                            </div>
+
+                                            <!-- Preview Ringkasan Durasi -->
+                                            <div class="text-[11.5px] text-slate-500 flex items-center gap-1.5 pt-0.5">
+                                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                <span>Keterangan tersimpan: <strong class="text-slate-800" x-text="form.duration || '-'"></strong></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -592,13 +652,37 @@
                 pic_phone: '',
                 sales_name: '',
                 duration: '',
+                duration_days: 14,
+                start_date: '',
+                end_date: '',
                 reference_number: '',
                 delivery_address: '',
-                ipnet_work_unit: 'IPNET 1 - Core Network',
+                ipnet_work_unit: 'IPNET 1',
                 notes: ''
             },
 
+            init() {
+                this.$watch('form.allocation_type', (newVal) => {
+                    if (newVal === 'pinjaman_ipnet') {
+                        if (!this.form.recipient_name || !this.form.recipient_name.startsWith('IPNET')) {
+                            this.form.recipient_name = 'IPNET 1';
+                        }
+                        this.form.ipnet_work_unit = this.form.recipient_name;
+                    } else {
+                        if (this.form.recipient_name && this.form.recipient_name.startsWith('IPNET')) {
+                            this.form.recipient_name = '';
+                        }
+                    }
+                });
+            },
+
             openAllocateModal() {
+                const today = new Date();
+                const startDateStr = today.toISOString().split('T')[0];
+                const endDate = new Date(today);
+                endDate.setDate(today.getDate() + 14);
+                const endDateStr = endDate.toISOString().split('T')[0];
+
                 this.form = {
                     warehouse_item_id: '',
                     allocation_type: 'poc',
@@ -606,13 +690,71 @@
                     pic_name: '',
                     pic_phone: '',
                     sales_name: '',
+                    duration_days: 14,
+                    start_date: startDateStr,
+                    end_date: endDateStr,
                     duration: '',
                     reference_number: '',
                     delivery_address: '',
-                    ipnet_work_unit: 'IPNET 1 - Core Network',
+                    ipnet_work_unit: 'IPNET 1',
                     notes: ''
                 };
+                this.syncDuration();
                 this.isAllocateModalOpen = true;
+            },
+
+            updateDatesFromDays() {
+                if (!this.form.start_date) {
+                    this.form.start_date = new Date().toISOString().split('T')[0];
+                }
+                const days = parseInt(this.form.duration_days) || 0;
+                if (days > 0 && this.form.start_date) {
+                    const parts = this.form.start_date.split('-');
+                    const start = new Date(parts[0], parts[1] - 1, parts[2]);
+                    const end = new Date(start);
+                    end.setDate(start.getDate() + days);
+                    const y = end.getFullYear();
+                    const m = String(end.getMonth() + 1).padStart(2, '0');
+                    const d = String(end.getDate()).padStart(2, '0');
+                    this.form.end_date = `${y}-${m}-${d}`;
+                }
+                this.syncDuration();
+            },
+
+            updateDaysFromRange() {
+                if (this.form.start_date && this.form.end_date) {
+                    const startParts = this.form.start_date.split('-');
+                    const endParts = this.form.end_date.split('-');
+                    const start = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+                    const end = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+                    const diffTime = end - start;
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                    if (diffDays >= 0) {
+                        this.form.duration_days = diffDays;
+                    }
+                }
+                this.syncDuration();
+            },
+
+            syncDuration() {
+                const days = this.form.duration_days || 0;
+                if (this.form.start_date && this.form.end_date) {
+                    const s = this.formatDateID(this.form.start_date);
+                    const e = this.formatDateID(this.form.end_date);
+                    this.form.duration = `${days} Hari (${s} s/d ${e})`;
+                } else if (days > 0) {
+                    this.form.duration = `${days} Hari`;
+                } else {
+                    this.form.duration = '';
+                }
+            },
+
+            formatDateID(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return dateStr;
+                const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
             },
 
             openDetailModal(item) {

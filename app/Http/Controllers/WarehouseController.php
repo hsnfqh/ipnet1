@@ -348,7 +348,7 @@ class WarehouseController extends Controller
             $item->ipnet_pic_name     = $validated['pic_name'] ?: $validated['recipient_name'];
             $item->ipnet_phone        = $validated['pic_phone'];
             $item->ipnet_duration     = $validated['duration'];
-            $item->ipnet_work_unit    = $validated['ipnet_work_unit'] ?: 'IPNET 1 - Core';
+            $item->ipnet_work_unit    = $validated['recipient_name'] ?: ($validated['ipnet_work_unit'] ?: 'IPNET 1');
             if (!empty($validated['reference_number'])) {
                 $item->contract_number = $validated['reference_number'];
             }
