@@ -191,21 +191,16 @@
                 <div class="ipnet-card p-5">
                     <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#E2E8F0]">
                         <h3 class="text-[14.5px] font-bold text-[#1E293B]">Distribusi Jenis Perangkat</h3>
-                        <a href="{{ route('warehouse.categories.index') }}" class="text-[12px] text-[#8F0A0D] font-bold hover:underline">Detail</a>
+                        <span class="text-[11px] font-semibold text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded-md">Katalog Unit</span>
                     </div>
-                    <div class="space-y-3">
+                    <div class="space-y-2.5">
                         @forelse($byType as $type)
-                            @php
-                                $percent = $metrics['total_items'] > 0 ? round(($type->total / $metrics['total_items']) * 100) : 0;
-                            @endphp
-                            <div>
-                                <div class="flex items-center justify-between text-[12.5px] font-medium text-[#334155] mb-1">
-                                    <span>{{ $type->item_type }}</span>
-                                    <span class="font-bold text-[#1E293B]">{{ $type->total }} unit ({{ $percent }}%)</span>
+                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-white hover:border-[#CBD5E1] transition">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></div>
+                                    <span class="text-[13px] font-bold text-[#1E293B]">{{ $type->item_type }}</span>
                                 </div>
-                                <div class="w-full bg-[#E2E8F0] rounded-full h-2 overflow-hidden">
-                                    <div class="bg-[#8F0A0D] h-2 rounded-full" style="width: {{ $percent }}%"></div>
-                                </div>
+                                <span class="text-[12.5px] font-bold text-[#475569]">{{ $type->total }} unit</span>
                             </div>
                         @empty
                             <p class="text-[12.5px] text-[#94A3B8] text-center py-4">Belum ada data jenis barang</p>
