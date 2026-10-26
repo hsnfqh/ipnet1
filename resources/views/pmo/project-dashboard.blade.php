@@ -895,7 +895,7 @@
                                     @if($isLeadUser)
                                         {{ count($assignedEngineers) > 0 
                                             ? 'Anda telah menugaskan ' . count($assignedEngineers) . ' personil. Klik tombol untuk mengelola personil tim.' 
-                                            : 'Tugaskan personil tim lapangan dari divisi Anda agar PM dapat membagikan rincian tugas teknis (WBS).' }}
+                                            : 'Tugaskan personil tim lapangan dari tim Anda agar PM dapat membagikan rincian tugas teknis (WBS).' }}
                                     @else
                                         {{ count($assignedEngineers) > 0 
                                             ? 'Lead telah menunjuk ' . count($assignedEngineers) . ' personil. Klik tombol di bawah untuk membagikan rincian tugas teknis (WBS).' 
@@ -1384,7 +1384,7 @@
                     <strong class="text-slate-900 font-bold">{{ $project->name }}</strong>
                 </div>
                 <span class="px-2 py-1 rounded-md bg-white border border-slate-200 text-[#8F0A0D] font-bold text-[11px]">
-                    {{ $project->division->name ?? 'Teknis' }}
+                    {{ preg_replace('/^Divisi\s+/i', 'Tim ', $project->division->name ?? 'Tim Teknis') }}
                 </span>
             </div>
 
@@ -1421,7 +1421,7 @@
                                         </div>
                                     </div>
                                     <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                                        {{ $eng->division->name ?? 'Teknis' }}
+                                        {{ preg_replace('/^Divisi\s+/i', 'Tim ', $eng->division->name ?? 'Tim Teknis') }}
                                     </span>
                                 </label>
                                 
@@ -1436,7 +1436,7 @@
                             </div>
                         @empty
                             <div class="p-3 text-center text-xs text-slate-400">
-                                Tidak ada data engineer aktif pada divisi ini.
+                                Tidak ada data engineer aktif pada tim ini.
                             </div>
                         @endforelse
                     </div>

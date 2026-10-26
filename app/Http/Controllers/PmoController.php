@@ -155,22 +155,39 @@ class PmoController extends Controller
         $teamDelegatedAt = $handoverData['team_delegated_at'] ?? null;
         $teamDelegatedByName = $handoverData['team_delegated_by_name'] ?? null;
 
-        // Daftar kandidat engineer untuk penugasan tim oleh Lead
+        // Daftar kandidat engineer untuk penugasan tim oleh Lead (Disesuaikan dengan Tim Proyek, misal: hanya Tim Network)
         $divId = $project->division_id;
-        $availableEngineers = User::where(function($q) use ($divId) {
-            if ($divId) {
-                $q->where('division_id', $divId);
+        $divName = $project->division?->name ?? '';
+
+        $availableEngineersQuery = User::where('status', 'Active');
+
+        if ($divId) {
+            if (stripos($divName, 'lintas') !== false || (stripos($divName, 'net') !== false && stripos($divName, 'sec') !== false)) {
+                // Cross team: ambil dari Network dan Security
+                $availableEngineersQuery->whereHas('division', function($dq) {
+                    $dq->where('name', 'like', '%Network%')->orWhere('name', 'like', '%Security%');
+                });
+            } else {
+                // Spesifik sesuai Tim Proyek (misal hanya Tim Network)
+                $availableEngineersQuery->where('division_id', $divId);
             }
-            $q->orWhereHas('roles', function($rq) {
+        } elseif ($authUser && $authUser->division_id && !ScopeHelper::isGlobal($authUser)) {
+            // Jika proyek belum memiliki tim, sesuaikan dengan divisi lead
+            $availableEngineersQuery->where('division_id', $authUser->division_id);
+        } else {
+            // Fallback: seluruh engineer teknis
+            $availableEngineersQuery->whereHas('roles', function($rq) {
                 $rq->whereIn('name', [
                     'Network Engineer', 'Security Engineer', 'Field Support', 'Field Support (EOS)',
-                    'Engineer', 'Engineer L1', 'Engineer L2', 'Technical Support', 'Lead Engineer', 'Team Leader', 'Team Leader Engineering'
+                    'Engineer', 'Engineer L1', 'Engineer L2', 'Technical Support'
                 ]);
             });
-        })
-        ->where('status', 'Active')
-        ->orderBy('name')
-        ->get(['id', 'name', 'position', 'division_id']);
+        }
+
+        $availableEngineers = $availableEngineersQuery
+            ->with('division')
+            ->orderBy('name')
+            ->get(['id', 'name', 'position', 'division_id']);
 
         // Task Share by Engineer in this project (mengkombinasikan tim yang ditunjuk Lead & task yang dibuat PM)
         $assignedMap = [];
@@ -1314,7 +1331,7 @@ class PmoController extends Controller
                 'email'       => $eng->email,
                 'position'    => $eng->position ?: 'Field Engineer',
                 'role'        => $engRole,
-                'division'    => $eng->division ? $eng->division->name : 'Technical Engineering',
+                'division'    => $eng->division ? preg_replace('/^Divisi\s+/i', 'Tim ', $eng->division->name) : 'Tim Teknis',
                 'assigned_at' => now()->format('d M Y H:i'),
                 'assigned_by' => $leadName,
             ];
