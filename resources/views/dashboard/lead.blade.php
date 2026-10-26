@@ -897,16 +897,9 @@
                                                        class="w-4 h-4 rounded text-[#8F0A0D] focus:ring-[#8F0A0D]/20 cursor-pointer">
                                                 <div class="min-w-0">
                                                     <p class="text-xs font-bold text-slate-800 truncate">{{ $eng->name }}</p>
-                                                    <p class="text-[10.5px] text-slate-400 truncate">{{ $eng->position ?? 'Engineer' }} &bull; {{ $eng->division ? $eng->division->name : 'Engineering' }}</p>
+                                                    <p class="text-[10.5px] text-slate-400 truncate">{{ $eng->position ?? 'Engineer' }} &bull; {{ $eng->division ? preg_replace('/^Divisi\s+/i', 'Tim ', $eng->division->name) : 'Tim Network' }}</p>
                                                 </div>
                                             </label>
-                                            
-                                            <div x-show="selectedEngineers.includes('{{ $eng->id }}')" class="w-36 shrink-0">
-                                                <input type="text" 
-                                                       x-model="engineerRoles['{{ $eng->id }}']" 
-                                                       placeholder="Fokus / Peran (Opsional)" 
-                                                       class="w-full px-2 py-1 text-[11px] border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D]">
-                                            </div>
                                         </div>
                                     @empty
                                         <div class="p-4 text-center text-xs text-slate-400">Tidak ada personil teknisi yang dapat ditugaskan.</div>

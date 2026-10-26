@@ -211,11 +211,15 @@
 
                                             @if($isLead ?? false)
                                             {{-- Delegasikan Tim Teknis Lapangan (Lead) --}}
-                                            <a :href="'/pmo/projects/' + project.id" title="Delegasikan Tim Lapangan (Lead)" class="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50 transition cursor-pointer flex items-center justify-center">
+                                            <button type="button" 
+                                                    @click="openAssignModal(project)" 
+                                                    :title="hasAssignedEngineers(project) ? 'Kelola Tim Lapangan (Sudah Ditugaskan)' : 'Delegasikan Tim Lapangan (Belum Ditugaskan)'"
+                                                    :class="hasAssignedEngineers(project) ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800' : 'text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-600'"
+                                                    class="p-1.5 rounded-lg transition cursor-pointer flex items-center justify-center">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                                                 </svg>
-                                            </a>
+                                            </button>
                                             @endif
 
                                             {{-- Quick Modal View --}}
@@ -771,6 +775,103 @@
                     </div>
                 </div>
             </template>
+
+            @if($isLead ?? false)
+            <!-- ============================================================ -->
+            <!-- MODAL DELEGASI PERSONIL TIM LAPANGAN (LEAD)                 -->
+            <!-- ============================================================ -->
+            <template x-teleport="body">
+                <div x-show="showAssignModal" 
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-xs"
+                     @click.self="showAssignModal = false"
+                     @keydown.escape.window="showAssignModal = false">
+                    
+                    <div class="bg-white rounded-2xl w-[520px] max-w-full p-5 sm:p-6 text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] animate-fade-in-up border border-[#E2E8F0] space-y-4 max-h-[90vh] overflow-y-auto">
+                        
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 border border-red-100">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900">Delegasi Personil Tim Lapangan</h3>
+                                    <p class="text-xs text-slate-400 mt-0.5">Tentukan personil yang turun mengerjakan proyek</p>
+                                </div>
+                            </div>
+                            <button type="button" @click="showAssignModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Ringkasan Proyek Sasaran -->
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Proyek Sasaran</p>
+                            <h4 class="text-xs font-bold text-slate-900" x-text="selectedAssignProject ? selectedAssignProject.name : '-'"></h4>
+                            <p class="text-[11px] text-slate-500" x-text="selectedAssignProject ? (selectedAssignProject.client + ' • PM: ' + (selectedAssignProject.pm?.name || 'Belum Ditunjuk')) : ''"></p>
+                        </div>
+
+                        <!-- Form Pemilihan Personil -->
+                        <form @submit.prevent="submitDelegation()" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                                    <span>Pilih Personil Teknisi Lapangan</span>
+                                    <span class="text-[11px] font-normal text-slate-400" x-text="selectedEngineers.length + ' dipilih'"></span>
+                                </label>
+
+                                <div class="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-56 overflow-y-auto">
+                                    @forelse($assignableEngineers ?? [] as $eng)
+                                        <div class="p-2.5 flex items-center justify-between gap-3 hover:bg-slate-50 transition">
+                                            <label class="flex items-center gap-2.5 cursor-pointer min-w-0 flex-1">
+                                                <input type="checkbox" 
+                                                       value="{{ $eng->id }}" 
+                                                       x-model="selectedEngineers"
+                                                       class="w-4 h-4 rounded text-[#8F0A0D] focus:ring-[#8F0A0D]/20 cursor-pointer">
+                                                <div class="min-w-0">
+                                                    <p class="text-xs font-bold text-slate-800 truncate">{{ $eng->name }}</p>
+                                                    <p class="text-[10.5px] text-slate-400 truncate">{{ $eng->position ?? 'Engineer' }} &bull; {{ $eng->division ? preg_replace('/^Divisi\s+/i', 'Tim ', $eng->division->name) : 'Tim Network' }}</p>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    @empty
+                                        <div class="p-4 text-center text-xs text-slate-400">Tidak ada personil teknisi yang dapat ditugaskan.</div>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Delegasi dari Lead (Opsional)</label>
+                                <textarea x-model="assignNotes" 
+                                          rows="2" 
+                                          placeholder="Instruksi awal, prioritas lapangan, atau catatan khusus tim..." 
+                                          class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:border-[#8F0A0D]"></textarea>
+                            </div>
+
+                            <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+                                <button type="button" 
+                                        @click="showAssignModal = false" 
+                                        class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                                    Batal
+                                </button>
+                                <button type="submit" 
+                                        :disabled="isSubmittingDelegation"
+                                        class="px-4 py-2 text-xs font-bold rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
+                                    <span x-text="isSubmittingDelegation ? 'Menyimpan...' : 'Simpan &amp; Delegasikan Tim'"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </template>
+            @endif
         </div>
     </div>
 </div>
@@ -790,6 +891,11 @@
             editing: false,
             confirmOpen: false,
             confirmData: null,
+            showAssignModal: false,
+            selectedAssignProject: null,
+            selectedEngineers: [],
+            assignNotes: '',
+            isSubmittingDelegation: false,
             form: {
                 id: null,
                 name: '',
@@ -1026,6 +1132,106 @@
                     return avg;
                 }
                 return 0;
+            },
+
+            hasAssignedEngineers(project) {
+                if (!project) return false;
+                const hd = project.handover_data;
+                if (hd && Array.isArray(hd.assigned_engineers) && hd.assigned_engineers.length > 0) {
+                    return true;
+                }
+                return false;
+            },
+
+            openAssignModal(project) {
+                this.selectedAssignProject = project;
+                this.selectedEngineers = [];
+                this.assignNotes = '';
+
+                const hd = project.handover_data || {};
+                const assigned = hd.assigned_engineers || [];
+                if (Array.isArray(assigned) && assigned.length > 0) {
+                    assigned.forEach(a => {
+                        if (a.id) {
+                            this.selectedEngineers.push(String(a.id));
+                        }
+                    });
+                }
+                if (hd.team_delegation_notes) {
+                    this.assignNotes = hd.team_delegation_notes;
+                }
+                this.showAssignModal = true;
+            },
+
+            async submitDelegation() {
+                if (!this.selectedAssignProject) return;
+                if (this.selectedEngineers.length === 0) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Personil Belum Dipilih',
+                            text: 'Pilih minimal satu orang teknisi pelaksana untuk ditugaskan.',
+                            confirmButtonColor: '#8F0A0D'
+                        });
+                    } else {
+                        alert('Pilih minimal satu orang teknisi pelaksana untuk ditugaskan.');
+                    }
+                    return;
+                }
+
+                this.isSubmittingDelegation = true;
+                try {
+                    const response = await fetch(`/pmo/projects/${this.selectedAssignProject.id}/assign-team`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            engineer_ids: this.selectedEngineers,
+                            notes: this.assignNotes
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        const projIdx = this.projects.findIndex(p => p.id === this.selectedAssignProject.id);
+                        if (projIdx !== -1) {
+                            if (!this.projects[projIdx].handover_data) {
+                                this.projects[projIdx].handover_data = {};
+                            }
+                            this.projects[projIdx].handover_data.assigned_engineers = data.assigned_engineers || [];
+                            this.projects[projIdx].handover_data.team_delegation_notes = this.assignNotes;
+                            this.projects = JSON.parse(JSON.stringify(this.projects));
+                        }
+                        this.showAssignModal = false;
+
+                        if (typeof Swal !== 'undefined') {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Tim Berhasil Ditetapkan!',
+                                text: data.message || 'Personil teknis proyek berhasil ditetapkan.',
+                                confirmButtonColor: '#8F0A0D',
+                                confirmButtonText: 'OK, Mantap'
+                            });
+                        } else {
+                            this.showToast('Personil teknis proyek berhasil ditetapkan!');
+                        }
+                    } else {
+                        const errMsg = data.message || 'Gagal menyimpan penugasan personil.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: errMsg, confirmButtonColor: '#8F0A0D' });
+                        } else {
+                            alert(errMsg);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error submitting delegation:', err);
+                    alert('Terjadi kesalahan saat menyimpan delegasi tim.');
+                } finally {
+                    this.isSubmittingDelegation = false;
+                }
             },
 
             showToast(message) {

@@ -166,7 +166,9 @@ class ProjectController extends Controller
             $projects = $projects->filter($isValidSalesProject)->values();
         }
 
-        return view('projects.index', compact('projects', 'isLead', 'canManage', 'canCreate', 'canDelete', 'isDirektur', 'isSupervisor', 'canEditProgress'));
+        $assignableEngineers = $isLead ? \App\Helpers\ScopeHelper::getAssignableEngineers($user)->load('division') : collect();
+
+        return view('projects.index', compact('projects', 'isLead', 'canManage', 'canCreate', 'canDelete', 'isDirektur', 'isSupervisor', 'canEditProgress', 'assignableEngineers'));
     }
 
     public function store(ProjectRequest $request)
