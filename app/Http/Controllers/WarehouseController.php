@@ -20,6 +20,45 @@ class WarehouseController extends Controller
                 Artisan::call('migrate', ['--force' => true]);
                 Artisan::call('db:seed', ['--class' => 'WarehouseSeeder', '--force' => true]);
             } catch (\Throwable $e) {}
+        } else {
+            // Auto-heal data dummy agar selalu lengkap dan realistis
+            try {
+                WarehouseItem::where('item_code', 'WH-2026-0001')
+                    ->where(function($q) { $q->whereNull('poc_customer_name')->orWhere('poc_customer_name', ''); })
+                    ->update([
+                        'poc_customer_name'   => 'PT Bank Rakyat Indonesia (Persero) Tbk',
+                        'customer_address'    => 'Gedung Kantor Pusat BRI, Jl. Jend. Sudirman Kav. 44-46, Jakarta Pusat',
+                        'customer_pic'        => 'Budi Hartono (IT Infrastructure)',
+                        'customer_phone'      => '081287654321',
+                        'customer_sales_name' => 'Raiza',
+                        'poc_pic_name'        => 'Budi Hartono',
+                        'poc_sales_name'      => 'Raiza',
+                        'location_type'       => 'Customer',
+                        'status'              => 'Pelanggan',
+                    ]);
+
+                WarehouseItem::where('item_code', 'WH-2026-0002')
+                    ->where(function($q) { $q->whereNull('poc_customer_name')->orWhere('poc_customer_name', ''); })
+                    ->update([
+                        'poc_customer_name'   => 'PT Bank Mandiri (Persero) Tbk',
+                        'customer_address'    => 'Plaza Mandiri Lt. 18, Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta Selatan',
+                        'customer_pic'        => 'Arief Wicaksono (Security Lead)',
+                        'customer_phone'      => '081198761234',
+                        'customer_sales_name' => 'Nabylla Berlianita',
+                        'poc_pic_name'        => 'Arief Wicaksono',
+                        'poc_sales_name'      => 'Nabylla Berlianita',
+                        'location_type'       => 'Customer',
+                        'status'              => 'Pelanggan',
+                    ]);
+
+                WarehouseItem::where('item_code', 'WH-2026-0005')
+                    ->where(function($q) { $q->whereNull('customer_sales_name')->orWhere('customer_sales_name', ''); })
+                    ->update([
+                        'contract_number'     => 'DO-MTR-2026-019',
+                        'customer_sales_name' => 'Ahmad (Sales Enterprise)',
+                        'poc_sales_name'      => 'Ahmad (Sales Enterprise)',
+                    ]);
+            } catch (\Throwable $e) {}
         }
     }
 
