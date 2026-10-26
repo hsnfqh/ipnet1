@@ -974,23 +974,16 @@
                                     </div>
                                 </div>
 
-                                {{-- Task List Assigned by PM to this Engineer (Rincian Pekerjaan) --}}
-                                <div class="pt-2 border-t border-slate-100 space-y-1.5">
-                                    <div class="flex items-center justify-between text-[10.5px] font-bold text-slate-500">
-                                        <span class="flex items-center gap-1 text-slate-600">
-                                            <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2"/></svg>
-                                            Rincian Tugas dari PM (WBS):
-                                        </span>
-                                        @if(!$isLeadUser)
-                                            <button type="button" 
-                                                    @click="selectedEngineerId = '{{ $item['id'] }}'; showQuickTaskModal = true;"
-                                                    class="text-[10.5px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-0.5 cursor-pointer">
-                                                <span>+ Tambah Task</span>
-                                            </button>
-                                        @endif
-                                    </div>
+                                {{-- Task List Assigned by PM to this Engineer (Hanya muncul jika sudah ada task) --}}
+                                @if(!empty($item['tasks']) && count($item['tasks']) > 0)
+                                    <div class="pt-2 border-t border-slate-100 space-y-1.5">
+                                        <div class="flex items-center justify-between text-[10.5px] font-bold text-slate-500">
+                                            <span class="flex items-center gap-1 text-slate-600">
+                                                <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2"/></svg>
+                                                Rincian Tugas (WBS):
+                                            </span>
+                                        </div>
 
-                                    @if(!empty($item['tasks']) && count($item['tasks']) > 0)
                                         <div class="space-y-1">
                                             @foreach($item['tasks'] as $tsk)
                                                 <div class="flex items-center justify-between p-1.5 px-2.5 rounded-lg bg-slate-50 border border-slate-200/60 text-xs hover:bg-slate-100/70 transition">
@@ -1013,12 +1006,8 @@
                                                 </div>
                                             @endforeach
                                         </div>
-                                    @else
-                                        <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-200/50 text-[11px] text-amber-800">
-                                            Belum ada pembagian tugas teknis dari PM untuk personil ini.
-                                        </div>
-                                    @endif
-                                </div>
+                                    </div>
+                                @endif
                             </div>
                         @empty
                             <div class="text-center py-4 text-slate-400 text-xs font-medium border border-dashed border-slate-200 rounded-xl">
