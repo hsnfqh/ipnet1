@@ -205,19 +205,48 @@ class WarehouseController extends Controller
     }
 
     /**
-     * TRANSAKSI INVENTORI 2: Barang Keluar (Implementasi Proyek / Dispatch Pelanggan)
+     * TRANSAKSI INVENTORI: Barang Keluar (Implementasi Proyek & Peminjaman / POC)
      */
     public function barangKeluar(Request $request)
     {
         $this->ensureTableReady();
         $metrics = $this->getMetrics();
 
+        $baseQuery = WarehouseItem::where(function($q) {
+            $q->where('location_type', 'Customer')
+              ->orWhere('status', 'POC / Pinjaman')
+              ->orWhere('category', 'Pinjaman')
+              ->orWhereNotNull('contract_number');
+        });
+
+        // Tab counts
+        $counts = [
+            'all'            => (clone $baseQuery)->count(),
+            'proyek'         => (clone $baseQuery)->where('location_type', 'Customer')->where('status', '!=', 'POC / Pinjaman')->count(),
+            'poc'            => (clone $baseQuery)->where('status', 'POC / Pinjaman')->count(),
+            'pinjaman_disti' => (clone $baseQuery)->where('category', 'Pinjaman')->where('loan_source_type', 'disti')->count(),
+            'pinjaman_ipnet' => (clone $baseQuery)->where('category', 'Pinjaman')->where('loan_source_type', 'ipnet')->count(),
+        ];
+
         $query = WarehouseItem::with('creator')
             ->where(function($q) {
                 $q->where('location_type', 'Customer')
                   ->orWhere('status', 'POC / Pinjaman')
+                  ->orWhere('category', 'Pinjaman')
                   ->orWhereNotNull('contract_number');
             });
+
+        if ($request->filled('type') && $request->type !== 'all') {
+            if ($request->type === 'proyek') {
+                $query->where('location_type', 'Customer')->where('status', '!=', 'POC / Pinjaman');
+            } elseif ($request->type === 'poc') {
+                $query->where('status', 'POC / Pinjaman');
+            } elseif ($request->type === 'pinjaman_disti') {
+                $query->where('category', 'Pinjaman')->where('loan_source_type', 'disti');
+            } elseif ($request->type === 'pinjaman_ipnet') {
+                $query->where('category', 'Pinjaman')->where('loan_source_type', 'ipnet');
+            }
+        }
 
         if ($request->filled('search')) {
             $s = trim($request->search);
@@ -227,13 +256,15 @@ class WarehouseController extends Controller
                   ->orWhere('serial_number', 'like', "%{$s}%")
                   ->orWhere('contract_number', 'like', "%{$s}%")
                   ->orWhere('poc_customer_name', 'like', "%{$s}%")
+                  ->orWhere('disti_name', 'like', "%{$s}%")
+                  ->orWhere('ipnet_pic_name', 'like', "%{$s}%")
                   ->orWhere('customer_pic', 'like', "%{$s}%");
             });
         }
 
         $items = $query->latest()->paginate(15)->withQueryString();
 
-        return view('warehouse.barang_keluar', compact('items', 'metrics'));
+        return view('warehouse.barang_keluar', compact('items', 'metrics', 'counts'));
     }
 
     /**

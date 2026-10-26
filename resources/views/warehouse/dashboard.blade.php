@@ -265,7 +265,7 @@
                             <span class="text-[10.5px] text-[#64748B]">Proyek &amp; Dispatch</span>
                         </a>
 
-                        <a href="{{ route('warehouse.transactions.poc') }}" 
+                        <a href="{{ route('warehouse.transactions.out', ['type' => 'poc']) }}" 
                            class="p-3 rounded-xl border border-[#E2E8F0] hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-white transition group flex flex-col justify-between">
                             <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center mb-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -273,7 +273,7 @@
                                 </svg>
                             </div>
                             <span class="text-[12.5px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D]">Peminjaman &amp; POC</span>
-                            <span class="text-[10.5px] text-[#64748B]">Disti &amp; Pelanggan</span>
+                            <span class="text-[10.5px] text-[#64748B]">Kategori Barang Keluar</span>
                         </a>
 
                         <a href="{{ route('warehouse.stock_opname.index') }}" 

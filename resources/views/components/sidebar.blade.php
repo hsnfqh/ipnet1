@@ -20,9 +20,7 @@
             ['key' => 'wh_items',         'label' => 'Inventory',             'route' => 'warehouse.items.index'],
             ['key' => 'wh_in',            'label' => 'Barang Masuk',          'route' => 'warehouse.transactions.in'],
             ['key' => 'wh_out',           'label' => 'Barang Keluar',         'route' => 'warehouse.transactions.out'],
-            ['key' => 'wh_poc',           'label' => 'Peminjaman & POC',      'route' => 'warehouse.transactions.poc'],
             ['key' => 'wh_stock_opname',  'label' => 'Stock Opname',          'route' => 'warehouse.stock_opname.index'],
-            ['key' => 'wh_reports',       'label' => 'Laporan Inventori',     'route' => 'warehouse.reports.index'],
         ];
     } elseif ($isExecutiveOrGl) {
         $navItems = [

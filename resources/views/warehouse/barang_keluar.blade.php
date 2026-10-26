@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Transaksi Barang Keluar - Warehouse IPNET')
+@section('title', 'Transaksi Barang Keluar & Peminjaman - Warehouse IPNET')
 
 @push('styles')
 <style>
@@ -11,6 +11,10 @@
         border-radius: 18px;
         box-shadow: 0 4px 18px rgba(0, 0, 0, 0.035);
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ipnet-card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
     }
     .ipnet-badge-dot {
         width: 8px;
@@ -47,10 +51,10 @@
                             <span class="ipnet-badge-dot"></span> TRANSAKSI INVENTORI
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">
-                            Pengeluaran Perangkat (Proyek, Dispatch &amp; POC)
+                            Pengeluaran Perangkat (Proyek, Dispatch, &amp; Peminjaman POC)
                         </h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">
-                            Monitoring alur perangkat yang dikeluarkan dari gudang IPNET untuk implementasi proyek pelanggan, surat jalan (DO), atau POC.
+                            Pencatatan alokasi perangkat untuk implementasi proyek pelanggan, surat jalan (DO), peminjaman distributor, serta POC.
                         </p>
                     </div>
 
@@ -59,31 +63,48 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
-                        <span>Alokasikan Pengeluaran</span>
+                        <span>Alokasikan Pengeluaran / Pinjaman</span>
                     </a>
                 </div>
 
-                <!-- FILTER / SEARCH BAR -->
-                <form method="GET" action="{{ route('warehouse.transactions.out') }}" class="pt-4 flex flex-col sm:flex-row gap-3">
-                    <div class="relative flex-1">
+                <!-- FILTER PILLS KATEGORI PENGELUARAN / PEMINJAMAN -->
+                <div class="pt-4 flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="{{ route('warehouse.transactions.out', ['type' => 'all']) }}" 
+                           class="px-3.5 py-1.5 rounded-xl text-[12.5px] font-bold transition {{ (!request('type') || request('type') === 'all') ? 'bg-[#8F0A0D] text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}">
+                            Semua Keluar ({{ $counts['all'] ?? 0 }})
+                        </a>
+                        <a href="{{ route('warehouse.transactions.out', ['type' => 'proyek']) }}" 
+                           class="px-3.5 py-1.5 rounded-xl text-[12.5px] font-bold transition {{ request('type') === 'proyek' ? 'bg-[#8F0A0D] text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}">
+                            Proyek Pelanggan ({{ $counts['proyek'] ?? 0 }})
+                        </a>
+                        <a href="{{ route('warehouse.transactions.out', ['type' => 'poc']) }}" 
+                           class="px-3.5 py-1.5 rounded-xl text-[12.5px] font-bold transition {{ request('type') === 'poc' ? 'bg-[#8F0A0D] text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}">
+                            Peminjaman / POC ({{ $counts['poc'] ?? 0 }})
+                        </a>
+                        <a href="{{ route('warehouse.transactions.out', ['type' => 'pinjaman_disti']) }}" 
+                           class="px-3.5 py-1.5 rounded-xl text-[12.5px] font-bold transition {{ request('type') === 'pinjaman_disti' ? 'bg-[#8F0A0D] text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}">
+                            Pinjaman Distributor ({{ $counts['pinjaman_disti'] ?? 0 }})
+                        </a>
+                        <a href="{{ route('warehouse.transactions.out', ['type' => 'pinjaman_ipnet']) }}" 
+                           class="px-3.5 py-1.5 rounded-xl text-[12.5px] font-bold transition {{ request('type') === 'pinjaman_ipnet' ? 'bg-[#8F0A0D] text-white shadow-sm' : 'bg-slate-100 hover:bg-slate-200 text-slate-700' }}">
+                            Pinjaman Internal ({{ $counts['pinjaman_ipnet'] ?? 0 }})
+                        </a>
+                    </div>
+
+                    <!-- SEARCH INPUT -->
+                    <form method="GET" action="{{ route('warehouse.transactions.out') }}" class="relative min-w-[260px]">
+                        <input type="hidden" name="type" value="{{ request('type', 'all') }}">
                         <input type="text" 
                                name="search" 
                                value="{{ request('search') }}" 
-                               placeholder="Cari no kontrak, Serial Number, nama pelanggan, PIC, atau sales..."
-                               class="w-full pl-10 pr-4 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[13px] font-medium text-[#1E293B] placeholder-[#94A3B8] focus:bg-white focus:border-[#8F0A0D] outline-none transition">
-                        <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                               placeholder="Cari kontrak, SN, PIC, sales..."
+                               class="w-full pl-9 pr-4 py-1.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] placeholder-[#94A3B8] focus:bg-white focus:border-[#8F0A0D] outline-none transition">
+                        <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
-                    </div>
-                    <button type="submit" class="px-5 py-2.5 bg-[#1E293B] hover:bg-[#0F172A] text-white rounded-xl text-[13px] font-bold transition">
-                        Cari Data
-                    </button>
-                    @if(request('search'))
-                        <a href="{{ route('warehouse.transactions.out') }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-semibold transition text-center">
-                            Reset
-                        </a>
-                    @endif
-                </form>
+                    </form>
+                </div>
             </div>
 
             <!-- TABLE BARANG KELUAR -->
@@ -95,9 +116,10 @@
                                 <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">No. Kontrak / Proyek</th>
                                 <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Perangkat &amp; Brand</th>
                                 <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Serial Number</th>
-                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Tujuan Pengeluaran</th>
-                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">PIC &amp; Sales Pengawal</th>
-                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Status</th>
+                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Kategori Pengeluaran</th>
+                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Tujuan / Pihak Terkait</th>
+                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">PIC &amp; Sales IPNET</th>
+                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Status / Durasi</th>
                                 <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider text-right">Detail</th>
                             </tr>
                         </thead>
@@ -117,17 +139,50 @@
                                         <div class="text-[10.5px] text-[#64748B] font-mono">{{ $item->item_code }}</div>
                                     </td>
                                     <td class="py-3 px-3">
-                                        <div class="text-[12px] font-bold text-[#1E293B]">{{ $item->poc_customer_name ?: ($item->customer_address ? 'Pelanggan Terdaftar' : 'Proyek Implementasi') }}</div>
-                                        <div class="text-[11px] text-[#64748B] truncate max-w-[200px]">{{ $item->customer_address ?: ($item->warehouse_rack ?: '-') }}</div>
+                                        @if($item->status === 'POC / Pinjaman')
+                                            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-100 text-purple-800">
+                                                Peminjaman / POC
+                                            </span>
+                                        @elseif($item->loan_source_type === 'disti')
+                                            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800">
+                                                Pinjaman Disti
+                                            </span>
+                                        @elseif($item->loan_source_type === 'ipnet')
+                                            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800">
+                                                Pinjaman Internal
+                                            </span>
+                                        @else
+                                            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800">
+                                                Implementasi Proyek
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="py-3 px-3">
-                                        <div class="text-[12px] font-semibold text-[#1E293B]">PIC: {{ $item->customer_pic ?: ($item->poc_pic_name ?: '-') }}</div>
-                                        <div class="text-[11px] text-[#64748B]">Sales: {{ $item->customer_sales_name ?: ($item->poc_sales_name ?: '-') }}</div>
+                                        <div class="text-[12px] font-bold text-[#1E293B]">
+                                            {{ $item->poc_customer_name ?: ($item->disti_name ?: ($item->customer_address ? 'Pelanggan Proyek' : ($item->ipnet_work_unit ?: 'Klien'))) }}
+                                        </div>
+                                        <div class="text-[11px] text-[#64748B] truncate max-w-[180px]">
+                                            {{ $item->customer_address ?: ($item->disti_address ?: '-') }}
+                                        </div>
                                     </td>
                                     <td class="py-3 px-3">
-                                        <span class="px-2 py-0.5 rounded text-[11px] font-bold {{ $item->status === 'POC / Pinjaman' ? 'bg-purple-100 text-purple-800' : 'bg-rose-100 text-rose-800' }}">
-                                            {{ $item->status }}
-                                        </span>
+                                        <div class="text-[12px] font-semibold text-[#1E293B]">
+                                            PIC: {{ $item->customer_pic ?: ($item->poc_pic_name ?: ($item->disti_pic ?: ($item->ipnet_pic_name ?: '-'))) }}
+                                        </div>
+                                        <div class="text-[11px] text-[#64748B]">
+                                            Sales: {{ $item->customer_sales_name ?: ($item->poc_sales_name ?: '-') }}
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-3">
+                                        @if($item->status === 'POC / Pinjaman' || $item->category === 'Pinjaman')
+                                            <span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                                {{ $item->poc_duration ?: ($item->disti_duration ?: ($item->ipnet_duration ?: '30 Hari')) }}
+                                            </span>
+                                        @else
+                                            <span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                                Terpasang
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="py-3 px-3 text-right">
                                         <a href="{{ route('warehouse.items.index', ['search' => $item->item_code]) }}" 
@@ -138,8 +193,8 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-8 text-center text-[#94A3B8] text-[13px]">
-                                        Tidak ada catatan barang keluar yang sesuai.
+                                    <td colspan="8" class="py-8 text-center text-[#94A3B8] text-[13px]">
+                                        Tidak ada catatan pengeluaran barang atau peminjaman yang cocok.
                                     </td>
                                 </tr>
                             @endforelse
