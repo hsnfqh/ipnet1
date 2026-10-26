@@ -754,12 +754,8 @@
                                                                 </span>
                                                             @endif
                                                         </div>
-                                                        <p class="text-slate-500 text-[11.5px] mt-0.5 flex items-center gap-1.5 font-normal">
-                                                            <span>{{ $p->client }}</span>
-                                                            <span class="text-slate-300">&bull;</span>
-                                                            <span class="text-[10.5px] text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
-                                                                Disahkan: {{ $p->handover_approved_at ? \Carbon\Carbon::parse($p->handover_approved_at)->format('d M Y') : 'PMO' }}
-                                                            </span>
+                                                        <p class="text-slate-500 text-[11.5px] mt-0.5 font-normal">
+                                                            {{ $p->client }}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -781,22 +777,15 @@
                                             {{-- Tim Lapangan (Delegasi Lead) --}}
                                             <td class="py-3 px-4">
                                                 @if($isAssigned)
-                                                    <div>
-                                                        <div class="flex items-center gap-1.5 flex-wrap">
-                                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                                                                <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                                {{ count($assignedEngs) }} Personil Ditugaskan
-                                                            </span>
-                                                        </div>
-                                                        <p class="text-[11px] text-slate-500 font-normal mt-1 line-clamp-1">
-                                                            {{ implode(', ', array_column($assignedEngs, 'name')) }}
-                                                        </p>
-                                                    </div>
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                        {{ count($assignedEngs) }} Personil Ditugaskan
+                                                    </span>
                                                 @else
-                                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200/70 text-amber-700 text-[11px] font-medium">
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200/70 text-amber-700 text-[11px] font-medium">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                                         <span>Menunggu Delegasi Lead</span>
-                                                    </div>
+                                                    </span>
                                                 @endif
                                             </td>
 
