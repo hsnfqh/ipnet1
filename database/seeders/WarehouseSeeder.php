@@ -19,13 +19,17 @@ class WarehouseSeeder extends Seeder
         $warehouseUser = User::firstOrCreate(
             ['email' => 'warehouse@ipnetsolusindo.com'],
             [
-                'name'     => 'Staff Logistik & Warehouse',
+                'name'     => 'Ahmad',
                 'password' => Hash::make('password'),
                 'position' => 'Warehouse & Inventory Officer',
                 'phone'    => '081298765432',
                 'is_active'=> true,
             ]
         );
+        $warehouseUser->update([
+            'name'     => 'Ahmad',
+            'position' => 'Warehouse & Inventory Officer',
+        ]);
         $warehouseUser->syncRoles(['Warehouse']);
 
         // 3. Data Dummy Inventaris Realistis

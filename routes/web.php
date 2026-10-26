@@ -1791,6 +1791,7 @@ Route::get('/seed-warehouse-official', function () {
             'status' => 'success',
             'message' => 'Sistem & data dummy Warehouse berhasil diinisialisasi!',
             'credentials' => [
+                'name' => 'Ahmad',
                 'email' => 'warehouse@ipnetsolusindo.com',
                 'password' => 'password',
                 'role' => 'Warehouse',
