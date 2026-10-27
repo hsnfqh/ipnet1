@@ -821,50 +821,63 @@
 
                     {{-- Status Banner Penugasan Lead --}}
                     @if(count($assignedEngineers) > 0)
-                        <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/60 flex items-start justify-between gap-2">
-                            <div class="flex items-start gap-2 min-w-0">
-                                <div class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <div class="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center justify-center shrink-0">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                     </svg>
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <p class="text-[11.5px] font-bold text-emerald-900">Tim Resmi Ditetapkan Lead</p>
-                                        <span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-200/60 text-emerald-800 font-semibold">
-                                            {{ $teamDelegatedByName ?? 'Lead' }} &bull; {{ $teamDelegatedAt ?? '-' }}
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="font-bold text-slate-800 text-xs">Personil Tim Ditugaskan</span>
+                                        <span class="text-slate-300">•</span>
+                                        <span class="text-[11px] text-slate-500">
+                                            Oleh <strong class="text-slate-700 font-semibold">{{ $teamDelegatedByName ?? 'Lead' }}</strong>
+                                            @if($teamDelegatedAt)
+                                                <span class="text-slate-400">({{ $teamDelegatedAt }})</span>
+                                            @endif
                                         </span>
                                     </div>
                                     @if(!empty($leadNotes))
-                                        <p class="text-[11px] text-emerald-800/80 mt-0.5 italic line-clamp-1">"{{ $leadNotes }}"</p>
+                                        <p class="text-[11px] text-slate-500 mt-0.5 italic line-clamp-1">
+                                            &ldquo;{{ $leadNotes }}&rdquo;
+                                        </p>
                                     @endif
                                 </div>
                             </div>
                             @if($isLeadUser)
                                 <button type="button" 
                                         @click="showAssignTeamModal = true" 
-                                        class="text-[10.5px] font-bold text-emerald-700 hover:text-emerald-900 shrink-0 hover:underline cursor-pointer">
+                                        class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 hover:text-slate-900 transition shrink-0 cursor-pointer shadow-2xs">
                                     Kelola Tim
                                 </button>
                             @endif
                         </div>
                     @else
                         @if($isLeadUser)
-                            <div class="p-2.5 rounded-xl bg-red-50/80 border border-red-200/70 flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D] shrink-0 animate-pulse"></span>
-                                <p class="text-[11.5px] text-[#8F0A0D] font-medium truncate">
-                                    <strong class="font-bold">Aksi Lead:</strong> Belum ada personil lapangan yang ditugaskan.
-                                </p>
+                            <div class="px-3.5 py-2.5 rounded-xl bg-red-50/60 border border-red-200/70 flex items-center justify-between gap-3 text-xs">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="w-2 h-2 rounded-full bg-[#8F0A0D] shrink-0 animate-pulse"></span>
+                                    <span class="text-xs text-[#8F0A0D] font-medium truncate">
+                                        <strong class="font-bold">Aksi Lead:</strong> Belum ada personil lapangan yang ditugaskan.
+                                    </span>
+                                </div>
+                                <button type="button" 
+                                        @click="showAssignTeamModal = true" 
+                                        class="px-2.5 py-1 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition shrink-0 cursor-pointer">
+                                    Tugaskan Tim
+                                </button>
                             </div>
                         @else
-                            <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/70 flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-2 min-w-0">
+                            <div class="px-3.5 py-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70 flex items-center justify-between gap-3 text-xs">
+                                <div class="flex items-center gap-2.5 min-w-0">
                                     <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse"></span>
-                                    <p class="text-[11.5px] text-amber-900 font-medium truncate">
+                                    <span class="text-xs text-amber-900 font-medium truncate">
                                         <strong class="font-bold">Menunggu Lead:</strong> Belum ada personil lapangan yang ditugaskan.
-                                    </p>
+                                    </span>
                                 </div>
-                                <span class="text-[10.5px] font-semibold text-amber-700 shrink-0">
+                                <span class="text-[11px] font-semibold text-amber-700 shrink-0">
                                     Menunggu Delegasi
                                 </span>
                             </div>
