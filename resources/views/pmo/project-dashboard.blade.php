@@ -1460,9 +1460,39 @@
                 </button>
             </div>
 
-            <form action="{{ route('pmo.projects.quick_task', $project->id) }}" method="POST" class="space-y-3.5">
+            <form action="{{ route('pmo.projects.quick_task', $project->id) }}" 
+                  method="POST" 
+                  x-data="{ 
+                      wbsTitle: '', 
+                      isCustomTitle: false,
+                      openEngDropdown: false, 
+                      selectedEngIds: [],
+                      engCount() { return this.selectedEngIds.length; },
+                      toggleEng(id) {
+                          id = parseInt(id, 10);
+                          const idx = this.selectedEngIds.indexOf(id);
+                          if (idx > -1) {
+                              this.selectedEngIds.splice(idx, 1);
+                          } else {
+                              this.selectedEngIds.push(id);
+                          }
+                      },
+                      hasEng(id) {
+                          return this.selectedEngIds.includes(parseInt(id, 10));
+                      },
+                      validateForm(e) {
+                          if (this.selectedEngIds.length === 0) {
+                              e.preventDefault();
+                              alert('Silakan pilih minimal satu engineer pelaksana.');
+                              this.openEngDropdown = true;
+                              return false;
+                          }
+                      }
+                  }"
+                  @submit="validateForm($event)"
+                  class="space-y-3.5">
                 @csrf
-                <div x-data="{ wbsTitle: '', isCustomTitle: false }">
+                <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-xs font-bold text-slate-700">
                             Judul Tugas / Rincian Pekerjaan (WBS) <span class="text-[#8F0A0D]">*</span>
@@ -1470,7 +1500,7 @@
                         <span class="text-[10.5px] text-slate-400 font-medium">Pilih dari dropdown atau ketik kustom</span>
                     </div>
 
-                    {{-- Dropdown Standar Judul WBS --}}
+                    {{-- Dropdown Standar Judul WBS (Bersih tanpa stiker/emoji) --}}
                     <select x-model="wbsTitle" 
                             @change="isCustomTitle = (wbsTitle === '__custom__')"
                             :name="isCustomTitle ? '' : 'title'"
@@ -1484,7 +1514,7 @@
                         <option value="Implementasi TACACS">Implementasi TACACS</option>
                         <option value="Testing dan Komisioning">Testing dan Komisioning</option>
                         <option value="Fase Penutup">Fase Penutup</option>
-                        <option value="__custom__">✏️ Judul Lainnya / Kustom (Ketik Manual)...</option>
+                        <option value="__custom__">Judul Lainnya / Kustom (Ketik Manual)...</option>
                     </select>
 
                     {{-- Input Teks Tambahan jika memilih Kustom --}}
@@ -1495,31 +1525,133 @@
                                :name="isCustomTitle ? 'title' : 'title_custom'"
                                :required="isCustomTitle"
                                placeholder="Contoh: Instalasi Rack &amp; Penarikan Kabel UTP / Konfigurasi Router" 
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-red-200 bg-red-50/20 text-xs font-semibold text-slate-900 focus:border-[#8F0A0D] focus:bg-white outline-none transition">
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-900 focus:border-[#8F0A0D] outline-none transition">
                     </div>
                 </div>
 
+                @php
+                    $candidateList = collect();
+                    if (!empty($assignedEngineers)) {
+                        foreach ($assignedEngineers as $ae) {
+                            $candidateList->push([
+                                'id' => (int) ($ae['id'] ?? 0),
+                                'name' => $ae['name'] ?? 'Engineer',
+                                'position' => $ae['position'] ?? 'Engineer',
+                                'is_lead_assigned' => true,
+                                'role' => $ae['role'] ?? null,
+                            ]);
+                        }
+                    }
+                    if (!empty($availableEngineers)) {
+                        foreach ($availableEngineers as $ave) {
+                            if (!$candidateList->contains('id', (int) $ave->id)) {
+                                $candidateList->push([
+                                    'id' => (int) $ave->id,
+                                    'name' => $ave->name,
+                                    'position' => $ave->position ?? 'Engineer',
+                                    'is_lead_assigned' => false,
+                                    'role' => null,
+                                ]);
+                            }
+                        }
+                    }
+                @endphp
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Tugaskan ke Engineer Pelaksana</label>
-                        <select name="engineer_id" x-model="selectedEngineerId" required 
-                                class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
-                            <option value="">-- Pilih Engineer Pelaksana --</option>
-                            @if(count($assignedEngineers) > 0)
-                                <optgroup label="⭐ Personil Tim Proyek (Didelegasikan oleh Lead)">
-                                    @foreach($assignedEngineers as $ae)
-                                        <option value="{{ $ae['id'] }}">{{ $ae['name'] }} ({{ $ae['position'] ?? 'Engineer' }}){{ !empty($ae['role']) ? ' • Fokus: ' . $ae['role'] : '' }}</option>
+                    {{-- Pilihan Engineer (Mendukung Multi-Select / Bisa Pilih Beberapa Engineer Sekaligus) --}}
+                    <div class="relative" @click.outside="openEngDropdown = false">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700">
+                                Tugaskan ke Engineer <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <span class="text-[10px] text-slate-500 font-bold" x-show="engCount() > 0" x-text="engCount() + ' dipilih'"></span>
+                        </div>
+
+                        {{-- Tombol Dropdown Multi-Select --}}
+                        <button type="button" 
+                                @click="openEngDropdown = !openEngDropdown" 
+                                class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white hover:border-slate-300 focus:border-[#8F0A0D] outline-none flex items-center justify-between transition cursor-pointer shadow-2xs">
+                            <span class="truncate" 
+                                  :class="engCount() === 0 ? 'text-slate-400 font-normal' : 'text-slate-900 font-bold'"
+                                  x-text="engCount() === 0 ? '-- Pilih Satu atau Beberapa Engineer --' : engCount() + ' Engineer Terpilih'">
+                            </span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1 transition-transform duration-200" :class="openEngDropdown ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+
+                        {{-- Popover Dropdown Berisi Checkbox Engineer --}}
+                        <div x-show="openEngDropdown" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             style="display: none;"
+                             class="absolute z-30 left-0 right-0 mt-1.5 p-2 bg-white rounded-xl border border-slate-200 shadow-xl max-h-56 overflow-y-auto space-y-1 text-xs">
+                            
+                            @if($candidateList->count() > 0)
+                                @php
+                                    $teamEngineers = $candidateList->where('is_lead_assigned', true);
+                                    $otherEngineers = $candidateList->where('is_lead_assigned', false);
+                                @endphp
+
+                                @if($teamEngineers->count() > 0)
+                                    <div class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                        Personil Tim Proyek (Ditugaskan Lead)
+                                    </div>
+                                    @foreach($teamEngineers as $ce)
+                                        <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition select-none"
+                                               :class="hasEng({{ $ce['id'] }}) ? 'bg-red-50/60 font-bold' : ''">
+                                            <input type="checkbox" 
+                                                   value="{{ $ce['id'] }}"
+                                                   :checked="hasEng({{ $ce['id'] }})"
+                                                   @change="toggleEng({{ $ce['id'] }})"
+                                                   class="w-4 h-4 rounded border-slate-300 text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-xs text-slate-800 truncate">{{ $ce['name'] }}</div>
+                                                <div class="text-[10px] text-slate-400 truncate">{{ $ce['position'] }}{{ !empty($ce['role']) ? ' • ' . $ce['role'] : '' }}</div>
+                                            </div>
+                                        </label>
                                     @endforeach
-                                </optgroup>
+                                @endif
+
+                                @if($otherEngineers->count() > 0)
+                                    <div class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 border-t border-slate-100 pt-1.5">
+                                        Personil Teknisi Lainnya
+                                    </div>
+                                    @foreach($otherEngineers as $ce)
+                                        <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition select-none"
+                                               :class="hasEng({{ $ce['id'] }}) ? 'bg-red-50/60 font-bold' : ''">
+                                            <input type="checkbox" 
+                                                   value="{{ $ce['id'] }}"
+                                                   :checked="hasEng({{ $ce['id'] }})"
+                                                   @change="toggleEng({{ $ce['id'] }})"
+                                                   class="w-4 h-4 rounded border-slate-300 text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-xs text-slate-800 truncate">{{ $ce['name'] }}</div>
+                                                <div class="text-[10px] text-slate-400 truncate">{{ $ce['position'] }}</div>
+                                            </div>
+                                        </label>
+                                    @endforeach
+                                @endif
                             @else
-                                <option value="" disabled selected>⚠️ Belum ada personil yang ditugaskan Lead</option>
+                                <div class="p-3 text-center text-slate-400 text-xs">
+                                    Tidak ada data engineer yang tersedia.
+                                </div>
                             @endif
-                        </select>
-                        @if(count($assignedEngineers) == 0)
-                            <p class="text-[10.5px] text-amber-700 font-medium mt-1">
-                                * Harap tunggu Lead Engineer menugaskan personil tim lapangan terlebih dahulu.
-                            </p>
-                        @endif
+                        </div>
+
+                        {{-- Hidden Inputs agar seluruh engineer_ids[] terkirim --}}
+                        <template x-for="engId in selectedEngIds" :key="engId">
+                            <input type="hidden" name="engineer_ids[]" :value="engId">
+                        </template>
+                        <input type="hidden" name="engineer_id" :value="selectedEngIds.length > 0 ? selectedEngIds[0] : ''">
+
+                        <p class="text-[10px] text-slate-400 mt-1">
+                            * Bisa memilih satu atau beberapa engineer pelaksana.
+                        </p>
                     </div>
 
                     <div>

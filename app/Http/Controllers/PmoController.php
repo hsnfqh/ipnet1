@@ -1404,14 +1404,26 @@ class PmoController extends Controller
             $request->merge(['title' => $rawTitle]);
         }
 
+        // Mendukung penugasan ke satu atau beberapa engineer pelaksana
+        $engineerIds = $request->input('engineer_ids', []);
+        if (empty($engineerIds) && $request->filled('engineer_id')) {
+            $engineerIds = [$request->input('engineer_id')];
+        }
+        $engineerIds = array_values(array_filter(array_unique(array_map('intval', (array) $engineerIds))));
+
+        if (empty($engineerIds)) {
+            return back()->with('error', 'Silakan pilih minimal satu engineer pelaksana.')->withInput();
+        }
+
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
-            'engineer_id'  => 'required|exists:users,id',
             'priority'     => 'required|in:Low,Medium,High',
             'start_date'   => 'nullable|date',
             'deadline'     => 'nullable|date',
             'description'  => 'nullable|string|max:2000',
         ]);
+
+        $primaryEngineerId = $engineerIds[0];
 
         $startDate = $validated['start_date'] ?? now()->toDateString();
         $deadlineStr = !empty($validated['deadline']) 
@@ -1421,7 +1433,7 @@ class PmoController extends Controller
         $task = Task::create([
             'title'       => $validated['title'],
             'project_id'  => $project->id,
-            'engineer_id' => $validated['engineer_id'],
+            'engineer_id' => $primaryEngineerId,
             'priority'    => $validated['priority'],
             'status'      => 'Assigned',
             'start_date'  => $startDate,
@@ -1433,32 +1445,38 @@ class PmoController extends Controller
         ]);
 
         if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
-            $task->engineers()->sync([$validated['engineer_id']]);
+            $task->engineers()->sync($engineerIds);
         }
 
-        $eng = User::find($validated['engineer_id']);
+        // Notifikasi ke seluruh engineer penerima tugas dari PM
+        foreach ($engineerIds as $engId) {
+            try {
+                \App\Models\Notification::create([
+                    'user_id' => $engId,
+                    'title'   => 'Tugas Teknis Baru (PM): ' . $task->title,
+                    'message' => "Project Manager telah menugaskan tugas '{$task->title}' pada proyek '{$project->name}'.",
+                    'type'    => 'task_assigned',
+                    'url'     => route('tasks.index'),
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {}
+        }
 
-        // Notifikasi ke engineer penerima tugas dari PM
-        try {
-            \App\Models\Notification::create([
-                'user_id' => $validated['engineer_id'],
-                'title'   => 'Tugas Teknis Baru (PM): ' . $task->title,
-                'message' => "Project Manager telah menugaskan tugas '{$task->title}' pada proyek '{$project->name}'.",
-                'type'    => 'task_assigned',
-                'url'     => route('tasks.index'),
-                'is_read' => false,
-            ]);
-        } catch (\Throwable $e) {}
+        $assignedCount = count($engineerIds);
+        $firstEng = User::find($primaryEngineerId);
+        $engText = $assignedCount > 1 
+            ? ($firstEng ? $firstEng->name : 'Engineer') . " (+" . ($assignedCount - 1) . " engineer lainnya)"
+            : ($firstEng ? $firstEng->name : 'engineer');
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Task "' . $task->title . '" berhasil dibuat dan didelegasikan ke ' . ($eng ? $eng->name : 'engineer') . '!',
+                'message' => 'Task "' . $task->title . '" berhasil dibuat dan didelegasikan ke ' . $engText . '!',
                 'task'    => $task,
             ]);
         }
 
-        return back()->with('success', 'Task "' . $task->title . '" berhasil dibuat dan didelegasikan ke ' . ($eng ? $eng->name : 'engineer') . '!');
+        return back()->with('success', 'Task "' . $task->title . '" berhasil dibuat dan didelegasikan ke ' . $engText . '!');
     }
 }
 
