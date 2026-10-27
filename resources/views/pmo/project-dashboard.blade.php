@@ -1585,50 +1585,20 @@
                              class="absolute z-30 left-0 right-0 mt-1.5 p-2 bg-white rounded-xl border border-slate-200 shadow-xl max-h-56 overflow-y-auto space-y-1 text-xs">
                             
                             @if($candidateList->count() > 0)
-                                @php
-                                    $teamEngineers = $candidateList->where('is_lead_assigned', true);
-                                    $otherEngineers = $candidateList->where('is_lead_assigned', false);
-                                @endphp
-
-                                @if($teamEngineers->count() > 0)
-                                    <div class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                        Personil Tim Proyek (Ditugaskan Lead)
-                                    </div>
-                                    @foreach($teamEngineers as $ce)
-                                        <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition select-none"
-                                               :class="hasEng({{ $ce['id'] }}) ? 'bg-red-50/60 font-bold' : ''">
-                                            <input type="checkbox" 
-                                                   value="{{ $ce['id'] }}"
-                                                   :checked="hasEng({{ $ce['id'] }})"
-                                                   @change="toggleEng({{ $ce['id'] }})"
-                                                   class="w-4 h-4 rounded border-slate-300 text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
-                                            <div class="flex-1 min-w-0">
-                                                <div class="text-xs text-slate-800 truncate">{{ $ce['name'] }}</div>
-                                                <div class="text-[10px] text-slate-400 truncate">{{ $ce['position'] }}{{ !empty($ce['role']) ? ' • ' . $ce['role'] : '' }}</div>
-                                            </div>
-                                        </label>
-                                    @endforeach
-                                @endif
-
-                                @if($otherEngineers->count() > 0)
-                                    <div class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 border-t border-slate-100 pt-1.5">
-                                        Personil Teknisi Lainnya
-                                    </div>
-                                    @foreach($otherEngineers as $ce)
-                                        <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition select-none"
-                                               :class="hasEng({{ $ce['id'] }}) ? 'bg-red-50/60 font-bold' : ''">
-                                            <input type="checkbox" 
-                                                   value="{{ $ce['id'] }}"
-                                                   :checked="hasEng({{ $ce['id'] }})"
-                                                   @change="toggleEng({{ $ce['id'] }})"
-                                                   class="w-4 h-4 rounded border-slate-300 text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
-                                            <div class="flex-1 min-w-0">
-                                                <div class="text-xs text-slate-800 truncate">{{ $ce['name'] }}</div>
-                                                <div class="text-[10px] text-slate-400 truncate">{{ $ce['position'] }}</div>
-                                            </div>
-                                        </label>
-                                    @endforeach
-                                @endif
+                                @foreach($candidateList as $ce)
+                                    <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition select-none"
+                                           :class="hasEng({{ $ce['id'] }}) ? 'bg-red-50/60 font-bold' : ''">
+                                        <input type="checkbox" 
+                                               value="{{ $ce['id'] }}"
+                                               :checked="hasEng({{ $ce['id'] }})"
+                                               @change="toggleEng({{ $ce['id'] }})"
+                                               class="w-4 h-4 rounded border-slate-300 text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="text-xs text-slate-800 truncate">{{ $ce['name'] }}</div>
+                                            <div class="text-[10px] text-slate-400 truncate">{{ $ce['position'] }}</div>
+                                        </div>
+                                    </label>
+                                @endforeach
                             @else
                                 <div class="p-3 text-center text-slate-400 text-xs">
                                     Tidak ada data engineer yang tersedia.
