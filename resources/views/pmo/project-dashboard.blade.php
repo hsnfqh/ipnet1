@@ -1462,13 +1462,41 @@
 
             <form action="{{ route('pmo.projects.quick_task', $project->id) }}" method="POST" class="space-y-3.5">
                 @csrf
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Judul Tugas / Rincian Pekerjaan (WBS)</label>
-                    <input type="text" 
-                           name="title" 
-                           required 
-                           placeholder="Contoh: Instalasi Rack &amp; Penarikan Kabel UTP / Konfigurasi Router" 
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:border-[#8F0A0D] outline-none">
+                <div x-data="{ wbsTitle: '', isCustomTitle: false }">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-700">
+                            Judul Tugas / Rincian Pekerjaan (WBS) <span class="text-[#8F0A0D]">*</span>
+                        </label>
+                        <span class="text-[10.5px] text-slate-400 font-medium">Pilih dari dropdown atau ketik kustom</span>
+                    </div>
+
+                    {{-- Dropdown Standar Judul WBS --}}
+                    <select x-model="wbsTitle" 
+                            @change="isCustomTitle = (wbsTitle === '__custom__')"
+                            :name="isCustomTitle ? '' : 'title'"
+                            required
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                        <option value="" disabled selected>-- Pilih Judul Tugas (WBS) --</option>
+                        <option value="Implementasi Network">Implementasi Network</option>
+                        <option value="Migrasi">Migrasi</option>
+                        <option value="Standarisasi IP">Standarisasi IP</option>
+                        <option value="Reconfigurasi Firewall Fortinet">Reconfigurasi Firewall Fortinet</option>
+                        <option value="Implementasi TACACS">Implementasi TACACS</option>
+                        <option value="Testing dan Komisioning">Testing dan Komisioning</option>
+                        <option value="Fase Penutup">Fase Penutup</option>
+                        <option value="__custom__">✏️ Judul Lainnya / Kustom (Ketik Manual)...</option>
+                    </select>
+
+                    {{-- Input Teks Tambahan jika memilih Kustom --}}
+                    <div class="mt-2" x-show="isCustomTitle" x-cloak>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ketik Judul Pekerjaan Kustom:</label>
+                        <input type="text" 
+                               name="title_custom" 
+                               :name="isCustomTitle ? 'title' : 'title_custom'"
+                               :required="isCustomTitle"
+                               placeholder="Contoh: Instalasi Rack &amp; Penarikan Kabel UTP / Konfigurasi Router" 
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-red-200 bg-red-50/20 text-xs font-semibold text-slate-900 focus:border-[#8F0A0D] focus:bg-white outline-none transition">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

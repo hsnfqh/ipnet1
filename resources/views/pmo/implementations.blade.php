@@ -241,6 +241,12 @@
                                                     <span class="font-bold text-slate-700" x-text="project.pm"></span>
                                                 </div>
                                             </template>
+                                            <template x-if="!project.pm || project.pm === 'Belum Ditentukan'">
+                                                <div class="text-[10.5px] text-slate-500 font-medium flex items-center gap-1">
+                                                    <span>PM:</span>
+                                                    <span class="italic text-amber-700 font-semibold" x-text="activeTab === 'pending_handover' ? 'Ditetapkan saat Review' : 'Belum Ditugaskan'"></span>
+                                                </div>
+                                            </template>
                                         </div>
                                     </td>
 

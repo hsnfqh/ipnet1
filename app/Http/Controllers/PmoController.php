@@ -652,9 +652,29 @@ class PmoController extends Controller
      */
     private function getPmoBaseData(Request $request)
     {
-        $user = auth()->user();
+        // Self-heal: Perbaiki jika ada proyek murni Managed Service yang salah terisi handover_status = 'Submitted'
+        try {
+            Project::where(function($q) {
+                $q->where('project_type', 'like', '%Managed Service%')
+                  ->orWhere('name', 'like', '%Managed Service%')
+                  ->orWhere('name', 'like', '%Pemeliharaan%');
+            })
+            ->where(function($q) {
+                $q->where('handover_status', 'Submitted')
+                  ->orWhere('handover_target', 'managed_service');
+            })
+            ->whereNull('pm_id')
+            ->update([
+                'handover_target'            => 'managed_service',
+                'handover_status'            => null,
+                'commercial_handover_status' => 'Approved',
+                'ms_handover_status'         => 'Accepted',
+                'stage'                      => 'Operate',
+                'status'                     => 'Active',
+            ]);
+        } catch (\Throwable $e) {}
 
-        // 1. Ambil data proyek aktif PMO (Hanya proyek komersial resmi tahap Deliver, Operate, atau berkas Handover dari Sales)
+        // 1. Ambil data proyek aktif PMO (Hanya proyek komersial resmi tahap Deliver atau berkas Handover Implementasi dari Sales)
         $query = Project::with([
             'pm:id,name,email',
             'division:id,name,code',
@@ -671,6 +691,21 @@ class PmoController extends Controller
         ->where('name', 'not like', '%Meeting%')
         ->where('name', 'not like', '%- On Going Project%')
         ->where('name', 'not like', '%- Closed Project%')
+        // Kecualikan proyek yang murni Managed Service / Pemeliharaan SLA (karena itu ranah modul Managed Service)
+        ->where(function($q) {
+            $q->whereNull('handover_target')
+              ->orWhere('handover_target', '!=', 'managed_service')
+              ->orWhere('handover_target', 'both');
+        })
+        ->where(function($q) {
+            $q->where('project_type', 'not like', '%Managed Service%')
+              ->orWhere('handover_target', 'both')
+              ->orWhereNull('project_type');
+        })
+        ->where(function($q) {
+            $q->where('name', 'not like', '%Managed Service%')
+              ->orWhere('handover_target', 'both');
+        })
         ->where(function($q) {
             $q->where('sales_name', 'like', '%Nabylla%')
               ->orWhere('sales_name', 'like', '%Raiza%')
@@ -679,21 +714,10 @@ class PmoController extends Controller
               ->orWhere('status', 'In Progress');
         })
         ->where(function($q) {
-            $q->whereIn('stage', ['Deliver', 'Operate'])
+            $q->whereIn('stage', ['Deliver'])
               ->orWhereIn('handover_status', ['Submitted', 'Conditional', 'Approved'])
               ->orWhere('sales_stage', 'Closed Won')
-              ->orWhere('status', 'In Progress');
-        })
-        // Pastikan proyek yang masih In Progress / Deliver atau butuh approval serah terima tetap masuk ke PMO portofolio.
-        ->where(function($q) {
-            $q->where(function($sub) {
-                $sub->whereNull('handover_target')
-                    ->orWhere('handover_target', '!=', 'managed_service')
-                    ->orWhere('handover_target', 'both');
-            })
-            ->orWhereIn('status', ['In Progress', 'On Progress'])
-            ->orWhere('stage', 'Deliver')
-            ->orWhereIn('handover_status', ['Submitted', 'Conditional']);
+              ->orWhereIn('status', ['In Progress', 'On Progress']);
         });
 
         // Filter divisi jika dipilih
@@ -874,18 +898,9 @@ class PmoController extends Controller
             $stLower = strtolower($p->status ?? '');
             $handoverStatus = $p->handover_status;
             if (empty($handoverStatus) || in_array($handoverStatus, ['Draft', 'Pending'])) {
-                if (in_array($stLower, ['in progress', 'on progress', 'active']) || $p->sales_stage === 'Closed Won') {
-                    if (empty($p->handover_approved_at)) {
-                        $handoverStatus = 'Submitted';
-                        try {
-                            $p->update([
-                                'handover_status' => 'Submitted',
-                                'handover_submitted_at' => $p->handover_submitted_at ?: now()
-                            ]);
-                        } catch (\Throwable $e) {}
-                    } else {
-                        $handoverStatus = 'Approved';
-                    }
+                if (!empty($p->handover_approved_at) || in_array($stLower, ['in progress', 'on progress', 'active'])) {
+                    // Jika proyek sudah berjalan aktif di lapangan, maka serah terima dianggap sudah disahkan
+                    $handoverStatus = 'Approved';
                 } else {
                     $handoverStatus = $handoverStatus ?: 'Draft';
                 }
@@ -1381,6 +1396,14 @@ class PmoController extends Controller
      */
     public function quickStoreTask(Request $request, Project $project)
     {
+        $rawTitle = trim((string) $request->input('title', ''));
+        if ($rawTitle === '__custom__' || empty($rawTitle)) {
+            $rawTitle = trim((string) $request->input('title_custom', ''));
+        }
+        if (!empty($rawTitle)) {
+            $request->merge(['title' => $rawTitle]);
+        }
+
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
             'engineer_id'  => 'required|exists:users,id',
