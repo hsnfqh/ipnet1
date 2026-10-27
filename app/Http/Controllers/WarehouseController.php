@@ -952,12 +952,14 @@ class WarehouseController extends Controller
 
         $warehouses = WarehouseLocation::where('status', 'Operasional')->get();
         $products   = WarehouseProduct::orderBy('name')->get();
+        $availableItems = WarehouseItem::where('status', 'Tersedia')->orderBy('name')->get();
 
         return view('warehouse.delivery_orders.index', compact(
             'deliveryOrders',
             'metrics',
             'warehouses',
-            'products'
+            'products',
+            'availableItems'
         ));
     }
 
@@ -977,10 +979,13 @@ class WarehouseController extends Controller
             'courier_name'      => 'nullable|string|max:150',
             'vehicle_no'        => 'nullable|string|max:50',
             'tracking_no'       => 'nullable|string|max:100',
+            'allocation_type'   => 'nullable|string|in:proyek,poc,pinjaman_ipnet,pinjaman_disti',
+            'duration_days'     => 'nullable|integer',
             'status'            => 'required|string|in:Draft,Siap Dikirim,Dalam Pengiriman,Terkirim & Diterima,Batal',
             'notes'             => 'nullable|string',
             'items'             => 'required|array|min:1',
-            'items.*.product_id'    => 'nullable|exists:warehouse_products,id',
+            'items.*.product_id'    => 'nullable',
+            'items.*.warehouse_item_id' => 'nullable|exists:warehouse_items,id',
             'items.*.product_name'  => 'required|string',
             'items.*.serial_number' => 'nullable|string',
             'items.*.quantity'      => 'required|integer|min:1',
@@ -989,7 +994,7 @@ class WarehouseController extends Controller
         ]);
 
         if (empty($validated['do_number'])) {
-            $validated['do_number'] = 'DO-IPN-' . date('Y') . '-' . str_pad(rand(1, 999), 4, '0', STR_PAD_LEFT);
+            $validated['do_number'] = 'DO-IPN-' . date('Y') . '-' . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
         }
 
         $wh = WarehouseLocation::find($validated['warehouse_id']);
@@ -999,7 +1004,7 @@ class WarehouseController extends Controller
             'do_date'           => $validated['do_date'],
             'reference_no'      => $validated['reference_no'],
             'warehouse_id'      => $validated['warehouse_id'],
-            'warehouse_name'    => $wh ? $wh->name : null,
+            'warehouse_name'    => $wh ? $wh->name : 'Gudang Utama IPNET',
             'recipient_name'    => $validated['recipient_name'],
             'recipient_company' => $validated['recipient_company'],
             'recipient_phone'   => $validated['recipient_phone'],
@@ -1012,10 +1017,12 @@ class WarehouseController extends Controller
             'created_by'        => auth()->id(),
         ]);
 
+        $allocType = $request->input('allocation_type', 'proyek');
+
         foreach ($validated['items'] as $itemData) {
             WarehouseDoItem::create([
                 'delivery_order_id' => $do->id,
-                'product_id'        => $itemData['product_id'] ?? null,
+                'product_id'        => !empty($itemData['product_id']) && is_numeric($itemData['product_id']) ? $itemData['product_id'] : null,
                 'product_name'      => $itemData['product_name'],
                 'serial_number'     => $itemData['serial_number'] ?? null,
                 'quantity'          => $itemData['quantity'],
@@ -1023,13 +1030,45 @@ class WarehouseController extends Controller
                 'notes'             => $itemData['notes'] ?? null,
             ]);
 
-            // Jika DO diset Dalam Pengiriman atau Terkirim, kurangi stok produk
-            if (in_array($validated['status'], ['Dalam Pengiriman', 'Terkirim & Diterima']) && !empty($itemData['product_id'])) {
+            // Jika item fisik WarehouseItem dipilih atau serial number cocok, update status fisik barang
+            $whItem = null;
+            if (!empty($itemData['warehouse_item_id'])) {
+                $whItem = WarehouseItem::find($itemData['warehouse_item_id']);
+            } elseif (!empty($itemData['serial_number'])) {
+                $whItem = WarehouseItem::where('serial_number', $itemData['serial_number'])->first();
+            }
+
+            if ($whItem) {
+                $targetStatus = match($allocType) {
+                    'poc' => 'POC / Pinjaman',
+                    'pinjaman_ipnet', 'pinjaman_disti' => 'Pinjaman',
+                    default => 'Pelanggan'
+                };
+
+                $whItem->update([
+                    'status'              => $targetStatus,
+                    'location_type'       => 'Customer',
+                    'warehouse_rack'      => null,
+                    'customer_address'    => $validated['delivery_address'],
+                    'customer_pic'        => $validated['recipient_name'],
+                    'customer_phone'      => $validated['recipient_phone'],
+                    'customer_sales_name' => auth()->user()->name ?? 'Sales Officer',
+                    'poc_customer_name'   => $validated['recipient_company'] ?: $validated['recipient_name'],
+                    'poc_pic_name'        => $validated['recipient_name'],
+                    'poc_pic_phone'       => $validated['recipient_phone'],
+                    'notes'               => "Teralokasi via {$do->do_number} (" . strtoupper($allocType) . "): " . ($itemData['notes'] ?? $validated['notes']),
+                ]);
+            }
+
+            // Kurangi stok di katalog WarehouseProduct
+            if (!empty($itemData['product_id']) && is_numeric($itemData['product_id'])) {
                 WarehouseProduct::where('id', $itemData['product_id'])->decrement('current_stock', $itemData['quantity']);
+            } elseif ($whItem) {
+                WarehouseProduct::where('name', $whItem->name)->orWhere('sku', $whItem->product_number)->decrement('current_stock', 1);
             }
         }
 
-        return redirect()->route('warehouse.delivery_orders.index')->with('success', "Surat Jalan Delivery Order {$do->do_number} berhasil diterbitkan!");
+        return redirect()->route('warehouse.delivery_orders.index')->with('success', "Surat Jalan Delivery Order {$do->do_number} berhasil diterbitkan dan stok fisik teralokasi!");
     }
 
     public function updateDoStatus(Request $request, $id)
@@ -1094,9 +1133,32 @@ class WarehouseController extends Controller
         return redirect()->route('warehouse.delivery_orders.index');
     }
 
-    public function returnToWarehouse(WarehouseItem $item)
+    public function returnToWarehouse(Request $request, $item)
     {
-        return redirect()->route('warehouse.delivery_orders.index');
+        $this->ensureTableReady();
+        $whItem = ($item instanceof WarehouseItem) ? $item : WarehouseItem::findOrFail($item);
+        
+        $rack = $request->input('warehouse_rack', 'Rak Gudang IPNET');
+        $notes = $request->input('notes', 'Pengembalian fisik unit selesai');
+
+        $whItem->update([
+            'status'           => 'Tersedia',
+            'location_type'    => 'Gudang IPNET',
+            'warehouse_rack'   => $rack,
+            'customer_address' => null,
+            'customer_pic'     => null,
+            'customer_phone'   => null,
+            'poc_customer_name'=> null,
+            'poc_pic_name'     => null,
+            'notes'            => 'Dikembalikan ke rak gudang: ' . $notes,
+        ]);
+
+        $prod = WarehouseProduct::where('name', $whItem->name)->orWhere('sku', $whItem->product_number)->first();
+        if ($prod) {
+            $prod->increment('current_stock', 1);
+        }
+
+        return redirect()->route('warehouse.delivery_orders.index')->with('success', "Perangkat {$whItem->name} (SN: {$whItem->serial_number}) berhasil dikembalikan ke {$rack}!");
     }
 
     public function store(Request $request)

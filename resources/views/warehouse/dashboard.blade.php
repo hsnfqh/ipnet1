@@ -223,10 +223,10 @@
                     <div class="flex items-center justify-between pb-3 mb-4 border-b border-[#E2E8F0]">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Distribusi Stok di Titik Warehouse</h3>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Distribusi Stok di Gudang Utama</h3>
                         </div>
-                        <a href="{{ route('warehouse.warehouses.index') }}" class="text-[12px] font-semibold text-[#8F0A0D] hover:underline">
-                            Lihat Semua Gudang &rarr;
+                        <a href="{{ route('warehouse.products.index') }}" class="text-[12px] font-semibold text-[#8F0A0D] hover:underline">
+                            Lihat Stok di Rak &rarr;
                         </a>
                     </div>
 

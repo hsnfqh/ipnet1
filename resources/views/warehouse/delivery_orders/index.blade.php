@@ -227,7 +227,7 @@
                         <div class="space-y-3">
                             <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                <span>1. INFORMASI SURAT JALAN &amp; GUDANG PENGIRIM</span>
+                                <span>1. INFORMASI SURAT JALAN &amp; KEPERLUAN ALOKASI</span>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                                 <div>
@@ -251,6 +251,33 @@
                                     <input type="text" name="reference_no" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="CTR-BRI-2026...">
                                 </div>
                             </div>
+
+                            <!-- Keperluan Alokasi Pengeluaran -->
+                            <div class="pt-2">
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1.5">Kategori / Tujuan Pengeluaran Barang <span class="text-red-500">*</span></label>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                    <label class="p-2.5 rounded-xl border cursor-pointer transition flex items-center gap-2"
+                                           :class="allocationType === 'proyek' ? 'border-[#8F0A0D] bg-red-50/50 text-[#8F0A0D] font-bold' : 'border-slate-200 bg-white text-slate-700'">
+                                        <input type="radio" name="allocation_type" value="proyek" x-model="allocationType" class="text-[#8F0A0D]">
+                                        <span class="text-xs">Proyek Klien</span>
+                                    </label>
+                                    <label class="p-2.5 rounded-xl border cursor-pointer transition flex items-center gap-2"
+                                           :class="allocationType === 'poc' ? 'border-[#8F0A0D] bg-red-50/50 text-[#8F0A0D] font-bold' : 'border-slate-200 bg-white text-slate-700'">
+                                        <input type="radio" name="allocation_type" value="poc" x-model="allocationType" class="text-[#8F0A0D]">
+                                        <span class="text-xs">Peminjaman POC</span>
+                                    </label>
+                                    <label class="p-2.5 rounded-xl border cursor-pointer transition flex items-center gap-2"
+                                           :class="allocationType === 'pinjaman_ipnet' ? 'border-[#8F0A0D] bg-red-50/50 text-[#8F0A0D] font-bold' : 'border-slate-200 bg-white text-slate-700'">
+                                        <input type="radio" name="allocation_type" value="pinjaman_ipnet" x-model="allocationType" class="text-[#8F0A0D]">
+                                        <span class="text-xs">Unit IPNET 1-5</span>
+                                    </label>
+                                    <label class="p-2.5 rounded-xl border cursor-pointer transition flex items-center gap-2"
+                                           :class="allocationType === 'pinjaman_disti' ? 'border-[#8F0A0D] bg-red-50/50 text-[#8F0A0D] font-bold' : 'border-slate-200 bg-white text-slate-700'">
+                                        <input type="radio" name="allocation_type" value="pinjaman_disti" x-model="allocationType" class="text-[#8F0A0D]">
+                                        <span class="text-xs">Pinjaman Disti</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- SECTION 2 -->
@@ -265,12 +292,12 @@
                                     <input type="text" name="recipient_name" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. Budi Hartono">
                                 </div>
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nama Instansi / Perusahaan</label>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nama Instansi / Perusahaan / Unit</label>
                                     <input type="text" name="recipient_company" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. PT Bank Rakyat Indonesia Tbk">
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nomor Telp / WA Penerima</label>
-                                    <input type="text" name="recipient_phone" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. 081287654321">
+                                    <input type="text" name="recipient_phone" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. 0812-8765-4321">
                                 </div>
                             </div>
                             <div>
@@ -311,7 +338,7 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
                                     <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                    <span>4. DAFTAR PERANGKAT YANG DIKIRIM</span>
+                                    <span>4. PILIH PERANGKAT DARI RAK GUDANG</span>
                                 </div>
                                 <button type="button" @click="addItemRow()" class="text-xs font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
                                     + Tambah Baris Perangkat
@@ -321,25 +348,33 @@
                             <div class="space-y-2.5">
                                 <template x-for="(row, index) in itemRows" :key="index">
                                     <div class="grid grid-cols-12 gap-2.5 items-center bg-[#F8FAFC] p-3 rounded-xl border border-slate-200">
-                                        <!-- Product Dropdown -->
-                                        <div class="col-span-12 sm:col-span-5">
-                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Pilih Produk *</label>
-                                            <select :name="'items[' + index + '][product_id]'" 
-                                                    x-model="row.product_id"
-                                                    @change="onProductSelect(index)"
+                                        <!-- Physical Item / Product Selection -->
+                                        <div class="col-span-12 sm:col-span-6">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Pilih Perangkat Fisik (Rak Gudang) *</label>
+                                            <select :name="'items[' + index + '][warehouse_item_id]'" 
+                                                    x-model="row.warehouse_item_id"
+                                                    @change="onPhysicalItemSelect(index)"
                                                     class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
-                                                <option value="">-- Pilih dari Katalog --</option>
-                                                <template x-for="p in productsList" :key="p.id">
-                                                    <option :value="p.id" x-text="p.name + (p.sku ? ' (' + p.sku + ')' : '')"></option>
+                                                <option value="">-- Pilih dari Unit Fisik di Rak Gudang --</option>
+                                                <template x-for="item in availableItemsList" :key="item.id">
+                                                    <option :value="item.id" x-text="'[' + item.item_code + '] ' + item.name + ' • SN: ' + (item.serial_number || '-') + ' • ' + (item.rack || 'Gudang')"></option>
                                                 </template>
-                                                <option value="custom">-- Input Perangkat Lainnya --</option>
+                                                <option value="custom">-- Pilih dari Master Katalog / Manual --</option>
                                             </select>
-                                            <input type="text" 
-                                                   :name="'items[' + index + '][product_name]'" 
-                                                   x-model="row.product_name" 
-                                                   x-show="row.product_id === 'custom' || !row.product_id"
-                                                   placeholder="Ketik nama produk..."
-                                                   class="w-full px-2.5 py-1.5 mt-1.5 border border-amber-300 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-amber-50/50 text-xs">
+                                            
+                                            <!-- Fallback to catalog product if custom -->
+                                            <div x-show="row.warehouse_item_id === 'custom'" class="mt-1.5 flex gap-2">
+                                                <select :name="'items[' + index + '][product_id]'" 
+                                                        x-model="row.product_id"
+                                                        @change="onProductSelect(index)"
+                                                        class="w-full px-2.5 py-1.5 border border-amber-300 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-amber-50/50 text-xs">
+                                                    <option value="">-- Pilih dari Master Katalog --</option>
+                                                    <template x-for="p in productsList" :key="p.id">
+                                                        <option :value="p.id" x-text="p.name + (p.sku ? ' (' + p.sku + ')' : '')"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                            <input type="hidden" :name="'items[' + index + '][product_name]'" x-model="row.product_name">
                                         </div>
 
                                         <!-- Serial Number -->
@@ -354,29 +389,24 @@
 
                                         <!-- Quantity -->
                                         <div class="col-span-6 sm:col-span-2">
-                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Qty</label>
-                                            <input type="number" 
-                                                   :name="'items[' + index + '][quantity]'" 
-                                                   x-model.number="row.quantity" 
-                                                   min="1" 
-                                                   required 
-                                                   class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs font-bold">
-                                        </div>
-
-                                        <!-- Satuan Dropdown -->
-                                        <div class="col-span-5 sm:col-span-1">
-                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Satuan</label>
-                                            <select :name="'items[' + index + '][unit]'" 
-                                                    x-model="row.unit" 
-                                                    required 
-                                                    class="w-full px-2 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
-                                                <option value="Unit">Unit</option>
-                                                <option value="Pcs">Pcs</option>
-                                                <option value="Box">Box</option>
-                                                <option value="Roll">Roll</option>
-                                                <option value="Meter">Meter</option>
-                                                <option value="Set">Set</option>
-                                            </select>
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Qty &amp; Satuan</label>
+                                            <div class="flex items-center gap-1">
+                                                <input type="number" 
+                                                       :name="'items[' + index + '][quantity]'" 
+                                                       x-model.number="row.quantity" 
+                                                       min="1" 
+                                                       required 
+                                                       class="w-16 px-2 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs font-bold text-center">
+                                                <select :name="'items[' + index + '][unit]'" 
+                                                        x-model="row.unit" 
+                                                        required 
+                                                        class="flex-1 px-1.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
+                                                    <option value="Unit">Unit</option>
+                                                    <option value="Pcs">Pcs</option>
+                                                    <option value="Box">Box</option>
+                                                    <option value="Set">Set</option>
+                                                </select>
+                                            </div>
                                         </div>
 
                                         <!-- Delete row -->
@@ -415,7 +445,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                             </svg>
-                            <span>Terbitkan Surat Jalan</span>
+                            <span>Terbitkan Surat Jalan &amp; Alokasi</span>
                         </button>
                     </div>
                 </form>
@@ -553,32 +583,47 @@ function doManager() {
     return {
         showCreateModal: false,
         showDetailModal: false,
+        allocationType: 'proyek',
         detailData: {},
         productsList: {!! json_encode($products->map(function($p) { return ['id' => $p->id, 'name' => $p->name, 'sku' => $p->sku, 'unit' => $p->unit]; })) !!},
+        availableItemsList: {!! json_encode($availableItems->map(function($i) { return ['id' => $i->id, 'item_code' => $i->item_code, 'name' => $i->name, 'serial_number' => $i->serial_number, 'rack' => $i->warehouse_rack, 'brand' => $i->brand]; })) !!},
         itemRows: [
-            { product_id: '', product_name: '', serial_number: '', quantity: 1, unit: 'Unit' }
+            { warehouse_item_id: '', product_id: '', product_name: '', serial_number: '', quantity: 1, unit: 'Unit' }
         ],
         openCreateModal() {
             this.showCreateModal = true;
         },
         addItemRow() {
-            this.itemRows.push({ product_id: '', product_name: '', serial_number: '', quantity: 1, unit: 'Unit' });
+            this.itemRows.push({ warehouse_item_id: '', product_id: '', product_name: '', serial_number: '', quantity: 1, unit: 'Unit' });
         },
         removeItemRow(index) {
             if (this.itemRows.length > 1) {
                 this.itemRows.splice(index, 1);
             }
         },
+        onPhysicalItemSelect(index) {
+            const row = this.itemRows[index];
+            if (row.warehouse_item_id && row.warehouse_item_id !== 'custom') {
+                const item = this.availableItemsList.find(x => x.id == row.warehouse_item_id);
+                if (item) {
+                    row.product_name = item.name;
+                    row.serial_number = item.serial_number || '';
+                    row.quantity = 1;
+                    row.unit = 'Unit';
+                }
+            } else if (row.warehouse_item_id === 'custom') {
+                row.product_name = '';
+                row.serial_number = '';
+            }
+        },
         onProductSelect(index) {
             const row = this.itemRows[index];
-            if (row.product_id && row.product_id !== 'custom') {
+            if (row.product_id) {
                 const p = this.productsList.find(x => x.id == row.product_id);
                 if (p) {
                     row.product_name = p.name;
                     if (p.unit) row.unit = p.unit;
                 }
-            } else if (row.product_id === 'custom') {
-                row.product_name = '';
             }
         },
         viewDetail(doData) {

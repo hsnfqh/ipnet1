@@ -17,14 +17,12 @@
     if ($isWarehouse || str_starts_with($currentRoute, 'warehouse.')) {
         $navItems = [
             ['key' => 'wh_dashboard',     'label' => 'Dashboard',             'route' => 'warehouse.dashboard'],
-            ['key' => 'wh_products',      'label' => 'Produk',                'route' => 'warehouse.products.index'],
+            ['key' => 'wh_products',      'label' => 'Produk & Perangkat',    'route' => 'warehouse.products.index'],
             ['key' => 'wh_categories',    'label' => 'Kategori Produk',       'route' => 'warehouse.categories.index'],
-            ['key' => 'wh_units',         'label' => 'Satuan',                'route' => 'warehouse.units.index'],
-            ['key' => 'wh_suppliers',     'label' => 'Supplier',              'route' => 'warehouse.suppliers.index'],
-            ['key' => 'wh_warehouses',    'label' => 'Warehouse',             'route' => 'warehouse.warehouses.index'],
-            ['key' => 'wh_po',            'label' => 'Purchase Order',        'route' => 'warehouse.purchase_orders.index'],
+            ['key' => 'wh_suppliers',     'label' => 'Supplier / Rekanan',    'route' => 'warehouse.suppliers.index'],
+            ['key' => 'wh_po',            'label' => 'Purchase Order (PO)',   'route' => 'warehouse.purchase_orders.index'],
+            ['key' => 'wh_do',            'label' => 'Delivery Order (DO)',   'route' => 'warehouse.delivery_orders.index'],
             ['key' => 'wh_stock_opname',  'label' => 'Stock Opname',          'route' => 'warehouse.stock_opname.index'],
-            ['key' => 'wh_do',            'label' => 'Delivery Order',        'route' => 'warehouse.delivery_orders.index'],
         ];
     } elseif ($isExecutiveOrGl) {
         $navItems = [
