@@ -1527,26 +1527,26 @@
 
                 @php
                     $candidateList = collect();
-                    if (!empty($assignedEngineers)) {
+                    // Hanya tampilkan personil engineer yang ditugaskan / turun ke proyek ini
+                    if (!empty($assignedEngineers) && count($assignedEngineers) > 0) {
                         foreach ($assignedEngineers as $ae) {
-                            $candidateList->push([
-                                'id' => (int) ($ae['id'] ?? 0),
-                                'name' => $ae['name'] ?? 'Engineer',
-                                'position' => $ae['position'] ?? 'Engineer',
-                                'is_lead_assigned' => true,
-                                'role' => $ae['role'] ?? null,
-                            ]);
+                            $candId = (int) ($ae['id'] ?? 0);
+                            if ($candId > 0 && !$candidateList->contains('id', $candId)) {
+                                $candidateList->push([
+                                    'id' => $candId,
+                                    'name' => $ae['name'] ?? 'Engineer',
+                                    'position' => $ae['position'] ?? 'Engineer',
+                                ]);
+                            }
                         }
-                    }
-                    if (!empty($availableEngineers)) {
-                        foreach ($availableEngineers as $ave) {
-                            if (!$candidateList->contains('id', (int) $ave->id)) {
+                    } else {
+                        // Fallback jika belum ada engineer yang ditugaskan ke proyek ini oleh Lead
+                        if (!empty($availableEngineers)) {
+                            foreach ($availableEngineers as $ave) {
                                 $candidateList->push([
                                     'id' => (int) $ave->id,
                                     'name' => $ave->name,
                                     'position' => $ave->position ?? 'Engineer',
-                                    'is_lead_assigned' => false,
-                                    'role' => null,
                                 ]);
                             }
                         }
