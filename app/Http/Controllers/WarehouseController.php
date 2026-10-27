@@ -177,6 +177,7 @@ class WarehouseController extends Controller
         $categories     = WarehouseItem::getCategories();
         $statuses       = WarehouseItem::getStatuses();
         $locations      = ['Warehouse IPNET', 'Customer'];
+        $deviceModels   = WarehouseItem::getDeviceModels();
 
         return view('warehouse.index', compact(
             'items', 
@@ -187,7 +188,8 @@ class WarehouseController extends Controller
             'workUnits',
             'categories',
             'statuses',
-            'locations'
+            'locations',
+            'deviceModels'
         ));
     }
 

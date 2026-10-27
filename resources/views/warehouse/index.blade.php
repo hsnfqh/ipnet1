@@ -42,6 +42,7 @@
     $categories     = $categories ?? \App\Models\WarehouseItem::getCategories();
     $statuses       = $statuses ?? \App\Models\WarehouseItem::getStatuses();
     $locations      = $locations ?? ['Warehouse IPNET', 'Customer'];
+    $deviceModels   = $deviceModels ?? \App\Models\WarehouseItem::getDeviceModels();
 @endphp
 
 @section('content')
@@ -419,8 +420,27 @@
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                         <div class="sm:col-span-2">
-                                            <label class="block font-semibold text-slate-700 mb-1">Nama Barang / Model <span class="text-red-500">*</span></label>
-                                            <input type="text" x-model="form.name" required placeholder="Contoh: Cisco Catalyst 3850 48-Port PoE+ Switch" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                            <label class="block font-semibold text-slate-700 mb-1">Model <span class="text-red-500">*</span></label>
+                                            <select x-model="selectedModel" 
+                                                    @change="onModelChange()" 
+                                                    required 
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
+                                                <option value="">-- Pilih Model --</option>
+                                                @foreach($deviceModels as $dm)
+                                                    <option value="{{ $dm }}">{{ $dm }}</option>
+                                                @endforeach
+                                            </select>
+                                            
+                                            <!-- Field Input Tambahan Jika Pilih Others -->
+                                            <div x-show="selectedModel === 'Others'" class="mt-2" x-transition>
+                                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Model Kustom <span class="text-red-500">*</span></label>
+                                                <input type="text" 
+                                                       x-model="customModelName" 
+                                                       @input="form.name = customModelName" 
+                                                       :required="selectedModel === 'Others'"
+                                                       placeholder="Ketik nama model / perangkat kustom..." 
+                                                       class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                            </div>
                                         </div>
                                         <div>
                                             <label class="block font-semibold text-slate-700 mb-1">Merk / Brand</label>
@@ -799,6 +819,51 @@
             isEditing: false,
             isSubmitting: false,
             selectedItem: null,
+            selectedModel: '',
+            customModelName: '',
+
+            onModelChange() {
+                if (this.selectedModel === 'Others') {
+                    this.form.name = this.customModelName || '';
+                    return;
+                }
+                this.form.name = this.selectedModel;
+                const m = this.selectedModel;
+
+                // Auto-detect brand & item_type sesuai katalog perangkat
+                if (['ACX2200','ACX4000','ACX5000','ACX7000','CTP2056','EX2200','EX2300','EX3200','EX3300','EX3400','EX4200','EX4300','EX4500','EX4550','EX4600','EX8200','EX9200','ISG1000','ISG2000','MX80','MX104','MX204','MX240','MX301','MX304','MX480','MX960','MX10K','M10i','M320','NS500','QFX3500','QFX5100','QFX5200','SSG20','SSG140','SRX100','SRX210','SRX240','SRX300','SRX550','SRX650','SRX1400','SRX1500','SRX3400','SRX3500','SRX5600','SRX5800','T1600','T4000','PTX5000'].includes(m)) {
+                    this.form.brand = 'Juniper Networks';
+                    if (m.startsWith('SRX') || m.startsWith('ISG') || m.startsWith('SSG') || m.startsWith('NS')) {
+                        this.form.item_type = 'Firewall';
+                    } else if (m.startsWith('EX') || m.startsWith('QFX')) {
+                        this.form.item_type = 'Switch';
+                    } else {
+                        this.form.item_type = 'Router';
+                    }
+                } else if (['BD8800','BDX8','X430','X440','X450','X460','X480','X650','X670'].includes(m)) {
+                    this.form.brand = 'Extreme Networks';
+                    this.form.item_type = 'Switch';
+                } else if (['PA3020','PA5010','PA5020','PA5050'].includes(m)) {
+                    this.form.brand = 'Palo Alto Networks';
+                    this.form.item_type = 'Firewall';
+                } else if (m === 'NUTANIX') {
+                    this.form.brand = 'Nutanix';
+                    this.form.item_type = 'Lainnya / Other';
+                } else if (m === 'Newtec') {
+                    this.form.brand = 'Newtec';
+                } else if (m === 'Procera') {
+                    this.form.brand = 'Procera (Sandvine)';
+                    this.form.item_type = 'Bandwidth Management';
+                } else if (m === 'PulseSecure') {
+                    this.form.brand = 'Pulse Secure (Ivanti)';
+                    this.form.item_type = 'Firewall';
+                } else if (m === 'sfp-xfp-qsfp-cfp') {
+                    this.form.brand = 'Multi-Vendor';
+                    this.form.item_type = 'Kabel';
+                    this.form.component_type = 'SFP';
+                }
+            },
+
             form: {
                 id: null,
                 name: '',
@@ -838,6 +903,8 @@
 
             openAddModal() {
                 this.isEditing = false;
+                this.selectedModel = '';
+                this.customModelName = '';
                 this.form = {
                     id: null,
                     name: '',
@@ -879,6 +946,17 @@
 
             openEditModal(item) {
                 this.isEditing = true;
+                const modelsList = @json($deviceModels);
+                if (modelsList.includes(item.name)) {
+                    this.selectedModel = item.name;
+                    this.customModelName = '';
+                } else if (item.name) {
+                    this.selectedModel = 'Others';
+                    this.customModelName = item.name;
+                } else {
+                    this.selectedModel = '';
+                    this.customModelName = '';
+                }
                 this.form = {
                     id: item.id,
                     name: item.name || '',
