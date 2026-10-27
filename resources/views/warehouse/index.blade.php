@@ -43,6 +43,7 @@
     $statuses       = $statuses ?? \App\Models\WarehouseItem::getStatuses();
     $locations      = $locations ?? ['Warehouse IPNET', 'Customer'];
     $deviceModels   = $deviceModels ?? \App\Models\WarehouseItem::getDeviceModels();
+    $deviceBrands   = $deviceBrands ?? \App\Models\WarehouseItem::getDeviceBrands();
 @endphp
 
 @section('content')
@@ -443,8 +444,26 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Merk / Brand</label>
-                                            <input type="text" x-model="form.brand" placeholder="Cisco, Fortinet, Mikrotik, Ruijie..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                            <label class="block font-semibold text-slate-700 mb-1">Merk / Brand <span class="text-red-500">*</span></label>
+                                            <select x-model="selectedBrand" 
+                                                    @change="onBrandChange()" 
+                                                    required
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
+                                                <option value="">-- Pilih Merk / Brand --</option>
+                                                @foreach($deviceBrands as $db)
+                                                    <option value="{{ $db }}">{{ $db }}</option>
+                                                @endforeach
+                                            </select>
+
+                                            <!-- Field Input Tambahan Jika Pilih Others -->
+                                            <div x-show="selectedBrand === 'Others'" class="mt-2" x-transition>
+                                                <input type="text" 
+                                                       x-model="customBrandName" 
+                                                       @input="form.brand = customBrandName" 
+                                                       :required="selectedBrand === 'Others'"
+                                                       placeholder="Ketik merk / brand kustom..." 
+                                                       class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                            </div>
                                         </div>
                                         <div>
                                             <label class="block font-semibold text-slate-700 mb-1">Jenis Perangkat <span class="text-red-500">*</span></label>
@@ -821,6 +840,16 @@
             selectedItem: null,
             selectedModel: '',
             customModelName: '',
+            selectedBrand: '',
+            customBrandName: '',
+
+            onBrandChange() {
+                if (this.selectedBrand === 'Others') {
+                    this.form.brand = this.customBrandName || '';
+                } else {
+                    this.form.brand = this.selectedBrand;
+                }
+            },
 
             onModelChange() {
                 if (this.selectedModel === 'Others') {
@@ -832,6 +861,7 @@
 
                 // Auto-detect brand & item_type sesuai katalog perangkat
                 if (['ACX2200','ACX4000','ACX5000','ACX7000','CTP2056','EX2200','EX2300','EX3200','EX3300','EX3400','EX4200','EX4300','EX4500','EX4550','EX4600','EX8200','EX9200','ISG1000','ISG2000','MX80','MX104','MX204','MX240','MX301','MX304','MX480','MX960','MX10K','M10i','M320','NS500','QFX3500','QFX5100','QFX5200','SSG20','SSG140','SRX100','SRX210','SRX240','SRX300','SRX550','SRX650','SRX1400','SRX1500','SRX3400','SRX3500','SRX5600','SRX5800','T1600','T4000','PTX5000'].includes(m)) {
+                    this.selectedBrand = 'Juniper Networks';
                     this.form.brand = 'Juniper Networks';
                     if (m.startsWith('SRX') || m.startsWith('ISG') || m.startsWith('SSG') || m.startsWith('NS')) {
                         this.form.item_type = 'Firewall';
@@ -841,24 +871,31 @@
                         this.form.item_type = 'Router';
                     }
                 } else if (['BD8800','BDX8','X430','X440','X450','X460','X480','X650','X670'].includes(m)) {
+                    this.selectedBrand = 'Extreme Networks';
                     this.form.brand = 'Extreme Networks';
                     this.form.item_type = 'Switch';
                 } else if (['PA3020','PA5010','PA5020','PA5050'].includes(m)) {
+                    this.selectedBrand = 'Palo Alto Networks';
                     this.form.brand = 'Palo Alto Networks';
                     this.form.item_type = 'Firewall';
                 } else if (m === 'NUTANIX') {
+                    this.selectedBrand = 'Nutanix';
                     this.form.brand = 'Nutanix';
                     this.form.item_type = 'Lainnya / Other';
                 } else if (m === 'Newtec') {
+                    this.selectedBrand = 'Newtec';
                     this.form.brand = 'Newtec';
                 } else if (m === 'Procera') {
+                    this.selectedBrand = 'Procera (Sandvine)';
                     this.form.brand = 'Procera (Sandvine)';
                     this.form.item_type = 'Bandwidth Management';
                 } else if (m === 'PulseSecure') {
-                    this.form.brand = 'Pulse Secure (Ivanti)';
+                    this.selectedBrand = 'Pulse Secure';
+                    this.form.brand = 'Pulse Secure';
                     this.form.item_type = 'Firewall';
                 } else if (m === 'sfp-xfp-qsfp-cfp') {
-                    this.form.brand = 'Multi-Vendor';
+                    this.selectedBrand = 'Multi-Vendor / Generic';
+                    this.form.brand = 'Multi-Vendor / Generic';
                     this.form.item_type = 'Kabel';
                     this.form.component_type = 'SFP';
                 }
@@ -905,6 +942,8 @@
                 this.isEditing = false;
                 this.selectedModel = '';
                 this.customModelName = '';
+                this.selectedBrand = '';
+                this.customBrandName = '';
                 this.form = {
                     id: null,
                     name: '',
@@ -956,6 +995,18 @@
                 } else {
                     this.selectedModel = '';
                     this.customModelName = '';
+                }
+
+                const brandsList = @json($deviceBrands);
+                if (brandsList.includes(item.brand)) {
+                    this.selectedBrand = item.brand;
+                    this.customBrandName = '';
+                } else if (item.brand) {
+                    this.selectedBrand = 'Others';
+                    this.customBrandName = item.brand;
+                } else {
+                    this.selectedBrand = '';
+                    this.customBrandName = '';
                 }
                 this.form = {
                     id: item.id,

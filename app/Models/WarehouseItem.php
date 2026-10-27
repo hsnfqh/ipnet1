@@ -224,4 +224,26 @@ class WarehouseItem extends Model
             'Others',
         ];
     }
+
+    /**
+     * Helper list merk / brand resmi sesuai katalog perangkat
+     */
+    public static function getDeviceBrands(): array
+    {
+        return [
+            'Juniper Networks',
+            'Extreme Networks',
+            'Palo Alto Networks',
+            'Nutanix',
+            'Newtec',
+            'Procera (Sandvine)',
+            'Pulse Secure',
+            'Cisco',
+            'Fortinet',
+            'MikroTik',
+            'Ruijie Networks',
+            'Multi-Vendor / Generic',
+            'Others',
+        ];
+    }
 }
