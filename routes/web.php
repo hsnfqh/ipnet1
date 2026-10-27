@@ -1780,23 +1780,70 @@ Route::get('/fix-rizki-access', function () {
 // WAREHOUSE & INVENTORY MANAGEMENT SYSTEM
 // =========================================================================
 Route::middleware(['auth'])->prefix('warehouse')->name('warehouse.')->group(function () {
-    // Menu Utama
+    // 1. Dashboard
     Route::get('/', [\App\Http\Controllers\WarehouseController::class, 'dashboard'])->name('dashboard');
+
+    // 2. Produk
+    Route::get('/products', [\App\Http\Controllers\WarehouseController::class, 'products'])->name('products.index');
+    Route::post('/products', [\App\Http\Controllers\WarehouseController::class, 'storeProduct'])->name('products.store');
+    Route::put('/products/{product}', [\App\Http\Controllers\WarehouseController::class, 'updateProduct'])->name('products.update');
+    Route::delete('/products/{product}', [\App\Http\Controllers\WarehouseController::class, 'destroyProduct'])->name('products.destroy');
+
+    // 3. Kategori Produk
+    Route::get('/categories', [\App\Http\Controllers\WarehouseController::class, 'categories'])->name('categories.index');
+    Route::post('/categories', [\App\Http\Controllers\WarehouseController::class, 'storeCategory'])->name('categories.store');
+    Route::put('/categories/{category}', [\App\Http\Controllers\WarehouseController::class, 'updateCategory'])->name('categories.update');
+    Route::delete('/categories/{category}', [\App\Http\Controllers\WarehouseController::class, 'destroyCategory'])->name('categories.destroy');
+
+    // 4. Satuan
+    Route::get('/units', [\App\Http\Controllers\WarehouseController::class, 'units'])->name('units.index');
+    Route::post('/units', [\App\Http\Controllers\WarehouseController::class, 'storeUnit'])->name('units.store');
+    Route::put('/units/{unit}', [\App\Http\Controllers\WarehouseController::class, 'updateUnit'])->name('units.update');
+    Route::delete('/units/{unit}', [\App\Http\Controllers\WarehouseController::class, 'destroyUnit'])->name('units.destroy');
+
+    // 5. Supplier
+    Route::get('/suppliers', [\App\Http\Controllers\WarehouseController::class, 'suppliers'])->name('suppliers.index');
+    Route::post('/suppliers', [\App\Http\Controllers\WarehouseController::class, 'storeSupplier'])->name('suppliers.store');
+    Route::put('/suppliers/{supplier}', [\App\Http\Controllers\WarehouseController::class, 'updateSupplier'])->name('suppliers.update');
+    Route::delete('/suppliers/{supplier}', [\App\Http\Controllers\WarehouseController::class, 'destroySupplier'])->name('suppliers.destroy');
+
+    // 6. Warehouse (Master Lokasi Gudang)
+    Route::get('/warehouses', [\App\Http\Controllers\WarehouseController::class, 'warehouses'])->name('warehouses.index');
+    Route::post('/warehouses', [\App\Http\Controllers\WarehouseController::class, 'storeWarehouse'])->name('warehouses.store');
+    Route::put('/warehouses/{warehouse}', [\App\Http\Controllers\WarehouseController::class, 'updateWarehouse'])->name('warehouses.update');
+    Route::delete('/warehouses/{warehouse}', [\App\Http\Controllers\WarehouseController::class, 'destroyWarehouse'])->name('warehouses.destroy');
+
+    // 7. Purchase Order
+    Route::get('/purchase-orders', [\App\Http\Controllers\WarehouseController::class, 'purchaseOrders'])->name('purchase_orders.index');
+    Route::post('/purchase-orders', [\App\Http\Controllers\WarehouseController::class, 'storePurchaseOrder'])->name('purchase_orders.store');
+    Route::put('/purchase-orders/{po}', [\App\Http\Controllers\WarehouseController::class, 'updatePurchaseOrder'])->name('purchase_orders.update');
+    Route::delete('/purchase-orders/{po}', [\App\Http\Controllers\WarehouseController::class, 'destroyPurchaseOrder'])->name('purchase_orders.destroy');
+    Route::post('/purchase-orders/{po}/status', [\App\Http\Controllers\WarehouseController::class, 'updatePoStatus'])->name('purchase_orders.status');
+
+    // 8. Stock Opname
+    Route::get('/stock-opname', [\App\Http\Controllers\WarehouseController::class, 'stockOpname'])->name('stock_opname.index');
+    Route::post('/stock-opname', [\App\Http\Controllers\WarehouseController::class, 'storeStockOpname'])->name('stock_opname.store');
+    Route::put('/stock-opname/{so}', [\App\Http\Controllers\WarehouseController::class, 'updateStockOpname'])->name('stock_opname.update');
+    Route::delete('/stock-opname/{so}', [\App\Http\Controllers\WarehouseController::class, 'destroyStockOpname'])->name('stock_opname.destroy');
+    Route::post('/stock-opname/{so}/sync', [\App\Http\Controllers\WarehouseController::class, 'syncStockOpname'])->name('stock_opname.sync');
+
+    // 9. Delivery Order
+    Route::get('/delivery-orders', [\App\Http\Controllers\WarehouseController::class, 'deliveryOrders'])->name('delivery_orders.index');
+    Route::post('/delivery-orders', [\App\Http\Controllers\WarehouseController::class, 'storeDeliveryOrder'])->name('delivery_orders.store');
+    Route::put('/delivery-orders/{do}', [\App\Http\Controllers\WarehouseController::class, 'updateDeliveryOrder'])->name('delivery_orders.update');
+    Route::delete('/delivery-orders/{do}', [\App\Http\Controllers\WarehouseController::class, 'destroyDeliveryOrder'])->name('delivery_orders.destroy');
+    Route::post('/delivery-orders/{do}/status', [\App\Http\Controllers\WarehouseController::class, 'updateDoStatus'])->name('delivery_orders.status');
+
+    // Legacy & Support Routes
     Route::get('/items', [\App\Http\Controllers\WarehouseController::class, 'index'])->name('items.index');
     Route::post('/items', [\App\Http\Controllers\WarehouseController::class, 'store'])->name('items.store');
     Route::put('/items/{item}', [\App\Http\Controllers\WarehouseController::class, 'update'])->name('items.update');
     Route::delete('/items/{item}', [\App\Http\Controllers\WarehouseController::class, 'destroy'])->name('items.destroy');
-    Route::get('/categories', [\App\Http\Controllers\WarehouseController::class, 'categories'])->name('categories.index');
-
-    // Transaksi Inventori
     Route::get('/transactions/in', [\App\Http\Controllers\WarehouseController::class, 'barangMasuk'])->name('transactions.in');
     Route::get('/transactions/out', [\App\Http\Controllers\WarehouseController::class, 'barangKeluar'])->name('transactions.out');
     Route::post('/transactions/out/allocate', [\App\Http\Controllers\WarehouseController::class, 'allocateOut'])->name('transactions.out.allocate');
     Route::post('/transactions/out/return/{item}', [\App\Http\Controllers\WarehouseController::class, 'returnToWarehouse'])->name('transactions.out.return');
     Route::get('/transactions/poc', [\App\Http\Controllers\WarehouseController::class, 'peminjamanPoc'])->name('transactions.poc');
-    Route::get('/stock-opname', [\App\Http\Controllers\WarehouseController::class, 'stockOpname'])->name('stock_opname.index');
-
-    // Monitoring & Laporan
     Route::get('/reports', [\App\Http\Controllers\WarehouseController::class, 'reports'])->name('reports.index');
     Route::get('/history', [\App\Http\Controllers\WarehouseController::class, 'history'])->name('history.index');
 });

@@ -14,13 +14,17 @@
 
     $navItems = [];
 
-    if ($isWarehouse) {
+    if ($isWarehouse || str_starts_with($currentRoute, 'warehouse.')) {
         $navItems = [
             ['key' => 'wh_dashboard',     'label' => 'Dashboard',             'route' => 'warehouse.dashboard'],
-            ['key' => 'wh_items',         'label' => 'Inventory',             'route' => 'warehouse.items.index'],
-            ['key' => 'wh_in',            'label' => 'Barang Masuk',          'route' => 'warehouse.transactions.in'],
-            ['key' => 'wh_out',           'label' => 'Barang Keluar',         'route' => 'warehouse.transactions.out'],
+            ['key' => 'wh_products',      'label' => 'Produk',                'route' => 'warehouse.products.index'],
+            ['key' => 'wh_categories',    'label' => 'Kategori Produk',       'route' => 'warehouse.categories.index'],
+            ['key' => 'wh_units',         'label' => 'Satuan',                'route' => 'warehouse.units.index'],
+            ['key' => 'wh_suppliers',     'label' => 'Supplier',              'route' => 'warehouse.suppliers.index'],
+            ['key' => 'wh_warehouses',    'label' => 'Warehouse',             'route' => 'warehouse.warehouses.index'],
+            ['key' => 'wh_po',            'label' => 'Purchase Order',        'route' => 'warehouse.purchase_orders.index'],
             ['key' => 'wh_stock_opname',  'label' => 'Stock Opname',          'route' => 'warehouse.stock_opname.index'],
+            ['key' => 'wh_do',            'label' => 'Delivery Order',        'route' => 'warehouse.delivery_orders.index'],
         ];
     } elseif ($isExecutiveOrGl) {
         $navItems = [
@@ -541,51 +545,68 @@
                     @case('pmo_dashboard')
                     @case('admin_dashboard')
                     @case('ms_dashboard')
-                    @case('wh_dashboard')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                     </svg>
                     @break
-                    @case('proposals')
+                    @case('wh_dashboard')
+                    {{-- 1. Dashboard: House Icon (Sesuai Gambar Screenshot) --}}
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
                     @break
-                    @case('clients')
-                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                    </svg>
-                    @break
+                    @case('wh_products')
                     @case('inventory')
                     @case('warehouse')
                     @case('wh_items')
+                    {{-- 2. Produk: Isometric 3D Cube/Box (Sesuai Gambar Screenshot) --}}
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                     </svg>
                     @break
                     @case('wh_categories')
+                    {{-- 3. Kategori Produk: Price Tag Icon (Sesuai Gambar Screenshot) --}}
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
                     </svg>
                     @break
-                    @case('wh_in')
+                    @case('wh_units')
+                    {{-- 4. Satuan: Briefcase / Scale Unit Icon (Sesuai Gambar Screenshot) --}}
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                     @break
-                    @case('wh_out')
+                    @case('wh_suppliers')
+                    {{-- 5. Supplier: Delivery Truck Icon (Sesuai Gambar Screenshot) --}}
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 17a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4zm-8-3h8m-8 0V6a1 1 0 00-1-1H3a1 1 0 00-1 1v8a1 1 0 001 1h1m7-1V8a1 1 0 011-1h3.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V14a1 1 0 01-1 1h-1"/>
                     </svg>
                     @break
-                    @case('wh_poc')
+                    @case('wh_warehouses')
+                    {{-- 6. Warehouse: Warehouse Building with Roll-up Door (Sesuai Gambar Screenshot) --}}
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-5 9 5v11a1 1 0 01-1 1H4a1 1 0 01-1-1V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 13h8m-8 3h8m-8 3h8M9 9h6"/>
+                    </svg>
+                    @break
+                    @case('wh_po')
+                    {{-- 7. Purchase Order: Bulleted Checklist (Sesuai Gambar Screenshot) --}}
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16M8 6h.01M8 12h.01M8 18h.01"/>
                     </svg>
                     @break
                     @case('wh_stock_opname')
+                    {{-- 8. Stock Opname: Square Checkbox with Tick (Sesuai Gambar Screenshot) --}}
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        <rect x="3" y="3" width="18" height="18" rx="4" stroke-width="2" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12l3 3 5-5" stroke-width="2" />
+                    </svg>
+                    @break
+                    @case('wh_do')
+                    {{-- 9. Delivery Order: Paper Airplane / Send Icon (Sesuai Gambar Screenshot) --}}
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
                     @break
                     @case('wh_reports')

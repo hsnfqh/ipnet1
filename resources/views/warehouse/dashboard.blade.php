@@ -47,336 +47,360 @@
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto">
             
-            <!-- ============================================================ -->
-            <!-- HEADER SECTION                                               -->
-            <!-- ============================================================ -->
+            <!-- HEADER SECTION -->
             <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-semibold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> PUSAT KONTROL WAREHOUSE &amp; INVENTARIS
+                            <span class="ipnet-badge-dot"></span> PUSAT KONTROL &amp; MANAJEMEN WAREHOUSE
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">
-                            Ringkasan Operasional Gudang &amp; Logistik Perangkat
+                            Sistem Informasi Logistik, Pengadaan &amp; Distribusi Perangkat
                         </h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">
-                            Monitoring ketersediaan stok fisik perangkat jaringan, alokasi unit proyek, perangkat POC aktif, dan pergerakan aset logistik.
+                            Monitoring menyeluruh katalog produk, pengadaan Purchase Order (PO), pengiriman Delivery Order (DO), audit Stock Opname, dan multi-gudang IPNET.
                         </p>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-                        <a href="{{ route('warehouse.items.index') }}" 
+                        <a href="{{ route('warehouse.products.index') }}" 
                            class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-semibold text-[13px] shadow-sm flex items-center gap-2 cursor-pointer transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
-                            <span>Lihat Master Barang</span>
+                            <span>Tambah Produk</span>
                         </a>
-                        <a href="{{ route('warehouse.transactions.in') }}" 
+                        <a href="{{ route('warehouse.purchase_orders.index') }}" 
                            class="bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#1E293B] px-3.5 py-2.5 rounded-xl font-semibold text-[13px] border border-[#CBD5E1] flex items-center gap-2 transition">
                             <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
                             </svg>
-                            <span>Barang Masuk</span>
+                            <span>Buat PO</span>
+                        </a>
+                        <a href="{{ route('warehouse.delivery_orders.index') }}" 
+                           class="bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#1E293B] px-3.5 py-2.5 rounded-xl font-semibold text-[13px] border border-[#CBD5E1] flex items-center gap-2 transition">
+                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                            </svg>
+                            <span>Buat DO</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- 5 METRIC KPI CARDS -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 pt-1">
-                    <!-- Total Items -->
-                    <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                        <div class="flex items-center justify-between text-[#64748B] text-[11.5px] font-semibold mb-1">
-                            <span>Total Unit Aset</span>
-                            <div class="w-6 h-6 rounded-md bg-slate-200/70 flex items-center justify-center text-slate-700">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <!-- 4 PRIMARY KPI METRIC CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+                    <!-- Total Produk -->
+                    <div class="p-4 rounded-xl bg-gradient-to-br from-[#FEF2F2] to-white border border-[#FECACA]/60">
+                        <div class="flex items-center justify-between text-[#8F0A0D] text-[12px] font-semibold mb-1">
+                            <span>Total Produk Terdaftar</span>
+                            <div class="w-7 h-7 rounded-lg bg-[#FEE2E2] flex items-center justify-center text-[#8F0A0D]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-bold text-[#1E293B] tracking-tight">
-                            {{ number_format($metrics['total_items']) }}
+                        <div class="text-[26px] font-extrabold text-[#1E293B] tracking-tight">
+                            {{ number_format($metrics['total_products']) }}
                         </div>
-                        <p class="text-[11px] text-[#64748B] mt-0.5 font-medium">Semua jenis perangkat</p>
+                        <div class="flex items-center gap-1.5 mt-1 text-[11px] text-[#64748B]">
+                            <span class="inline-flex items-center text-amber-600 font-semibold">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></span>
+                                {{ $metrics['low_stock_count'] }} Menipis
+                            </span>
+                            <span>•</span>
+                            <a href="{{ route('warehouse.products.index') }}" class="text-[#8F0A0D] hover:underline font-medium">Buka Katalog &rarr;</a>
+                        </div>
                     </div>
 
-                    <!-- Ready Stock -->
-                    <div class="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100">
-                        <div class="flex items-center justify-between text-emerald-800 text-[11.5px] font-semibold mb-1">
-                            <span>Ready Stock</span>
-                            <div class="w-6 h-6 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-700">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    <!-- Total Valuasi Stok -->
+                    <div class="p-4 rounded-xl bg-gradient-to-br from-emerald-50/60 to-white border border-emerald-100">
+                        <div class="flex items-center justify-between text-emerald-800 text-[12px] font-semibold mb-1">
+                            <span>Valuasi Total Aset Stok</span>
+                            <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-bold text-emerald-700 tracking-tight">
-                            {{ number_format($metrics['ready_stock']) }}
+                        <div class="text-[22px] font-extrabold text-emerald-700 tracking-tight">
+                            Rp {{ number_format($metrics['total_valuation'], 0, ',', '.') }}
                         </div>
-                        <p class="text-[11px] text-emerald-600 mt-0.5 font-medium">Tersedia di rak gudang</p>
+                        <p class="text-[11px] text-emerald-600 mt-1 font-medium">
+                            Akumulasi nilai seluruh unit fisik di rak
+                        </p>
                     </div>
 
-                    <!-- Backup / Spare -->
-                    <div class="p-4 rounded-xl bg-blue-50/50 border border-blue-100">
-                        <div class="flex items-center justify-between text-blue-800 text-[11.5px] font-semibold mb-1">
-                            <span>Cadangan (Spare)</span>
-                            <div class="w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center text-blue-700">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    <!-- Purchase Order Aktif -->
+                    <div class="p-4 rounded-xl bg-gradient-to-br from-blue-50/60 to-white border border-blue-100">
+                        <div class="flex items-center justify-between text-blue-800 text-[12px] font-semibold mb-1">
+                            <span>Purchase Order Berjalan</span>
+                            <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-bold text-blue-700 tracking-tight">
-                            {{ number_format($metrics['backup_spare']) }}
+                        <div class="text-[26px] font-extrabold text-blue-700 tracking-tight">
+                            {{ number_format($metrics['active_po']) }} <span class="text-xs text-blue-500 font-semibold font-normal">PO Aktif</span>
                         </div>
-                        <p class="text-[11px] text-blue-600 mt-0.5 font-medium">Standby insiden darurat</p>
+                        <p class="text-[11px] text-blue-600 mt-1 font-medium">
+                            <a href="{{ route('warehouse.purchase_orders.index') }}" class="hover:underline">Proses pengadaan &amp; restock &rarr;</a>
+                        </p>
                     </div>
 
-                    <!-- Active POC -->
-                    <div class="p-4 rounded-xl bg-purple-50/50 border border-purple-100">
-                        <div class="flex items-center justify-between text-purple-800 text-[11.5px] font-semibold mb-1">
-                            <span>Sedang POC</span>
-                            <div class="w-6 h-6 rounded-md bg-purple-100 flex items-center justify-center text-purple-700">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <!-- Delivery Order Berjalan -->
+                    <div class="p-4 rounded-xl bg-gradient-to-br from-purple-50/60 to-white border border-purple-100">
+                        <div class="flex items-center justify-between text-purple-800 text-[12px] font-semibold mb-1">
+                            <span>Delivery Order / Pengiriman</span>
+                            <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-bold text-purple-700 tracking-tight">
-                            {{ number_format($metrics['active_poc']) }}
+                        <div class="text-[26px] font-extrabold text-purple-700 tracking-tight">
+                            {{ number_format($metrics['pending_do']) }} <span class="text-xs text-purple-500 font-semibold font-normal">Surat Jalan</span>
                         </div>
-                        <p class="text-[11px] text-purple-600 mt-0.5 font-medium">Uji coba di pelanggan</p>
+                        <p class="text-[11px] text-purple-600 mt-1 font-medium">
+                            <a href="{{ route('warehouse.delivery_orders.index') }}" class="hover:underline">Sedang disiapkan / dikirim &rarr;</a>
+                        </p>
                     </div>
+                </div>
 
-                    <!-- Disti Loan -->
-                    <div class="p-4 rounded-xl bg-amber-50/50 border border-amber-100">
-                        <div class="flex items-center justify-between text-amber-800 text-[11.5px] font-semibold mb-1">
-                            <span>Pinjaman Disti</span>
-                            <div class="w-6 h-6 rounded-md bg-amber-100 flex items-center justify-center text-amber-700">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
-                                </svg>
-                            </div>
+                <!-- 4 SECONDARY METRIC COUNTERS -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#E2E8F0]">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
                         </div>
-                        <div class="text-[22px] font-bold text-amber-700 tracking-tight">
-                            {{ number_format($metrics['disti_loan']) }}
+                        <div>
+                            <div class="text-[11px] text-[#64748B] font-medium">Kategori Produk</div>
+                            <div class="text-[15px] font-bold text-[#1E293B]">{{ $metrics['total_categories'] }} Kategori</div>
                         </div>
-                        <p class="text-[11px] text-amber-600 mt-0.5 font-medium">Dipinjam dari vendor</p>
                     </div>
-
-                    <!-- Customer Deployed -->
-                    <div class="p-4 rounded-xl bg-rose-50/50 border border-rose-100">
-                        <div class="flex items-center justify-between text-rose-800 text-[11.5px] font-semibold mb-1">
-                            <span>Terpasang Klien</span>
-                            <div class="w-6 h-6 rounded-md bg-rose-100 flex items-center justify-center text-rose-700">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                </svg>
-                            </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
                         </div>
-                        <div class="text-[22px] font-bold text-rose-700 tracking-tight">
-                            {{ number_format($metrics['customer_deployed']) }}
+                        <div>
+                            <div class="text-[11px] text-[#64748B] font-medium">Satuan Terdaftar</div>
+                            <div class="text-[15px] font-bold text-[#1E293B]">{{ $metrics['total_units'] }} Satuan</div>
                         </div>
-                        <p class="text-[11px] text-rose-600 mt-0.5 font-medium">Lokasi kantor pelanggan</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 17a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4zm-8-3h8m-8 0V6a1 1 0 00-1-1H3a1 1 0 00-1 1v8a1 1 0 001 1h1m7-1V8a1 1 0 011-1h3.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V14a1 1 0 01-1 1h-1"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-[#64748B] font-medium">Supplier &amp; Disti</div>
+                            <div class="text-[15px] font-bold text-[#1E293B]">{{ $metrics['total_suppliers'] }} Mitra Supplier</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-[#64748B] font-medium">Titik Lokasi Gudang</div>
+                            <div class="text-[15px] font-bold text-[#1E293B]">{{ $metrics['total_warehouses'] }} Warehouse</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ============================================================ -->
-            <!-- BREAKDOWN & RINGKASAN DATA                                   -->
-            <!-- ============================================================ -->
+            <!-- MULTI-WAREHOUSE & CATEGORY DISTRIBUTION -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 anim-fade-up anim-delay-2">
-                <!-- 1. Distribusi Jenis Barang -->
-                <div class="ipnet-card p-5">
-                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#E2E8F0]">
-                        <h3 class="text-[14.5px] font-bold text-[#1E293B]">Distribusi Jenis Perangkat</h3>
-                        <span class="text-[11px] font-semibold text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded-md">Katalog Unit</span>
+                <!-- Multi-Warehouse Locations Status -->
+                <div class="lg:col-span-2 ipnet-card p-5 sm:p-6">
+                    <div class="flex items-center justify-between pb-3 mb-4 border-b border-[#E2E8F0]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Distribusi Stok di Titik Warehouse</h3>
+                        </div>
+                        <a href="{{ route('warehouse.warehouses.index') }}" class="text-[12px] font-semibold text-[#8F0A0D] hover:underline">
+                            Lihat Semua Gudang &rarr;
+                        </a>
                     </div>
-                    <div class="space-y-2.5">
-                        @forelse($byType as $type)
-                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-white hover:border-[#CBD5E1] transition">
-                                <span class="text-[13px] font-bold text-[#1E293B]">{{ $type->item_type }}</span>
-                                <span class="text-[12.5px] font-bold text-[#475569]">{{ $type->total }} unit</span>
-                            </div>
-                        @empty
-                            <p class="text-[12.5px] text-[#94A3B8] text-center py-4">Belum ada data jenis barang</p>
-                        @endforelse
-                    </div>
-                </div>
 
-                <!-- 2. Alokasi Unit Kerja IPNET 1 - 5 -->
-                <div class="ipnet-card p-5">
-                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#E2E8F0]">
-                        <h3 class="text-[14.5px] font-bold text-[#1E293B]">Distribusi Tim IPNET 1 - 5</h3>
-                        <span class="text-[11px] font-semibold text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded-md">Internal IPNET</span>
-                    </div>
-                    <div class="space-y-2.5">
-                        @foreach(['IPNET 1', 'IPNET 2', 'IPNET 3', 'IPNET 4', 'IPNET 5'] as $unit)
-                            @php
-                                $found = $byWorkUnit->firstWhere('ipnet_work_unit', $unit);
-                                $unitCount = $found ? $found->total : 0;
-                            @endphp
-                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                                <span class="text-[13px] font-bold text-[#1E293B]">{{ $unit }}</span>
-                                <span class="text-[12.5px] font-bold text-[#475569]">{{ $unitCount }} unit terhubung</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($warehouseBreakdown as $wh)
+                            <div class="p-4 rounded-xl border border-[#E2E8F0] hover:border-[#CBD5E1] bg-[#F8FAFC]/50 hover:bg-white transition">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded bg-slate-200 text-slate-700 mb-1">
+                                            {{ $wh->code }}
+                                        </span>
+                                        <h4 class="text-[14px] font-bold text-[#1E293B]">{{ $wh->name }}</h4>
+                                        <p class="text-[11.5px] text-[#64748B] line-clamp-1 mt-0.5">{{ $wh->address }}</p>
+                                    </div>
+                                    <span class="px-2 py-1 text-[10.5px] font-semibold rounded-lg {{ $wh->status === 'Operasional' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600' }}">
+                                        {{ $wh->status }}
+                                    </span>
+                                </div>
+                                <div class="mt-3 pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-[12px]">
+                                    <span class="text-[#64748B]">PIC: <strong>{{ $wh->pic_name ?: 'Ahmad' }}</strong></span>
+                                    <span class="text-[#8F0A0D] font-bold">{{ number_format($wh->products_sum_current_stock ?: 0) }} Unit Fisik</span>
+                                </div>
                             </div>
                         @endforeach
                     </div>
                 </div>
 
-                <!-- 3. Pintasan Cepat Menu Transaksi -->
-                <div class="ipnet-card p-5">
-                    <div class="pb-3 mb-3 border-b border-[#E2E8F0]">
-                        <h3 class="text-[14.5px] font-bold text-[#1E293B]">Aksi &amp; Pintasan Menu</h3>
-                        <p class="text-[11.5px] text-[#64748B]">Akses cepat modul pencatatan inventori</p>
+                <!-- Kategori Produk Breakdown -->
+                <div class="ipnet-card p-5 sm:p-6">
+                    <div class="flex items-center justify-between pb-3 mb-4 border-b border-[#E2E8F0]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Stok per Kategori</h3>
+                        </div>
+                        <a href="{{ route('warehouse.categories.index') }}" class="text-[12px] font-semibold text-[#8F0A0D] hover:underline">
+                            Kategori &rarr;
+                        </a>
                     </div>
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <a href="{{ route('warehouse.transactions.in') }}" 
-                           class="p-3 rounded-xl border border-[#E2E8F0] hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-white transition group flex flex-col justify-between">
-                            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center mb-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-                                </svg>
-                            </div>
-                            <span class="text-[12.5px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D]">Barang Masuk</span>
-                            <span class="text-[10.5px] text-[#64748B]">PO &amp; Penerimaan</span>
-                        </a>
 
-                        <a href="{{ route('warehouse.transactions.out') }}" 
-                           class="p-3 rounded-xl border border-[#E2E8F0] hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-white transition group flex flex-col justify-between">
-                            <div class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center mb-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-                                </svg>
+                    <div class="space-y-3">
+                        @foreach($categoryBreakdown as $cat)
+                            <div class="flex items-center justify-between text-[12.5px]">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                                    <span class="font-medium text-[#1E293B]">{{ $cat->name }}</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="font-bold text-[#1E293B]">{{ number_format($cat->products_sum_current_stock ?: 0) }} Unit</span>
+                                    <span class="text-[11px] text-[#64748B]">({{ $cat->products_count }} model)</span>
+                                </div>
                             </div>
-                            <span class="text-[12.5px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D]">Barang Keluar</span>
-                            <span class="text-[10.5px] text-[#64748B]">Proyek &amp; Dispatch</span>
-                        </a>
-
-                        <a href="{{ route('warehouse.transactions.out', ['type' => 'poc']) }}" 
-                           class="p-3 rounded-xl border border-[#E2E8F0] hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-white transition group flex flex-col justify-between">
-                            <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center mb-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                                </svg>
-                            </div>
-                            <span class="text-[12.5px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D]">Peminjaman &amp; POC</span>
-                            <span class="text-[10.5px] text-[#64748B]">Kategori Barang Keluar</span>
-                        </a>
-
-                        <a href="{{ route('warehouse.stock_opname.index') }}" 
-                           class="p-3 rounded-xl border border-[#E2E8F0] hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-white transition group flex flex-col justify-between">
-                            <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mb-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                                </svg>
-                            </div>
-                            <span class="text-[12.5px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D]">Stock Opname</span>
-                            <span class="text-[10.5px] text-[#64748B]">Audit Rak Gudang</span>
-                        </a>
+                        @endforeach
                     </div>
                 </div>
             </div>
 
-            <!-- ============================================================ -->
-            <!-- TABEL TERAKHIR MASUK / DIUBAH                                -->
-            <!-- ============================================================ -->
-            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-3">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 mb-4 border-b border-[#E2E8F0]">
-                    <div>
-                        <h3 class="text-[16px] font-bold text-[#1E293B]">Aktivitas Mutasi Perangkat Terkini</h3>
-                        <p class="text-[12.5px] text-[#64748B]">Daftar 6 perangkat terbaru yang didaftarkan atau diperbarui ke sistem.</p>
+            <!-- TABLES: RECENT PO & RECENT DO -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 anim-fade-up anim-delay-3">
+                <!-- Recent Purchase Orders -->
+                <div class="ipnet-card p-5 sm:p-6">
+                    <div class="flex items-center justify-between pb-3 mb-4 border-b border-[#E2E8F0]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Purchase Order Terkini (Pengadaan Masuk)</h3>
+                        </div>
+                        <a href="{{ route('warehouse.purchase_orders.index') }}" class="text-[12px] font-semibold text-[#8F0A0D] hover:underline">
+                            Semua PO &rarr;
+                        </a>
                     </div>
-                    <a href="{{ route('warehouse.items.index') }}" class="text-[13px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1.5">
-                        <span>Buka Semua Data Barang</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[12.5px]">
+                            <thead>
+                                <tr class="text-[#64748B] border-b border-[#E2E8F0]">
+                                    <th class="pb-2 font-semibold">No. PO</th>
+                                    <th class="pb-2 font-semibold">Supplier</th>
+                                    <th class="pb-2 font-semibold">Gudang Tujuan</th>
+                                    <th class="pb-2 font-semibold text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-[#F1F5F9]">
+                                @forelse($recentPOs as $po)
+                                    <tr>
+                                        <td class="py-2.5 font-bold text-[#1E293B]">
+                                            {{ $po->po_number }}
+                                            <div class="text-[10.5px] text-[#64748B] font-normal">{{ $po->po_date->format('d M Y') }}</div>
+                                        </td>
+                                        <td class="py-2.5 text-[#1E293B] font-medium">{{ $po->supplier_name ?: '-' }}</td>
+                                        <td class="py-2.5 text-[#64748B] text-[11.5px]">{{ $po->warehouse_name ?: '-' }}</td>
+                                        <td class="py-2.5 text-right">
+                                            @php
+                                                $poBadge = match($po->status) {
+                                                    'Selesai' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                                    'Disetujui' => 'bg-blue-50 text-blue-700 border-blue-200',
+                                                    'Diproses' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                                    default => 'bg-slate-100 text-slate-700 border-slate-200'
+                                                };
+                                            @endphp
+                                            <span class="px-2 py-0.5 text-[10.5px] font-bold rounded-md border {{ $poBadge }}">
+                                                {{ $po->status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="py-6 text-center text-[#94A3B8]">Belum ada Purchase Order aktif.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Kode Item &amp; SN</th>
-                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Nama Perangkat &amp; Brand</th>
-                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Jenis &amp; Komponen</th>
-                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Kategori</th>
-                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Lokasi Fisik</th>
-                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Status</th>
-                                <th class="py-3 px-3 text-[11px] font-bold text-[#475569] uppercase tracking-wider text-right">Detail</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-[#E2E8F0]">
-                            @forelse($recentItems as $item)
-                                <tr class="hover:bg-[#F8FAFC] transition">
-                                    <td class="py-3 px-3">
-                                        <div class="font-bold text-[#1E293B] text-[12.5px] font-mono">{{ $item->item_code }}</div>
-                                        <div class="text-[11px] text-[#64748B] font-mono">SN: {{ $item->serial_number ?: '-' }}</div>
-                                    </td>
-                                    <td class="py-3 px-3">
-                                        <div class="font-bold text-[#1E293B] text-[12.5px]">{{ $item->name }}</div>
-                                        <div class="text-[11px] text-[#64748B]">{{ $item->brand ?: 'Brand N/A' }} &bull; PN: {{ $item->product_number ?: '-' }}</div>
-                                    </td>
-                                    <td class="py-3 px-3">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">
-                                            {{ $item->item_type }}
-                                        </span>
-                                        <div class="text-[11px] text-[#64748B] mt-0.5">{{ $item->component_type ?: '-' }}</div>
-                                    </td>
-                                    <td class="py-3 px-3">
-                                        @if($item->category === 'Stock')
-                                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Stock</span>
-                                        @elseif($item->category === 'Backup / Spare')
-                                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Backup / Spare</span>
-                                        @else
-                                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Pinjaman</span>
-                                        @endif
-                                    </td>
-                                    <td class="py-3 px-3">
-                                        <div class="text-[12px] font-medium text-[#1E293B]">{{ $item->location_type === 'Warehouse IPNET' ? 'Gudang IPNET' : $item->location_type }}</div>
-                                        <div class="text-[11px] text-[#64748B]">{{ in_array($item->location_type, ['Gudang IPNET', 'Warehouse IPNET']) ? ($item->warehouse_rack ?: 'Rak N/A') : ($item->poc_customer_name ?: 'Alamat Customer') }}</div>
-                                    </td>
-                                    <td class="py-3 px-3">
-                                        @if($item->status === 'Tersedia')
-                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Tersedia
-                                            </span>
-                                        @elseif($item->status === 'POC / Pinjaman')
-                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> POC Aktif
-                                            </span>
-                                        @elseif($item->status === 'Maintenance')
-                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Maintenance
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-800">
-                                                {{ $item->status }}
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="py-3 px-3 text-right">
-                                        <a href="{{ route('warehouse.items.index', ['search' => $item->item_code]) }}" 
-                                           class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11.5px] font-semibold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition">
-                                            <span>Buka</span>
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                            </svg>
-                                        </a>
-                                    </td>
+                <!-- Recent Delivery Orders -->
+                <div class="ipnet-card p-5 sm:p-6">
+                    <div class="flex items-center justify-between pb-3 mb-4 border-b border-[#E2E8F0]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-purple-600"></span>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Delivery Order Terkini (Pengiriman Keluar)</h3>
+                        </div>
+                        <a href="{{ route('warehouse.delivery_orders.index') }}" class="text-[12px] font-semibold text-[#8F0A0D] hover:underline">
+                            Semua DO &rarr;
+                        </a>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[12.5px]">
+                            <thead>
+                                <tr class="text-[#64748B] border-b border-[#E2E8F0]">
+                                    <th class="pb-2 font-semibold">No. DO</th>
+                                    <th class="pb-2 font-semibold">Penerima &amp; Klien</th>
+                                    <th class="pb-2 font-semibold">Kurir / Resi</th>
+                                    <th class="pb-2 font-semibold text-right">Status</th>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="py-8 text-center text-[#94A3B8] text-[13px]">
-                                        Belum ada data barang terdaftar di inventaris.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-[#F1F5F9]">
+                                @forelse($recentDOs as $do)
+                                    <tr>
+                                        <td class="py-2.5 font-bold text-[#1E293B]">
+                                            {{ $do->do_number }}
+                                            <div class="text-[10.5px] text-[#64748B] font-normal">{{ $do->do_date->format('d M Y') }}</div>
+                                        </td>
+                                        <td class="py-2.5 text-[#1E293B] font-medium">
+                                            {{ $do->recipient_name }}
+                                            <div class="text-[10.5px] text-[#64748B] font-normal">{{ $do->recipient_company }}</div>
+                                        </td>
+                                        <td class="py-2.5 text-[#64748B] text-[11.5px]">
+                                            {{ $do->courier_name ?: 'Internal Driver' }}
+                                            @if($do->vehicle_no)
+                                                <span class="text-slate-400">• {{ $do->vehicle_no }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="py-2.5 text-right">
+                                            @php
+                                                $doBadge = match($do->status) {
+                                                    'Terkirim & Diterima' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                                    'Dalam Pengiriman' => 'bg-purple-50 text-purple-700 border-purple-200',
+                                                    'Siap Dikirim' => 'bg-blue-50 text-blue-700 border-blue-200',
+                                                    default => 'bg-slate-100 text-slate-700 border-slate-200'
+                                                };
+                                            @endphp
+                                            <span class="px-2 py-0.5 text-[10.5px] font-bold rounded-md border {{ $doBadge }}">
+                                                {{ $do->status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="py-6 text-center text-[#94A3B8]">Belum ada Surat Jalan pengiriman.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
