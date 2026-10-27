@@ -181,185 +181,296 @@
         </div>
     </div>
 
-    <!-- MODAL CREATE STOCK OPNAME -->
-    <div x-show="showCreateModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="showCreateModal = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6">
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-                <h3 class="text-[18px] font-bold text-[#1E293B]">Catat Audit Stock Opname</h3>
-                <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-            </div>
-
-            <form action="{{ route('warehouse.stock_opname.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Nomor SO (Otomatis jika kosong)</label>
-                        <input type="text" name="so_number" class="wms-input text-[12.5px]" placeholder="SO-2026-10-...">
+    <!-- MODAL CREATE STOCK OPNAME (Gambar 2 Style) -->
+    <template x-teleport="body">
+        <div x-show="showCreateModal" 
+             x-cloak 
+             class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs">
+            <div @click.away="showCreateModal = false" 
+                 class="bg-white rounded-2xl w-[860px] max-w-full max-h-[92vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                
+                <!-- Fixed Header -->
+                <div class="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-red-50 text-[#8F0A0D] border border-red-100 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800">Catat Audit Stock Opname</h3>
+                            <p class="text-[11px] text-slate-500">Pencocokan kuantitas perangkat rak fisik terhadap catatan pembukuan sistem</p>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Tanggal Audit Fisik *</label>
-                        <input type="date" name="so_date" value="{{ date('Y-m-d') }}" required class="wms-input text-[12.5px]">
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Gudang yang Diaudit *</label>
-                        <select name="warehouse_id" required class="wms-input text-[12.5px]">
-                            @foreach($warehouses as $wh)
-                                <option value="{{ $wh->id }}">{{ $wh->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Petugas Auditor (PIC) *</label>
-                        <input type="text" name="auditor_name" value="Ahmad (Warehouse)" required class="wms-input text-[12.5px]">
-                    </div>
+                    <button type="button" @click="showCreateModal = false" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center text-lg transition">
+                        &times;
+                    </button>
                 </div>
 
-                <!-- ITEMS TABLE FOR AUDIT -->
-                <div class="pt-3 border-t border-slate-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-[13px] font-bold text-[#1E293B]">Hasil Penghitungan Fisik per Barang *</label>
-                        <button type="button" @click="addAuditRow()" class="text-[12px] font-bold text-[#8F0A0D] hover:underline">
-                            + Tambah Baris Audit
-                        </button>
-                    </div>
+                <!-- Scrollable Body -->
+                <form id="createSoForm" action="{{ route('warehouse.stock_opname.store') }}" method="POST" class="flex flex-col flex-1 min-h-0">
+                    @csrf
+                    <div class="p-6 overflow-y-auto space-y-5 text-xs flex-1 min-h-0">
 
-                    <div class="space-y-2">
-                        <template x-for="(row, index) in auditRows" :key="index">
-                            <div class="grid grid-cols-12 gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                                <div class="col-span-4">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Nama Produk</label>
-                                    <input type="text" :name="'items[' + index + '][product_name]'" x-model="row.product_name" required class="wms-input text-[12px] py-1.5" placeholder="e.g. Cisco Catalyst 3850">
-                                    <input type="hidden" :name="'items[' + index + '][product_id]'" x-model="row.product_id">
+                        <!-- SECTION 1 -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>1. DOKUMEN &amp; LOKASI AUDIT</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nomor SO (Opsional)</label>
+                                    <input type="text" name="so_number" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="Otomatis jika kosong">
                                 </div>
-                                <div class="col-span-2">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Stok Sistem</label>
-                                    <input type="number" :name="'items[' + index + '][system_stock]'" x-model.number="row.system_stock" min="0" required class="wms-input text-[12px] py-1.5">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Tanggal Audit Fisik <span class="text-red-500">*</span></label>
+                                    <input type="date" name="so_date" value="{{ date('Y-m-d') }}" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
                                 </div>
-                                <div class="col-span-2">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Stok Fisik Aktual</label>
-                                    <input type="number" :name="'items[' + index + '][physical_stock]'" x-model.number="row.physical_stock" min="0" required class="wms-input text-[12px] py-1.5">
-                                </div>
-                                <div class="col-span-3">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Kondisi Fisik</label>
-                                    <select :name="'items[' + index + '][condition_status]'" x-model="row.condition_status" class="wms-input text-[12px] py-1.5">
-                                        <option value="Baik & Lengkap">Baik &amp; Lengkap</option>
-                                        <option value="Perlu Servis">Perlu Servis</option>
-                                        <option value="Kemasan Rusak">Kemasan Rusak</option>
-                                        <option value="Hilang">Hilang</option>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Gudang yang Diaudit <span class="text-red-500">*</span></label>
+                                    <select name="warehouse_id" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                        @foreach($warehouses as $wh)
+                                            <option value="{{ $wh->id }}">{{ $wh->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
-                                <div class="col-span-1 text-center pt-3">
-                                    <button type="button" @click="removeAuditRow(index)" class="text-red-500 hover:text-red-700 text-lg font-bold" x-show="auditRows.length > 1">&times;</button>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Petugas Auditor (PIC) <span class="text-red-500">*</span></label>
+                                    <input type="text" name="auditor_name" value="{{ auth()->user()->name ?? 'Warehouse Officer' }}" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
                                 </div>
                             </div>
-                        </template>
-                    </div>
-                </div>
+                        </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Status Dokumen</label>
-                        <select name="status" class="wms-input text-[12.5px]">
-                            <option value="Draft">Draft</option>
-                            <option value="Menunggu Approval" selected>Menunggu Approval</option>
-                            <option value="Selesai">Selesai (Langsung Sinkronkan Saldo)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Catatan Audit / Justifikasi Selisih</label>
-                        <input type="text" name="notes" class="wms-input text-[12.5px]" placeholder="Penjelasan temuan selisih barang...">
-                    </div>
-                </div>
+                        <!-- SECTION 2 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                    <span>2. HASIL AUDIT FISIK PERANGKAT</span>
+                                </div>
+                                <button type="button" @click="addAuditRow()" class="text-xs font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
+                                    + Tambah Baris Audit
+                                </button>
+                            </div>
 
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
-                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-[13px]">Batal</button>
-                    <button type="submit" class="btn-ipnet-gradient px-5 py-2.5 rounded-xl font-bold text-[13px]">Simpan Berita Acara SO</button>
-                </div>
-            </form>
-        </div>
-    </div>
+                            <div class="space-y-2.5">
+                                <template x-for="(row, index) in auditRows" :key="index">
+                                    <div class="grid grid-cols-12 gap-2.5 items-center bg-[#F8FAFC] p-3 rounded-xl border border-slate-200">
+                                        <!-- Product Dropdown -->
+                                        <div class="col-span-12 sm:col-span-4">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Pilih Produk *</label>
+                                            <select :name="'items[' + index + '][product_id]'" 
+                                                    x-model="row.product_id"
+                                                    @change="onProductSelect(index)"
+                                                    class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
+                                                <option value="">-- Pilih dari Katalog --</option>
+                                                <template x-for="p in productsList" :key="p.id">
+                                                    <option :value="p.id" x-text="p.name + (p.sku ? ' (' + p.sku + ')' : '')"></option>
+                                                </template>
+                                                <option value="custom">-- Input Perangkat Lainnya --</option>
+                                            </select>
+                                            <input type="text" 
+                                                   :name="'items[' + index + '][product_name]'" 
+                                                   x-model="row.product_name" 
+                                                   x-show="row.product_id === 'custom' || !row.product_id"
+                                                   placeholder="Ketik nama produk..."
+                                                   class="w-full px-2.5 py-1.5 mt-1.5 border border-amber-300 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-amber-50/50 text-xs">
+                                        </div>
 
-    <!-- MODAL DETAIL & CETAK SO -->
-    <div x-show="showDetailModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="showDetailModal = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full p-6 max-h-[92vh] overflow-y-auto">
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-                <div class="flex items-center gap-2">
-                    <span class="text-[12px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700" x-text="detailData.status"></span>
-                    <h3 class="text-[17px] font-bold text-[#1E293B]" x-text="detailData.so_number"></h3>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="window.print()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-[12px] hover:bg-slate-100 flex items-center gap-1.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                        </svg>
-                        <span>Cetak Berita Acara</span>
-                    </button>
-                    <button type="button" @click="showDetailModal = false" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-                </div>
+                                        <!-- System Stock -->
+                                        <div class="col-span-4 sm:col-span-2">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Stok Sistem</label>
+                                            <input type="number" 
+                                                   :name="'items[' + index + '][system_stock]'" 
+                                                   x-model.number="row.system_stock" 
+                                                   min="0" 
+                                                   required 
+                                                   class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-slate-100 text-xs font-semibold">
+                                        </div>
+
+                                        <!-- Physical Stock -->
+                                        <div class="col-span-4 sm:col-span-2">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Stok Fisik Aktual</label>
+                                            <input type="number" 
+                                                   :name="'items[' + index + '][physical_stock]'" 
+                                                   x-model.number="row.physical_stock" 
+                                                   min="0" 
+                                                   required 
+                                                   class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs font-bold">
+                                        </div>
+
+                                        <!-- Condition Dropdown -->
+                                        <div class="col-span-3 sm:col-span-3">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Kondisi Fisik</label>
+                                            <select :name="'items[' + index + '][condition_status]'" 
+                                                    x-model="row.condition_status" 
+                                                    class="w-full px-2 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
+                                                <option value="Baik & Lengkap">Baik &amp; Lengkap</option>
+                                                <option value="Perlu Servis">Perlu Servis</option>
+                                                <option value="Kemasan Rusak">Kemasan Rusak</option>
+                                                <option value="Hilang">Hilang</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Delete row -->
+                                        <div class="col-span-1 text-center pt-4">
+                                            <button type="button" 
+                                                    @click="removeAuditRow(index)" 
+                                                    class="w-7 h-7 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700 flex items-center justify-center text-base font-bold transition mx-auto" 
+                                                    x-show="auditRows.length > 1">
+                                                &times;
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 3 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>3. STATUS DOKUMEN &amp; JUSTIFIKASI AUDITOR</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Status Dokumen</label>
+                                    <select name="status" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                        <option value="Draft">Draft</option>
+                                        <option value="Menunggu Approval" selected>Menunggu Approval</option>
+                                        <option value="Selesai">Selesai (Langsung Sinkronkan Saldo)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Catatan Audit / Justifikasi Selisih</label>
+                                    <input type="text" name="notes" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="Penjelasan temuan selisih, nomor rak...">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Fixed Footer -->
+                    <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-3 shrink-0">
+                        <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl bg-white border border-[#CBD5E1] text-[#334155] font-bold text-xs hover:bg-[#F1F5F9] transition">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-ipnet-gradient py-2.5 px-5 rounded-xl font-bold text-xs text-white shadow-sm flex items-center gap-2 cursor-pointer transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Simpan Berita Acara SO</span>
+                        </button>
+                    </div>
+                </form>
+
             </div>
+        </div>
+    </template>
 
-            <!-- PRINTABLE SO SHEET -->
-            <div id="print-area" class="space-y-4 text-[13px]">
-                <div class="border-b-2 border-[#8F0A0D] pb-3 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-[18px] font-extrabold text-[#8F0A0D]">BERITA ACARA STOCK OPNAME</h2>
-                        <p class="text-[11px] text-slate-500">PT IP NETWORK SOLUSINDO - WAREHOUSE DIVISION</p>
+    <!-- MODAL DETAIL & CETAK SO (Gambar 2 Style) -->
+    <template x-teleport="body">
+        <div x-show="showDetailModal" 
+             x-cloak 
+             class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs">
+            <div @click.away="showDetailModal = false" 
+                 class="bg-white rounded-2xl w-[760px] max-w-full max-h-[92vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                
+                <!-- Fixed Header -->
+                <div class="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-bold text-slate-800" x-text="detailData.so_number"></h3>
+                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200" x-text="detailData.status"></span>
+                            </div>
+                            <p class="text-[11px] text-slate-500">Berita Acara Rekonsiliasi &amp; Stock Opname Logistik</p>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-[14px] font-mono font-bold text-[#1E293B]" x-text="detailData.so_number"></div>
-                        <div class="text-[11px] text-slate-500" x-text="'Audit: ' + (detailData.so_date || '')"></div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="window.print()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-xs hover:bg-slate-100 flex items-center gap-1.5 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                            <span>Cetak Berita Acara</span>
+                        </button>
+                        <button type="button" @click="showDetailModal = false" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center text-lg transition">
+                            &times;
+                        </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                    <div>
-                        <span class="text-[11px] text-[#64748B] block font-semibold">Gudang Fasilitas:</span>
-                        <div class="font-bold text-[#1E293B]" x-text="detailData.warehouse_name || '-'"></div>
+                <!-- Printable Body -->
+                <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1 min-h-0" id="print-area">
+                    <div class="border-b-2 border-[#8F0A0D] pb-3 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-base font-extrabold text-[#8F0A0D]">BERITA ACARA STOCK OPNAME</h2>
+                            <p class="text-[11px] text-slate-500">PT IP NETWORK SOLUSINDO - WAREHOUSE DIVISION</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-mono font-bold text-slate-800" x-text="detailData.so_number"></div>
+                            <div class="text-[11px] text-slate-500" x-text="'Audit: ' + (detailData.so_date ? detailData.so_date.substring(0,10) : '')"></div>
+                        </div>
                     </div>
-                    <div>
-                        <span class="text-[11px] text-[#64748B] block font-semibold">Auditor PIC:</span>
-                        <div class="font-bold text-[#8F0A0D]" x-text="detailData.auditor_name || '-'"></div>
-                    </div>
-                </div>
 
-                <!-- ITEMS TABLE -->
-                <div>
-                    <h4 class="font-bold text-[#1E293B] mb-2 text-[13px]">Rincian Hasil Pengecekan Fisik:</h4>
-                    <table class="w-full text-left text-[12.5px] border border-slate-200 rounded-lg overflow-hidden">
-                        <thead class="bg-slate-100 text-slate-700 font-bold">
-                            <tr>
-                                <th class="p-2 border-b">Nama Barang</th>
-                                <th class="p-2 border-b text-center">Sistem</th>
-                                <th class="p-2 border-b text-center">Fisik</th>
-                                <th class="p-2 border-b text-center">Selisih</th>
-                                <th class="p-2 border-b">Kondisi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200">
-                            <template x-for="item in (detailData.items || [])" :key="item.id">
+                    <div class="grid grid-cols-2 gap-3 bg-[#F8FAFC] p-3 rounded-xl border border-slate-200">
+                        <div>
+                            <span class="text-[10.5px] text-slate-500 block font-semibold">Gudang Fasilitas:</span>
+                            <div class="font-bold text-slate-800 text-xs" x-text="detailData.warehouse_name || '-'"></div>
+                        </div>
+                        <div>
+                            <span class="text-[10.5px] text-slate-500 block font-semibold">Auditor PIC:</span>
+                            <div class="font-bold text-[#8F0A0D] text-xs" x-text="detailData.auditor_name || '-'"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-slate-800 mb-2 text-xs">Rincian Hasil Pengecekan Fisik:</h4>
+                        <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+                            <thead class="bg-slate-100 text-slate-700 font-bold">
                                 <tr>
-                                    <td class="p-2 font-medium text-slate-800" x-text="item.product_name"></td>
-                                    <td class="p-2 text-center" x-text="item.system_stock"></td>
-                                    <td class="p-2 text-center font-bold" x-text="item.physical_stock"></td>
-                                    <td class="p-2 text-center font-bold" :class="item.difference != 0 ? 'text-amber-600' : 'text-emerald-600'" x-text="item.difference"></td>
-                                    <td class="p-2 text-slate-700" x-text="item.condition_status"></td>
+                                    <th class="p-2.5 border-b border-slate-200">Nama Barang</th>
+                                    <th class="p-2.5 border-b border-slate-200 text-center">Sistem</th>
+                                    <th class="p-2.5 border-b border-slate-200 text-center">Fisik</th>
+                                    <th class="p-2.5 border-b border-slate-200 text-center">Selisih</th>
+                                    <th class="p-2.5 border-b border-slate-200">Kondisi</th>
                                 </tr>
-                            </template>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="item in (detailData.items || [])" :key="item.id">
+                                    <tr>
+                                        <td class="p-2.5 font-medium text-slate-800" x-text="item.product_name"></td>
+                                        <td class="p-2.5 text-center text-slate-700" x-text="item.system_stock"></td>
+                                        <td class="p-2.5 text-center font-bold text-slate-800" x-text="item.physical_stock"></td>
+                                        <td class="p-2.5 text-center font-bold" :class="item.difference != 0 ? 'text-amber-600' : 'text-emerald-600'" x-text="item.difference"></td>
+                                        <td class="p-2.5 text-slate-700" x-text="item.condition_status"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div x-show="detailData.notes" class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                        <span class="font-semibold text-slate-700 block mb-0.5">Catatan &amp; Keterangan:</span>
+                        <p class="text-slate-600" x-text="detailData.notes"></p>
+                    </div>
                 </div>
 
-                <div x-show="detailData.notes" class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[12px]">
-                    <span class="font-semibold text-slate-700 block mb-0.5">Catatan &amp; Keterangan:</span>
-                    <p class="text-slate-600" x-text="detailData.notes"></p>
+                <!-- Fixed Footer -->
+                <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" @click="showDetailModal = false" class="px-4 py-2 rounded-xl bg-white border border-[#CBD5E1] text-[#334155] font-bold text-xs hover:bg-[#F1F5F9] transition">
+                        Tutup
+                    </button>
                 </div>
-            </div>
-
-            <div class="mt-5 pt-3 border-t border-slate-200 flex justify-end">
-                <button type="button" @click="showDetailModal = false" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-[13px] font-bold">Tutup</button>
             </div>
         </div>
-    </div>
+    </template>
 </div>
 
 <script>
@@ -368,8 +479,9 @@ function soManager() {
         showCreateModal: false,
         showDetailModal: false,
         detailData: {},
+        productsList: {!! json_encode($products->map(function($p) { return ['id' => $p->id, 'name' => $p->name, 'sku' => $p->sku, 'stock' => $p->current_stock]; })) !!},
         auditRows: [
-            { product_id: '', product_name: 'Cisco Catalyst 3850', system_stock: 12, physical_stock: 12, condition_status: 'Baik & Lengkap' }
+            { product_id: '', product_name: '', system_stock: 0, physical_stock: 0, condition_status: 'Baik & Lengkap' }
         ],
         openCreateModal() {
             this.showCreateModal = true;
@@ -380,6 +492,21 @@ function soManager() {
         removeAuditRow(index) {
             if (this.auditRows.length > 1) {
                 this.auditRows.splice(index, 1);
+            }
+        },
+        onProductSelect(index) {
+            const row = this.auditRows[index];
+            if (row.product_id && row.product_id !== 'custom') {
+                const p = this.productsList.find(x => x.id == row.product_id);
+                if (p) {
+                    row.product_name = p.name;
+                    row.system_stock = Number(p.stock) || 0;
+                    row.physical_stock = Number(p.stock) || 0;
+                }
+            } else if (row.product_id === 'custom') {
+                row.product_name = '';
+                row.system_stock = 0;
+                row.physical_stock = 0;
             }
         },
         viewDetail(so) {

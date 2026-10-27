@@ -127,82 +127,180 @@
         </div>
     </div>
 
-    <!-- MODAL CREATE CATEGORY -->
-    <div x-show="showCreateModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="showCreateModal = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6">
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-                <h3 class="text-[17px] font-bold text-[#1E293B]">Tambah Kategori Baru</h3>
-                <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+    <!-- MODAL CREATE & EDIT CATEGORY (GAMBAR 2 STYLE) -->
+    <template x-teleport="body">
+        <div x-show="showCreateModal" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs"
+             @click.self="showCreateModal = false"
+             @keydown.escape.window="showCreateModal = false">
+            
+            <div class="bg-white rounded-2xl w-[640px] max-w-full max-h-[90vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 border border-red-100">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Tambah Kategori Produk Baru</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Kelola klasifikasi katalog perangkat dan komponen gudang</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <form action="{{ route('warehouse.categories.store') }}" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden m-0">
+                    @csrf
+                    <div class="p-6 overflow-y-auto space-y-5 text-xs flex-1 min-h-0">
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">• 1. INFORMASI KATEGORI</h4>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div class="sm:col-span-2">
+                                    <label class="block font-semibold text-slate-700 mb-1">Nama Kategori <span class="text-red-500">*</span></label>
+                                    <input type="text" name="name" required placeholder="e.g. Next-Gen Firewall & Security" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-700 mb-1">Kode Kategori (Opsional)</label>
+                                    <input type="text" name="code" placeholder="Otomatis jika kosong (CAT-...)" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-700 mb-1">Status Operasional <span class="text-red-500">*</span></label>
+                                    <select name="status" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white cursor-pointer font-medium">
+                                        <option value="Aktif">Aktif</option>
+                                        <option value="Nonaktif">Nonaktif</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">• 2. DESKRIPSI KATEGORI</h4>
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Deskripsi Singkat</label>
+                                <textarea name="description" rows="3" placeholder="Penjelasan jenis perangkat dalam kategori ini..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-3 shrink-0">
+                        <button type="button" @click="showCreateModal = false" class="py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-xs hover:bg-[#F1F5F9] transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-ipnet-gradient py-2.5 px-5 rounded-xl font-bold text-xs text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                            <span>Simpan Kategori</span>
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <form action="{{ route('warehouse.categories.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-[12px] font-semibold text-[#1E293B] mb-1">Nama Kategori *</label>
-                    <input type="text" name="name" required class="wms-input text-[13px]" placeholder="e.g. Next-Gen Firewall & Security">
-                </div>
-                <div>
-                    <label class="block text-[12px] font-semibold text-[#1E293B] mb-1">Kode Kategori (Opsional, otomatis jika kosong)</label>
-                    <input type="text" name="code" class="wms-input text-[13px]" placeholder="e.g. CAT-FW">
-                </div>
-                <div>
-                    <label class="block text-[12px] font-semibold text-[#1E293B] mb-1">Status</label>
-                    <select name="status" class="wms-input text-[13px]">
-                        <option value="Aktif">Aktif</option>
-                        <option value="Nonaktif">Nonaktif</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[12px] font-semibold text-[#1E293B] mb-1">Deskripsi Singkat</label>
-                    <textarea name="description" rows="3" class="wms-input text-[13px]" placeholder="Penjelasan jenis perangkat dalam kategori ini..."></textarea>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
-                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-[13px]">Batal</button>
-                    <button type="submit" class="btn-ipnet-gradient px-5 py-2.5 rounded-xl font-bold text-[13px]">Simpan Kategori</button>
-                </div>
-            </form>
         </div>
-    </div>
+    </template>
 
     <!-- MODAL EDIT CATEGORY -->
-    <div x-show="showEditModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="showEditModal = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6">
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-                <h3 class="text-[17px] font-bold text-[#1E293B]">Edit Kategori Produk</h3>
-                <button type="button" @click="showEditModal = false" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+    <template x-teleport="body">
+        <div x-show="showEditModal" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs"
+             @click.self="showEditModal = false"
+             @keydown.escape.window="showEditModal = false">
+            
+            <div class="bg-white rounded-2xl w-[640px] max-w-full max-h-[90vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 border border-blue-100">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Perbarui Kategori Produk</h3>
+                            <p class="text-xs text-slate-400 mt-0.5" x-text="'Kode Kategori: ' + (editData.code || '-')"></p>
+                        </div>
+                    </div>
+                    <button type="button" @click="showEditModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <form :action="'/warehouse/categories/' + editData.id" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden m-0">
+                    @csrf
+                    @method('PUT')
+                    <div class="p-6 overflow-y-auto space-y-5 text-xs flex-1 min-h-0">
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">• 1. INFORMASI KATEGORI</h4>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div class="sm:col-span-2">
+                                    <label class="block font-semibold text-slate-700 mb-1">Nama Kategori <span class="text-red-500">*</span></label>
+                                    <input type="text" name="name" x-model="editData.name" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-700 mb-1">Kode Kategori <span class="text-red-500">*</span></label>
+                                    <input type="text" name="code" x-model="editData.code" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-700 mb-1">Status Operasional <span class="text-red-500">*</span></label>
+                                    <select name="status" x-model="editData.status" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white cursor-pointer font-medium">
+                                        <option value="Aktif">Aktif</option>
+                                        <option value="Nonaktif">Nonaktif</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">• 2. DESKRIPSI KATEGORI</h4>
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Deskripsi Singkat</label>
+                                <textarea name="description" x-model="editData.description" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-3 shrink-0">
+                        <button type="button" @click="showEditModal = false" class="py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-xs hover:bg-[#F1F5F9] transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-ipnet-gradient py-2.5 px-5 rounded-xl font-bold text-xs text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                            <span>Perbarui Kategori</span>
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <form :action="'/warehouse/categories/' + editData.id" method="POST" class="space-y-4">
-                @csrf
-                @method('PUT')
-                <div>
-                    <label class="block text-[12px] font-semibold text-[#1E293B] mb-1">Nama Kategori *</label>
-                    <input type="text" name="name" x-model="editData.name" required class="wms-input text-[13px]">
-                </div>
-                <div>
-                    <label class="block text-[12px] font-semibold text-[#1E293B] mb-1">Kode Kategori *</label>
-                    <input type="text" name="code" x-model="editData.code" required class="wms-input text-[13px]">
-                </div>
-                <div>
-                    <label class="block text-[12px] font-semibold text-[#1E293B] mb-1">Status</label>
-                    <select name="status" x-model="editData.status" class="wms-input text-[13px]">
-                        <option value="Aktif">Aktif</option>
-                        <option value="Nonaktif">Nonaktif</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[12px] font-semibold text-[#1E293B] mb-1">Deskripsi</label>
-                    <textarea name="description" x-model="editData.description" rows="3" class="wms-input text-[13px]"></textarea>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
-                    <button type="button" @click="showEditModal = false" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-[13px]">Batal</button>
-                    <button type="submit" class="btn-ipnet-gradient px-5 py-2.5 rounded-xl font-bold text-[13px]">Perbarui</button>
-                </div>
-            </form>
         </div>
-    </div>
+    </template>
 </div>
 
 <script>

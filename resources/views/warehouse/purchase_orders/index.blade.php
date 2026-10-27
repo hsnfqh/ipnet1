@@ -201,201 +201,327 @@
         </div>
     </div>
 
-    <!-- MODAL CREATE PO -->
-    <div x-show="showCreateModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="showCreateModal = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6">
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-                <h3 class="text-[18px] font-bold text-[#1E293B]">Terbitkan Purchase Order Baru</h3>
-                <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-            </div>
-
-            <form action="{{ route('warehouse.purchase_orders.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Nomor PO (Otomatis jika kosong)</label>
-                        <input type="text" name="po_number" class="wms-input text-[12.5px]" placeholder="PO-IPN-2026-...">
+    <!-- MODAL CREATE PO (Gambar 2 Style) -->
+    <template x-teleport="body">
+        <div x-show="showCreateModal" 
+             x-cloak 
+             class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs">
+            <div @click.away="showCreateModal = false" 
+                 class="bg-white rounded-2xl w-[860px] max-w-full max-h-[92vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                
+                <!-- Fixed Header -->
+                <div class="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-red-50 text-[#8F0A0D] border border-red-100 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800">Terbitkan Purchase Order Baru</h3>
+                            <p class="text-[11px] text-slate-500">Pemesanan pengadaan perangkat ke distributor resmi &amp; tracking barang masuk</p>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Tanggal Terbit PO *</label>
-                        <input type="date" name="po_date" value="{{ date('Y-m-d') }}" required class="wms-input text-[12.5px]">
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Supplier / Mitra *</label>
-                        <select name="supplier_id" required class="wms-input text-[12.5px]">
-                            <option value="">Pilih Supplier...</option>
-                            @foreach($suppliers as $sup)
-                                <option value="{{ $sup->id }}">{{ $sup->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Gudang Penerima *</label>
-                        <select name="warehouse_id" required class="wms-input text-[12.5px]">
-                            @foreach($warehouses as $wh)
-                                <option value="{{ $wh->id }}">{{ $wh->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <button type="button" @click="showCreateModal = false" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center text-lg transition">
+                        &times;
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Estimasi Tanggal Tiba</label>
-                        <input type="date" name="expected_date" class="wms-input text-[12.5px]">
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Status Awal</label>
-                        <select name="status" class="wms-input text-[12.5px]">
-                            <option value="Draft">Draft</option>
-                            <option value="Diproses" selected>Diproses</option>
-                            <option value="Disetujui">Disetujui</option>
-                            <option value="Selesai">Selesai (Langsung Tambah Stok)</option>
-                        </select>
-                    </div>
-                </div>
+                <!-- Scrollable Body -->
+                <form id="createPoForm" action="{{ route('warehouse.purchase_orders.store') }}" method="POST" class="flex flex-col flex-1 min-h-0">
+                    @csrf
+                    <div class="p-6 overflow-y-auto space-y-5 text-xs flex-1 min-h-0">
 
-                <!-- DYNAMIC ITEMS TABLE -->
-                <div class="pt-3 border-t border-slate-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-[13px] font-bold text-[#1E293B]">Daftar Item Perangkat yang Dipesan *</label>
-                        <button type="button" @click="addItemRow()" class="text-[12px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
-                            + Tambah Baris Produk
-                        </button>
-                    </div>
-
-                    <div class="space-y-2">
-                        <template x-for="(row, index) in itemRows" :key="index">
-                            <div class="grid grid-cols-12 gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                                <div class="col-span-5">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Pilih / Ketik Nama Produk</label>
-                                    <input type="text" :name="'items[' + index + '][product_name]'" x-model="row.product_name" required class="wms-input text-[12px] py-1.5" placeholder="e.g. Cisco Catalyst 3850">
-                                    <input type="hidden" :name="'items[' + index + '][product_id]'" x-model="row.product_id">
+                        <!-- SECTION 1 -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>1. INFORMASI PURCHASE ORDER &amp; REKANAN</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nomor PO (Opsional)</label>
+                                    <input type="text" name="po_number" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="Otomatis sistem jika kosong">
                                 </div>
-                                <div class="col-span-2">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Qty</label>
-                                    <input type="number" :name="'items[' + index + '][quantity]'" x-model.number="row.quantity" min="1" required class="wms-input text-[12px] py-1.5">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Tanggal Terbit PO <span class="text-red-500">*</span></label>
+                                    <input type="date" name="po_date" value="{{ date('Y-m-d') }}" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
                                 </div>
-                                <div class="col-span-2">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Satuan</label>
-                                    <input type="text" :name="'items[' + index + '][unit]'" x-model="row.unit" required class="wms-input text-[12px] py-1.5">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Supplier / Mitra <span class="text-red-500">*</span></label>
+                                    <select name="supplier_id" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                        <option value="">-- Pilih Supplier --</option>
+                                        @foreach($suppliers as $sup)
+                                            <option value="{{ $sup->id }}">{{ $sup->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                <div class="col-span-2">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Harga Satuan (Rp)</label>
-                                    <input type="number" :name="'items[' + index + '][unit_price]'" x-model.number="row.unit_price" min="0" required class="wms-input text-[12px] py-1.5">
-                                </div>
-                                <div class="col-span-1 text-center pt-3">
-                                    <button type="button" @click="removeItemRow(index)" class="text-red-500 hover:text-red-700 text-lg font-bold" x-show="itemRows.length > 1">&times;</button>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Gudang Penerima <span class="text-red-500">*</span></label>
+                                    <select name="warehouse_id" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                        @foreach($warehouses as $wh)
+                                            <option value="{{ $wh->id }}">{{ $wh->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
-                        </template>
+                        </div>
+
+                        <!-- SECTION 2 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>2. JADWAL PENGIRIMAN &amp; STATUS PO</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Estimasi Tanggal Tiba</label>
+                                    <input type="date" name="expected_date" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Status Awal Purchase Order</label>
+                                    <select name="status" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                        <option value="Draft">Draft</option>
+                                        <option value="Diproses" selected>Diproses</option>
+                                        <option value="Disetujui">Disetujui</option>
+                                        <option value="Selesai">Selesai (Langsung Tambah Stok Fisik)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 3 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                    <span>3. DAFTAR ITEM PERANGKAT YANG DIPESAN</span>
+                                </div>
+                                <button type="button" @click="addItemRow()" class="text-xs font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
+                                    + Tambah Baris Produk
+                                </button>
+                            </div>
+
+                            <div class="space-y-2.5">
+                                <template x-for="(row, index) in itemRows" :key="index">
+                                    <div class="grid grid-cols-12 gap-2.5 items-center bg-[#F8FAFC] p-3 rounded-xl border border-slate-200">
+                                        <!-- Product Dropdown -->
+                                        <div class="col-span-12 sm:col-span-5">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Pilih Produk / Perangkat *</label>
+                                            <select :name="'items[' + index + '][product_id]'" 
+                                                    x-model="row.product_id"
+                                                    @change="onProductSelect(index)"
+                                                    class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
+                                                <option value="">-- Pilih dari Katalog Produk --</option>
+                                                <template x-for="p in productsList" :key="p.id">
+                                                    <option :value="p.id" x-text="p.name + (p.sku ? ' (' + p.sku + ')' : '')"></option>
+                                                </template>
+                                                <option value="custom">-- Input Perangkat Baru Lainnya --</option>
+                                            </select>
+                                            <input type="text" 
+                                                   :name="'items[' + index + '][product_name]'" 
+                                                   x-model="row.product_name" 
+                                                   x-show="row.product_id === 'custom' || !row.product_id"
+                                                   placeholder="Ketik nama perangkat baru..."
+                                                   class="w-full px-2.5 py-1.5 mt-1.5 border border-amber-300 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-amber-50/50 text-xs">
+                                        </div>
+
+                                        <!-- Quantity -->
+                                        <div class="col-span-4 sm:col-span-2">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Qty</label>
+                                            <input type="number" 
+                                                   :name="'items[' + index + '][quantity]'" 
+                                                   x-model.number="row.quantity" 
+                                                   min="1" 
+                                                   required 
+                                                   class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
+                                        </div>
+
+                                        <!-- Satuan Dropdown -->
+                                        <div class="col-span-4 sm:col-span-2">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Satuan</label>
+                                            <select :name="'items[' + index + '][unit]'" 
+                                                    x-model="row.unit" 
+                                                    required 
+                                                    class="w-full px-2 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
+                                                <option value="Unit">Unit</option>
+                                                <option value="Pcs">Pcs</option>
+                                                <option value="Box">Box</option>
+                                                <option value="Roll">Roll</option>
+                                                <option value="Meter">Meter</option>
+                                                <option value="Set">Set</option>
+                                                <option value="Pack">Pack</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Harga Satuan -->
+                                        <div class="col-span-3 sm:col-span-2">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Harga Satuan (Rp)</label>
+                                            <input type="number" 
+                                                   :name="'items[' + index + '][unit_price]'" 
+                                                   x-model.number="row.unit_price" 
+                                                   min="0" 
+                                                   required 
+                                                   class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
+                                        </div>
+
+                                        <!-- Delete row -->
+                                        <div class="col-span-1 text-center pt-4">
+                                            <button type="button" 
+                                                    @click="removeItemRow(index)" 
+                                                    class="w-7 h-7 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700 flex items-center justify-center text-base font-bold transition mx-auto" 
+                                                    x-show="itemRows.length > 1">
+                                                &times;
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- TOTAL SUMMARY -->
+                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                                <span class="font-semibold text-slate-700">Estimasi Total Biaya Pengadaan:</span>
+                                <strong class="text-base font-extrabold text-[#8F0A0D]" x-text="'Rp ' + (new Intl.NumberFormat('id-ID').format(calculateTotal()))"></strong>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 4 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>4. SYARAT PEMBAYARAN &amp; CATATAN PENGADAAN</span>
+                            </div>
+                            <div>
+                                <textarea name="notes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs" placeholder="Syarat serah terima, ketentuan garansi distributor, syarat pembayaran tempo..."></textarea>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <!-- TOTAL CALCULATION -->
-                    <div class="mt-3 p-3 rounded-xl bg-slate-100 flex items-center justify-between text-[13px]">
-                        <span class="font-semibold text-slate-700">Estimasi Total Biaya Pengadaan:</span>
-                        <strong class="text-[17px] font-extrabold text-[#8F0A0D]" x-text="'Rp ' + (new Intl.NumberFormat('id-ID').format(calculateTotal()))"></strong>
+                    <!-- Fixed Footer -->
+                    <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-3 shrink-0">
+                        <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl bg-white border border-[#CBD5E1] text-[#334155] font-bold text-xs hover:bg-[#F1F5F9] transition">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-ipnet-gradient py-2.5 px-5 rounded-xl font-bold text-xs text-white shadow-sm flex items-center gap-2 cursor-pointer transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Terbitkan Purchase Order</span>
+                        </button>
                     </div>
-                </div>
+                </form>
 
-                <div>
-                    <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Catatan Tambahan / Syarat Pembayaran</label>
-                    <textarea name="notes" rows="2" class="wms-input text-[12.5px]" placeholder="Syarat serah terima, ketentuan garansi, no kontrak rekanan..."></textarea>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
-                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-[13px]">Batal</button>
-                    <button type="submit" class="btn-ipnet-gradient px-5 py-2.5 rounded-xl font-bold text-[13px]">Terbitkan Purchase Order</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL DETAIL & CETAK PO -->
-    <div x-show="showDetailModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="showDetailModal = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full p-6 max-h-[92vh] overflow-y-auto">
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-                <div class="flex items-center gap-2">
-                    <span class="text-[12px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700" x-text="detailData.status"></span>
-                    <h3 class="text-[17px] font-bold text-[#1E293B]" x-text="detailData.po_number"></h3>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="window.print()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-[12px] hover:bg-slate-100 flex items-center gap-1.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                        </svg>
-                        <span>Cetak PO</span>
-                    </button>
-                    <button type="button" @click="showDetailModal = false" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-                </div>
             </div>
+        </div>
+    </template>
 
-            <!-- PRINTABLE PO SHEET -->
-            <div id="print-area" class="space-y-4 text-[13px]">
-                <div class="border-b-2 border-[#8F0A0D] pb-3 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-[18px] font-extrabold text-[#8F0A0D]">PT IP NETWORK SOLUSINDO</h2>
-                        <p class="text-[11px] text-slate-500">Official Purchase Order &amp; Procurement Document</p>
+    <!-- MODAL DETAIL & CETAK PO (Gambar 2 Style) -->
+    <template x-teleport="body">
+        <div x-show="showDetailModal" 
+             x-cloak 
+             class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs">
+            <div @click.away="showDetailModal = false" 
+                 class="bg-white rounded-2xl w-[760px] max-w-full max-h-[92vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                
+                <!-- Fixed Header -->
+                <div class="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-bold text-slate-800" x-text="detailData.po_number"></h3>
+                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200" x-text="detailData.status"></span>
+                            </div>
+                            <p class="text-[11px] text-slate-500">Lembar Purchase Order resmi pengadaan perangkat logistik</p>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-[14px] font-mono font-bold text-[#1E293B]" x-text="detailData.po_number"></div>
-                        <div class="text-[11px] text-slate-500" x-text="'Tanggal: ' + (detailData.po_date || '')"></div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="window.print()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-xs hover:bg-slate-100 flex items-center gap-1.5 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                            <span>Cetak PO</span>
+                        </button>
+                        <button type="button" @click="showDetailModal = false" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center text-lg transition">
+                            &times;
+                        </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                    <div>
-                        <span class="text-[11px] text-[#64748B] block font-semibold">Supplier Tujuan:</span>
-                        <div class="font-bold text-[#1E293B]" x-text="detailData.supplier_name || '-'"></div>
+                <!-- Printable Sheet Body -->
+                <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1 min-h-0" id="print-area">
+                    <div class="border-b-2 border-[#8F0A0D] pb-3 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-base font-extrabold text-[#8F0A0D]">PT IP NETWORK SOLUSINDO</h2>
+                            <p class="text-[11px] text-slate-500">Official Purchase Order &amp; Procurement Document</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-mono font-bold text-slate-800" x-text="detailData.po_number"></div>
+                            <div class="text-[11px] text-slate-500" x-text="'Tanggal: ' + (detailData.po_date ? detailData.po_date.substring(0,10) : '')"></div>
+                        </div>
                     </div>
-                    <div>
-                        <span class="text-[11px] text-[#64748B] block font-semibold">Gudang Penerima:</span>
-                        <div class="font-bold text-[#8F0A0D]" x-text="detailData.warehouse_name || 'Gudang Utama IPNET'"></div>
-                    </div>
-                </div>
 
-                <!-- ITEMS TABLE -->
-                <div>
-                    <h4 class="font-bold text-[#1E293B] mb-2 text-[13px]">Rincian Barang yang Dipesan:</h4>
-                    <table class="w-full text-left text-[12.5px] border border-slate-200 rounded-lg overflow-hidden">
-                        <thead class="bg-slate-100 text-slate-700 font-bold">
-                            <tr>
-                                <th class="p-2 border-b">Nama Barang</th>
-                                <th class="p-2 border-b text-center">Qty</th>
-                                <th class="p-2 border-b text-right">Harga Satuan</th>
-                                <th class="p-2 border-b text-right">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200">
-                            <template x-for="item in (detailData.items || [])" :key="item.id">
+                    <div class="grid grid-cols-2 gap-3 bg-[#F8FAFC] p-3 rounded-xl border border-slate-200">
+                        <div>
+                            <span class="text-[10.5px] text-slate-500 block font-semibold">Supplier / Mitra:</span>
+                            <div class="font-bold text-slate-800 text-xs" x-text="detailData.supplier_name || '-'"></div>
+                        </div>
+                        <div>
+                            <span class="text-[10.5px] text-slate-500 block font-semibold">Gudang Penerima:</span>
+                            <div class="font-bold text-[#8F0A0D] text-xs" x-text="detailData.warehouse_name || 'Gudang Utama IPNET'"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-slate-800 mb-2 text-xs">Rincian Barang yang Dipesan:</h4>
+                        <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+                            <thead class="bg-slate-100 text-slate-700 font-bold">
                                 <tr>
-                                    <td class="p-2 font-medium text-slate-800" x-text="item.product_name"></td>
-                                    <td class="p-2 text-center" x-text="item.quantity + ' ' + item.unit"></td>
-                                    <td class="p-2 text-right" x-text="'Rp ' + (new Intl.NumberFormat('id-ID').format(item.unit_price))"></td>
-                                    <td class="p-2 text-right font-bold text-slate-900" x-text="'Rp ' + (new Intl.NumberFormat('id-ID').format(item.subtotal))"></td>
+                                    <th class="p-2.5 border-b border-slate-200">Nama Barang</th>
+                                    <th class="p-2.5 border-b border-slate-200 text-center">Qty</th>
+                                    <th class="p-2.5 border-b border-slate-200 text-right">Harga Satuan</th>
+                                    <th class="p-2.5 border-b border-slate-200 text-right">Subtotal</th>
                                 </tr>
-                            </template>
-                        </tbody>
-                        <tfoot class="bg-slate-50 font-bold">
-                            <tr>
-                                <td colspan="3" class="p-2 text-right text-slate-700">Total Nilai PO:</td>
-                                <td class="p-2 text-right text-[#8F0A0D] text-[14px]" x-text="'Rp ' + (new Intl.NumberFormat('id-ID').format(detailData.total_amount || 0))"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="item in (detailData.items || [])" :key="item.id">
+                                    <tr>
+                                        <td class="p-2.5 font-medium text-slate-800" x-text="item.product_name"></td>
+                                        <td class="p-2.5 text-center text-slate-700" x-text="item.quantity + ' ' + item.unit"></td>
+                                        <td class="p-2.5 text-right text-slate-700" x-text="'Rp ' + (new Intl.NumberFormat('id-ID').format(item.unit_price))"></td>
+                                        <td class="p-2.5 text-right font-bold text-slate-900" x-text="'Rp ' + (new Intl.NumberFormat('id-ID').format(item.subtotal))"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                            <tfoot class="bg-slate-50 font-bold">
+                                <tr>
+                                    <td colspan="3" class="p-2.5 text-right text-slate-700">Total Nilai PO:</td>
+                                    <td class="p-2.5 text-right text-[#8F0A0D] text-sm" x-text="'Rp ' + (new Intl.NumberFormat('id-ID').format(detailData.total_amount || 0))"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div x-show="detailData.notes" class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                        <span class="font-semibold text-slate-700 block mb-0.5">Catatan PO:</span>
+                        <p class="text-slate-600" x-text="detailData.notes"></p>
+                    </div>
                 </div>
 
-                <div x-show="detailData.notes" class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[12px]">
-                    <span class="font-semibold text-slate-700 block mb-0.5">Catatan PO:</span>
-                    <p class="text-slate-600" x-text="detailData.notes"></p>
+                <!-- Fixed Footer -->
+                <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" @click="showDetailModal = false" class="px-4 py-2 rounded-xl bg-white border border-[#CBD5E1] text-[#334155] font-bold text-xs hover:bg-[#F1F5F9] transition">
+                        Tutup
+                    </button>
                 </div>
-            </div>
-
-            <div class="mt-5 pt-3 border-t border-slate-200 flex justify-end">
-                <button type="button" @click="showDetailModal = false" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-[13px] font-bold">Tutup</button>
             </div>
         </div>
-    </div>
+    </template>
 </div>
 
 <script>
@@ -404,6 +530,7 @@ function poManager() {
         showCreateModal: false,
         showDetailModal: false,
         detailData: {},
+        productsList: {!! json_encode($products->map(function($p) { return ['id' => $p->id, 'name' => $p->name, 'sku' => $p->sku, 'unit' => $p->unit, 'price' => $p->purchase_price]; })) !!},
         itemRows: [
             { product_id: '', product_name: '', quantity: 1, unit: 'Unit', unit_price: 0 }
         ],
@@ -416,6 +543,19 @@ function poManager() {
         removeItemRow(index) {
             if (this.itemRows.length > 1) {
                 this.itemRows.splice(index, 1);
+            }
+        },
+        onProductSelect(index) {
+            const row = this.itemRows[index];
+            if (row.product_id && row.product_id !== 'custom') {
+                const p = this.productsList.find(x => x.id == row.product_id);
+                if (p) {
+                    row.product_name = p.name;
+                    if (p.unit) row.unit = p.unit;
+                    if (p.price) row.unit_price = Number(p.price);
+                }
+            } else if (row.product_id === 'custom') {
+                row.product_name = '';
             }
         },
         calculateTotal() {

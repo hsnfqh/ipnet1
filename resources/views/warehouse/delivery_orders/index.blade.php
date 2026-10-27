@@ -192,229 +192,360 @@
         </div>
     </div>
 
-    <!-- MODAL CREATE DELIVERY ORDER -->
-    <div x-show="showCreateModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="showCreateModal = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6">
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-                <h3 class="text-[18px] font-bold text-[#1E293B]">Terbitkan Surat Jalan (Delivery Order) Baru</h3>
-                <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-            </div>
-
-            <form action="{{ route('warehouse.delivery_orders.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Nomor DO (Otomatis jika kosong)</label>
-                        <input type="text" name="do_number" class="wms-input text-[12.5px]" placeholder="DO-IPN-2026-...">
+    <!-- MODAL CREATE DELIVERY ORDER (Gambar 2 Style) -->
+    <template x-teleport="body">
+        <div x-show="showCreateModal" 
+             x-cloak 
+             class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs">
+            <div @click.away="showCreateModal = false" 
+                 class="bg-white rounded-2xl w-[860px] max-w-full max-h-[92vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                
+                <!-- Fixed Header -->
+                <div class="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 border border-purple-100 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800">Terbitkan Surat Jalan (Delivery Order) Baru</h3>
+                            <p class="text-[11px] text-slate-500">Pengiriman dan distribusi unit perangkat jaringan ke klien / lokasi instalasi</p>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Tanggal Pengiriman *</label>
-                        <input type="date" name="do_date" value="{{ date('Y-m-d') }}" required class="wms-input text-[12.5px]">
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Gudang Asal Pengeluaran *</label>
-                        <select name="warehouse_id" required class="wms-input text-[12.5px]">
-                            @foreach($warehouses as $wh)
-                                <option value="{{ $wh->id }}">{{ $wh->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">No. Referensi (PO / Proyek)</label>
-                        <input type="text" name="reference_no" class="wms-input text-[12.5px]" placeholder="CTR-BRI-2026...">
-                    </div>
+                    <button type="button" @click="showCreateModal = false" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center text-lg transition">
+                        &times;
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Nama Penerima (PIC Klien) *</label>
-                        <input type="text" name="recipient_name" required class="wms-input text-[12.5px]" placeholder="e.g. Budi Hartono">
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Nama Instansi / Perusahaan</label>
-                        <input type="text" name="recipient_company" class="wms-input text-[12.5px]" placeholder="e.g. PT Bank Rakyat Indonesia Tbk">
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Nomor Telp / WA Penerima</label>
-                        <input type="text" name="recipient_phone" class="wms-input text-[12.5px]" placeholder="e.g. 081287654321">
-                    </div>
-                </div>
+                <!-- Scrollable Body -->
+                <form id="createDoForm" action="{{ route('warehouse.delivery_orders.store') }}" method="POST" class="flex flex-col flex-1 min-h-0">
+                    @csrf
+                    <div class="p-6 overflow-y-auto space-y-5 text-xs flex-1 min-h-0">
 
-                <div>
-                    <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Alamat Lengkap Pengiriman *</label>
-                    <textarea name="delivery_address" rows="2" required class="wms-input text-[12.5px]" placeholder="Gedung, lantai, jalan, kota..."></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Kurir / Driver</label>
-                        <input type="text" name="courier_name" class="wms-input text-[12.5px]" placeholder="e.g. Supriyadi (Internal Driver)">
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Nomor Polisi Kendaraan</label>
-                        <input type="text" name="vehicle_no" class="wms-input text-[12.5px]" placeholder="e.g. B 9182 JKL">
-                    </div>
-                    <div>
-                        <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Status Pengiriman</label>
-                        <select name="status" class="wms-input text-[12.5px]">
-                            <option value="Draft">Draft</option>
-                            <option value="Siap Dikirim">Siap Dikirim</option>
-                            <option value="Dalam Pengiriman" selected>Dalam Pengiriman (Kurangi Stok)</option>
-                            <option value="Terkirim & Diterima">Terkirim &amp; Diterima</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- DYNAMIC ITEMS TABLE -->
-                <div class="pt-3 border-t border-slate-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-[13px] font-bold text-[#1E293B]">Daftar Item Perangkat yang Dikirim *</label>
-                        <button type="button" @click="addItemRow()" class="text-[12px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
-                            + Tambah Baris Perangkat
-                        </button>
-                    </div>
-
-                    <div class="space-y-2">
-                        <template x-for="(row, index) in itemRows" :key="index">
-                            <div class="grid grid-cols-12 gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                                <div class="col-span-5">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Nama Produk</label>
-                                    <input type="text" :name="'items[' + index + '][product_name]'" x-model="row.product_name" required class="wms-input text-[12px] py-1.5" placeholder="e.g. Cisco Catalyst 3850">
-                                    <input type="hidden" :name="'items[' + index + '][product_id]'" x-model="row.product_id">
+                        <!-- SECTION 1 -->
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>1. INFORMASI SURAT JALAN &amp; GUDANG PENGIRIM</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nomor DO (Opsional)</label>
+                                    <input type="text" name="do_number" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="Otomatis jika kosong">
                                 </div>
-                                <div class="col-span-3">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Serial Number (S/N)</label>
-                                    <input type="text" :name="'items[' + index + '][serial_number]'" x-model="row.serial_number" class="wms-input text-[12px] py-1.5" placeholder="FCW2143L0G7...">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Tanggal Pengiriman <span class="text-red-500">*</span></label>
+                                    <input type="date" name="do_date" value="{{ date('Y-m-d') }}" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
                                 </div>
-                                <div class="col-span-2">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Qty</label>
-                                    <input type="number" :name="'items[' + index + '][quantity]'" x-model.number="row.quantity" min="1" required class="wms-input text-[12px] py-1.5">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Gudang Asal <span class="text-red-500">*</span></label>
+                                    <select name="warehouse_id" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                        @foreach($warehouses as $wh)
+                                            <option value="{{ $wh->id }}">{{ $wh->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                <div class="col-span-1">
-                                    <label class="block text-[10px] text-slate-500 font-semibold mb-0.5">Satuan</label>
-                                    <input type="text" :name="'items[' + index + '][unit]'" x-model="row.unit" required class="wms-input text-[12px] py-1.5">
-                                </div>
-                                <div class="col-span-1 text-center pt-3">
-                                    <button type="button" @click="removeItemRow(index)" class="text-red-500 hover:text-red-700 text-lg font-bold" x-show="itemRows.length > 1">&times;</button>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">No. Referensi (PO / Proyek)</label>
+                                    <input type="text" name="reference_no" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="CTR-BRI-2026...">
                                 </div>
                             </div>
-                        </template>
+                        </div>
+
+                        <!-- SECTION 2 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>2. DATA PENERIMA &amp; ALAMAT TUJUAN</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nama Penerima (PIC Klien) <span class="text-red-500">*</span></label>
+                                    <input type="text" name="recipient_name" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. Budi Hartono">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nama Instansi / Perusahaan</label>
+                                    <input type="text" name="recipient_company" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. PT Bank Rakyat Indonesia Tbk">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nomor Telp / WA Penerima</label>
+                                    <input type="text" name="recipient_phone" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. 081287654321">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Alamat Lengkap Pengiriman <span class="text-red-500">*</span></label>
+                                <textarea name="delivery_address" rows="2" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs" placeholder="Gedung, lantai, nomor ruangan, jalan, kota..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 3 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>3. DETAIL EKSPEDISI &amp; STATUS PENGIRIMAN</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Kurir / Driver</label>
+                                    <input type="text" name="courier_name" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. Supriyadi (Internal Driver)">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nomor Polisi Kendaraan</label>
+                                    <input type="text" name="vehicle_no" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. B 9182 JKL">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Status Pengiriman</label>
+                                    <select name="status" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
+                                        <option value="Draft">Draft</option>
+                                        <option value="Siap Dikirim">Siap Dikirim</option>
+                                        <option value="Dalam Pengiriman" selected>Dalam Pengiriman (Kurangi Stok)</option>
+                                        <option value="Terkirim & Diterima">Terkirim &amp; Diterima</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 4 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                    <span>4. DAFTAR PERANGKAT YANG DIKIRIM</span>
+                                </div>
+                                <button type="button" @click="addItemRow()" class="text-xs font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
+                                    + Tambah Baris Perangkat
+                                </button>
+                            </div>
+
+                            <div class="space-y-2.5">
+                                <template x-for="(row, index) in itemRows" :key="index">
+                                    <div class="grid grid-cols-12 gap-2.5 items-center bg-[#F8FAFC] p-3 rounded-xl border border-slate-200">
+                                        <!-- Product Dropdown -->
+                                        <div class="col-span-12 sm:col-span-5">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Pilih Produk *</label>
+                                            <select :name="'items[' + index + '][product_id]'" 
+                                                    x-model="row.product_id"
+                                                    @change="onProductSelect(index)"
+                                                    class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
+                                                <option value="">-- Pilih dari Katalog --</option>
+                                                <template x-for="p in productsList" :key="p.id">
+                                                    <option :value="p.id" x-text="p.name + (p.sku ? ' (' + p.sku + ')' : '')"></option>
+                                                </template>
+                                                <option value="custom">-- Input Perangkat Lainnya --</option>
+                                            </select>
+                                            <input type="text" 
+                                                   :name="'items[' + index + '][product_name]'" 
+                                                   x-model="row.product_name" 
+                                                   x-show="row.product_id === 'custom' || !row.product_id"
+                                                   placeholder="Ketik nama produk..."
+                                                   class="w-full px-2.5 py-1.5 mt-1.5 border border-amber-300 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-amber-50/50 text-xs">
+                                        </div>
+
+                                        <!-- Serial Number -->
+                                        <div class="col-span-12 sm:col-span-3">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Serial Number (S/N)</label>
+                                            <input type="text" 
+                                                   :name="'items[' + index + '][serial_number]'" 
+                                                   x-model="row.serial_number" 
+                                                   placeholder="FCW2143L0G7..." 
+                                                   class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs font-mono">
+                                        </div>
+
+                                        <!-- Quantity -->
+                                        <div class="col-span-6 sm:col-span-2">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Qty</label>
+                                            <input type="number" 
+                                                   :name="'items[' + index + '][quantity]'" 
+                                                   x-model.number="row.quantity" 
+                                                   min="1" 
+                                                   required 
+                                                   class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs font-bold">
+                                        </div>
+
+                                        <!-- Satuan Dropdown -->
+                                        <div class="col-span-5 sm:col-span-1">
+                                            <label class="block text-[10.5px] text-slate-600 font-semibold mb-1">Satuan</label>
+                                            <select :name="'items[' + index + '][unit]'" 
+                                                    x-model="row.unit" 
+                                                    required 
+                                                    class="w-full px-2 py-1.5 border border-slate-200 rounded-lg outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs">
+                                                <option value="Unit">Unit</option>
+                                                <option value="Pcs">Pcs</option>
+                                                <option value="Box">Box</option>
+                                                <option value="Roll">Roll</option>
+                                                <option value="Meter">Meter</option>
+                                                <option value="Set">Set</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Delete row -->
+                                        <div class="col-span-1 text-center pt-4">
+                                            <button type="button" 
+                                                    @click="removeItemRow(index)" 
+                                                    class="w-7 h-7 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700 flex items-center justify-center text-base font-bold transition mx-auto" 
+                                                    x-show="itemRows.length > 1">
+                                                &times;
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 5 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>5. CATATAN PENGIRIMAN &amp; KELENGKAPAN UNIT</span>
+                            </div>
+                            <div>
+                                <textarea name="notes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white text-xs" placeholder="Kelengkapan kabel power, mounting ear, manual book, kondisi segel..."></textarea>
+                            </div>
+                        </div>
+
                     </div>
-                </div>
 
-                <div>
-                    <label class="block text-[11.5px] font-semibold text-[#1E293B] mb-1">Catatan Tambahan Surat Jalan</label>
-                    <textarea name="notes" rows="2" class="wms-input text-[12.5px]" placeholder="Kelengkapan power cable, rack ears, manual book, kondisi segel..."></textarea>
-                </div>
+                    <!-- Fixed Footer -->
+                    <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-3 shrink-0">
+                        <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl bg-white border border-[#CBD5E1] text-[#334155] font-bold text-xs hover:bg-[#F1F5F9] transition">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-ipnet-gradient py-2.5 px-5 rounded-xl font-bold text-xs text-white shadow-sm flex items-center gap-2 cursor-pointer transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                            </svg>
+                            <span>Terbitkan Surat Jalan</span>
+                        </button>
+                    </div>
+                </form>
 
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
-                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-[13px]">Batal</button>
-                    <button type="submit" class="btn-ipnet-gradient px-5 py-2.5 rounded-xl font-bold text-[13px]">Terbitkan Surat Jalan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL DETAIL & CETAK SURAT JALAN DO -->
-    <div x-show="showDetailModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="showDetailModal = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full p-6 max-h-[92vh] overflow-y-auto">
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-                <div class="flex items-center gap-2">
-                    <span class="text-[12px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-700" x-text="detailData.status"></span>
-                    <h3 class="text-[17px] font-bold text-[#1E293B]" x-text="detailData.do_number"></h3>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="window.print()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-[12px] hover:bg-slate-100 flex items-center gap-1.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                        </svg>
-                        <span>Cetak Surat Jalan</span>
-                    </button>
-                    <button type="button" @click="showDetailModal = false" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-                </div>
             </div>
+        </div>
+    </template>
 
-            <!-- PRINTABLE DELIVERY ORDER SHEET -->
-            <div id="print-area" class="space-y-4 text-[13px]">
-                <div class="border-b-2 border-[#8F0A0D] pb-3 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-[18px] font-extrabold text-[#8F0A0D]">PT IP NETWORK SOLUSINDO</h2>
-                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Surat Jalan Pengiriman Barang (Delivery Order)</p>
+    <!-- MODAL DETAIL & CETAK SURAT JALAN DO (Gambar 2 Style) -->
+    <template x-teleport="body">
+        <div x-show="showDetailModal" 
+             x-cloak 
+             class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs">
+            <div @click.away="showDetailModal = false" 
+                 class="bg-white rounded-2xl w-[780px] max-w-full max-h-[92vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                
+                <!-- Fixed Header -->
+                <div class="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 border border-purple-100 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-bold text-slate-800" x-text="detailData.do_number"></h3>
+                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200" x-text="detailData.status"></span>
+                            </div>
+                            <p class="text-[11px] text-slate-500">Surat Jalan Resmi Pengiriman &amp; Serah Terima Barang</p>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-[14px] font-mono font-bold text-[#1E293B]" x-text="detailData.do_number"></div>
-                        <div class="text-[11px] text-slate-500" x-text="'Tanggal: ' + (detailData.do_date || '')"></div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="window.print()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-xs hover:bg-slate-100 flex items-center gap-1.5 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                            <span>Cetak Surat Jalan</span>
+                        </button>
+                        <button type="button" @click="showDetailModal = false" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center text-lg transition">
+                            &times;
+                        </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                    <div>
-                        <span class="text-[11px] text-[#64748B] block font-semibold">Tujuan Pengiriman:</span>
-                        <div class="font-bold text-[#1E293B]" x-text="detailData.recipient_name"></div>
-                        <div class="text-[12px] text-[#8F0A0D] font-semibold" x-text="detailData.recipient_company"></div>
-                        <div class="text-[11.5px] text-slate-600 mt-1" x-text="detailData.delivery_address"></div>
+                <!-- Printable Body -->
+                <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1 min-h-0" id="print-area">
+                    <div class="border-b-2 border-[#8F0A0D] pb-3 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-base font-extrabold text-[#8F0A0D]">PT IP NETWORK SOLUSINDO</h2>
+                            <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Surat Jalan Pengiriman Barang (Delivery Order)</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-mono font-bold text-slate-800" x-text="detailData.do_number"></div>
+                            <div class="text-[11px] text-slate-500" x-text="'Tanggal: ' + (detailData.do_date ? detailData.do_date.substring(0,10) : '')"></div>
+                        </div>
                     </div>
-                    <div>
-                        <span class="text-[11px] text-[#64748B] block font-semibold">Gudang &amp; Ekspedisi:</span>
-                        <div class="text-[12px] text-slate-800">Gudang Asal: <strong x-text="detailData.warehouse_name || 'Gudang Utama'"></strong></div>
-                        <div class="text-[12px] text-slate-800">Kurir / Driver: <strong x-text="detailData.courier_name || 'Internal'"></strong></div>
-                        <div class="text-[12px] text-slate-800" x-show="detailData.vehicle_no">No. Kendaraan: <span x-text="detailData.vehicle_no"></span></div>
-                        <div class="text-[12px] text-slate-800" x-show="detailData.reference_no">Ref: <span x-text="detailData.reference_no"></span></div>
-                    </div>
-                </div>
 
-                <!-- ITEMS TABLE -->
-                <div>
-                    <h4 class="font-bold text-[#1E293B] mb-2 text-[13px]">Daftar Perangkat yang Diserahterimakan:</h4>
-                    <table class="w-full text-left text-[12.5px] border border-slate-200 rounded-lg overflow-hidden">
-                        <thead class="bg-slate-100 text-slate-700 font-bold">
-                            <tr>
-                                <th class="p-2 border-b">Nama Barang</th>
-                                <th class="p-2 border-b">Serial Number (S/N)</th>
-                                <th class="p-2 border-b text-center">Qty</th>
-                                <th class="p-2 border-b">Satuan</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200">
-                            <template x-for="item in (detailData.items || [])" :key="item.id">
+                    <div class="grid grid-cols-2 gap-3 bg-[#F8FAFC] p-3 rounded-xl border border-slate-200">
+                        <div>
+                            <span class="text-[10.5px] text-slate-500 block font-semibold">Tujuan Pengiriman:</span>
+                            <div class="font-bold text-slate-800 text-xs" x-text="detailData.recipient_name"></div>
+                            <div class="text-xs text-[#8F0A0D] font-semibold" x-text="detailData.recipient_company"></div>
+                            <div class="text-[11px] text-slate-600 mt-1" x-text="detailData.delivery_address"></div>
+                        </div>
+                        <div>
+                            <span class="text-[10.5px] text-slate-500 block font-semibold">Gudang &amp; Ekspedisi:</span>
+                            <div class="text-xs text-slate-800">Gudang Asal: <strong x-text="detailData.warehouse_name || 'Gudang Utama'"></strong></div>
+                            <div class="text-xs text-slate-800">Kurir / Driver: <strong x-text="detailData.courier_name || 'Internal'"></strong></div>
+                            <div class="text-xs text-slate-800" x-show="detailData.vehicle_no">No. Kendaraan: <span x-text="detailData.vehicle_no"></span></div>
+                            <div class="text-xs text-slate-800" x-show="detailData.reference_no">Ref: <span x-text="detailData.reference_no"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div>
+                        <h4 class="font-bold text-slate-800 mb-2 text-xs">Daftar Perangkat yang Diserahterimakan:</h4>
+                        <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+                            <thead class="bg-slate-100 text-slate-700 font-bold">
                                 <tr>
-                                    <td class="p-2 font-medium text-slate-800" x-text="item.product_name"></td>
-                                    <td class="p-2 font-mono text-[11px] font-bold text-slate-700" x-text="item.serial_number || '-'"></td>
-                                    <td class="p-2 text-center font-bold" x-text="item.quantity"></td>
-                                    <td class="p-2 text-slate-700" x-text="item.unit"></td>
+                                    <th class="p-2.5 border-b border-slate-200">Nama Barang</th>
+                                    <th class="p-2.5 border-b border-slate-200">Serial Number (S/N)</th>
+                                    <th class="p-2.5 border-b border-slate-200 text-center">Qty</th>
+                                    <th class="p-2.5 border-b border-slate-200">Satuan</th>
                                 </tr>
-                            </template>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="item in (detailData.items || [])" :key="item.id">
+                                    <tr>
+                                        <td class="p-2.5 font-medium text-slate-800" x-text="item.product_name"></td>
+                                        <td class="p-2.5 font-mono text-[11px] font-bold text-slate-700" x-text="item.serial_number || '-'"></td>
+                                        <td class="p-2.5 text-center font-bold text-slate-800" x-text="item.quantity"></td>
+                                        <td class="p-2.5 text-slate-700" x-text="item.unit"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div x-show="detailData.notes" class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                        <span class="font-semibold text-slate-700 block mb-0.5">Catatan Khusus:</span>
+                        <p class="text-slate-600" x-text="detailData.notes"></p>
+                    </div>
+
+                    <!-- Signatures -->
+                    <div class="grid grid-cols-3 gap-3 pt-4 text-center text-xs">
+                        <div>
+                            <p class="text-slate-500 mb-10">Petugas Gudang (Pengirim)</p>
+                            <p class="font-bold text-slate-800 border-t border-slate-300 pt-1">Ahmad</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 mb-10">Driver / Ekspedisi</p>
+                            <p class="font-bold text-slate-800 border-t border-slate-300 pt-1" x-text="detailData.courier_name || 'Driver'"></p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 mb-10">Penerima (Klien / PIC)</p>
+                            <p class="font-bold text-slate-800 border-t border-slate-300 pt-1" x-text="detailData.recipient_name || 'Penerima'"></p>
+                        </div>
+                    </div>
                 </div>
 
-                <div x-show="detailData.notes" class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[12px]">
-                    <span class="font-semibold text-slate-700 block mb-0.5">Catatan Khusus:</span>
-                    <p class="text-slate-600" x-text="detailData.notes"></p>
+                <!-- Fixed Footer -->
+                <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" @click="showDetailModal = false" class="px-4 py-2 rounded-xl bg-white border border-[#CBD5E1] text-[#334155] font-bold text-xs hover:bg-[#F1F5F9] transition">
+                        Tutup
+                    </button>
                 </div>
-
-                <!-- SIGNATURE BLOCK -->
-                <div class="grid grid-cols-3 gap-4 pt-6 text-center text-[12px]">
-                    <div>
-                        <p class="text-slate-500 mb-12">Petugas Gudang (Pengirim)</p>
-                        <p class="font-bold text-slate-800 border-t border-slate-300 pt-1">Ahmad</p>
-                    </div>
-                    <div>
-                        <p class="text-slate-500 mb-12">Driver / Ekspedisi</p>
-                        <p class="font-bold text-slate-800 border-t border-slate-300 pt-1" x-text="detailData.courier_name || 'Driver'"></p>
-                    </div>
-                    <div>
-                        <p class="text-slate-500 mb-12">Penerima (Klien / PIC Proyek)</p>
-                        <p class="font-bold text-slate-800 border-t border-slate-300 pt-1" x-text="detailData.recipient_name || 'Penerima'"></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-5 pt-3 border-t border-slate-200 flex justify-end">
-                <button type="button" @click="showDetailModal = false" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-[13px] font-bold">Tutup</button>
             </div>
         </div>
-    </div>
+    </template>
 </div>
 
 <script>
@@ -423,6 +554,7 @@ function doManager() {
         showCreateModal: false,
         showDetailModal: false,
         detailData: {},
+        productsList: {!! json_encode($products->map(function($p) { return ['id' => $p->id, 'name' => $p->name, 'sku' => $p->sku, 'unit' => $p->unit]; })) !!},
         itemRows: [
             { product_id: '', product_name: '', serial_number: '', quantity: 1, unit: 'Unit' }
         ],
@@ -435,6 +567,18 @@ function doManager() {
         removeItemRow(index) {
             if (this.itemRows.length > 1) {
                 this.itemRows.splice(index, 1);
+            }
+        },
+        onProductSelect(index) {
+            const row = this.itemRows[index];
+            if (row.product_id && row.product_id !== 'custom') {
+                const p = this.productsList.find(x => x.id == row.product_id);
+                if (p) {
+                    row.product_name = p.name;
+                    if (p.unit) row.unit = p.unit;
+                }
+            } else if (row.product_id === 'custom') {
+                row.product_name = '';
             }
         },
         viewDetail(doData) {
