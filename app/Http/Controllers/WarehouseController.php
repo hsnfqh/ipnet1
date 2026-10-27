@@ -58,6 +58,8 @@ class WarehouseController extends Controller
                         'customer_sales_name' => 'Ahmad (Sales Enterprise)',
                         'poc_sales_name'      => 'Ahmad (Sales Enterprise)',
                     ]);
+
+                WarehouseItem::where('location_type', 'Warehouse IPNET')->update(['location_type' => 'Gudang IPNET']);
             } catch (\Throwable $e) {}
         }
     }
@@ -77,7 +79,7 @@ class WarehouseController extends Controller
             'disti_loan'        => WarehouseItem::where('category', 'Pinjaman')->where('loan_source_type', 'disti')->count(),
             'internal_loan'     => WarehouseItem::where('category', 'Pinjaman')->where('loan_source_type', 'ipnet')->count(),
             'customer_deployed' => WarehouseItem::where('location_type', 'Customer')->count(),
-            'warehouse_stock'   => WarehouseItem::where('location_type', 'Warehouse IPNET')->count(),
+            'warehouse_stock'   => WarehouseItem::whereIn('location_type', ['Gudang IPNET', 'Warehouse IPNET'])->count(),
             'maintenance'       => WarehouseItem::where('status', 'Maintenance')->count(),
         ];
     }
@@ -176,7 +178,7 @@ class WarehouseController extends Controller
         $workUnits      = WarehouseItem::getWorkUnits();
         $categories     = WarehouseItem::getCategories();
         $statuses       = WarehouseItem::getStatuses();
-        $locations      = ['Warehouse IPNET', 'Customer'];
+        $locations      = ['Gudang IPNET', 'Customer'];
         $deviceModels   = WarehouseItem::getDeviceModels();
         $deviceBrands   = WarehouseItem::getDeviceBrands();
 
@@ -324,7 +326,7 @@ class WarehouseController extends Controller
         }
 
         $items = $query->latest()->paginate(15)->withQueryString();
-        $availableItems = WarehouseItem::where('location_type', 'Warehouse IPNET')->orderBy('name')->get();
+        $availableItems = WarehouseItem::whereIn('location_type', ['Gudang IPNET', 'Warehouse IPNET'])->orderBy('name')->get();
         $workUnits = WarehouseItem::getWorkUnits();
 
         return view('warehouse.barang_keluar', compact('items', 'metrics', 'counts', 'availableItems', 'workUnits'));
@@ -384,7 +386,7 @@ class WarehouseController extends Controller
                 $item->contract_number = $validated['reference_number'];
             }
         } elseif ($validated['allocation_type'] === 'pinjaman_ipnet') {
-            $item->location_type      = 'Warehouse IPNET';
+            $item->location_type      = 'Gudang IPNET';
             $item->status             = 'POC / Pinjaman';
             $item->category           = 'Pinjaman';
             $item->loan_source_type   = 'ipnet';
@@ -429,7 +431,7 @@ class WarehouseController extends Controller
 
         $rack = $request->input('warehouse_rack', 'Rak Utama A-01');
 
-        $item->location_type = 'Warehouse IPNET';
+        $item->location_type = 'Gudang IPNET';
         $item->warehouse_rack = $rack;
         $item->status = 'Tersedia';
         if ($request->filled('notes')) {
@@ -497,7 +499,7 @@ class WarehouseController extends Controller
             ->orderBy('warehouse_rack')
             ->get();
 
-        $query = WarehouseItem::with('creator')->where('location_type', 'Warehouse IPNET');
+        $query = WarehouseItem::with('creator')->whereIn('location_type', ['Gudang IPNET', 'Warehouse IPNET']);
 
         if ($request->filled('rack') && $request->rack !== 'all') {
             $query->where('warehouse_rack', $request->rack);
@@ -610,7 +612,7 @@ class WarehouseController extends Controller
             'ipnet_work_unit'     => 'nullable|string|max:50',
             'ipnet_phone'         => 'nullable|string|max:50',
             'ipnet_duration'      => 'nullable|string|max:100',
-            'location_type'       => 'required|string|in:Warehouse IPNET,Customer',
+            'location_type'       => 'required|string|in:Gudang IPNET,Warehouse IPNET,Customer',
             'warehouse_rack'      => 'nullable|string|max:100',
             'customer_address'    => 'nullable|string',
             'customer_pic'        => 'nullable|string|max:150',
@@ -669,7 +671,7 @@ class WarehouseController extends Controller
             'ipnet_work_unit'     => 'nullable|string|max:50',
             'ipnet_phone'         => 'nullable|string|max:50',
             'ipnet_duration'      => 'nullable|string|max:100',
-            'location_type'       => 'required|string|in:Warehouse IPNET,Customer',
+            'location_type'       => 'required|string|in:Gudang IPNET,Warehouse IPNET,Customer',
             'warehouse_rack'      => 'nullable|string|max:100',
             'customer_address'    => 'nullable|string',
             'customer_pic'        => 'nullable|string|max:150',

@@ -336,8 +336,8 @@
                                         @endif
                                     </td>
                                     <td class="py-3 px-3">
-                                        <div class="text-[12px] font-medium text-[#1E293B]">{{ $item->location_type }}</div>
-                                        <div class="text-[11px] text-[#64748B]">{{ $item->location_type === 'Warehouse IPNET' ? ($item->warehouse_rack ?: 'Rak N/A') : ($item->poc_customer_name ?: 'Alamat Customer') }}</div>
+                                        <div class="text-[12px] font-medium text-[#1E293B]">{{ $item->location_type === 'Warehouse IPNET' ? 'Gudang IPNET' : $item->location_type }}</div>
+                                        <div class="text-[11px] text-[#64748B]">{{ in_array($item->location_type, ['Gudang IPNET', 'Warehouse IPNET']) ? ($item->warehouse_rack ?: 'Rak N/A') : ($item->poc_customer_name ?: 'Alamat Customer') }}</div>
                                     </td>
                                     <td class="py-3 px-3">
                                         @if($item->status === 'Tersedia')

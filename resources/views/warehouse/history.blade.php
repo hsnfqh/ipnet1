@@ -95,8 +95,8 @@
                                         <div class="text-[11px] text-[#64748B]">{{ $item->brand }} &bull; {{ $item->item_type }}</div>
                                     </td>
                                     <td class="py-3 px-3">
-                                        <div class="text-[12px] font-semibold text-[#1E293B]">{{ $item->location_type }}</div>
-                                        <div class="text-[11px] text-[#64748B]">{{ $item->location_type === 'Warehouse IPNET' ? ($item->warehouse_rack ?: 'Gudang IPNET') : ($item->poc_customer_name ?: 'Alamat Customer') }}</div>
+                                        <div class="text-[12px] font-semibold text-[#1E293B]">{{ $item->location_type === 'Warehouse IPNET' ? 'Gudang IPNET' : $item->location_type }}</div>
+                                        <div class="text-[11px] text-[#64748B]">{{ in_array($item->location_type, ['Gudang IPNET', 'Warehouse IPNET']) ? ($item->warehouse_rack ?: 'Gudang IPNET') : ($item->poc_customer_name ?: 'Alamat Customer') }}</div>
                                     </td>
                                     <td class="py-3 px-3">
                                         <span class="px-2 py-0.5 rounded text-[11px] font-bold {{ $item->status === 'Tersedia' ? 'bg-emerald-100 text-emerald-800' : ($item->status === 'POC / Pinjaman' ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-800') }}">

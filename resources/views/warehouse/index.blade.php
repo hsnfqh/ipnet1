@@ -41,7 +41,7 @@
     $workUnits      = $workUnits ?? \App\Models\WarehouseItem::getWorkUnits();
     $categories     = $categories ?? \App\Models\WarehouseItem::getCategories();
     $statuses       = $statuses ?? \App\Models\WarehouseItem::getStatuses();
-    $locations      = $locations ?? ['Warehouse IPNET', 'Customer'];
+    $locations      = $locations ?? ['Gudang IPNET', 'Customer'];
     $deviceModels   = $deviceModels ?? \App\Models\WarehouseItem::getDeviceModels();
     $deviceBrands   = $deviceBrands ?? \App\Models\WarehouseItem::getDeviceBrands();
 @endphp
@@ -279,8 +279,8 @@
 
                                     {{-- Lokasi Fisik --}}
                                     <td class="py-3.5 px-4">
-                                        @if($item->location_type === 'Warehouse IPNET')
-                                            <p class="font-medium text-slate-700 text-xs">Warehouse IPNET</p>
+                                        @if($item->location_type === 'Gudang IPNET' || $item->location_type === 'Warehouse IPNET')
+                                            <p class="font-medium text-slate-700 text-xs">Gudang IPNET</p>
                                             <p class="text-[11px] text-slate-400 mt-0.5">{{ $item->warehouse_rack ?: 'Gudang Utama' }}</p>
                                         @else
                                             <p class="font-medium text-slate-800 text-xs">Lokasi Customer</p>
@@ -616,7 +616,7 @@
                                         <div>
                                             <label class="block font-semibold text-slate-700 mb-1">Lokasi Fisik <span class="text-red-500">*</span></label>
                                             <select x-model="form.location_type" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
-                                                <option value="Warehouse IPNET">Warehouse IPNET</option>
+                                                <option value="Gudang IPNET">Gudang IPNET</option>
                                                 <option value="Customer">Customer (Klien Luar)</option>
                                             </select>
                                         </div>
@@ -629,8 +629,8 @@
                                             </select>
                                         </div>
 
-                                        <!-- Detail jika Lokasi = Warehouse IPNET -->
-                                        <div x-show="form.location_type === 'Warehouse IPNET'" class="sm:col-span-2">
+                                        <!-- Detail jika Lokasi = Gudang IPNET -->
+                                        <div x-show="form.location_type === 'Gudang IPNET' || form.location_type === 'Warehouse IPNET'" class="sm:col-span-2">
                                             <label class="block font-semibold text-slate-700 mb-1">Posisi Rak / Ruang Simpan Gudang</label>
                                             <input type="text" x-model="form.warehouse_rack" placeholder="Contoh: Rak Utama A-01, Bin 03" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
                                         </div>
@@ -808,7 +808,7 @@
                             <!-- Lokasi & Catatan -->
                             <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
                                 <p class="text-[11px] font-semibold text-slate-500 uppercase">Lokasi Penempatan Fisik</p>
-                                <p class="font-bold text-slate-800" x-text="selectedItem?.location_type === 'Warehouse IPNET' ? ('Warehouse IPNET • ' + (selectedItem?.warehouse_rack || 'Gudang Utama')) : ('Customer: ' + (selectedItem?.customer_address || '-'))"></p>
+                                <p class="font-bold text-slate-800" x-text="(selectedItem?.location_type === 'Gudang IPNET' || selectedItem?.location_type === 'Warehouse IPNET') ? ('Gudang IPNET • ' + (selectedItem?.warehouse_rack || 'Gudang Utama')) : ('Customer: ' + (selectedItem?.customer_address || '-'))"></p>
                                 <template x-if="selectedItem?.notes">
                                     <p class="text-slate-600 mt-2 pt-2 border-t border-slate-200/60 leading-relaxed" x-text="'Catatan: ' + selectedItem.notes"></p>
                                 </template>
@@ -923,7 +923,7 @@
                 ipnet_work_unit: 'IPNET 1',
                 ipnet_phone: '',
                 ipnet_duration: '',
-                location_type: 'Warehouse IPNET',
+                location_type: 'Gudang IPNET',
                 warehouse_rack: '',
                 customer_address: '',
                 customer_pic: '',
@@ -966,7 +966,7 @@
                     ipnet_work_unit: 'IPNET 1',
                     ipnet_phone: '',
                     ipnet_duration: '',
-                    location_type: 'Warehouse IPNET',
+                    location_type: 'Gudang IPNET',
                     warehouse_rack: 'Rak Utama A-01',
                     customer_address: '',
                     customer_pic: '',
@@ -1030,7 +1030,7 @@
                     ipnet_work_unit: item.ipnet_work_unit || 'IPNET 1',
                     ipnet_phone: item.ipnet_phone || '',
                     ipnet_duration: item.ipnet_duration || '',
-                    location_type: item.location_type || 'Warehouse IPNET',
+                    location_type: (item.location_type === 'Warehouse IPNET' ? 'Gudang IPNET' : (item.location_type || 'Gudang IPNET')),
                     warehouse_rack: item.warehouse_rack || '',
                     customer_address: item.customer_address || '',
                     customer_pic: item.customer_pic || '',
