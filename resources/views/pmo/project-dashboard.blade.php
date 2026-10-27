@@ -1493,14 +1493,11 @@
                   class="space-y-3.5">
                 @csrf
                 <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-bold text-slate-700">
-                            Judul Tugas / Rincian Pekerjaan (WBS) <span class="text-[#8F0A0D]">*</span>
-                        </label>
-                        <span class="text-[10.5px] text-slate-400 font-medium">Pilih dari dropdown atau ketik kustom</span>
-                    </div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Judul Tugas / Rincian Pekerjaan (WBS) <span class="text-[#8F0A0D]">*</span>
+                    </label>
 
-                    {{-- Dropdown Standar Judul WBS (Bersih tanpa stiker/emoji) --}}
+                    {{-- Dropdown Standar Judul WBS --}}
                     <select x-model="wbsTitle" 
                             @change="isCustomTitle = (wbsTitle === '__custom__')"
                             :name="isCustomTitle ? '' : 'title'"
@@ -1519,7 +1516,6 @@
 
                     {{-- Input Teks Tambahan jika memilih Kustom --}}
                     <div class="mt-2" x-show="isCustomTitle" x-cloak>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ketik Judul Pekerjaan Kustom:</label>
                         <input type="text" 
                                name="title_custom" 
                                :name="isCustomTitle ? 'title' : 'title_custom'"
@@ -1560,12 +1556,9 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {{-- Pilihan Engineer (Mendukung Multi-Select / Bisa Pilih Beberapa Engineer Sekaligus) --}}
                     <div class="relative" @click.outside="openEngDropdown = false">
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-slate-700">
-                                Tugaskan ke Engineer <span class="text-[#8F0A0D]">*</span>
-                            </label>
-                            <span class="text-[10px] text-slate-500 font-bold" x-show="engCount() > 0" x-text="engCount() + ' dipilih'"></span>
-                        </div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            Tugaskan ke Engineer Pelaksana <span class="text-[#8F0A0D]">*</span>
+                        </label>
 
                         {{-- Tombol Dropdown Multi-Select --}}
                         <button type="button" 
@@ -1648,10 +1641,6 @@
                             <input type="hidden" name="engineer_ids[]" :value="engId">
                         </template>
                         <input type="hidden" name="engineer_id" :value="selectedEngIds.length > 0 ? selectedEngIds[0] : ''">
-
-                        <p class="text-[10px] text-slate-400 mt-1">
-                            * Bisa memilih satu atau beberapa engineer pelaksana.
-                        </p>
                     </div>
 
                     <div>
