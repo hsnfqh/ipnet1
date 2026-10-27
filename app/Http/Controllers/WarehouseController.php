@@ -120,60 +120,70 @@ class WarehouseController extends Controller
     }
 
     // =========================================================================
-    // 2. PRODUK (MASTER PRODUK)
+    // 2. PRODUK (MASTER PRODUK & PERANGKAT)
     // =========================================================================
     public function products(Request $request)
     {
         $this->ensureTableReady();
-        $metrics = $this->getMetrics();
 
-        $query = WarehouseProduct::with(['category', 'unit', 'supplier', 'warehouseLocation']);
+        $query = WarehouseItem::with('creator');
 
         if ($request->filled('search')) {
             $search = strtolower(trim($request->search));
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sku', 'like', "%{$search}%")
-                  ->orWhere('barcode', 'like', "%{$search}%")
+                $q->where('item_code', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
                   ->orWhere('brand', 'like', "%{$search}%")
-                  ->orWhere('specifications', 'like', "%{$search}%");
+                  ->orWhere('serial_number', 'like', "%{$search}%")
+                  ->orWhere('product_number', 'like', "%{$search}%")
+                  ->orWhere('po_number', 'like', "%{$search}%")
+                  ->orWhere('contract_number', 'like', "%{$search}%")
+                  ->orWhere('poc_customer_name', 'like', "%{$search}%")
+                  ->orWhere('disti_name', 'like', "%{$search}%");
             });
         }
 
-        if ($request->filled('category_id') && $request->category_id !== 'all') {
-            $query->where('category_id', $request->category_id);
+        if ($request->filled('item_type') && $request->item_type !== 'Semua') {
+            $query->where('item_type', $request->item_type);
         }
 
-        if ($request->filled('warehouse_id') && $request->warehouse_id !== 'all') {
-            $query->where('warehouse_id', $request->warehouse_id);
+        if ($request->filled('category') && $request->category !== 'Semua') {
+            $query->where('category', $request->category);
         }
 
-        if ($request->filled('supplier_id') && $request->supplier_id !== 'all') {
-            $query->where('supplier_id', $request->supplier_id);
+        if ($request->filled('status') && $request->status !== 'Semua') {
+            $query->where('status', $request->status);
         }
 
-        if ($request->filled('status') && $request->status !== 'all') {
-            if ($request->status === 'low_stock') {
-                $query->whereColumn('current_stock', '<=', 'min_stock');
-            } else {
-                $query->where('status', $request->status);
-            }
+        if ($request->filled('location_type') && $request->location_type !== 'Semua') {
+            $query->where('location_type', $request->location_type);
         }
 
-        $products = $query->latest()->paginate(12)->withQueryString();
+        $items = $query->latest()->paginate(15)->withQueryString();
+        $metrics = $this->getMetrics();
 
-        $categories = WarehouseCategory::where('status', 'Aktif')->get();
-        $units      = WarehouseUnit::where('is_active', true)->get();
-        $suppliers  = WarehouseSupplier::where('status', 'Aktif')->get();
-        $warehouses = WarehouseLocation::where('status', 'Operasional')->get();
+        $itemTypes      = WarehouseItem::getItemTypes();
+        $componentTypes = WarehouseItem::getComponentTypes();
+        $cableTypes     = WarehouseItem::getCableTypes();
+        $workUnits      = WarehouseItem::getWorkUnits();
+        $categories     = WarehouseItem::getCategories();
+        $statuses       = WarehouseItem::getStatuses();
+        $locations      = ['Gudang IPNET', 'Customer'];
+        $deviceModels   = WarehouseItem::getDeviceModels();
+        $deviceBrands   = WarehouseItem::getDeviceBrands();
 
         return view('warehouse.products.index', compact(
-            'products',
+            'items',
             'metrics',
+            'itemTypes',
+            'componentTypes',
+            'cableTypes',
+            'workUnits',
             'categories',
-            'units',
-            'suppliers',
-            'warehouses'
+            'statuses',
+            'locations',
+            'deviceModels',
+            'deviceBrands'
         ));
     }
 
@@ -182,106 +192,144 @@ class WarehouseController extends Controller
         $this->ensureTableReady();
 
         $validated = $request->validate([
-            'name'           => 'required|string|max:255',
-            'sku'            => 'nullable|string|max:100|unique:warehouse_products,sku',
-            'barcode'        => 'nullable|string|max:100',
-            'brand'          => 'nullable|string|max:100',
-            'category_id'    => 'nullable|exists:warehouse_categories,id',
-            'unit_id'        => 'nullable|exists:warehouse_units,id',
-            'supplier_id'    => 'nullable|exists:warehouse_suppliers,id',
-            'warehouse_id'   => 'nullable|exists:warehouse_locations,id',
-            'rack_position'  => 'nullable|string|max:100',
-            'min_stock'      => 'required|integer|min:0',
-            'current_stock'  => 'required|integer|min:0',
-            'unit_price'     => 'required|numeric|min:0',
-            'specifications' => 'nullable|string',
-            'status'         => 'required|string|in:Tersedia,Stok Menipis,Habis,Discontinued',
+            'name'                => 'required|string|max:255',
+            'brand'               => 'nullable|string|max:100',
+            'item_type'           => 'required|string|max:100',
+            'component_type'      => 'nullable|string|max:100',
+            'cable_type'          => 'nullable|string|max:100',
+            'serial_number'       => 'nullable|string|max:100',
+            'product_number'      => 'nullable|string|max:100',
+            'po_number'           => 'nullable|string|max:100',
+            'contract_number'     => 'nullable|string|max:100',
+            'category'            => 'required|string|max:50',
+            'loan_source_type'    => 'nullable|string|in:disti,ipnet',
+            'disti_name'          => 'nullable|string|max:255',
+            'disti_address'       => 'nullable|string',
+            'disti_pic'           => 'nullable|string|max:150',
+            'disti_phone'         => 'nullable|string|max:50',
+            'disti_duration'      => 'nullable|string|max:100',
+            'ipnet_pic_name'      => 'nullable|string|max:150',
+            'ipnet_work_unit'     => 'nullable|string|max:50',
+            'ipnet_phone'         => 'nullable|string|max:50',
+            'ipnet_duration'      => 'nullable|string|max:100',
+            'location_type'       => 'required|string|in:Gudang IPNET,Warehouse IPNET,Customer',
+            'warehouse_rack'      => 'nullable|string|max:100',
+            'customer_address'    => 'nullable|string',
+            'customer_pic'        => 'nullable|string|max:150',
+            'customer_phone'      => 'nullable|string|max:50',
+            'customer_sales_name' => 'nullable|string|max:150',
+            'status'              => 'required|string|max:50',
+            'poc_customer_name'   => 'nullable|string|max:255',
+            'poc_pic_name'        => 'nullable|string|max:150',
+            'poc_pic_phone'       => 'nullable|string|max:50',
+            'poc_sales_name'      => 'nullable|string|max:150',
+            'poc_duration'        => 'nullable|string|max:100',
+            'notes'               => 'nullable|string',
         ]);
 
-        if (empty($validated['sku'])) {
-            $validated['sku'] = 'PRD-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $validated['name']), 0, 3)) . '-' . rand(1000, 9999);
+        $validated['item_code'] = WarehouseItem::generateItemCode();
+        $validated['created_by'] = auth()->id();
+
+        $item = WarehouseItem::create($validated);
+
+        // Sync with WarehouseProduct catalog
+        try {
+            WarehouseProduct::firstOrCreate(
+                ['sku' => $item->item_code],
+                [
+                    'name'           => $item->name,
+                    'brand'          => $item->brand,
+                    'category_name'  => $item->category,
+                    'rack_position'  => $item->warehouse_rack,
+                    'unit_name'      => 'Unit',
+                    'current_stock'  => 1,
+                    'min_stock'      => 1,
+                    'status'         => 'Tersedia',
+                    'specifications' => $item->notes,
+                ]
+            );
+        } catch (\Throwable $e) {}
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Perangkat baru berhasil didaftarkan ke inventaris!',
+                'data'    => $item,
+            ]);
         }
 
-        if (!empty($validated['category_id'])) {
-            $cat = WarehouseCategory::find($validated['category_id']);
-            $validated['category_name'] = $cat ? $cat->name : null;
-        }
-
-        if (!empty($validated['unit_id'])) {
-            $unt = WarehouseUnit::find($validated['unit_id']);
-            $validated['unit_name'] = $unt ? $unt->name : 'Unit';
-        }
-
-        if (!empty($validated['supplier_id'])) {
-            $sup = WarehouseSupplier::find($validated['supplier_id']);
-            $validated['supplier_name'] = $sup ? $sup->name : null;
-        }
-
-        if (!empty($validated['warehouse_id'])) {
-            $wh = WarehouseLocation::find($validated['warehouse_id']);
-            $validated['warehouse_name'] = $wh ? $wh->name : null;
-        }
-
-        WarehouseProduct::create($validated);
-
-        return redirect()->route('warehouse.products.index')->with('success', 'Produk berhasil ditambahkan ke katalog gudang!');
+        return redirect()->route('warehouse.products.index')->with('success', "Barang {$item->item_code} berhasil didaftarkan ke inventaris!");
     }
 
     public function updateProduct(Request $request, $id)
     {
         $this->ensureTableReady();
-        $product = WarehouseProduct::findOrFail($id);
+        $item = WarehouseItem::findOrFail($id);
 
         $validated = $request->validate([
-            'name'           => 'required|string|max:255',
-            'sku'            => 'required|string|max:100|unique:warehouse_products,sku,' . $product->id,
-            'barcode'        => 'nullable|string|max:100',
-            'brand'          => 'nullable|string|max:100',
-            'category_id'    => 'nullable|exists:warehouse_categories,id',
-            'unit_id'        => 'nullable|exists:warehouse_units,id',
-            'supplier_id'    => 'nullable|exists:warehouse_suppliers,id',
-            'warehouse_id'   => 'nullable|exists:warehouse_locations,id',
-            'rack_position'  => 'nullable|string|max:100',
-            'min_stock'      => 'required|integer|min:0',
-            'current_stock'  => 'required|integer|min:0',
-            'unit_price'     => 'required|numeric|min:0',
-            'specifications' => 'nullable|string',
-            'status'         => 'required|string|in:Tersedia,Stok Menipis,Habis,Discontinued',
+            'name'                => 'required|string|max:255',
+            'brand'               => 'nullable|string|max:100',
+            'item_type'           => 'required|string|max:100',
+            'component_type'      => 'nullable|string|max:100',
+            'cable_type'          => 'nullable|string|max:100',
+            'serial_number'       => 'nullable|string|max:100',
+            'product_number'      => 'nullable|string|max:100',
+            'po_number'           => 'nullable|string|max:100',
+            'contract_number'     => 'nullable|string|max:100',
+            'category'            => 'required|string|max:50',
+            'loan_source_type'    => 'nullable|string|in:disti,ipnet',
+            'disti_name'          => 'nullable|string|max:255',
+            'disti_address'       => 'nullable|string',
+            'disti_pic'           => 'nullable|string|max:150',
+            'disti_phone'         => 'nullable|string|max:50',
+            'disti_duration'      => 'nullable|string|max:100',
+            'ipnet_pic_name'      => 'nullable|string|max:150',
+            'ipnet_work_unit'     => 'nullable|string|max:50',
+            'ipnet_phone'         => 'nullable|string|max:50',
+            'ipnet_duration'      => 'nullable|string|max:100',
+            'location_type'       => 'required|string|in:Gudang IPNET,Warehouse IPNET,Customer',
+            'warehouse_rack'      => 'nullable|string|max:100',
+            'customer_address'    => 'nullable|string',
+            'customer_pic'        => 'nullable|string|max:150',
+            'customer_phone'      => 'nullable|string|max:50',
+            'customer_sales_name' => 'nullable|string|max:150',
+            'status'              => 'required|string|max:50',
+            'poc_customer_name'   => 'nullable|string|max:255',
+            'poc_pic_name'        => 'nullable|string|max:150',
+            'poc_pic_phone'       => 'nullable|string|max:50',
+            'poc_sales_name'      => 'nullable|string|max:150',
+            'poc_duration'        => 'nullable|string|max:100',
+            'notes'               => 'nullable|string',
         ]);
 
-        if (!empty($validated['category_id'])) {
-            $cat = WarehouseCategory::find($validated['category_id']);
-            $validated['category_name'] = $cat ? $cat->name : null;
+        $item->update($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data perangkat berhasil diperbarui!',
+                'data'    => $item->fresh(),
+            ]);
         }
 
-        if (!empty($validated['unit_id'])) {
-            $unt = WarehouseUnit::find($validated['unit_id']);
-            $validated['unit_name'] = $unt ? $unt->name : 'Unit';
-        }
-
-        if (!empty($validated['supplier_id'])) {
-            $sup = WarehouseSupplier::find($validated['supplier_id']);
-            $validated['supplier_name'] = $sup ? $sup->name : null;
-        }
-
-        if (!empty($validated['warehouse_id'])) {
-            $wh = WarehouseLocation::find($validated['warehouse_id']);
-            $validated['warehouse_name'] = $wh ? $wh->name : null;
-        }
-
-        $product->update($validated);
-
-        return redirect()->route('warehouse.products.index')->with('success', "Produk {$product->name} berhasil diperbarui!");
+        return redirect()->route('warehouse.products.index')->with('success', "Data barang {$item->item_code} berhasil diperbarui!");
     }
 
-    public function destroyProduct($id)
+    public function destroyProduct($id, Request $request = null)
     {
         $this->ensureTableReady();
-        $product = WarehouseProduct::findOrFail($id);
-        $name = $product->name;
-        $product->delete();
+        $item = WarehouseItem::findOrFail($id);
+        $code = $item->item_code;
+        $item->delete();
 
-        return redirect()->route('warehouse.products.index')->with('success', "Produk {$name} berhasil dihapus dari inventaris.");
+        if (($request && $request->wantsJson()) || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Barang {$code} berhasil dihapus dari inventaris."
+            ]);
+        }
+
+        return redirect()->route('warehouse.products.index')->with('success', "Barang {$code} berhasil dihapus dari inventaris.");
     }
 
     // =========================================================================
@@ -1058,11 +1106,11 @@ class WarehouseController extends Controller
 
     public function update(Request $request, WarehouseItem $item)
     {
-        return redirect()->route('warehouse.products.index');
+        return $this->updateProduct($request, $item->id);
     }
 
     public function destroy(WarehouseItem $item)
     {
-        return redirect()->route('warehouse.products.index');
+        return $this->destroyProduct($item->id);
     }
 }

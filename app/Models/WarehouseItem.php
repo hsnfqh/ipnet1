@@ -56,6 +56,15 @@ class WarehouseItem extends Model
     }
 
     /**
+     * Auto generate unique item code: WH-YYYY-XXXX
+     */
+    public static function generateItemCode(): string
+    {
+        $countThisYear = static::withTrashed()->whereYear('created_at', date('Y'))->count() + 1;
+        return 'WH-' . date('Y') . '-' . str_pad($countThisYear, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
      * Helper list jenis barang
      */
     public static function getItemTypes(): array
