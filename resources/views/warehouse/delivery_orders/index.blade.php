@@ -365,8 +365,36 @@
                                     <span>4. PILIH PERANGKAT DARI RAK GUDANG</span>
                                 </div>
                                 <button type="button" @click="addItemRow()" class="text-xs font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
-                                    + Tambah Baris Perangkat
+                                    + Tambah Baris Manual
                                 </button>
+                            </div>
+
+                            <!-- SCANNER BARCODE / SERIAL NUMBER BOX -->
+                            <div class="p-3 bg-red-50/50 rounded-xl border border-red-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-lg bg-red-100 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-bold text-[#8F0A0D] block">Scan Barcode / Serial Number Perangkat</span>
+                                        <span class="text-[10.5px] text-slate-500">Tembak barcode S/N di kardus/fisik, perangkat otomatis langsung masuk ke daftar</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 sm:w-[320px]">
+                                    <input type="text" 
+                                           x-ref="scanInput"
+                                           x-model="scanQuery" 
+                                           @keydown.enter.prevent="handleBarcodeScan()"
+                                           placeholder="Tembak scanner S/N di sini..." 
+                                           class="w-full px-3 py-1.5 border border-red-300 rounded-lg outline-none focus:ring-2 focus:ring-red-400 bg-white text-xs font-mono font-bold text-slate-800">
+                                    <button type="button" 
+                                            @click="handleBarcodeScan()" 
+                                            class="px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-red-800 text-white font-bold text-xs rounded-lg transition shrink-0">
+                                        Scan
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="space-y-2.5">
@@ -631,8 +659,112 @@ function doManager() {
                 this.recipientCompany = u;
             }
         },
+        scanQuery: '',
         openCreateModal() {
             this.showCreateModal = true;
+            this.$nextTick(() => {
+                if (this.$refs.scanInput) this.$refs.scanInput.focus();
+            });
+        },
+        handleBarcodeScan() {
+            const query = (this.scanQuery || '').trim();
+            if (!query) return;
+
+            const queryLower = query.toLowerCase();
+            const matchedItem = this.availableItemsList.find(x => 
+                (x.serial_number && x.serial_number.toLowerCase() === queryLower) ||
+                (x.item_code && x.item_code.toLowerCase() === queryLower)
+            );
+
+            if (matchedItem) {
+                const alreadyAdded = this.itemRows.some(row => row.warehouse_item_id == matchedItem.id);
+                if (alreadyAdded) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Perangkat Sudah Ada',
+                            text: `Unit ${matchedItem.name} (S/N: ${matchedItem.serial_number || '-'}) sudah masuk dalam daftar.`,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                    this.scanQuery = '';
+                    return;
+                }
+
+                if (this.itemRows.length === 1 && !this.itemRows[0].warehouse_item_id && !this.itemRows[0].product_name) {
+                    this.itemRows[0].warehouse_item_id = matchedItem.id;
+                    this.itemRows[0].product_name = matchedItem.name;
+                    this.itemRows[0].serial_number = matchedItem.serial_number || '';
+                    this.itemRows[0].quantity = 1;
+                    this.itemRows[0].unit = 'Unit';
+                } else {
+                    this.itemRows.push({
+                        warehouse_item_id: matchedItem.id,
+                        product_id: '',
+                        product_name: matchedItem.name,
+                        serial_number: matchedItem.serial_number || '',
+                        quantity: 1,
+                        unit: 'Unit'
+                    });
+                }
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Perangkat Masuk!',
+                        html: `<strong>${matchedItem.name}</strong><br><span class="text-xs text-slate-500 font-mono">S/N: ${matchedItem.serial_number || '-'} • Rak: ${matchedItem.rack || 'Gudang'}</span>`,
+                        timer: 1600,
+                        showConfirmButton: false
+                    });
+                }
+
+                this.scanQuery = '';
+                this.$nextTick(() => {
+                    if (this.$refs.scanInput) this.$refs.scanInput.focus();
+                });
+            } else {
+                const matchedProduct = this.productsList.find(p => 
+                    p.sku && p.sku.toLowerCase() === queryLower
+                );
+
+                if (matchedProduct) {
+                    this.itemRows.push({
+                        warehouse_item_id: 'custom',
+                        product_id: matchedProduct.id,
+                        product_name: matchedProduct.name,
+                        serial_number: '',
+                        quantity: 1,
+                        unit: matchedProduct.unit || 'Unit'
+                    });
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Katalog Masuk!',
+                            text: `${matchedProduct.name} (${matchedProduct.sku})`,
+                            timer: 1600,
+                            showConfirmButton: false
+                        });
+                    }
+                    this.scanQuery = '';
+                    this.$nextTick(() => {
+                        if (this.$refs.scanInput) this.$refs.scanInput.focus();
+                    });
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Tidak Ditemukan',
+                            text: `Perangkat dengan S/N atau Barcode "${query}" tidak ditemukan di rak gudang.`,
+                        });
+                    }
+                    this.scanQuery = '';
+                    this.$nextTick(() => {
+                        if (this.$refs.scanInput) this.$refs.scanInput.focus();
+                    });
+                }
+            }
         },
         addItemRow() {
             this.itemRows.push({ warehouse_item_id: '', product_id: '', product_name: '', serial_number: '', quantity: 1, unit: 'Unit' });
