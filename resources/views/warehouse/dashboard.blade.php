@@ -94,9 +94,9 @@
                     </div>
                 </div>
 
-                <!-- 4 PRIMARY KPI OPERATIONAL METRIC CARDS (NO PRICES / NO RUPIAH) -->
+                <!-- 4 PRIMARY KPI OPERATIONAL METRIC CARDS (CONSISTENT RED BRAND THEME) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
-                    <!-- Total Model Produk -->
+                    <!-- 1. Total Model Produk -->
                     <div class="p-4 rounded-xl bg-gradient-to-br from-[#FEF2F2] to-white border border-[#FECACA]/60">
                         <div class="flex items-center justify-between text-[#8F0A0D] text-[12px] font-semibold mb-1">
                             <span>Katalog Model Produk</span>
@@ -121,58 +121,58 @@
                         </div>
                     </div>
 
-                    <!-- Total Unit Fisik di Rak Gudang (Menggantikan Kartu Harga) -->
-                    <div class="p-4 rounded-xl bg-gradient-to-br from-emerald-50/60 to-white border border-emerald-100">
-                        <div class="flex items-center justify-between text-emerald-800 text-[12px] font-semibold mb-1">
+                    <!-- 2. Total Unit Fisik di Gudang -->
+                    <div class="p-4 rounded-xl bg-gradient-to-br from-[#FEF2F2] to-white border border-[#FECACA]/60">
+                        <div class="flex items-center justify-between text-[#8F0A0D] text-[12px] font-semibold mb-1">
                             <span>Total Unit Fisik di Gudang</span>
-                            <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700">
+                            <div class="w-7 h-7 rounded-lg bg-[#FEE2E2] flex items-center justify-center text-[#8F0A0D]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[26px] font-extrabold text-emerald-700 tracking-tight">
-                            {{ number_format($metrics['total_stock_units'] ?? 0) }} <span class="text-xs text-emerald-600 font-normal">Unit Fisik</span>
+                        <div class="text-[26px] font-extrabold text-[#1E293B] tracking-tight">
+                            {{ number_format($metrics['total_stock_units'] ?? 0) }} <span class="text-xs text-slate-500 font-normal">Unit Fisik</span>
                         </div>
-                        <p class="text-[11px] text-emerald-600 mt-1 font-medium flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <p class="text-[11px] text-[#64748B] mt-1 font-medium flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                             Tersedia di rak Gudang Utama IPNET
                         </p>
                     </div>
 
-                    <!-- Purchase Order Aktif (Barang Masuk) -->
-                    <div class="p-4 rounded-xl bg-gradient-to-br from-blue-50/60 to-white border border-blue-100">
-                        <div class="flex items-center justify-between text-blue-800 text-[12px] font-semibold mb-1">
+                    <!-- 3. Purchase Order Berjalan -->
+                    <div class="p-4 rounded-xl bg-gradient-to-br from-[#FEF2F2] to-white border border-[#FECACA]/60">
+                        <div class="flex items-center justify-between text-[#8F0A0D] text-[12px] font-semibold mb-1">
                             <span>Purchase Order Berjalan</span>
-                            <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700">
+                            <div class="w-7 h-7 rounded-lg bg-[#FEE2E2] flex items-center justify-center text-[#8F0A0D]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[26px] font-extrabold text-blue-700 tracking-tight">
-                            {{ number_format($metrics['active_po']) }} <span class="text-xs text-blue-500 font-semibold font-normal">PO Aktif</span>
+                        <div class="text-[26px] font-extrabold text-[#1E293B] tracking-tight">
+                            {{ number_format($metrics['active_po']) }} <span class="text-xs text-slate-500 font-normal">PO Aktif</span>
                         </div>
-                        <p class="text-[11px] text-blue-600 mt-1 font-medium">
-                            <a href="{{ route('warehouse.purchase_orders.index') }}" class="hover:underline">Proses pengadaan &amp; restock &rarr;</a>
+                        <p class="text-[11px] text-[#64748B] mt-1 font-medium">
+                            <a href="{{ route('warehouse.purchase_orders.index') }}" class="text-[#8F0A0D] hover:underline font-medium">Proses pengadaan &amp; restock &rarr;</a>
                         </p>
                     </div>
 
-                    <!-- Delivery Order Berjalan (Barang Keluar) -->
-                    <div class="p-4 rounded-xl bg-gradient-to-br from-purple-50/60 to-white border border-purple-100">
-                        <div class="flex items-center justify-between text-purple-800 text-[12px] font-semibold mb-1">
+                    <!-- 4. Delivery Order Berjalan -->
+                    <div class="p-4 rounded-xl bg-gradient-to-br from-[#FEF2F2] to-white border border-[#FECACA]/60">
+                        <div class="flex items-center justify-between text-[#8F0A0D] text-[12px] font-semibold mb-1">
                             <span>Delivery Order / Pengiriman</span>
-                            <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700">
+                            <div class="w-7 h-7 rounded-lg bg-[#FEE2E2] flex items-center justify-center text-[#8F0A0D]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[26px] font-extrabold text-purple-700 tracking-tight">
-                            {{ number_format($metrics['pending_do']) }} <span class="text-xs text-purple-500 font-semibold font-normal">Surat Jalan</span>
+                        <div class="text-[26px] font-extrabold text-[#1E293B] tracking-tight">
+                            {{ number_format($metrics['pending_do']) }} <span class="text-xs text-slate-500 font-normal">Surat Jalan</span>
                         </div>
-                        <p class="text-[11px] text-purple-600 mt-1 font-medium">
-                            <a href="{{ route('warehouse.delivery_orders.index') }}" class="hover:underline">Sedang disiapkan / dikirim &rarr;</a>
+                        <p class="text-[11px] text-[#64748B] mt-1 font-medium">
+                            <a href="{{ route('warehouse.delivery_orders.index') }}" class="text-[#8F0A0D] hover:underline font-medium">Sedang disiapkan / dikirim &rarr;</a>
                         </p>
                     </div>
                 </div>
@@ -213,14 +213,14 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700 border border-emerald-200">
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                             </svg>
                         </div>
                         <div>
                             <div class="text-[11px] text-[#64748B] font-medium">Gudang Logistik</div>
-                            <div class="text-[15px] font-bold text-emerald-700">1 Gudang Utama (Tunggal)</div>
+                            <div class="text-[15px] font-bold text-[#1E293B]">1 Gudang Utama (Tunggal)</div>
                         </div>
                     </div>
                 </div>

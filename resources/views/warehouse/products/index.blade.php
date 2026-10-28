@@ -84,32 +84,32 @@
                     </div>
                 </div>
 
-                <!-- 5 METRIC CARDS -->
+                <!-- 5 METRIC CARDS (CONSISTENT NEUTRAL STYLE) -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 pt-1">
                     <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                         <p class="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Total Inventaris</p>
                         <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['total_items'] ?? $items->total()) }}</h3>
                         <p class="text-[11px] text-[#94A3B8] mt-0.5">Seluruh unit terdaftar</p>
                     </div>
-                    <div class="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/60">
-                        <p class="text-[11px] font-medium text-emerald-800 uppercase tracking-wider">Stok Tersedia</p>
-                        <h3 class="text-2xl font-bold text-emerald-700 mt-1">{{ number_format($metrics['ready_stock'] ?? 0) }}</h3>
-                        <p class="text-[11px] text-emerald-600 mt-0.5">Ready di gudang</p>
+                    <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                        <p class="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Stok Tersedia</p>
+                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['ready_stock'] ?? 0) }}</h3>
+                        <p class="text-[11px] text-[#94A3B8] mt-0.5">Ready di gudang</p>
                     </div>
-                    <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200/60">
-                        <p class="text-[11px] font-medium text-amber-800 uppercase tracking-wider">Backup / Spare</p>
-                        <h3 class="text-2xl font-bold text-amber-700 mt-1">{{ number_format($metrics['backup_spare'] ?? 0) }}</h3>
-                        <p class="text-[11px] text-amber-600 mt-0.5">Cadangan maintenance</p>
+                    <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                        <p class="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Backup / Spare</p>
+                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['backup_spare'] ?? 0) }}</h3>
+                        <p class="text-[11px] text-[#94A3B8] mt-0.5">Cadangan maintenance</p>
                     </div>
-                    <div class="p-4 rounded-xl bg-blue-50/60 border border-blue-200/60">
-                        <p class="text-[11px] font-medium text-blue-800 uppercase tracking-wider">Peminjaman POC</p>
-                        <h3 class="text-2xl font-bold text-blue-700 mt-1">{{ number_format($metrics['active_poc'] ?? 0) }}</h3>
-                        <p class="text-[11px] text-blue-600 mt-0.5">Uji coba di pelanggan</p>
+                    <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                        <p class="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Peminjaman POC</p>
+                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['active_poc'] ?? 0) }}</h3>
+                        <p class="text-[11px] text-[#94A3B8] mt-0.5">Uji coba di pelanggan</p>
                     </div>
-                    <div class="p-4 rounded-xl bg-purple-50/60 border border-purple-200/60 col-span-2 sm:col-span-1">
-                        <p class="text-[11px] font-medium text-purple-800 uppercase tracking-wider">Pinjaman Disti</p>
-                        <h3 class="text-2xl font-bold text-purple-700 mt-1">{{ number_format($metrics['disti_loan'] ?? 0) }}</h3>
-                        <p class="text-[11px] text-purple-600 mt-0.5">Unit demo vendor</p>
+                    <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] col-span-2 sm:col-span-1">
+                        <p class="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Pinjaman Disti</p>
+                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['disti_loan'] ?? 0) }}</h3>
+                        <p class="text-[11px] text-[#94A3B8] mt-0.5">Unit demo vendor</p>
                     </div>
                 </div>
             </div>
