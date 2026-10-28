@@ -543,78 +543,136 @@
                     </div>
                 </div>
 
-                <!-- Printable Body -->
-                <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1 min-h-0" id="print-area">
-                    <div class="border-b-2 border-[#8F0A0D] pb-3 flex items-center justify-between">
-                        <div>
-                            <h2 class="text-base font-extrabold text-[#8F0A0D]">PT IP NETWORK SOLUSINDO</h2>
-                            <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Surat Jalan Pengiriman Barang (Delivery Order)</p>
+                <!-- Printable Body (Format Resmi Tanda Terima PT IP Network Solusindo) -->
+                <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1 min-h-0 bg-white" id="print-area">
+                    <!-- KOP SURAT RESMI IPNET & TITLE -->
+                    <div class="flex items-start justify-between border-b-2 border-slate-900 pb-3">
+                        <div class="flex items-start gap-3">
+                            <img src="{{ asset('images/ipnet.png') }}" alt="Logo IPNET" class="w-14 h-14 object-contain shrink-0">
+                            <div class="leading-tight text-[11px] text-slate-800">
+                                <h2 class="text-[14px] font-extrabold text-slate-900 uppercase tracking-wide">PT. IP Network Solusindo</h2>
+                                <p class="text-slate-600">Golden Centrum Complex</p>
+                                <p class="text-slate-600">Jl. Majapahit 26P, Jakarta 10160</p>
+                                <p class="text-slate-600">Ph : +6221 3511304, 3501106-07</p>
+                                <p class="text-slate-600">Fax: +6221 3511306</p>
+                                <p class="text-[#8F0A0D] font-medium text-[10.5px]">ipnetsolusindo.com</p>
+                            </div>
                         </div>
                         <div class="text-right">
-                            <div class="text-sm font-mono font-bold text-slate-800" x-text="detailData.do_number"></div>
-                            <div class="text-[11px] text-slate-500" x-text="'Tanggal: ' + (detailData.do_date ? detailData.do_date.substring(0,10) : '')"></div>
+                            <h1 class="text-2xl font-black text-slate-900 tracking-wider underline underline-offset-4">TANDA TERIMA</h1>
+                            <div class="mt-2 text-[11px] font-mono text-slate-600">
+                                No. DO: <span class="font-bold text-slate-900" x-text="detailData.do_number"></span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 bg-[#F8FAFC] p-3 rounded-xl border border-slate-200">
-                        <div>
-                            <span class="text-[10.5px] text-slate-500 block font-semibold">Tujuan Pengiriman:</span>
-                            <div class="font-bold text-slate-800 text-xs" x-text="detailData.recipient_name"></div>
-                            <div class="text-xs text-[#8F0A0D] font-semibold" x-text="detailData.recipient_company"></div>
-                            <div class="text-[11px] text-slate-600 mt-1" x-text="detailData.delivery_address"></div>
+                    <!-- META INFO GRID (Sesuai Kolom Excel) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11.5px] pt-1">
+                        <!-- Kolom Kiri: Tujuan / TO -->
+                        <div class="border border-slate-300 rounded-lg p-3 space-y-1.5 bg-slate-50/50">
+                            <div class="grid grid-cols-12 gap-1 items-start">
+                                <span class="col-span-3 font-bold text-slate-700">TO</span>
+                                <span class="col-span-1 text-center font-bold text-slate-700">:</span>
+                                <span class="col-span-8 font-bold text-slate-900" x-text="detailData.recipient_company || detailData.recipient_name || '-'"></span>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1 items-start">
+                                <span class="col-span-3 font-semibold text-slate-600">Up</span>
+                                <span class="col-span-1 text-center text-slate-600">:</span>
+                                <span class="col-span-8 text-slate-800 font-medium" x-text="detailData.recipient_name || '-'"></span>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1 items-start">
+                                <span class="col-span-3 font-semibold text-slate-600">Phone</span>
+                                <span class="col-span-1 text-center text-slate-600">:</span>
+                                <span class="col-span-8 text-slate-800 font-mono" x-text="detailData.recipient_phone || '-'"></span>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1 items-start" x-show="detailData.delivery_address">
+                                <span class="col-span-3 font-semibold text-slate-600">Alamat</span>
+                                <span class="col-span-1 text-center text-slate-600">:</span>
+                                <span class="col-span-8 text-slate-700 text-[11px]" x-text="detailData.delivery_address"></span>
+                            </div>
                         </div>
-                        <div>
-                            <span class="text-[10.5px] text-slate-500 block font-semibold">Gudang &amp; Ekspedisi:</span>
-                            <div class="text-xs text-slate-800">Gudang Asal: <strong x-text="detailData.warehouse_name || 'Gudang Utama'"></strong></div>
-                            <div class="text-xs text-slate-800">Kurir / Driver: <strong x-text="detailData.courier_name || 'Internal'"></strong></div>
-                            <div class="text-xs text-slate-800" x-show="detailData.vehicle_no">No. Kendaraan: <span x-text="detailData.vehicle_no"></span></div>
-                            <div class="text-xs text-slate-800" x-show="detailData.reference_no">Ref: <span x-text="detailData.reference_no"></span></div>
+
+                        <!-- Kolom Kanan: Detail Pengiriman / Ref -->
+                        <div class="border border-slate-300 rounded-lg p-3 space-y-1.5 bg-slate-50/50">
+                            <div class="grid grid-cols-12 gap-1 items-start">
+                                <span class="col-span-4 font-semibold text-slate-600">Keterangan</span>
+                                <span class="col-span-1 text-center text-slate-600">:</span>
+                                <span class="col-span-7 font-bold text-slate-900" x-text="detailData.recipient_company && detailData.recipient_company.startsWith('IPNET ') ? 'Alokasi Internal (' + detailData.recipient_company + ')' : 'Pengiriman Barang'"></span>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1 items-start">
+                                <span class="col-span-4 font-semibold text-slate-600">PO Nomor</span>
+                                <span class="col-span-1 text-center text-slate-600">:</span>
+                                <span class="col-span-7 font-mono font-semibold text-slate-800" x-text="detailData.reference_no || '-'"></span>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1 items-start">
+                                <span class="col-span-4 font-semibold text-slate-600">Pengiriman</span>
+                                <span class="col-span-1 text-center text-slate-600">:</span>
+                                <span class="col-span-7 font-medium text-slate-800" x-text="detailData.do_date ? formatDateIndo(detailData.do_date) : '-'"></span>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1 items-start">
+                                <span class="col-span-4 font-semibold text-slate-600">Perangkat</span>
+                                <span class="col-span-1 text-center text-slate-600">:</span>
+                                <span class="col-span-7 text-slate-800 font-medium" x-text="detailData.vehicle_no || detailData.courier_name || 'Hardware / Network'"></span>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1 items-start">
+                                <span class="col-span-4 font-semibold text-slate-600">Page</span>
+                                <span class="col-span-1 text-center text-slate-600">:</span>
+                                <span class="col-span-7 font-bold text-slate-800">1 OF 1</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Items Table -->
-                    <div>
-                        <h4 class="font-bold text-slate-800 mb-2 text-xs">Daftar Perangkat yang Diserahterimakan:</h4>
-                        <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
-                            <thead class="bg-slate-100 text-slate-700 font-bold">
-                                <tr>
-                                    <th class="p-2.5 border-b border-slate-200">Nama Barang</th>
-                                    <th class="p-2.5 border-b border-slate-200">Serial Number (S/N)</th>
-                                    <th class="p-2.5 border-b border-slate-200 text-center">Qty</th>
-                                    <th class="p-2.5 border-b border-slate-200">Satuan</th>
+                    <!-- Items Table Sesuai Template Excel -->
+                    <div class="border border-slate-900 rounded-md overflow-hidden">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-black text-white font-bold text-[11px] uppercase tracking-wider">
+                                    <th class="py-2.5 px-3 text-center border-r border-slate-700 w-12">NO.</th>
+                                    <th class="py-2.5 px-3 border-r border-slate-700">KODE BARANG</th>
+                                    <th class="py-2.5 px-3 border-r border-slate-700">URAIAN BARANG</th>
+                                    <th class="py-2.5 px-3 text-center border-r border-slate-700 w-24">QUANTITY</th>
+                                    <th class="py-2.5 px-3">SERIAL NUMBER</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <template x-for="item in (detailData.items || [])" :key="item.id">
-                                    <tr>
-                                        <td class="p-2.5 font-medium text-slate-800" x-text="item.product_name"></td>
-                                        <td class="p-2.5 font-mono text-[11px] font-bold text-slate-700" x-text="item.serial_number || '-'"></td>
-                                        <td class="p-2.5 text-center font-bold text-slate-800" x-text="item.quantity"></td>
-                                        <td class="p-2.5 text-slate-700" x-text="item.unit"></td>
+                            <tbody class="divide-y divide-slate-300 text-slate-800 text-[11.5px]">
+                                <template x-for="(item, idx) in (detailData.items || [])" :key="item.id || idx">
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="py-2.5 px-3 text-center font-bold border-r border-slate-300" x-text="idx + 1"></td>
+                                        <td class="py-2.5 px-3 font-semibold text-slate-900 border-r border-slate-300" x-text="item.product_name"></td>
+                                        <td class="py-2.5 px-3 text-slate-600 border-r border-slate-300" x-text="item.notes || '-'"></td>
+                                        <td class="py-2.5 px-3 text-center font-bold border-r border-slate-300" x-text="item.quantity + ' ' + (item.unit || 'Unit')"></td>
+                                        <td class="py-2.5 px-3 font-mono font-bold text-slate-900" x-text="item.serial_number || '-'"></td>
                                     </tr>
                                 </template>
                             </tbody>
                         </table>
                     </div>
 
-                    <div x-show="detailData.notes" class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
-                        <span class="font-semibold text-slate-700 block mb-0.5">Catatan Khusus:</span>
-                        <p class="text-slate-600" x-text="detailData.notes"></p>
-                    </div>
-
-                    <!-- Signatures -->
-                    <div class="grid grid-cols-3 gap-3 pt-4 text-center text-xs">
-                        <div>
-                            <p class="text-slate-500 mb-10">Petugas Gudang (Pengirim)</p>
-                            <p class="font-bold text-slate-800 border-t border-slate-300 pt-1">Ahmad</p>
+                    <!-- Kotak Tanda Tangan (Remarks, Prepare By, Received By Sesuai Excel) -->
+                    <div class="border border-slate-900 rounded-md overflow-hidden grid grid-cols-3 text-xs">
+                        <div class="border-r border-slate-900 flex flex-col">
+                            <div class="bg-slate-100 border-b border-slate-900 py-1.5 px-3 font-bold text-slate-800 text-center">
+                                Remarks
+                            </div>
+                            <div class="p-3 text-[11px] text-slate-600 flex-1 min-h-[90px]" x-text="detailData.notes || 'Barang diserahterimakan dalam kondisi baik dan lengkap sesuai surat pesanan.'"></div>
                         </div>
-                        <div>
-                            <p class="text-slate-500 mb-10">Driver / Ekspedisi</p>
-                            <p class="font-bold text-slate-800 border-t border-slate-300 pt-1" x-text="detailData.courier_name || 'Driver'"></p>
+                        <div class="border-r border-slate-900 flex flex-col">
+                            <div class="bg-slate-100 border-b border-slate-900 py-1.5 px-3 font-bold text-slate-800 text-center">
+                                Prepare By
+                            </div>
+                            <div class="p-3 flex-1 flex flex-col justify-end text-center min-h-[90px]">
+                                <div class="font-bold text-slate-900 border-t border-slate-400 pt-1 w-3/4 mx-auto">
+                                    Warehouse IPNET
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-slate-500 mb-10">Penerima (Klien / PIC)</p>
-                            <p class="font-bold text-slate-800 border-t border-slate-300 pt-1" x-text="detailData.recipient_name || 'Penerima'"></p>
+                        <div class="flex flex-col">
+                            <div class="bg-slate-100 border-b border-slate-900 py-1.5 px-3 font-bold text-slate-800 text-center">
+                                Received By
+                            </div>
+                            <div class="p-3 flex-1 flex flex-col justify-end text-center min-h-[90px]">
+                                <div class="font-bold text-slate-900 border-t border-slate-400 pt-1 w-3/4 mx-auto" x-text="detailData.recipient_name || 'Penerima / Unit IPNET'"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -802,6 +860,16 @@ function doManager() {
         viewDetail(doData) {
             this.detailData = doData;
             this.showDetailModal = true;
+        },
+        formatDateIndo(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return dateStr;
+                return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            } catch(e) {
+                return dateStr;
+            }
         }
     };
 }
