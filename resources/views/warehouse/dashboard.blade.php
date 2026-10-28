@@ -226,48 +226,6 @@
                 </div>
             </div>
 
-            <!-- PROFIL GUDANG UTAMA IPNET (FASILITAS TUNGGAL RESMI) -->
-            <div class="ipnet-card p-5 sm:p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white anim-fade-up anim-delay-2 border-slate-700 shadow-lg">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div class="space-y-1.5">
-                        <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[#8F0A0D] text-white tracking-wide uppercase">
-                                {{ $primaryWarehouse->code ?? 'WH-JKT-01' }}
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                Operasional &amp; Aktif
-                            </span>
-                        </div>
-                        <h3 class="text-[18px] font-bold text-white tracking-tight">
-                            {{ $primaryWarehouse->name ?? 'Gudang Utama IPNET' }}
-                        </h3>
-                        <p class="text-[12.5px] text-slate-300 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                            <span>{{ $primaryWarehouse->address ?? 'Kantor Pusat PT IP Network Solusindo, Jakarta' }}</span>
-                        </p>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-4 text-[12px] bg-white/5 p-3.5 rounded-xl border border-white/10 shrink-0">
-                        <div class="border-r border-white/15 pr-4">
-                            <div class="text-slate-400 text-[11px]">PIC Gudang</div>
-                            <div class="font-bold text-white text-[13px]">{{ $primaryWarehouse->pic_name ?? 'Ahmad' }}</div>
-                        </div>
-                        <div class="border-r border-white/15 pr-4">
-                            <div class="text-slate-400 text-[11px]">Kapasitas Rak</div>
-                            <div class="font-bold text-white text-[13px]">{{ $primaryWarehouse->capacity_desc ?? 'Rak A, B, C' }}</div>
-                        </div>
-                        <div>
-                            <div class="text-slate-400 text-[11px]">Total Fisik Tersimpan</div>
-                            <div class="font-bold text-emerald-400 text-[14px]">{{ number_format($metrics['total_stock_units'] ?? 0) }} Unit</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- SECTION VISUALISASI & GRAFIK GUDANG (INTERACTIVE CHARTS) -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 anim-fade-up anim-delay-2">
                 <!-- Grafik 1: Level Stok Perangkat di Rak (Bar Chart) -->
