@@ -416,7 +416,7 @@ class WarehouseSeeder extends Seeder
             \App\Models\WarehouseSupplier::updateOrCreate(['code' => $sup['code']], $sup);
         }
 
-        // 7. Seeder Warehouse (Master Lokasi Gudang)
+        // 7. Seeder Warehouse (Master Lokasi Gudang Resmi Tunggal)
         $locations = [
             [
                 'code'          => 'WH-JKT-01',
@@ -424,39 +424,9 @@ class WarehouseSeeder extends Seeder
                 'pic_name'      => 'Ahmad',
                 'pic_phone'     => '081298765432',
                 'address'       => 'Jl. Kebon Jeruk Raya No. 12, Kebon Jeruk, Jakarta Barat 11530',
-                'capacity_desc' => '600 Unit / 12 Rak Rackmount Server',
+                'capacity_desc' => '1.500 Unit / 20 Rak Besi Heavy Duty (Rak A, B, C)',
                 'status'        => 'Operasional',
                 'notes'         => 'Gudang operasional pusat inventaris perangkat jaringan & server IPNET.',
-            ],
-            [
-                'code'          => 'WH-STAGING-01',
-                'name'          => 'Lab Staging & Pre-Config IPNET',
-                'pic_name'      => 'Dani Pratama',
-                'pic_phone'     => '081377889900',
-                'address'       => 'Ruko Grand Aries Niaga Blok E1 No. 2A, Meruya Utara, Jakarta Barat',
-                'capacity_desc' => '250 Unit / 6 Test Bench Racks',
-                'status'        => 'Operasional',
-                'notes'         => 'Ruang staging pengujian, QC, upgrade firmware, dan konfigurasi sebelum pengiriman.',
-            ],
-            [
-                'code'          => 'WH-TNG-02',
-                'name'          => 'Gudang Cadangan & Spare Transit',
-                'pic_name'      => 'Hendra Kusuma',
-                'pic_phone'     => '081122334455',
-                'address'       => 'Pergudangan Kosambi Indah Blok D-08, Jl. Raya Perancis, Tangerang',
-                'capacity_desc' => '1.200 Unit / 25 Pallet Rack',
-                'status'        => 'Operasional',
-                'notes'         => 'Buffer stock untuk backup perangkat SLA 4-jam & kabel bulk roll.',
-            ],
-            [
-                'code'          => 'WH-SBY-03',
-                'name'          => 'Gudang Proyek Regional Surabaya',
-                'pic_name'      => 'Fajar Setiawan',
-                'pic_phone'     => '081234567890',
-                'address'       => 'Ruko HR Muhammad Square Blok C-15, Sukomanunggal, Surabaya, Jawa Timur',
-                'capacity_desc' => '300 Unit / 5 Rak Staging',
-                'status'        => 'Operasional',
-                'notes'         => 'Hub logistik implementasi proyek Jawa Timur, Bali, dan Nusa Tenggara.',
             ],
         ];
         foreach ($locations as $loc) {
@@ -481,8 +451,8 @@ class WarehouseSeeder extends Seeder
         $sup5 = \App\Models\WarehouseSupplier::where('code', 'SUP-2026-005')->first();
 
         $loc1 = \App\Models\WarehouseLocation::where('code', 'WH-JKT-01')->first();
-        $loc2 = \App\Models\WarehouseLocation::where('code', 'WH-STAGING-01')->first();
-        $loc3 = \App\Models\WarehouseLocation::where('code', 'WH-TNG-02')->first();
+        $loc2 = $loc1;
+        $loc3 = $loc1;
 
         $products = [
             [

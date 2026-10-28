@@ -32,6 +32,33 @@ class WarehouseController extends Controller
                 Artisan::call('db:seed', ['--class' => 'WarehouseSeeder', '--force' => true]);
             } catch (\Throwable $e) {}
         }
+
+        // Konsolidasi ke 1 Gudang Utama Resmi (IPNET hanya memiliki 1 gudang pusat terpusat)
+        try {
+            $mainWh = WarehouseLocation::where('code', 'WH-JKT-01')->first() ?? WarehouseLocation::first();
+            if ($mainWh) {
+                $otherWhIds = WarehouseLocation::where('id', '!=', $mainWh->id)->pluck('id');
+                if ($otherWhIds->isNotEmpty()) {
+                    WarehouseProduct::whereIn('warehouse_id', $otherWhIds)->update([
+                        'warehouse_id' => $mainWh->id,
+                        'warehouse_name' => $mainWh->name,
+                    ]);
+                    WarehousePurchaseOrder::whereIn('warehouse_id', $otherWhIds)->update([
+                        'warehouse_id' => $mainWh->id,
+                        'warehouse_name' => $mainWh->name,
+                    ]);
+                    WarehouseDeliveryOrder::whereIn('warehouse_id', $otherWhIds)->update([
+                        'warehouse_id' => $mainWh->id,
+                        'warehouse_name' => $mainWh->name,
+                    ]);
+                    WarehouseStockOpname::whereIn('warehouse_id', $otherWhIds)->update([
+                        'warehouse_id' => $mainWh->id,
+                        'warehouse_name' => $mainWh->name,
+                    ]);
+                    WarehouseLocation::whereIn('id', $otherWhIds)->delete();
+                }
+            }
+        } catch (\Throwable $e) {}
     }
 
     /**
@@ -41,17 +68,19 @@ class WarehouseController extends Controller
     {
         $this->ensureTableReady();
 
-        $totalValuation = WarehouseProduct::sum(DB::raw('current_stock * unit_price'));
-        $lowStockCount  = WarehouseProduct::whereColumn('current_stock', '<=', 'min_stock')->count();
+        $totalValuation  = WarehouseProduct::sum(DB::raw('current_stock * unit_price'));
+        $totalStockUnits = WarehouseProduct::sum('current_stock') ?: 0;
+        $lowStockCount   = WarehouseProduct::whereColumn('current_stock', '<=', 'min_stock')->count();
 
         return [
             'total_products'    => WarehouseProduct::count(),
+            'total_stock_units' => $totalStockUnits,
             'total_valuation'   => $totalValuation,
             'low_stock_count'   => $lowStockCount,
             'total_categories'  => WarehouseCategory::count(),
             'total_units'       => WarehouseUnit::count(),
             'total_suppliers'   => WarehouseSupplier::count(),
-            'total_warehouses'  => WarehouseLocation::count(),
+            'total_warehouses'  => 1,
             'active_po'         => WarehousePurchaseOrder::whereIn('status', ['Diproses', 'Disetujui', 'Diterima Sebagian'])->count(),
             'pending_do'        => WarehouseDeliveryOrder::whereIn('status', ['Draft', 'Siap Dikirim', 'Dalam Pengiriman'])->count(),
             'completed_so'      => WarehouseStockOpname::where('status', 'Selesai')->count(),
@@ -95,18 +124,37 @@ class WarehouseController extends Controller
             ->take(5)
             ->get();
 
-        // Breakdown Stok per Kategori
+        // Breakdown Stok per Kategori (untuk Donut Chart & List)
         $categoryBreakdown = WarehouseCategory::withCount('products')
             ->withSum('products', 'current_stock')
             ->get();
 
-        // Rekap per Gudang
-        $warehouseBreakdown = WarehouseLocation::withCount('products')
-            ->withSum('products', 'current_stock')
+        // Top 6 Produk dengan Stok Fisik Terbanyak di Rak (untuk Bar Chart)
+        $topStockProducts = WarehouseProduct::orderBy('current_stock', 'desc')
+            ->take(6)
             ->get();
+
+        // Gudang Utama Tunggal IPNET
+        $primaryWarehouse = WarehouseLocation::where('code', 'WH-JKT-01')->first() 
+            ?? WarehouseLocation::first();
 
         // 6 Produk Baru
         $recentProducts = WarehouseProduct::latest()->take(6)->get();
+
+        // Status PO & DO untuk ringkasan operasional logistik
+        $poStatusCounts = [
+            'Draft'     => WarehousePurchaseOrder::where('status', 'Draft')->count(),
+            'Diproses'  => WarehousePurchaseOrder::where('status', 'Diproses')->count(),
+            'Disetujui' => WarehousePurchaseOrder::where('status', 'Disetujui')->count(),
+            'Selesai'   => WarehousePurchaseOrder::where('status', 'Selesai')->count(),
+        ];
+
+        $doStatusCounts = [
+            'Draft'            => WarehouseDeliveryOrder::where('status', 'Draft')->count(),
+            'Siap Dikirim'     => WarehouseDeliveryOrder::where('status', 'Siap Dikirim')->count(),
+            'Dalam Pengiriman' => WarehouseDeliveryOrder::where('status', 'Dalam Pengiriman')->count(),
+            'Terkirim'         => WarehouseDeliveryOrder::where('status', 'Terkirim & Diterima')->count(),
+        ];
 
         return view('warehouse.dashboard', compact(
             'metrics',
@@ -114,8 +162,11 @@ class WarehouseController extends Controller
             'recentPOs',
             'recentDOs',
             'categoryBreakdown',
-            'warehouseBreakdown',
-            'recentProducts'
+            'topStockProducts',
+            'primaryWarehouse',
+            'recentProducts',
+            'poStatusCounts',
+            'doStatusCounts'
         ));
     }
 
