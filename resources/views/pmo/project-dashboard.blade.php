@@ -67,8 +67,14 @@
 @section('content')
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" 
      x-data="{ 
-         activeMainTab: '{{ request('tab', 'scurve') }}',
+         activeMainTab: '{{ in_array(request('tab'), ['scurve', 'team', 'expenses']) ? request('tab') : 'scurve' }}',
          sCurveMode: 'weekly',
+         weeklyPage: {{ max(1, (int) ceil(($currentWeek ?? 1) / 6)) }},
+         weeklyPerPage: 6,
+         totalWeeksCount: {{ count($weeklyRecords ?? []) }},
+         get totalWeeklyPages() {
+             return Math.max(1, Math.ceil(this.totalWeeksCount / this.weeklyPerPage));
+         },
          dailyPage: 1,
          dailyPerPage: 10,
          totalDaysCount: {{ $totalDays ?? 30 }},
@@ -374,92 +380,64 @@
             </div>
 
             <!-- ========================================================== -->
-            <!-- 2.5 TAB NAVIGASI UTAMA DASHBOARD PROYEK                   -->
+            <!-- 2.5 TAB NAVIGASI UTAMA DASHBOARD PROYEK (3 MODUL UTAMA)    -->
             <!-- ========================================================== -->
             <div class="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2 rounded-2xl shadow-2xs gap-3 flex-wrap">
-                <div class="flex items-center gap-1.5 flex-wrap">
+                <div class="flex items-center gap-2 flex-wrap">
                     {{-- Tab 1: Kurva S & Monitoring --}}
                     <button type="button" 
                             @click="activeMainTab = 'scurve'"
                             :class="activeMainTab === 'scurve' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
-                            class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-2">
+                            class="px-4 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                         </svg>
                         <span>Kurva S & Monitoring</span>
                     </button>
 
-                    {{-- Tab 2: WBS Timeline & Gantt Chart (MS Project Style) --}}
-                    <button type="button" 
-                            @click="activeMainTab = 'wbs'"
-                            :class="activeMainTab === 'wbs' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
-                            class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M3 9h18M3 14h18M3 19h18"/>
-                        </svg>
-                        <span>WBS & Timeline Gantt (MS Project)</span>
-                        <span class="px-1.5 py-0.2 rounded text-[10px] font-extrabold uppercase"
-                              :class="activeMainTab === 'wbs' ? 'bg-white/20 text-white' : 'bg-red-50 text-[#8F0A0D] border border-red-200'">
-                            Fitur Baru
-                        </span>
-                    </button>
-
-                    {{-- Tab 3: Alokasi Tim & Task Engineer --}}
+                    {{-- Tab 2: Alokasi Tim & Task Engineer --}}
                     <button type="button" 
                             @click="activeMainTab = 'team'"
                             :class="activeMainTab === 'team' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
-                            class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-2">
+                            class="px-4 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                         </svg>
                         <span>Alokasi Tim & Task</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                              :class="activeMainTab === 'team' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">
+                            {{ count($assignedEngineers) }} Personil
+                        </span>
                     </button>
 
-                    {{-- Tab 4: Pengeluaran & Biaya --}}
+                    {{-- Tab 3: Pengeluaran & Biaya --}}
                     <button type="button" 
                             @click="activeMainTab = 'expenses'"
                             :class="activeMainTab === 'expenses' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
-                            class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-2">
+                            class="px-4 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         <span>Biaya & Pengeluaran</span>
-                    </button>
-
-                    {{-- Tab 5: Semua Tampilan (All View) --}}
-                    <button type="button" 
-                            @click="activeMainTab = 'all'"
-                            :class="activeMainTab === 'all' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
-                            class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-1.5">
-                        <span>Semua Tampilan</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                              :class="activeMainTab === 'expenses' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">
+                            {{ $expenses->count() }} Item
+                        </span>
                     </button>
                 </div>
 
-                {{-- Action Button: Buka Layar Penuh Dedicated --}}
-                <div class="flex items-center gap-2">
-                    <a href="{{ route('pmo.wbs.index', ['project_id' => $project->id]) }}" 
-                       target="_blank"
-                       title="Buka WBS Timeline di Halaman Layar Penuh"
-                       class="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-[#8F0A0D] bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-xl transition inline-flex items-center gap-1.5 shadow-2xs">
-                        <span>Mode Penuh (Dedicated)</span>
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                        </svg>
-                    </a>
+                {{-- Status Chip Proyek Aktif --}}
+                <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
+                    <span>Modul Aktif:</span>
+                    <span class="font-extrabold text-[#8F0A0D]" 
+                          x-text="activeMainTab === 'scurve' ? 'Kurva S & Jadwal' : (activeMainTab === 'team' ? 'Alokasi Tim Lapangan' : 'Catatan Biaya & Pengeluaran')"></span>
                 </div>
             </div>
 
             {{-- ========================================================== --}}
-            {{-- VIEW TAB: WBS & GANTT CHART TIMELINE                       --}}
+            {{-- VIEW TAB 1: KURVA S & MONITORING PROGRES                   --}}
             {{-- ========================================================== --}}
-            <div x-show="activeMainTab === 'wbs' || activeMainTab === 'all'" class="space-y-6">
-                <x-pmo-wbs-gantt :project="$project" :wbsTasks="$wbsTasks" :canEdit="true" />
-            </div>
-
-            {{-- ========================================================== --}}
-            {{-- VIEW TAB: KURVA S & MONITORING PROGRES                     --}}
-            {{-- ========================================================== --}}
-            <div x-show="activeMainTab === 'scurve' || activeMainTab === 'all'" class="space-y-6">
+            <div x-show="activeMainTab === 'scurve'" class="space-y-6">
 
             <!-- ========================================================== -->
             <!-- 3. KURVA S: PLAN KUMULATIF VS ACTUAL KUMULATIF (MINGGUAN / HARIAN) -->
@@ -642,8 +620,9 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @foreach($weeklyRecords as $rec)
-                                <tr class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
+                            @foreach($weeklyRecords as $widx => $rec)
+                                <tr x-show="Math.ceil(({{ $widx }} + 1) / weeklyPerPage) === weeklyPage"
+                                    class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
                                     
                                     {{-- Kolom Minggu --}}
                                     <td class="py-3 px-3 whitespace-nowrap">
@@ -733,6 +712,34 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    {{-- Weekly Pagination Controls --}}
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+                        <div class="text-slate-500 font-medium">
+                            Menampilkan <span class="font-bold text-slate-800" x-text="((weeklyPage - 1) * weeklyPerPage) + 1"></span> s/d 
+                            <span class="font-bold text-slate-800" x-text="Math.min(weeklyPage * weeklyPerPage, {{ count($weeklyRecords) }})"></span> 
+                            dari <span class="font-bold text-slate-800">{{ count($weeklyRecords) }} Minggu</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 self-end sm:self-auto">
+                            <button type="button" 
+                                    @click="weeklyPage = Math.max(1, weeklyPage - 1)" 
+                                    :disabled="weeklyPage === 1"
+                                    :class="weeklyPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100 text-slate-700 cursor-pointer'"
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs transition">
+                                &larr; Sebelumnya
+                            </button>
+                            <span class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 rounded-lg border border-slate-200">
+                                Halaman <span x-text="weeklyPage"></span> / <span x-text="totalWeeklyPages"></span>
+                            </span>
+                            <button type="button" 
+                                    @click="weeklyPage = Math.min(totalWeeklyPages, weeklyPage + 1)" 
+                                    :disabled="weeklyPage >= totalWeeklyPages"
+                                    :class="weeklyPage >= totalWeeklyPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100 text-slate-700 cursor-pointer'"
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs transition">
+                                Berikutnya &rarr;
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- TABEL HARIAN --}}
@@ -882,7 +889,7 @@
             <!-- ========================================================== -->
             <!-- 4. LOG CATEGORIZED EXPENSE & TASK WORKLOAD BREAKDOWN        -->
             <!-- ========================================================== -->
-            <div x-show="activeMainTab === 'team' || activeMainTab === 'expenses' || activeMainTab === 'all'" class="space-y-6">
+            <div x-show="activeMainTab === 'team' || activeMainTab === 'expenses'" class="space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
                 {{-- LEFT COLUMN: Task Share by Engineer & Team Resource Allocation --}}
@@ -891,9 +898,8 @@
                     $isLeadUser = $authUser && \App\Helpers\ScopeHelper::isTeamLeader($authUser);
                     $isPmoUser = $authUser && (\App\Helpers\ScopeHelper::isPmo($authUser) || $authUser->id == $project->pm_id || \App\Helpers\ScopeHelper::isExecutive($authUser));
                 @endphp
-                <div x-show="activeMainTab === 'team' || activeMainTab === 'all'" 
-                     :class="activeMainTab === 'team' ? 'lg:col-span-12' : 'lg:col-span-5'" 
-                     class="ipnet-card p-5 sm:p-6 space-y-4">
+                <div x-show="activeMainTab === 'team'" 
+                     class="lg:col-span-12 ipnet-card p-5 sm:p-6 space-y-4">
                     <div class="border-b border-[#E2E8F0] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <div>
                             <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">
@@ -1125,9 +1131,8 @@
                 </div>
 
                 {{-- RIGHT COLUMN: Log Categorized Expense & Riwayat --}}
-                <div x-show="activeMainTab === 'expenses' || activeMainTab === 'all'" 
-                     :class="activeMainTab === 'expenses' ? 'lg:col-span-12' : 'lg:col-span-7'" 
-                     class="space-y-5">
+                <div x-show="activeMainTab === 'expenses'" 
+                     class="lg:col-span-12 space-y-5">
                     
                     {{-- Form Box "Log Categorized Expense" (Clean, Professional, No Emojis) --}}
                     <div class="ipnet-card p-5 sm:p-6 space-y-4">
