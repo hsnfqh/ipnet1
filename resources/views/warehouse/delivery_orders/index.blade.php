@@ -269,13 +269,32 @@
                                     <label class="p-2.5 rounded-xl border cursor-pointer transition flex items-center gap-2"
                                            :class="allocationType === 'pinjaman_ipnet' ? 'border-[#8F0A0D] bg-red-50/50 text-[#8F0A0D] font-bold' : 'border-slate-200 bg-white text-slate-700'">
                                         <input type="radio" name="allocation_type" value="pinjaman_ipnet" x-model="allocationType" class="text-[#8F0A0D]">
-                                        <span class="text-xs">Unit IPNET 1-5</span>
+                                        <span class="text-xs">Pinjaman Internal IPNET</span>
                                     </label>
                                     <label class="p-2.5 rounded-xl border cursor-pointer transition flex items-center gap-2"
                                            :class="allocationType === 'pinjaman_disti' ? 'border-[#8F0A0D] bg-red-50/50 text-[#8F0A0D] font-bold' : 'border-slate-200 bg-white text-slate-700'">
                                         <input type="radio" name="allocation_type" value="pinjaman_disti" x-model="allocationType" class="text-[#8F0A0D]">
                                         <span class="text-xs">Pinjaman Disti</span>
                                     </label>
+                                </div>
+
+                                <!-- Sub-Pilihan Spesifik Unit IPNET (Bisa pilih IPNET 1, 2, 3, 4, atau 5) -->
+                                <div x-show="allocationType === 'pinjaman_ipnet'" x-transition class="mt-3 p-3.5 rounded-xl bg-red-50/60 border border-red-200/80">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="block text-[11px] font-bold text-[#8F0A0D] uppercase tracking-wider">
+                                            Pilih Unit Kerja IPNET Peminjam <span class="text-red-500">*</span>
+                                        </label>
+                                        <span class="text-[10.5px] text-slate-500 font-medium">Pilih spesifik unit peminjam (IPNET 1 s/d 5)</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                        <template x-for="u in ['IPNET 1', 'IPNET 2', 'IPNET 3', 'IPNET 4', 'IPNET 5']" :key="u">
+                                            <label class="p-2 rounded-lg border text-center cursor-pointer transition flex items-center justify-center gap-1.5"
+                                                   :class="selectedIpnetUnit === u ? 'bg-[#8F0A0D] text-white font-bold border-[#8F0A0D] shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 font-medium'">
+                                                <input type="radio" name="ipnet_work_unit" :value="u" x-model="selectedIpnetUnit" @change="onIpnetUnitChange(u)" class="hidden">
+                                                <span class="text-xs" x-text="u"></span>
+                                            </label>
+                                        </template>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -288,12 +307,17 @@
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nama Penerima (PIC Klien) <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">
+                                        <span x-text="allocationType === 'pinjaman_ipnet' ? 'Nama PIC / Engineer Peminjam' : 'Nama Penerima (PIC Klien)'"></span>
+                                        <span class="text-red-500">*</span>
+                                    </label>
                                     <input type="text" name="recipient_name" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. Budi Hartono">
                                 </div>
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nama Instansi / Perusahaan / Unit</label>
-                                    <input type="text" name="recipient_company" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. PT Bank Rakyat Indonesia Tbk">
+                                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">
+                                        <span x-text="allocationType === 'pinjaman_ipnet' ? 'Unit Kerja IPNET Peminjam' : 'Nama Instansi / Perusahaan / Unit'"></span>
+                                    </label>
+                                    <input type="text" name="recipient_company" x-model="recipientCompany" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white" placeholder="e.g. PT Bank Rakyat Indonesia Tbk">
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nomor Telp / WA Penerima</label>
@@ -584,12 +608,29 @@ function doManager() {
         showCreateModal: false,
         showDetailModal: false,
         allocationType: 'proyek',
+        selectedIpnetUnit: 'IPNET 1',
+        recipientCompany: '',
         detailData: {},
         productsList: {!! json_encode($products->map(function($p) { return ['id' => $p->id, 'name' => $p->name, 'sku' => $p->sku, 'unit' => $p->unit]; })) !!},
         availableItemsList: {!! json_encode($availableItems->map(function($i) { return ['id' => $i->id, 'item_code' => $i->item_code, 'name' => $i->name, 'serial_number' => $i->serial_number, 'rack' => $i->warehouse_rack, 'brand' => $i->brand]; })) !!},
         itemRows: [
             { warehouse_item_id: '', product_id: '', product_name: '', serial_number: '', quantity: 1, unit: 'Unit' }
         ],
+        init() {
+            this.$watch('allocationType', (val) => {
+                if (val === 'pinjaman_ipnet') {
+                    this.recipientCompany = this.selectedIpnetUnit;
+                } else if (this.recipientCompany && this.recipientCompany.startsWith('IPNET ')) {
+                    this.recipientCompany = '';
+                }
+            });
+        },
+        onIpnetUnitChange(u) {
+            this.selectedIpnetUnit = u;
+            if (this.allocationType === 'pinjaman_ipnet') {
+                this.recipientCompany = u;
+            }
+        },
         openCreateModal() {
             this.showCreateModal = true;
         },
