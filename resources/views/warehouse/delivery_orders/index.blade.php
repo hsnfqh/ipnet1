@@ -161,9 +161,11 @@
                                     </td>
                                     <td class="py-3.5 px-4 text-center">
                                         <div class="inline-flex items-center gap-1.5">
+                                            <!-- Safe JSON data script for reliable modal loading without quote/newline escaping bugs -->
+                                            <script type="application/json" id="do-data-{{ $do->id }}">@json($do)</script>
                                             <button type="button" 
-                                                    @click="viewDetail({{ json_encode($do) }})"
-                                                    class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[11.5px] flex items-center gap-1.5 transition" title="Lihat & Cetak Format Resmi Tanda Terima">
+                                                    @click="openDoDetail({{ $do->id }})"
+                                                    class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[11.5px] flex items-center gap-1.5 transition cursor-pointer" title="Lihat & Cetak Format Resmi Tanda Terima">
                                                 <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                                                 </svg>
@@ -581,8 +583,8 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <h1 class="text-3xl font-black text-slate-900 tracking-wider underline underline-offset-8">TANDA TERIMA</h1>
-                            <div class="mt-3 text-[12px] font-mono text-slate-700">
+                            <h1 class="text-[19px] font-black text-slate-900 tracking-wider border-b-[2px] border-slate-900 inline-block pb-0.5 uppercase">TANDA TERIMA</h1>
+                            <div class="mt-2 text-[11.5px] font-mono text-slate-700">
                                 No. DO : <span class="font-bold text-slate-900" x-text="detailData.do_number"></span>
                             </div>
                         </div>
@@ -892,8 +894,28 @@ function doManager() {
                 }
             }
         },
+        openDoDetail(id) {
+            let data = null;
+            const scriptEl = document.getElementById('do-data-' + id);
+            if (scriptEl) {
+                try {
+                    data = JSON.parse(scriptEl.textContent);
+                } catch(e) {
+                    console.error('Failed to parse DO script data', e);
+                }
+            }
+            if (data) {
+                this.detailData = JSON.parse(JSON.stringify(data));
+                this.showDetailModal = true;
+            } else {
+                console.warn('DO data element not found for ID:', id);
+            }
+        },
         viewDetail(doData) {
-            this.detailData = doData;
+            if (typeof doData === 'number' || typeof doData === 'string') {
+                return this.openDoDetail(doData);
+            }
+            this.detailData = doData || {};
             this.showDetailModal = true;
         },
         formatDateIndo(dateStr) {
