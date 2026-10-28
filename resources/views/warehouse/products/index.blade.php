@@ -72,14 +72,23 @@
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-2.5 shrink-0">
+                    <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
+                        <button type="button" 
+                                @click="openScanModal()" 
+                                class="px-4 py-2.5 rounded-xl font-semibold text-[13px] shadow-sm flex items-center gap-2 cursor-pointer transition bg-emerald-700 hover:bg-emerald-800 text-white">
+                            <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                            </svg>
+                            <span>Scan Barcode Bluetooth</span>
+                        </button>
+
                         <button type="button" 
                                 @click="openAddModal()" 
                                 class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-semibold text-[13px] shadow-sm flex items-center gap-2 cursor-pointer transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
-                            <span>Daftarkan Produk Baru</span>
+                            <span>Daftarkan Manual</span>
                         </button>
                     </div>
                 </div>
@@ -854,6 +863,239 @@
                 </div>
             </template>
 
+            <!-- ============================================================ -->
+            <!-- MODAL SCAN BARCODE BLUETOOTH                                 -->
+            <!-- ============================================================ -->
+            <template x-teleport="body">
+                <div x-show="scanModalOpen" 
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-[#0F172A]/70 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs"
+                     @click.self="scanModalOpen = false"
+                     @keydown.escape.window="scanModalOpen = false">
+                    
+                    <div class="bg-white rounded-2xl w-[860px] max-w-full max-h-[92vh] flex flex-col text-left shadow-[0_25px_70px_rgba(15,23,42,0.3)] border border-[#E2E8F0] overflow-hidden">
+                        
+                        <!-- Modal Header -->
+                        <div class="px-6 py-4 bg-gradient-to-r from-[#0F172A] to-[#1E293B] text-white flex items-center justify-between shrink-0">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-[16px] font-bold text-white tracking-tight">Mode Scan Barcode Bluetooth</h3>
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                            Scanner Siap
+                                        </span>
+                                    </div>
+                                    <p class="text-[11.5px] text-slate-300">Tembak barcode Serial Number (SN) perangkat satu per satu. Sistem akan mendaftarkannya secara batch.</p>
+                                </div>
+                            </div>
+                            <button type="button" @click="scanModalOpen = false" class="text-slate-400 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-white/10 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Modal Body (Scrollable) -->
+                        <div class="p-6 overflow-y-auto space-y-5 text-[13px] bg-slate-50/50">
+                            
+                            <!-- 1. Metadata Form (Data Barang yang Sedang Masuk) -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-3">
+                                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                                    <span class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                        <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        1. Data Dokumen &amp; Perangkat Masuk (Batch)
+                                    </span>
+                                    <span class="text-[11px] text-slate-400">Data ini akan otomatis disematkan ke setiap unit yang di-scan</span>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Model / Nama Perangkat <span class="text-red-500">*</span></label>
+                                        <select x-model="scanBatchForm.name" @change="onScanModelChange()" class="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-slate-800 text-xs focus:border-[#8F0A0D] outline-none">
+                                            <option value="">-- Pilih Model Perangkat --</option>
+                                            @foreach($deviceModels as $m)
+                                                <option value="{{ $m }}">{{ $m }}</option>
+                                            @endforeach
+                                            <option value="Custom">Lainnya (Ketik Manual)</option>
+                                        </select>
+                                        <template x-if="scanBatchForm.name === 'Custom'">
+                                            <input type="text" x-model="scanCustomModelName" placeholder="Ketik nama perangkat..." class="mt-1.5 w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs outline-none">
+                                        </template>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Part Number (P/N)</label>
+                                        <input type="text" x-model="scanBatchForm.product_number" placeholder="cth: EX-SFP-1GE-SX" class="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-slate-800 font-mono text-xs focus:border-[#8F0A0D] outline-none">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nomor PO / Pembelian</label>
+                                        <input type="text" x-model="scanBatchForm.po_number" placeholder="cth: 225/2013 atau 156/09/2012" class="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-slate-800 font-mono text-xs focus:border-[#8F0A0D] outline-none">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Brand / Pabrikan</label>
+                                        <input type="text" x-model="scanBatchForm.brand" placeholder="cth: Juniper Networks" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 text-xs outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenis Perangkat</label>
+                                        <select x-model="scanBatchForm.item_type" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-800 text-xs outline-none">
+                                            @foreach($itemTypes as $t)
+                                                <option value="{{ $t }}">{{ $t }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Kategori Stok</label>
+                                        <select x-model="scanBatchForm.category" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-800 text-xs outline-none">
+                                            @foreach($categories as $c)
+                                                <option value="{{ $c }}">{{ $c }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Lokasi Rak Gudang</label>
+                                        <input type="text" x-model="scanBatchForm.warehouse_rack" placeholder="Rak Utama A-01" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-slate-800 text-xs outline-none">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. SCAN INPUT ZONE (BLUETOOTH FOCUS) -->
+                            <div class="bg-emerald-50/70 border-2 border-emerald-300 rounded-2xl p-4 sm:p-5 shadow-xs relative">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                        <label for="scannerInputField" class="font-bold text-emerald-900 text-[13.5px]">
+                                            2. Area Tembak Barcode Scanner Bluetooth
+                                        </label>
+                                    </div>
+                                    <span class="text-[11px] text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md font-medium">
+                                        🔊 Audio Beep Aktif
+                                    </span>
+                                </div>
+
+                                <div class="relative flex items-center">
+                                    <div class="absolute left-3.5 pointer-events-none text-emerald-600">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                        </svg>
+                                    </div>
+                                    <input type="text" 
+                                           id="scannerInputField" 
+                                           x-model="scanInput" 
+                                           @keydown.enter.prevent="handleScanEnter()" 
+                                           placeholder="Arahkan scanner bluetooth ke barcode SN lalu tembak (atau ketik lalu Enter)..." 
+                                           autocomplete="off"
+                                           class="w-full pl-11 pr-24 py-3 bg-white border-2 border-emerald-400 rounded-xl text-slate-800 font-mono text-[14px] font-bold tracking-wider placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner">
+                                    
+                                    <button type="button" 
+                                            @click="handleScanEnter()" 
+                                            class="absolute right-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow transition cursor-pointer">
+                                        + Tambah
+                                    </button>
+                                </div>
+
+                                <!-- Feedback messages -->
+                                <template x-if="scanErrorMessage">
+                                    <div class="mt-2.5 p-2 px-3 rounded-lg bg-red-100 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                                        <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                        <span x-text="scanErrorMessage"></span>
+                                    </div>
+                                </template>
+                                <template x-if="scanSuccessMessage">
+                                    <div class="mt-2.5 p-2 px-3 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                                        <svg class="w-4 h-4 shrink-0 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                        <span x-text="scanSuccessMessage"></span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- 3. SCANNED LIST (DAFTAR UNIT TER-SCAN) -->
+                            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                                <div class="px-4 py-3 bg-slate-100/70 border-b border-slate-200 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-slate-800 text-xs uppercase tracking-wider">3. Daftar Serial Number Ter-scan</span>
+                                        <span class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-[#8F0A0D] text-white" x-text="scannedList.length + ' Unit'"></span>
+                                    </div>
+                                    <template x-if="scannedList.length > 0">
+                                        <button type="button" @click="clearScannedList()" class="text-xs text-red-600 hover:text-red-800 font-semibold cursor-pointer">
+                                            Bersihkan Antrean
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <div class="max-h-[220px] overflow-y-auto divide-y divide-slate-100">
+                                    <template x-if="scannedList.length === 0">
+                                        <div class="p-8 text-center text-slate-400">
+                                            <svg class="w-8 h-8 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                            <p class="font-medium text-xs">Belum ada serial number yang di-scan.</p>
+                                            <p class="text-[11px] text-slate-400 mt-0.5">Tembak barcode perangkat Anda untuk mulai menambahkan ke list ini.</p>
+                                        </div>
+                                    </template>
+
+                                    <template x-for="(item, index) in scannedList" :key="index">
+                                        <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50 transition">
+                                            <div class="flex items-center gap-3">
+                                                <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center font-mono" x-text="index + 1"></span>
+                                                <div>
+                                                    <span class="font-mono font-bold text-slate-900 text-sm" x-text="item.sn"></span>
+                                                    <span class="ml-2 text-[10.5px] text-slate-400 font-mono" x-text="'(' + item.time + ')'"></span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                    Siap Disimpan
+                                                </span>
+                                                <button type="button" @click="removeScannedItem(index)" class="text-slate-400 hover:text-red-600 p-1 rounded transition cursor-pointer">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="px-6 py-4 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
+                            <div>
+                                <span class="text-xs text-slate-500">
+                                    Total unit siap didaftarkan: <strong class="text-slate-800" x-text="scannedList.length + ' Unit'"></strong>
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <button type="button" @click="scanModalOpen = false" class="py-2.5 px-4 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition cursor-pointer">
+                                    Batal
+                                </button>
+                                <button type="button" 
+                                        @click="submitBatchScan()" 
+                                        :disabled="isSubmitting || scannedList.length === 0"
+                                        class="py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer transition">
+                                    <template x-if="isSubmitting">
+                                        <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                    </template>
+                                    <span x-text="isSubmitting ? 'Menyimpan...' : 'Simpan Semua Unit (' + scannedList.length + ') ke Gudang'"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </template>
+
         </div>
     </div>
 </div>
@@ -864,6 +1106,7 @@
         Alpine.data('warehouseManager', () => ({
             formModalOpen: false,
             detailModalOpen: false,
+            scanModalOpen: false,
             isEditing: false,
             isSubmitting: false,
             selectedItem: null,
@@ -871,6 +1114,26 @@
             customModelName: '',
             selectedBrand: '',
             customBrandName: '',
+
+            // Bluetooth Scanner State
+            scanInput: '',
+            scanErrorMessage: '',
+            scanSuccessMessage: '',
+            scanCustomModelName: '',
+            scannedList: [],
+            scanBatchForm: {
+                name: '',
+                brand: '',
+                item_type: 'Switch',
+                component_type: 'Perangkat Utuh',
+                product_number: '',
+                po_number: '',
+                category: 'Stock',
+                location_type: 'Gudang IPNET',
+                warehouse_rack: 'Rak Utama A-01',
+                status: 'Tersedia',
+                notes: ''
+            },
 
             onBrandChange() {
                 if (this.selectedBrand === 'Others') {
@@ -1122,6 +1385,289 @@
                     alert('Terjadi kesalahan jaringan.');
                 } finally {
                     this.isSubmitting = false;
+                }
+            },
+
+            // ==========================================
+            // BLUETOOTH SCANNER METHODS
+            // ==========================================
+            init() {
+                // Global barcode scanner listener:
+                // Barcode scanner sends key strokes rapidly (< 60ms interval) ending with Enter.
+                let barcodeBuffer = '';
+                let lastKeyTime = Date.now();
+
+                window.addEventListener('keydown', (e) => {
+                    // Ignore if inside an active form/input or if scan modal is open
+                    if (this.scanModalOpen || this.formModalOpen) return;
+                    
+                    const targetTag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+                    if (targetTag === 'input' || targetTag === 'textarea' || targetTag === 'select') {
+                        return;
+                    }
+
+                    const currentTime = Date.now();
+                    const interval = currentTime - lastKeyTime;
+                    lastKeyTime = currentTime;
+
+                    if (e.key === 'Enter') {
+                        if (barcodeBuffer.length >= 3 && interval < 65) {
+                            const scannedQuery = barcodeBuffer;
+                            barcodeBuffer = '';
+                            this.handleGlobalScan(scannedQuery);
+                        } else {
+                            barcodeBuffer = '';
+                        }
+                    } else if (e.key && e.key.length === 1) {
+                        if (interval > 90) {
+                            barcodeBuffer = e.key;
+                        } else {
+                            barcodeBuffer += e.key;
+                        }
+                    }
+                });
+            },
+
+            openScanModal() {
+                this.scanModalOpen = true;
+                this.scanInput = '';
+                this.scanErrorMessage = '';
+                this.scanSuccessMessage = '';
+                setTimeout(() => {
+                    const el = document.getElementById('scannerInputField');
+                    if (el) el.focus();
+                }, 150);
+            },
+
+            onScanModelChange() {
+                const m = this.scanBatchForm.name;
+                if (m === 'Custom') return;
+
+                if (['ACX2200','ACX4000','ACX5000','ACX7000','CTP2056','EX2200','EX2300','EX3200','EX3300','EX3400','EX4200','EX4300','EX4500','EX4550','EX4600','EX8200','EX9200','ISG1000','ISG2000','MX80','MX104','MX204','MX240','MX301','MX304','MX480','MX960','MX10K','M10i','M320','NS500','QFX3500','QFX5100','QFX5200','SSG20','SSG140','SRX100','SRX210','SRX240','SRX300','SRX550','SRX650','SRX1400','SRX1500','SRX3400','SRX3500','SRX5600','SRX5800','T1600','T4000','PTX5000'].includes(m)) {
+                    this.scanBatchForm.brand = 'Juniper Networks';
+                    if (m.startsWith('SRX') || m.startsWith('ISG') || m.startsWith('SSG') || m.startsWith('NS')) {
+                        this.scanBatchForm.item_type = 'Firewall';
+                    } else if (m.startsWith('EX') || m.startsWith('QFX')) {
+                        this.scanBatchForm.item_type = 'Switch';
+                    } else {
+                        this.scanBatchForm.item_type = 'Router';
+                    }
+                } else if (['BD8800','BDX8','X430','X440','X450','X460','X480','X650','X670'].includes(m)) {
+                    this.scanBatchForm.brand = 'Extreme Networks';
+                    this.scanBatchForm.item_type = 'Switch';
+                } else if (['PA3020','PA5010','PA5020','PA5050'].includes(m)) {
+                    this.scanBatchForm.brand = 'Palo Alto Networks';
+                    this.scanBatchForm.item_type = 'Firewall';
+                }
+            },
+
+            playBeep(type = 'success') {
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return;
+                    const ctx = new AudioCtx();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    if (type === 'success') {
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+                        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.08);
+                    } else {
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(260, ctx.currentTime);
+                        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.22);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.22);
+                    }
+                } catch(e) {}
+            },
+
+            async handleScanEnter() {
+                const sn = (this.scanInput || '').trim();
+                this.scanInput = '';
+                this.scanErrorMessage = '';
+                this.scanSuccessMessage = '';
+
+                if (!sn) {
+                    this.refocusScan();
+                    return;
+                }
+
+                // Cek duplikasi di antrean yang sudah di-scan
+                if (this.scannedList.some(item => item.sn.toLowerCase() === sn.toLowerCase())) {
+                    this.playBeep('error');
+                    this.scanErrorMessage = `Serial Number [${sn}] sudah ada di antrean scan saat ini!`;
+                    this.refocusScan();
+                    return;
+                }
+
+                // Cek apakah sudah terdaftar di database server
+                try {
+                    const res = await fetch('/warehouse/products/scan-check', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ query: sn })
+                    });
+                    const data = await res.json();
+                    if (data.found) {
+                        this.playBeep('error');
+                        this.scanErrorMessage = `S/N [${sn}] SUDAH TERDAFTAR di gudang (${data.item.status} - ${data.item.name})!`;
+                        this.refocusScan();
+                        return;
+                    }
+                } catch(err) {
+                    console.error('Check SN error:', err);
+                }
+
+                // Tambahkan ke antrean
+                this.playBeep('success');
+                const now = new Date();
+                const timeStr = String(now.getHours()).padStart(2, '0') + ':' + 
+                                String(now.getMinutes()).padStart(2, '0') + ':' + 
+                                String(now.getSeconds()).padStart(2, '0');
+                this.scannedList.unshift({ sn: sn, time: timeStr });
+                this.scanSuccessMessage = `Unit [${sn}] berhasil di-scan! Total: ${this.scannedList.length} unit.`;
+                this.refocusScan();
+            },
+
+            removeScannedItem(index) {
+                this.scannedList.splice(index, 1);
+            },
+
+            clearScannedList() {
+                this.scannedList = [];
+                this.scanErrorMessage = '';
+                this.scanSuccessMessage = '';
+                this.refocusScan();
+            },
+
+            refocusScan() {
+                this.$nextTick(() => {
+                    setTimeout(() => {
+                        const el = document.getElementById('scannerInputField');
+                        if (el) el.focus();
+                    }, 50);
+                });
+            },
+
+            async submitBatchScan() {
+                if (this.scannedList.length === 0) {
+                    alert('Belum ada serial number yang di-scan.');
+                    return;
+                }
+
+                const deviceName = this.scanBatchForm.name === 'Custom' 
+                    ? this.scanCustomModelName 
+                    : this.scanBatchForm.name;
+
+                if (!deviceName) {
+                    alert('Silakan pilih atau isi Model / Nama Perangkat terlebih dahulu.');
+                    return;
+                }
+
+                this.isSubmitting = true;
+                try {
+                    const payload = {
+                        name: deviceName,
+                        brand: this.scanBatchForm.brand || '',
+                        item_type: this.scanBatchForm.item_type || 'Switch',
+                        component_type: this.scanBatchForm.component_type || 'Perangkat Utuh',
+                        product_number: this.scanBatchForm.product_number || '',
+                        po_number: this.scanBatchForm.po_number || '',
+                        category: this.scanBatchForm.category || 'Stock',
+                        location_type: this.scanBatchForm.location_type || 'Gudang IPNET',
+                        warehouse_rack: this.scanBatchForm.warehouse_rack || 'Rak Utama A-01',
+                        status: this.scanBatchForm.status || 'Tersedia',
+                        notes: this.scanBatchForm.notes || '',
+                        serial_numbers: this.scannedList.map(item => item.sn)
+                    };
+
+                    const res = await fetch('/warehouse/products/batch-scan', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        this.scanModalOpen = false;
+                        if (typeof Swal !== 'undefined') {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil Masuk Gudang!',
+                                text: data.message,
+                                confirmButtonColor: '#8F0A0D'
+                            });
+                        }
+                        window.location.reload();
+                    } else {
+                        const errMsg = data.message || 'Terjadi kesalahan saat menyimpan data scan.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: errMsg, confirmButtonColor: '#8F0A0D' });
+                        } else {
+                            alert(errMsg);
+                        }
+                    }
+                } catch(err) {
+                    console.error('Submit batch scan error:', err);
+                    alert('Terjadi kesalahan jaringan.');
+                } finally {
+                    this.isSubmitting = false;
+                }
+            },
+
+            async handleGlobalScan(scannedQuery) {
+                console.log('Global scan detected:', scannedQuery);
+                try {
+                    const res = await fetch('/warehouse/products/scan-check', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ query: scannedQuery })
+                    });
+                    const data = await res.json();
+                    if (data.found && data.item) {
+                        this.playBeep('success');
+                        this.openDetailModal(data.item);
+                    } else {
+                        this.playBeep('error');
+                        if (typeof Swal !== 'undefined') {
+                            const result = await Swal.fire({
+                                icon: 'info',
+                                title: 'Perangkat Belum Terdaftar',
+                                text: `Serial Number [${scannedQuery}] belum terdaftar di inventaris gudang. Buka Mode Scan Masuk?`,
+                                showCancelButton: true,
+                                confirmButtonText: 'Ya, Buka Scan Masuk',
+                                cancelButtonText: 'Tutup',
+                                confirmButtonColor: '#059669',
+                                cancelButtonColor: '#64748B'
+                            });
+                            if (result.isConfirmed) {
+                                this.openScanModal();
+                                this.scanInput = scannedQuery;
+                                this.handleScanEnter();
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.error('Global scan handler error:', e);
                 }
             }
         }));

@@ -1786,6 +1786,8 @@ Route::middleware(['auth'])->prefix('warehouse')->name('warehouse.')->group(func
     // 2. Produk
     Route::get('/products', [\App\Http\Controllers\WarehouseController::class, 'products'])->name('products.index');
     Route::post('/products', [\App\Http\Controllers\WarehouseController::class, 'storeProduct'])->name('products.store');
+    Route::post('/products/scan-check', [\App\Http\Controllers\WarehouseController::class, 'scanCheck'])->name('products.scan_check');
+    Route::post('/products/batch-scan', [\App\Http\Controllers\WarehouseController::class, 'batchStoreProduct'])->name('products.batch_scan');
     Route::put('/products/{product}', [\App\Http\Controllers\WarehouseController::class, 'updateProduct'])->name('products.update');
     Route::delete('/products/{product}', [\App\Http\Controllers\WarehouseController::class, 'destroyProduct'])->name('products.destroy');
 

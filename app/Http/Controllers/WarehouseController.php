@@ -312,6 +312,158 @@ class WarehouseController extends Controller
         return redirect()->route('warehouse.products.index')->with('success', "Barang {$item->item_code} berhasil didaftarkan ke inventaris!");
     }
 
+    /**
+     * Check serial number / barcode existence for bluetooth scanner
+     */
+    public function scanCheck(Request $request)
+    {
+        $this->ensureTableReady();
+        $query = trim($request->input('query', ''));
+
+        if (empty($query)) {
+            return response()->json(['found' => false, 'message' => 'Query kosong']);
+        }
+
+        $item = WarehouseItem::where('serial_number', $query)
+            ->orWhere('item_code', $query)
+            ->first();
+
+        if ($item) {
+            return response()->json([
+                'found' => true,
+                'item'  => [
+                    'id'             => $item->id,
+                    'item_code'      => $item->item_code,
+                    'name'           => $item->name,
+                    'brand'          => $item->brand,
+                    'item_type'      => $item->item_type,
+                    'component_type' => $item->component_type,
+                    'serial_number'  => $item->serial_number,
+                    'product_number' => $item->product_number,
+                    'po_number'      => $item->po_number,
+                    'category'       => $item->category,
+                    'location_type'  => $item->location_type,
+                    'warehouse_rack' => $item->warehouse_rack,
+                    'status'         => $item->status,
+                    'notes'          => $item->notes,
+                ],
+                'message' => "Serial Number [{$query}] sudah terdaftar di sistem ({$item->status})!"
+            ]);
+        }
+
+        return response()->json([
+            'found' => false,
+            'message' => "Serial Number [{$query}] belum terdaftar (tersedia untuk didaftarkan)."
+        ]);
+    }
+
+    /**
+     * Batch store items scanned via Bluetooth Scanner
+     */
+    public function batchStoreProduct(Request $request)
+    {
+        $this->ensureTableReady();
+
+        $validated = $request->validate([
+            'name'                => 'required|string|max:255',
+            'brand'               => 'nullable|string|max:100',
+            'item_type'           => 'required|string|max:100',
+            'component_type'      => 'nullable|string|max:100',
+            'product_number'      => 'nullable|string|max:100',
+            'po_number'           => 'nullable|string|max:100',
+            'category'            => 'required|string|max:50',
+            'location_type'       => 'required|string|in:Gudang IPNET,Warehouse IPNET,Customer',
+            'warehouse_rack'      => 'nullable|string|max:100',
+            'status'              => 'required|string|max:50',
+            'notes'               => 'nullable|string',
+            'serial_numbers'      => 'required|array|min:1',
+            'serial_numbers.*'    => 'required|string|max:100',
+        ]);
+
+        $createdItems = [];
+        $duplicateSns = [];
+
+        DB::beginTransaction();
+        try {
+            $countThisYear = WarehouseItem::withTrashed()->whereYear('created_at', date('Y'))->count();
+
+            foreach ($validated['serial_numbers'] as $sn) {
+                $cleanSn = trim($sn);
+                if (empty($cleanSn)) continue;
+
+                // Check duplicate in database
+                $existing = WarehouseItem::where('serial_number', $cleanSn)->first();
+                if ($existing) {
+                    $duplicateSns[] = $cleanSn;
+                    continue;
+                }
+
+                $countThisYear++;
+                $itemCode = 'WH-' . date('Y') . '-' . str_pad($countThisYear, 4, '0', STR_PAD_LEFT);
+
+                $item = WarehouseItem::create([
+                    'item_code'      => $itemCode,
+                    'name'           => $validated['name'],
+                    'brand'          => $validated['brand'],
+                    'item_type'      => $validated['item_type'],
+                    'component_type' => $validated['component_type'] ?? 'Perangkat Utuh',
+                    'serial_number'  => $cleanSn,
+                    'product_number' => $validated['product_number'],
+                    'po_number'      => $validated['po_number'],
+                    'category'       => $validated['category'],
+                    'location_type'  => $validated['location_type'],
+                    'warehouse_rack' => $validated['warehouse_rack'] ?: 'Rak Utama A-01',
+                    'status'         => $validated['status'],
+                    'notes'          => !empty($validated['notes']) ? $validated['notes'] . " (Scan Bluetooth)" : "Scan Bluetooth",
+                    'created_by'     => auth()->id(),
+                ]);
+
+                $createdItems[] = $item;
+            }
+
+            // Sync with catalog
+            if (!empty($createdItems)) {
+                $first = $createdItems[0];
+                try {
+                    $prodSku = $validated['product_number'] ?: $first->name;
+                    $prod = WarehouseProduct::firstOrNew(['sku' => $prodSku]);
+                    if ($prod->exists) {
+                        $prod->increment('current_stock', count($createdItems));
+                    } else {
+                        $prod->fill([
+                            'sku'           => $prodSku,
+                            'name'          => $first->name,
+                            'brand'         => $first->brand,
+                            'category_name' => $first->category,
+                            'rack_position' => $first->warehouse_rack,
+                            'unit_name'     => 'Unit',
+                            'current_stock' => count($createdItems),
+                            'min_stock'     => 1,
+                            'status'        => 'Tersedia',
+                            'specifications'=> $first->notes,
+                        ])->save();
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success'    => true,
+                'count'      => count($createdItems),
+                'duplicates' => $duplicateSns,
+                'message'    => count($createdItems) . ' unit berhasil didaftarkan ke inventaris gudang!' . 
+                                (!empty($duplicateSns) ? ' (' . count($duplicateSns) . ' SN duplikat dilewati: ' . implode(', ', $duplicateSns) . ')' : ''),
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses batch scan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function updateProduct(Request $request, $id)
     {
         $this->ensureTableReady();
