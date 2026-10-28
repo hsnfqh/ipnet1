@@ -12,9 +12,30 @@
         box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
     }
     @media print {
-        body * { visibility: hidden; }
-        #print-area, #print-area * { visibility: visible; }
-        #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+        body * { visibility: hidden !important; }
+        #print-area, #print-area * { visibility: visible !important; }
+        #print-area {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 28px !important;
+            background: #FFFFFF !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+    .tt-header-black {
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .tt-bg-gray {
+        background-color: #F8FAFC !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 </style>
 @endpush
@@ -512,12 +533,12 @@
              x-cloak 
              class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs">
             <div @click.away="showDetailModal = false" 
-                 class="bg-white rounded-2xl w-[780px] max-w-full max-h-[92vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                 class="bg-white rounded-2xl w-[860px] max-w-[96vw] max-h-[92vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
                 
                 <!-- Fixed Header -->
                 <div class="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 border border-purple-100 flex items-center justify-center shrink-0">
+                        <div class="w-9 h-9 rounded-xl bg-[#8F0A0D]/10 text-[#8F0A0D] border border-[#8F0A0D]/20 flex items-center justify-center shrink-0">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                             </svg>
@@ -525,13 +546,13 @@
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="text-sm font-bold text-slate-800" x-text="detailData.do_number"></h3>
-                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200" x-text="detailData.status"></span>
+                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200" x-text="detailData.status"></span>
                             </div>
-                            <p class="text-[11px] text-slate-500">Surat Jalan Resmi Pengiriman &amp; Serah Terima Barang</p>
+                            <p class="text-[11px] text-slate-500">Preview Resmi Dokumen Tanda Terima Fisik (Standar IPNET)</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="button" onclick="window.print()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-xs hover:bg-slate-100 flex items-center gap-1.5 transition">
+                        <button type="button" onclick="window.print()" class="px-3.5 py-1.5 rounded-lg bg-[#8F0A0D] text-white font-bold text-xs hover:bg-[#72080a] flex items-center gap-1.5 shadow-sm transition">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                             </svg>
@@ -544,134 +565,148 @@
                 </div>
 
                 <!-- Printable Body (Format Resmi Tanda Terima PT IP Network Solusindo) -->
-                <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1 min-h-0 bg-white" id="print-area">
+                <div class="p-8 overflow-y-auto space-y-4 text-xs flex-1 min-h-0 bg-white" id="print-area">
                     <!-- KOP SURAT RESMI IPNET & TITLE -->
-                    <div class="flex items-start justify-between border-b-2 border-slate-900 pb-3">
-                        <div class="flex items-start gap-3">
-                            <img src="{{ asset('images/ipnet.png') }}" alt="Logo IPNET" class="w-14 h-14 object-contain shrink-0">
-                            <div class="leading-tight text-[11px] text-slate-800">
-                                <h2 class="text-[14px] font-extrabold text-slate-900 uppercase tracking-wide">PT. IP Network Solusindo</h2>
-                                <p class="text-slate-600">Golden Centrum Complex</p>
-                                <p class="text-slate-600">Jl. Majapahit 26P, Jakarta 10160</p>
-                                <p class="text-slate-600">Ph : +6221 3511304, 3501106-07</p>
-                                <p class="text-slate-600">Fax: +6221 3511306</p>
-                                <p class="text-[#8F0A0D] font-medium text-[10.5px]">ipnetsolusindo.com</p>
+                    <div class="flex items-start justify-between border-b-[1.5px] border-slate-900 pb-4 mb-4">
+                        <div class="flex items-start gap-4">
+                            <!-- Logo IPNET Lebih Besar & Jelas -->
+                            <img src="{{ asset('images/ipnet.png') }}" alt="Logo IPNET" class="w-20 h-20 object-contain shrink-0">
+                            <div class="leading-tight text-[11.5px] text-slate-800 space-y-0.5">
+                                <h2 class="text-[15px] font-black text-slate-900 uppercase tracking-wide">PT. IP NETWORK SOLUSINDO</h2>
+                                <p class="text-slate-700">Golden Centrum Complex</p>
+                                <p class="text-slate-700">Jl. Majapahit 26P, Jakarta 10160</p>
+                                <p class="text-slate-700">Ph : +6221 3511304, 3501106-07</p>
+                                <p class="text-slate-700">Fax: +6221 3511306</p>
+                                <p class="text-[#8F0A0D] font-bold text-[11px] pt-0.5">ipnetsolusindo.com</p>
                             </div>
                         </div>
                         <div class="text-right">
-                            <h1 class="text-2xl font-black text-slate-900 tracking-wider underline underline-offset-4">TANDA TERIMA</h1>
-                            <div class="mt-2 text-[11px] font-mono text-slate-600">
-                                No. DO: <span class="font-bold text-slate-900" x-text="detailData.do_number"></span>
+                            <h1 class="text-3xl font-black text-slate-900 tracking-wider underline underline-offset-8">TANDA TERIMA</h1>
+                            <div class="mt-3 text-[12px] font-mono text-slate-700">
+                                No. DO : <span class="font-bold text-slate-900" x-text="detailData.do_number"></span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- META INFO GRID (Sesuai Kolom Excel) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11.5px] pt-1">
+                    <!-- META INFO GRID (Satu Box Terpadu dengan Garis Konsisten & Titik Dua Rapi) -->
+                    <div class="border-[1.5px] border-slate-900 grid grid-cols-2 divide-x-[1.5px] divide-slate-900 text-[12px] bg-white mb-4">
                         <!-- Kolom Kiri: Tujuan / TO -->
-                        <div class="border border-slate-300 rounded-lg p-3 space-y-1.5 bg-slate-50/50">
-                            <div class="grid grid-cols-12 gap-1 items-start">
-                                <span class="col-span-3 font-bold text-slate-700">TO</span>
-                                <span class="col-span-1 text-center font-bold text-slate-700">:</span>
-                                <span class="col-span-8 font-bold text-slate-900" x-text="detailData.recipient_company || detailData.recipient_name || '-'"></span>
+                        <div class="p-3.5 space-y-2">
+                            <div class="flex items-start">
+                                <span class="w-20 font-bold text-slate-800 shrink-0">TO</span>
+                                <span class="w-4 text-center font-bold text-slate-800 shrink-0">:</span>
+                                <span class="font-bold text-slate-900 flex-1 leading-snug" x-text="detailData.recipient_company || detailData.recipient_name || '-'"></span>
                             </div>
-                            <div class="grid grid-cols-12 gap-1 items-start">
-                                <span class="col-span-3 font-semibold text-slate-600">Up</span>
-                                <span class="col-span-1 text-center text-slate-600">:</span>
-                                <span class="col-span-8 text-slate-800 font-medium" x-text="detailData.recipient_name || '-'"></span>
+                            <div class="flex items-start">
+                                <span class="w-20 font-semibold text-slate-700 shrink-0">Up</span>
+                                <span class="w-4 text-center font-bold text-slate-700 shrink-0">:</span>
+                                <span class="text-slate-800 font-medium flex-1 leading-snug" x-text="detailData.recipient_name || '-'"></span>
                             </div>
-                            <div class="grid grid-cols-12 gap-1 items-start">
-                                <span class="col-span-3 font-semibold text-slate-600">Phone</span>
-                                <span class="col-span-1 text-center text-slate-600">:</span>
-                                <span class="col-span-8 text-slate-800 font-mono" x-text="detailData.recipient_phone || '-'"></span>
+                            <div class="flex items-start">
+                                <span class="w-20 font-semibold text-slate-700 shrink-0">Phone</span>
+                                <span class="w-4 text-center font-bold text-slate-700 shrink-0">:</span>
+                                <span class="text-slate-900 font-mono font-medium flex-1" x-text="detailData.recipient_phone || '-'"></span>
                             </div>
-                            <div class="grid grid-cols-12 gap-1 items-start" x-show="detailData.delivery_address">
-                                <span class="col-span-3 font-semibold text-slate-600">Alamat</span>
-                                <span class="col-span-1 text-center text-slate-600">:</span>
-                                <span class="col-span-8 text-slate-700 text-[11px]" x-text="detailData.delivery_address"></span>
+                            <div class="flex items-start" x-show="detailData.delivery_address">
+                                <span class="w-20 font-semibold text-slate-700 shrink-0">Alamat</span>
+                                <span class="w-4 text-center font-bold text-slate-700 shrink-0">:</span>
+                                <span class="text-slate-800 text-[11.5px] leading-snug flex-1" x-text="detailData.delivery_address"></span>
                             </div>
                         </div>
 
                         <!-- Kolom Kanan: Detail Pengiriman / Ref -->
-                        <div class="border border-slate-300 rounded-lg p-3 space-y-1.5 bg-slate-50/50">
-                            <div class="grid grid-cols-12 gap-1 items-start">
-                                <span class="col-span-4 font-semibold text-slate-600">Keterangan</span>
-                                <span class="col-span-1 text-center text-slate-600">:</span>
-                                <span class="col-span-7 font-bold text-slate-900" x-text="detailData.recipient_company && detailData.recipient_company.startsWith('IPNET ') ? 'Alokasi Internal (' + detailData.recipient_company + ')' : 'Pengiriman Barang'"></span>
+                        <div class="p-3.5 space-y-2">
+                            <div class="flex items-start">
+                                <span class="w-24 font-semibold text-slate-700 shrink-0">Keterangan</span>
+                                <span class="w-4 text-center font-bold text-slate-700 shrink-0">:</span>
+                                <span class="font-bold text-slate-900 flex-1 leading-snug" x-text="detailData.recipient_company && detailData.recipient_company.startsWith('IPNET ') ? 'Alokasi Internal (' + detailData.recipient_company + ')' : 'Pengiriman Barang'"></span>
                             </div>
-                            <div class="grid grid-cols-12 gap-1 items-start">
-                                <span class="col-span-4 font-semibold text-slate-600">PO Nomor</span>
-                                <span class="col-span-1 text-center text-slate-600">:</span>
-                                <span class="col-span-7 font-mono font-semibold text-slate-800" x-text="detailData.reference_no || '-'"></span>
+                            <div class="flex items-start">
+                                <span class="w-24 font-semibold text-slate-700 shrink-0">PO Nomor</span>
+                                <span class="w-4 text-center font-bold text-slate-700 shrink-0">:</span>
+                                <span class="font-mono font-bold text-slate-900 flex-1" x-text="detailData.reference_no || '-'"></span>
                             </div>
-                            <div class="grid grid-cols-12 gap-1 items-start">
-                                <span class="col-span-4 font-semibold text-slate-600">Pengiriman</span>
-                                <span class="col-span-1 text-center text-slate-600">:</span>
-                                <span class="col-span-7 font-medium text-slate-800" x-text="detailData.do_date ? formatDateIndo(detailData.do_date) : '-'"></span>
+                            <div class="flex items-start">
+                                <span class="w-24 font-semibold text-slate-700 shrink-0">Pengiriman</span>
+                                <span class="w-4 text-center font-bold text-slate-700 shrink-0">:</span>
+                                <span class="font-medium text-slate-900 flex-1" x-text="detailData.do_date ? formatDateIndo(detailData.do_date) : '-'"></span>
                             </div>
-                            <div class="grid grid-cols-12 gap-1 items-start">
-                                <span class="col-span-4 font-semibold text-slate-600">Perangkat</span>
-                                <span class="col-span-1 text-center text-slate-600">:</span>
-                                <span class="col-span-7 text-slate-800 font-medium" x-text="detailData.vehicle_no || detailData.courier_name || 'Hardware / Network'"></span>
+                            <div class="flex items-start">
+                                <span class="w-24 font-semibold text-slate-700 shrink-0">Perangkat</span>
+                                <span class="w-4 text-center font-bold text-slate-700 shrink-0">:</span>
+                                <span class="text-slate-800 font-medium flex-1" x-text="detailData.vehicle_no || detailData.courier_name || 'Hardware / Network'"></span>
                             </div>
-                            <div class="grid grid-cols-12 gap-1 items-start">
-                                <span class="col-span-4 font-semibold text-slate-600">Page</span>
-                                <span class="col-span-1 text-center text-slate-600">:</span>
-                                <span class="col-span-7 font-bold text-slate-800">1 OF 1</span>
+                            <div class="flex items-start">
+                                <span class="w-24 font-semibold text-slate-700 shrink-0">Page</span>
+                                <span class="w-4 text-center font-bold text-slate-700 shrink-0">:</span>
+                                <span class="font-bold text-slate-900 flex-1">1 OF 1</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Items Table Sesuai Template Excel -->
-                    <div class="border border-slate-900 rounded-md overflow-hidden">
+                    <!-- Items Table Sesuai Template Excel (Border Konsisten & Header Hitam Pekat) -->
+                    <div class="border-[1.5px] border-slate-900 overflow-hidden mb-4">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-black text-white font-bold text-[11px] uppercase tracking-wider">
-                                    <th class="py-2.5 px-3 text-center border-r border-slate-700 w-12">NO.</th>
-                                    <th class="py-2.5 px-3 border-r border-slate-700">KODE BARANG</th>
-                                    <th class="py-2.5 px-3 border-r border-slate-700">URAIAN BARANG</th>
-                                    <th class="py-2.5 px-3 text-center border-r border-slate-700 w-24">QUANTITY</th>
-                                    <th class="py-2.5 px-3">SERIAL NUMBER</th>
+                                <tr class="tt-header-black text-[11px] font-black uppercase tracking-wider">
+                                    <th class="py-2.5 px-3 text-center border-r-[1.5px] border-slate-900 w-12 text-white">NO.</th>
+                                    <th class="py-2.5 px-3 border-r-[1.5px] border-slate-900 text-white">KODE BARANG</th>
+                                    <th class="py-2.5 px-3 border-r-[1.5px] border-slate-900 text-white">URAIAN BARANG</th>
+                                    <th class="py-2.5 px-3 text-center border-r-[1.5px] border-slate-900 w-28 text-white">QUANTITY</th>
+                                    <th class="py-2.5 px-3 text-white w-48">SERIAL NUMBER</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-300 text-slate-800 text-[11.5px]">
+                            <tbody class="text-slate-900 text-[12px]">
                                 <template x-for="(item, idx) in (detailData.items || [])" :key="item.id || idx">
-                                    <tr class="hover:bg-slate-50">
-                                        <td class="py-2.5 px-3 text-center font-bold border-r border-slate-300" x-text="idx + 1"></td>
-                                        <td class="py-2.5 px-3 font-semibold text-slate-900 border-r border-slate-300" x-text="item.product_name"></td>
-                                        <td class="py-2.5 px-3 text-slate-600 border-r border-slate-300" x-text="item.notes || '-'"></td>
-                                        <td class="py-2.5 px-3 text-center font-bold border-r border-slate-300" x-text="item.quantity + ' ' + (item.unit || 'Unit')"></td>
-                                        <td class="py-2.5 px-3 font-mono font-bold text-slate-900" x-text="item.serial_number || '-'"></td>
+                                    <tr class="border-t-[1.5px] border-slate-900 hover:bg-slate-50/50">
+                                        <td class="py-3 px-3 text-center font-bold border-r-[1.5px] border-slate-900" x-text="idx + 1"></td>
+                                        <td class="py-3 px-3 font-bold text-slate-900 border-r-[1.5px] border-slate-900" x-text="item.product_name"></td>
+                                        <td class="py-3 px-3 text-slate-700 border-r-[1.5px] border-slate-900" x-text="item.notes || '-'"></td>
+                                        <td class="py-3 px-3 text-center font-bold border-r-[1.5px] border-slate-900" x-text="item.quantity + ' ' + (item.unit || 'Unit')"></td>
+                                        <td class="py-3 px-3 font-mono font-bold text-slate-900" x-text="item.serial_number || '-'"></td>
                                     </tr>
                                 </template>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Kotak Tanda Tangan (Remarks, Prepare By, Received By Sesuai Excel) -->
-                    <div class="border border-slate-900 rounded-md overflow-hidden grid grid-cols-3 text-xs">
-                        <div class="border-r border-slate-900 flex flex-col">
-                            <div class="bg-slate-100 border-b border-slate-900 py-1.5 px-3 font-bold text-slate-800 text-center">
+                    <!-- Kotak Tanda Tangan & Remarks (Lapang untuk Tanda Tangan & Cap Fisik) -->
+                    <div class="border-[1.5px] border-slate-900 grid grid-cols-3 divide-x-[1.5px] divide-slate-900 text-xs bg-white">
+                        <!-- Remarks Column -->
+                        <div class="flex flex-col">
+                            <div class="tt-bg-gray border-b-[1.5px] border-slate-900 py-2 px-3 font-bold text-slate-900 text-center uppercase tracking-wide text-[11.5px]">
                                 Remarks
                             </div>
-                            <div class="p-3 text-[11px] text-slate-600 flex-1 min-h-[90px]" x-text="detailData.notes || 'Barang diserahterimakan dalam kondisi baik dan lengkap sesuai surat pesanan.'"></div>
+                            <div class="p-3.5 text-[11.5px] text-slate-700 leading-relaxed flex-1 min-h-[160px]" x-text="detailData.notes || 'Pengiriman switch core & patch cord untuk peremajaan LAN BRI Pusat.'"></div>
                         </div>
-                        <div class="border-r border-slate-900 flex flex-col">
-                            <div class="bg-slate-100 border-b border-slate-900 py-1.5 px-3 font-bold text-slate-800 text-center">
+
+                        <!-- Prepare By Column -->
+                        <div class="flex flex-col">
+                            <div class="tt-bg-gray border-b-[1.5px] border-slate-900 py-2 px-3 font-bold text-slate-900 text-center uppercase tracking-wide text-[11.5px]">
                                 Prepare By
                             </div>
-                            <div class="p-3 flex-1 flex flex-col justify-end text-center min-h-[90px]">
-                                <div class="font-bold text-slate-900 border-t border-slate-400 pt-1 w-3/4 mx-auto">
-                                    Warehouse IPNET
+                            <div class="p-3.5 flex-1 flex flex-col justify-end text-center min-h-[160px]">
+                                <div class="flex-1 flex items-center justify-center text-slate-300 text-[11px] italic mb-2">
+                                    ( Tanda Tangan &amp; Cap Gudang )
                                 </div>
+                                <div class="border-b-[1.5px] border-slate-900 w-4/5 mx-auto mb-1.5"></div>
+                                <div class="font-bold text-[12px] text-slate-900 uppercase">Warehouse IPNET</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">Petugas Gudang Pengirim</div>
                             </div>
                         </div>
+
+                        <!-- Received By Column -->
                         <div class="flex flex-col">
-                            <div class="bg-slate-100 border-b border-slate-900 py-1.5 px-3 font-bold text-slate-800 text-center">
+                            <div class="tt-bg-gray border-b-[1.5px] border-slate-900 py-2 px-3 font-bold text-slate-900 text-center uppercase tracking-wide text-[11.5px]">
                                 Received By
                             </div>
-                            <div class="p-3 flex-1 flex flex-col justify-end text-center min-h-[90px]">
-                                <div class="font-bold text-slate-900 border-t border-slate-400 pt-1 w-3/4 mx-auto" x-text="detailData.recipient_name || 'Penerima / Unit IPNET'"></div>
+                            <div class="p-3.5 flex-1 flex flex-col justify-end text-center min-h-[160px]">
+                                <div class="flex-1 flex items-center justify-center text-slate-300 text-[11px] italic mb-2">
+                                    ( Tanda Tangan &amp; Cap Penerima )
+                                </div>
+                                <div class="border-b-[1.5px] border-slate-900 w-4/5 mx-auto mb-1.5"></div>
+                                <div class="font-bold text-[12px] text-slate-900" x-text="detailData.recipient_name || 'Budi Hartono (IT Infrastructure)'"></div>
+                                <div class="text-[10px] text-slate-500 mt-0.5" x-text="detailData.recipient_company || 'Penerima / Klien / Unit IPNET'"></div>
                             </div>
                         </div>
                     </div>
