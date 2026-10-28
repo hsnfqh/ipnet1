@@ -451,6 +451,12 @@ class PmoController extends Controller
         $sCurveUpdateDate = now()->format('d M Y');
         $divisions = \App\Models\Division::all();
 
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $wbsTasks = $handoverData['wbs_tasks'] ?? null;
+        if (empty($wbsTasks)) {
+            $wbsTasks = self::getDefaultFirewallWbsTemplate($project->start_date);
+        }
+
         return view('pmo.project-dashboard', compact(
             'project',
             'contractValue',
@@ -491,7 +497,8 @@ class PmoController extends Controller
             'availableEngineers',
             'leadNotes',
             'teamDelegatedAt',
-            'teamDelegatedByName'
+            'teamDelegatedByName',
+            'wbsTasks'
         ));
     }
 
@@ -565,6 +572,419 @@ class PmoController extends Controller
         $project->save();
 
         return redirect()->back()->with('success', 'Divisi pelaksana proyek berhasil ditetapkan!');
+    }
+
+    /**
+     * Tampilan Dedicated: WBS Timeline & Gantt Chart PMO (Full Width / Standalone)
+     */
+    public function wbsTimeline(Request $request)
+    {
+        $data = $this->getPmoBaseData($request);
+        $projects = $data['formattedProjects'];
+
+        $selectedProjectId = $request->query('project_id');
+        $selectedProject = null;
+
+        if ($selectedProjectId) {
+            $selectedProject = Project::with(['division', 'pm', 'tasks.engineer'])->find($selectedProjectId);
+        }
+
+        if (!$selectedProject && $projects->isNotEmpty()) {
+            $firstP = $projects->first();
+            $firstId = is_array($firstP) ? ($firstP['id'] ?? null) : $firstP->id;
+            if ($firstId) {
+                $selectedProject = Project::with(['division', 'pm', 'tasks.engineer'])->find($firstId);
+            }
+        }
+
+        $wbsTasks = [];
+        if ($selectedProject) {
+            $handoverData = is_array($selectedProject->handover_data) ? $selectedProject->handover_data : [];
+            $wbsTasks = $handoverData['wbs_tasks'] ?? null;
+            if (empty($wbsTasks)) {
+                $wbsTasks = self::getDefaultFirewallWbsTemplate($selectedProject->start_date);
+            }
+        }
+
+        return view('pmo.wbs-timeline', array_merge($data, compact('projects', 'selectedProject', 'wbsTasks')));
+    }
+
+    /**
+     * Simpan Perubahan WBS Tasks & Timeline Proyek
+     */
+    public function saveWbsTasks(Request $request, Project $project)
+    {
+        $tasks = $request->input('tasks', []);
+        if (is_string($tasks)) {
+            $tasks = json_decode($tasks, true) ?? [];
+        }
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $handoverData['wbs_tasks'] = $tasks;
+        $handoverData['wbs_updated_at'] = now()->toDateTimeString();
+        $handoverData['wbs_updated_by'] = auth()->user()?->name ?? 'PM';
+
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'WBS Project Timeline & Gantt Chart berhasil disimpan!',
+                'tasks'   => $tasks,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'WBS Project Timeline & Gantt Chart berhasil disimpan!');
+    }
+
+    /**
+     * Muat Template Resmi Firewall BIONS ke Proyek
+     */
+    public function loadWbsTemplate(Request $request, Project $project)
+    {
+        $template = self::getDefaultFirewallWbsTemplate($project->start_date);
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $handoverData['wbs_tasks'] = $template;
+        $handoverData['wbs_updated_at'] = now()->toDateTimeString();
+        $handoverData['wbs_updated_by'] = auth()->user()?->name ?? 'PM';
+
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Template Pengadaan Firewall BIONS berhasil diterapkan ke proyek!',
+                'tasks'   => $template,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Template Pengadaan Firewall BIONS berhasil diterapkan ke proyek!');
+    }
+
+    /**
+     * Template Standar Resmi: Timeline Pengadaan Firewall (BIONS) Sesuai Microsoft Project
+     */
+    public static function getDefaultFirewallWbsTemplate($projectStartDate = null)
+    {
+        $base = $projectStartDate ? \Carbon\Carbon::parse($projectStartDate) : \Carbon\Carbon::parse('2026-08-26');
+
+        return [
+            [
+                'id' => 0,
+                'wbs' => '0',
+                'name' => 'PENGADAAN PERANGKAT FIREWALL UNTUK SISTEM BIONS',
+                'duration' => 90,
+                'start_date' => $base->copy()->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(86)->format('Y-m-d'),
+                'predecessor' => '',
+                'type' => 'project_summary',
+                'progress' => 35,
+                'pic' => 'Tim Network & PMO',
+                'level' => 0,
+            ],
+            [
+                'id' => 1,
+                'wbs' => '1',
+                'name' => 'SPK/Kontrak',
+                'duration' => 1,
+                'start_date' => $base->copy()->format('Y-m-d'),
+                'end_date' => $base->copy()->format('Y-m-d'),
+                'predecessor' => '',
+                'type' => 'task',
+                'progress' => 100,
+                'pic' => 'Commercial & Legal',
+                'level' => 1,
+            ],
+            [
+                'id' => 2,
+                'wbs' => '2',
+                'name' => 'Fase Inisiasi',
+                'duration' => 60,
+                'start_date' => $base->copy()->addDays(1)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(58)->format('Y-m-d'),
+                'predecessor' => '1',
+                'type' => 'phase_summary',
+                'progress' => 100,
+                'pic' => 'PMO & Tim Delivery',
+                'level' => 1,
+            ],
+            [
+                'id' => 3,
+                'wbs' => '2.1',
+                'name' => 'Pemesanan Perangkat',
+                'duration' => 60,
+                'start_date' => $base->copy()->addDays(1)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(58)->format('Y-m-d'),
+                'predecessor' => '1FS+6 days',
+                'type' => 'task',
+                'progress' => 100,
+                'pic' => 'Procurement & Warehouse',
+                'level' => 2,
+            ],
+            [
+                'id' => 4,
+                'wbs' => '2.2',
+                'name' => 'Kick Off Meeting',
+                'duration' => 1,
+                'start_date' => $base->copy()->addDays(6)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(7)->format('Y-m-d'),
+                'predecessor' => '4',
+                'type' => 'task',
+                'progress' => 100,
+                'pic' => 'Rizki (PM) & Klien BIONS',
+                'level' => 2,
+            ],
+            [
+                'id' => 5,
+                'wbs' => '2.3',
+                'name' => 'Fase Inisiasi Selesai',
+                'duration' => 0,
+                'start_date' => $base->copy()->addDays(7)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(7)->format('Y-m-d'),
+                'predecessor' => '2.2',
+                'type' => 'milestone',
+                'progress' => 100,
+                'pic' => 'Milestone Inisiasi ◆',
+                'level' => 2,
+            ],
+            [
+                'id' => 6,
+                'wbs' => '3',
+                'name' => 'Fase Desain',
+                'duration' => 25,
+                'start_date' => $base->copy()->addDays(7)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(31)->format('Y-m-d'),
+                'predecessor' => '4',
+                'type' => 'phase_summary',
+                'progress' => 100,
+                'pic' => 'Solution Architect & Lead',
+                'level' => 1,
+            ],
+            [
+                'id' => 7,
+                'wbs' => '3.1',
+                'name' => 'Survey dan Assessment',
+                'duration' => 5,
+                'start_date' => $base->copy()->addDays(7)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(12)->format('Y-m-d'),
+                'predecessor' => '7',
+                'type' => 'task',
+                'progress' => 100,
+                'pic' => 'Lead Engineer',
+                'level' => 2,
+            ],
+            [
+                'id' => 8,
+                'wbs' => '3.2',
+                'name' => 'DRM (Design Review Meeting)',
+                'duration' => 10,
+                'start_date' => $base->copy()->addDays(12)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(22)->format('Y-m-d'),
+                'predecessor' => '8',
+                'type' => 'task',
+                'progress' => 100,
+                'pic' => 'Solution Architect & PM',
+                'level' => 2,
+            ],
+            [
+                'id' => 9,
+                'wbs' => '3.3',
+                'name' => 'HLD dan LLD Documentation',
+                'duration' => 10,
+                'start_date' => $base->copy()->addDays(22)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(31)->format('Y-m-d'),
+                'predecessor' => '9',
+                'type' => 'task',
+                'progress' => 100,
+                'pic' => 'Technical Architect',
+                'level' => 2,
+            ],
+            [
+                'id' => 10,
+                'wbs' => '3.4',
+                'name' => 'Fase Desain Selesai',
+                'duration' => 0,
+                'start_date' => $base->copy()->addDays(31)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(31)->format('Y-m-d'),
+                'predecessor' => '3.3',
+                'type' => 'milestone',
+                'progress' => 100,
+                'pic' => 'Milestone Desain ◆',
+                'level' => 2,
+            ],
+            [
+                'id' => 11,
+                'wbs' => '4',
+                'name' => 'Fase Implementasi',
+                'duration' => 25,
+                'start_date' => $base->copy()->addDays(59)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(82)->format('Y-m-d'),
+                'predecessor' => '3',
+                'type' => 'phase_summary',
+                'progress' => 30,
+                'pic' => 'Tim Implementasi Network',
+                'level' => 1,
+            ],
+            [
+                'id' => 12,
+                'wbs' => '4.1',
+                'name' => 'Pengiriman Perangkat',
+                'duration' => 1,
+                'start_date' => $base->copy()->addDays(59)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(59)->format('Y-m-d'),
+                'predecessor' => '12',
+                'type' => 'task',
+                'progress' => 100,
+                'pic' => 'Logistik & Ekspedisi',
+                'level' => 2,
+            ],
+            [
+                'id' => 13,
+                'wbs' => '4.2',
+                'name' => 'Stagging',
+                'duration' => 5,
+                'start_date' => $base->copy()->addDays(59)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(64)->format('Y-m-d'),
+                'predecessor' => '13',
+                'type' => 'task',
+                'progress' => 60,
+                'pic' => 'Network Engineer L2',
+                'level' => 2,
+            ],
+            [
+                'id' => 14,
+                'wbs' => '4.3',
+                'name' => 'Instalasi dan Konfigurasi',
+                'duration' => 5,
+                'start_date' => $base->copy()->addDays(64)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(69)->format('Y-m-d'),
+                'predecessor' => '14',
+                'type' => 'task',
+                'progress' => 0,
+                'pic' => 'Network Engineer',
+                'level' => 2,
+            ],
+            [
+                'id' => 15,
+                'wbs' => '4.4',
+                'name' => 'Integrasi',
+                'duration' => 5,
+                'start_date' => $base->copy()->addDays(69)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(74)->format('Y-m-d'),
+                'predecessor' => '15',
+                'type' => 'task',
+                'progress' => 0,
+                'pic' => 'Senior Network Engineer',
+                'level' => 2,
+            ],
+            [
+                'id' => 16,
+                'wbs' => '4.5',
+                'name' => 'User Acceptance Test (UAT)',
+                'duration' => 2,
+                'start_date' => $base->copy()->addDays(74)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(76)->format('Y-m-d'),
+                'predecessor' => '16',
+                'type' => 'task',
+                'progress' => 0,
+                'pic' => 'PM, Engineer & Client PIC',
+                'level' => 2,
+            ],
+            [
+                'id' => 17,
+                'wbs' => '4.6',
+                'name' => 'Fine Tuning',
+                'duration' => 5,
+                'start_date' => $base->copy()->addDays(76)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(81)->format('Y-m-d'),
+                'predecessor' => '17',
+                'type' => 'task',
+                'progress' => 0,
+                'pic' => 'Security & Network Specialist',
+                'level' => 2,
+            ],
+            [
+                'id' => 18,
+                'wbs' => '4.7',
+                'name' => 'Monitoring',
+                'duration' => 2,
+                'start_date' => $base->copy()->addDays(81)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(82)->format('Y-m-d'),
+                'predecessor' => '18',
+                'type' => 'task',
+                'progress' => 0,
+                'pic' => 'NOC & Engineer Support',
+                'level' => 2,
+            ],
+            [
+                'id' => 19,
+                'wbs' => '4.8',
+                'name' => 'Fase Implementasi Selesai',
+                'duration' => 0,
+                'start_date' => $base->copy()->addDays(82)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(82)->format('Y-m-d'),
+                'predecessor' => '4.7',
+                'type' => 'milestone',
+                'progress' => 0,
+                'pic' => 'Milestone Implementasi ◆',
+                'level' => 2,
+            ],
+            [
+                'id' => 20,
+                'wbs' => '5',
+                'name' => 'Fase Penutup',
+                'duration' => 6,
+                'start_date' => $base->copy()->addDays(81)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(86)->format('Y-m-d'),
+                'predecessor' => '',
+                'type' => 'phase_summary',
+                'progress' => 0,
+                'pic' => 'PMO & Commercial',
+                'level' => 1,
+            ],
+            [
+                'id' => 21,
+                'wbs' => '5.1',
+                'name' => 'Sharing Knowledge',
+                'duration' => 2,
+                'start_date' => $base->copy()->addDays(81)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(82)->format('Y-m-d'),
+                'predecessor' => '17',
+                'type' => 'task',
+                'progress' => 0,
+                'pic' => 'Technical Lead & Klien IT',
+                'level' => 2,
+            ],
+            [
+                'id' => 22,
+                'wbs' => '5.2',
+                'name' => 'Dokumentasi & Manual Guide',
+                'duration' => 5,
+                'start_date' => $base->copy()->addDays(81)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(85)->format('Y-m-d'),
+                'predecessor' => '17',
+                'type' => 'task',
+                'progress' => 0,
+                'pic' => 'Technical Writer & Engineer',
+                'level' => 2,
+            ],
+            [
+                'id' => 23,
+                'wbs' => '5.3',
+                'name' => 'BAST (Berita Acara Serah Terima)',
+                'duration' => 1,
+                'start_date' => $base->copy()->addDays(85)->format('Y-m-d'),
+                'end_date' => $base->copy()->addDays(86)->format('Y-m-d'),
+                'predecessor' => '21, 22',
+                'type' => 'milestone',
+                'progress' => 0,
+                'pic' => 'Milestone Final ◆',
+                'level' => 2,
+            ],
+        ];
     }
 
     /**

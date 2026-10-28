@@ -810,6 +810,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects/{project}/assign-division', [PmoController::class, 'assignDivision'])->name('pmo.projects.assign_division');
         Route::post('/projects/{project}/assign-team', [PmoController::class, 'assignTeam'])->name('pmo.projects.assign_team');
         Route::post('/projects/{project}/quick-task', [PmoController::class, 'quickStoreTask'])->name('pmo.projects.quick_task');
+        Route::get('/wbs-timeline', [PmoController::class, 'wbsTimeline'])->name('pmo.wbs.index');
+        Route::post('/projects/{project}/wbs-tasks', [PmoController::class, 'saveWbsTasks'])->name('pmo.projects.wbs.save');
+        Route::post('/projects/{project}/wbs-template', [PmoController::class, 'loadWbsTemplate'])->name('pmo.projects.wbs.template');
     });
 
     // Lead & Executive Dashboard (Dashboard 2)

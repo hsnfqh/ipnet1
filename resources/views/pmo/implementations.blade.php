@@ -358,6 +358,15 @@
                                                         </button>
                                                     </template>
 
+                                                    <a :href="'/pmo/projects/' + project.id + '?tab=wbs'" 
+                                                       title="Buka WBS Timeline & Gantt Chart"
+                                                       class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 rounded-xl text-xs font-bold transition shadow-2xs">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M3 9h18M3 14h18M3 19h18"/>
+                                                        </svg>
+                                                        <span>WBS Gantt</span>
+                                                    </a>
+
                                                     <a :href="'/pmo/projects/' + project.id" 
                                                        title="Buka Dashboard PMO & Perhitungan Proyek"
                                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs">
@@ -508,6 +517,15 @@
                                                         <span>Handover MS</span>
                                                     </button>
                                                 </template>
+
+                                                <a :href="'/pmo/projects/' + project.id + '?tab=wbs'" 
+                                                   title="Buka WBS Timeline & Gantt Chart"
+                                                   class="px-3 py-1.5 bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 rounded-xl text-xs font-bold transition shadow-2xs inline-flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M3 9h18M3 14h18M3 19h18"/>
+                                                    </svg>
+                                                    <span>WBS Gantt</span>
+                                                </a>
 
                                                 <a :href="'/pmo/projects/' + project.id" 
                                                    title="Buka Dashboard PMO & Perhitungan Proyek"

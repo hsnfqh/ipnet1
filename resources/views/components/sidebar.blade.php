@@ -84,6 +84,7 @@
         $navItems = [
             ['key' => 'dashboard',          'label' => 'Dashboard',         'route' => 'pmo.dashboard'],
             ['key' => 'projects',           'label' => 'Projects',          'route' => 'pmo.implementations.index'],
+            ['key' => 'wbs_timeline',       'label' => 'WBS & Timeline',    'route' => 'pmo.wbs.index'],
             ['key' => 'tasks',               'label' => 'Team Tasks',        'route' => 'tasks.index'],
             ['key' => 'activities',          'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',           'label' => 'Work Schedule',     'route' => 'schedules.index'],
@@ -363,6 +364,7 @@
                 } else {
                     $isActive = (($currentRoute === $item['route']) || 
                                  ($item['key'] === 'projects' && in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show', 'pmo.implementations.index'])) ||
+                                 ($item['key'] === 'wbs_timeline' && in_array($currentRoute, ['pmo.wbs.index'])) ||
                                  ($item['key'] === 'ms_projects' && in_array($currentRoute, ['ms.projects.index', 'ms.projects.show'])) ||
                                  ($item['key'] === 'ms_assets' && in_array($currentRoute, ['ms.assets.index', 'ms.assets.internal', 'ms.assets.external'])) ||
                                  ($item['key'] === 'ms_monitoring' && (in_array($currentRoute, ['ms.monitoring.index', 'ms.monitoring.pm', 'ms.monitoring.cm']) || $childActive)) ||
@@ -537,6 +539,15 @@
                     @case('pmo_implementations')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    @break
+                    @case('wbs_timeline')
+                    {{-- WBS & Gantt Chart Timeline Icon --}}
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M3 9h18M3 14h18M3 19h18"/>
+                        <rect x="7" y="7" width="8" height="4" rx="1" fill="#8F0A0D" stroke="none" fill-opacity="0.85"/>
+                        <rect x="11" y="12" width="7" height="4" rx="1" fill="#8F0A0D" stroke="none" fill-opacity="0.85"/>
+                        <path d="M6 14l2-2-2-2-2 2 2 2z" fill="#1E293B" stroke="none"/>
                     </svg>
                     @break
                     @case('dashboard')
