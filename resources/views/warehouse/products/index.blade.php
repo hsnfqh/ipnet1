@@ -195,7 +195,7 @@
                 <div class="p-4 sm:p-5 border-b border-[#E2E8F0] flex items-center justify-between">
                     <div>
                         <h3 class="text-[15px] font-bold text-[#1E293B]">Daftar Master Perangkat &amp; Produk Inventaris</h3>
-                        <p class="text-[12px] text-[#64748B]">Menampilkan {{ $items->total() }} unit perangkat di inventaris</p>
+                        <p class="text-[12px] text-[#64748B]">Total Kuantitas: <span class="font-bold text-[#8F0A0D]">{{ $items->total() }} Unit</span> perangkat fisik di inventaris</p>
                     </div>
                 </div>
 
@@ -206,6 +206,7 @@
                                 <th class="py-3 px-4">Kode &amp; Nama Perangkat</th>
                                 <th class="py-3 px-4">Jenis &amp; Tipe Komponen</th>
                                 <th class="py-3 px-4">Serial &amp; Part Number</th>
+                                <th class="py-3 px-4 text-center">Qty Fisik</th>
                                 <th class="py-3 px-4">Kategori Kepemilikan</th>
                                 <th class="py-3 px-4">Lokasi Fisik</th>
                                 <th class="py-3 px-4">Status</th>
@@ -260,6 +261,18 @@
                                         <p class="font-mono text-[11px] text-slate-500 mt-0.5">
                                             <span class="text-slate-400 font-sans text-[10px]">P/N:</span> {{ $item->product_number ?: '-' }}
                                         </p>
+                                    </td>
+
+                                    {{-- Qty Fisik --}}
+                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200 shadow-2xs">
+                                            1 Unit
+                                        </span>
+                                        @if(isset($modelStockCounts[$item->name]) && $modelStockCounts[$item->name] > 1)
+                                            <div class="text-[10px] text-slate-400 font-medium mt-0.5" title="Total stok fisik model ini di gudang">
+                                                Total Model: {{ $modelStockCounts[$item->name] }} Unit
+                                            </div>
+                                        @endif
                                     </td>
 
                                     {{-- Kategori --}}
@@ -362,7 +375,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-10 text-center text-slate-400">
+                                    <td colspan="8" class="py-10 text-center text-slate-400">
                                         <div class="max-w-sm mx-auto space-y-2">
                                             <svg class="w-8 h-8 text-slate-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                             <p class="font-medium text-slate-600 text-xs">Belum ada perangkat inventaris yang sesuai filter.</p>
@@ -757,6 +770,10 @@
                         <!-- Scrollable Body Only -->
                         <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1 min-h-0">
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Kuantitas (Qty)</p>
+                                    <p class="font-bold text-slate-800 text-[12px] mt-0.5">1 Unit Fisik</p>
+                                </div>
                                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                     <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Serial Number (S/N)</p>
                                     <p class="font-mono font-bold text-slate-800 text-[12px] mt-0.5" x-text="selectedItem?.serial_number || '-'"></p>

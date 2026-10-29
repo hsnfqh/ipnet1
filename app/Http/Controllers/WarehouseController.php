@@ -222,6 +222,7 @@ class WarehouseController extends Controller
         $locations      = ['Gudang IPNET', 'Customer'];
         $deviceModels   = WarehouseItem::getDeviceModels();
         $deviceBrands   = WarehouseItem::getDeviceBrands();
+        $modelStockCounts = WarehouseItem::groupBy('name')->selectRaw('name, count(*) as count')->pluck('count', 'name');
 
         return view('warehouse.products.index', compact(
             'items',
@@ -234,7 +235,8 @@ class WarehouseController extends Controller
             'statuses',
             'locations',
             'deviceModels',
-            'deviceBrands'
+            'deviceBrands',
+            'modelStockCounts'
         ));
     }
 
