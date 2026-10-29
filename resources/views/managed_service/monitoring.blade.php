@@ -265,12 +265,16 @@
                                 ]);
 
                                 foreach($pmCycles as $c) {
+                                    $subText = !empty($c->actual_date) 
+                                        ? \Carbon\Carbon::parse($c->actual_date)->format('d/m/Y') 
+                                        : ($c->activity_status === 'In Progress' ? 'In Progress' : 'Terjadwal');
+
                                     $mNodeItems->push([
                                         'is_milestone' => false,
                                         'cycle'        => $c,
                                         'number'       => $c->cycle_number,
                                         'label'        => 'PM ' . $c->cycle_number,
-                                        'sub'          => $c->scheduled_date ? \Carbon\Carbon::parse($c->scheduled_date)->format('d/m/Y') : '—',
+                                        'sub'          => $subText,
                                         'status'       => $c->activity_status,
                                     ]);
                                 }
@@ -278,7 +282,7 @@
                                 $mNodeItems->push([
                                     'is_milestone' => true,
                                     'label'        => 'End',
-                                    'sub'          => $project->service_end_date ? \Carbon\Carbon::parse($project->service_end_date)->format('d/m/Y') : 'Akhir',
+                                    'sub'          => ($pmCompleted == $pmTotal && $project->service_end_date) ? \Carbon\Carbon::parse($project->service_end_date)->format('d/m/Y') : 'Akhir Kontrak',
                                     'char'         => 'E',
                                 ]);
 
@@ -322,8 +326,8 @@
                                                 <span class="text-[11.5px] font-bold mt-2 {{ $isDone ? 'text-[#1E293B]' : 'text-[#64748B]' }} group-hover:text-[#8F0A0D] transition">
                                                     PM {{ $c->cycle_number }}
                                                 </span>
-                                                <span class="text-[10.5px] text-[#94A3B8]">
-                                                    {{ $c->scheduled_date ? \Carbon\Carbon::parse($c->scheduled_date)->format('d/m/Y') : '—' }}
+                                                <span class="text-[10.5px] {{ $isDone ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#94A3B8]') }}">
+                                                    {{ !empty($c->actual_date) ? \Carbon\Carbon::parse($c->actual_date)->format('d/m/Y') : ($isInProg ? 'In Progress' : 'Terjadwal') }}
                                                 </span>
                                             </div>
                                         @endforeach

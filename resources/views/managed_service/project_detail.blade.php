@@ -564,6 +564,11 @@
                             });
 
                             foreach($cyclesCollection as $cycle) {
+                                // Tanggal hanya tampil jika sudah ada inputan realisasi visit (actual_date terisi)
+                                $subText = !empty($cycle->actual_date) 
+                                    ? date('d/m/Y', strtotime($cycle->actual_date)) 
+                                    : ($cycle->activity_status === 'In Progress' ? 'In Progress' : 'Terjadwal');
+
                                 $pmNodeItems->push([
                                     'is_milestone' => false,
                                     'type'         => 'cycle',
@@ -571,7 +576,8 @@
                                     'number'       => $cycle->cycle_number,
                                     'label'        => 'PM ' . $cycle->cycle_number,
                                     'full_label'   => $cycle->cycle_label ?? ('PM ' . $cycle->cycle_number),
-                                    'sub'          => $cycle->actual_date ? date('d/m/Y', strtotime($cycle->actual_date)) : ($cycle->scheduled_date ? date('d/m/Y', strtotime($cycle->scheduled_date)) : 'Terjadwal'),
+                                    'sub'          => $subText,
+                                    'has_date'     => !empty($cycle->actual_date),
                                     'status'       => $cycle->activity_status ?? 'Scheduled',
                                 ]);
                             }
@@ -580,7 +586,7 @@
                                 'is_milestone' => true,
                                 'type'         => 'end',
                                 'label'        => 'End',
-                                'sub'          => $project->service_end_date ? date('d/m/Y', strtotime($project->service_end_date)) : 'Akhir',
+                                'sub'          => ($pmCompleted == $pmTotal && $project->service_end_date) ? date('d/m/Y', strtotime($project->service_end_date)) : 'Akhir Kontrak',
                                 'icon'         => 'check',
                             ]);
 
@@ -608,7 +614,7 @@
                                                 @endif
                                             </div>
                                             <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">{{ $node['label'] }}</span>
-                                            <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
+                                            <span class="text-[10px] {{ $isDone ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#94A3B8]') }}">{{ $node['sub'] }}</span>
                                         </div>
                                     @else
                                         @php
@@ -628,7 +634,7 @@
                                             <span class="text-[11px] font-bold mt-1.5 {{ $isDone ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#1E293B]') }}">
                                                 {{ $node['label'] }}
                                             </span>
-                                            <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
+                                            <span class="text-[10px] {{ $isDone ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#94A3B8]') }}">{{ $node['sub'] }}</span>
                                         </div>
                                     @endif
                                 @endforeach
@@ -679,7 +685,7 @@
                                                             @endif
                                                         </div>
                                                         <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">{{ $node['label'] }}</span>
-                                                        <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
+                                                        <span class="text-[10px] {{ $isDone ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#94A3B8]') }}">{{ $node['sub'] }}</span>
                                                     @else
                                                         @php
                                                             $isDone = $node['status'] === 'Completed';
@@ -698,7 +704,7 @@
                                                             <span class="text-[11px] font-bold mt-1.5 {{ $isDone ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#1E293B]') }}">
                                                                 {{ $node['label'] }}
                                                             </span>
-                                                            <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
+                                                            <span class="text-[10px] {{ $isDone ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#94A3B8]') }}">{{ $node['sub'] }}</span>
                                                         </div>
                                                     @endif
                                                 </div>
