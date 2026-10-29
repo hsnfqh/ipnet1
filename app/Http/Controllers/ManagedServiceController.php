@@ -1629,6 +1629,22 @@ class ManagedServiceController extends Controller
     }
 
     /**
+     * Tampilkan atau Cetak Laporan PM Resmi
+     */
+    public function showPmReport($cycleId)
+    {
+        $cycle = ManagedServicePmCycle::with(['project', 'assignedEngineer'])->findOrFail($cycleId);
+        $project = $cycle->project;
+
+        $reportFile = $cycle->report_file ?: ($cycle->report_file_path ?? null);
+        if ($reportFile && \Illuminate\Support\Facades\Storage::disk('public')->exists($reportFile)) {
+            return response()->file(storage_path('app/public/' . $reportFile));
+        }
+
+        return view('managed_service.pm_report_preview', compact('cycle', 'project'));
+    }
+
+    /**
      * Update Siklus Preventive Maintenance (Activity, Laporan PM, BA / Penagihan)
      */
     public function updatePmCycle(Request $request, $cycleId)
@@ -1636,6 +1652,7 @@ class ManagedServiceController extends Controller
         $cycle = ManagedServicePmCycle::findOrFail($cycleId);
 
         $validated = $request->validate([
+            'scheduled_date'       => 'nullable|date',
             'activity_status'      => 'required|string|in:Scheduled,In Progress,Completed',
             'actual_date'          => 'nullable|date',
             'activity_notes'       => 'nullable|string',

@@ -1052,6 +1052,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/monitoring/corrective/{project?}', [\App\Http\Controllers\ManagedServiceController::class, 'monitoringCm'])->name('ms.monitoring.cm');
         Route::get('/monitoring/{project?}', [\App\Http\Controllers\ManagedServiceController::class, 'monitoring'])->name('ms.monitoring.index');
         Route::post('/monitoring/pm-cycles/{cycle}', [\App\Http\Controllers\ManagedServiceController::class, 'updatePmCycle'])->name('ms.monitoring.pm.update');
+        Route::get('/monitoring/pm-cycles/{cycle}/report', [\App\Http\Controllers\ManagedServiceController::class, 'showPmReport'])->name('ms.monitoring.pm.report');
         Route::post('/monitoring/cm-tickets', [\App\Http\Controllers\ManagedServiceController::class, 'storeCmTicket'])->name('ms.monitoring.cm.store');
         
         // Assets Management (Internal Perusahaan & External Klien)
