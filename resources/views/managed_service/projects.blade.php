@@ -174,7 +174,7 @@
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Client &amp; Sales</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Lokasi</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Durasi &amp; Deadline</th>
-                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Progress</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Progress Siklus PM</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Status</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
                                 </tr>
@@ -184,7 +184,7 @@
                                     @php
                                         $pmCyclesCount = $p->pmCycles->count() ?: ($p->pm_total_cycles ?: 4);
                                         $pmCompletedCount = $p->pmCycles->where('activity_status', 'Completed')->count();
-                                        $progressPct = (int) ($p->progress ?: ($pmCyclesCount > 0 ? round(($pmCompletedCount / $pmCyclesCount) * 100) : 0));
+                                        $progressPct = $pmCyclesCount > 0 ? round(($pmCompletedCount / $pmCyclesCount) * 100) : 0;
                                         
                                         $deadlineDate = $p->service_end_date ?: $p->deadline;
                                         $formattedDeadline = $deadlineDate ? \Carbon\Carbon::parse($deadlineDate)->translatedFormat('d M Y') : '—';
@@ -251,16 +251,16 @@
                                             </div>
                                         </td>
 
-                                        {{-- Progress --}}
+                                        {{-- Progress Siklus PM --}}
                                         <td class="py-3 px-4 whitespace-nowrap">
-                                            <div class="w-28">
+                                            <div class="w-32">
                                                 <div class="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-full h-2 overflow-hidden mb-1">
                                                     <div class="h-full rounded-full transition-all duration-300"
                                                          style="background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: {{ min(100, $progressPct) }}%;"></div>
                                                 </div>
                                                 <div class="flex items-center justify-between text-[10.5px]">
-                                                    <span class="font-medium text-[#1E293B]">{{ $progressPct }}%</span>
-                                                    <span class="text-[#94A3B8]">{{ $progressPct >= 100 ? 'Selesai' : 'Progres' }}</span>
+                                                    <span class="font-bold text-[#1E293B]">{{ $progressPct }}%</span>
+                                                    <span class="text-[#64748B] font-medium text-[10px]">{{ $pmCompletedCount }}/{{ $pmCyclesCount }} Siklus PM</span>
                                                 </div>
                                             </div>
                                         </td>

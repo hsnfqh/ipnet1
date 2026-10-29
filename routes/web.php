@@ -610,6 +610,35 @@ Route::get('/seed-angkasa-pura-project', function () {
     }
 });
 
+// Route Helper untuk mengosongkan daftar proyek Managed Service (reset proyek MS dummy)
+Route::get('/clear-managed-service-projects', function () {
+    try {
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+        \App\Models\Project::where('stage', 'Operate')
+            ->orWhere('ms_handover_status', 'Accepted')
+            ->update([
+                'ms_handover_status' => null,
+                'ms_accepted_at'     => null,
+                'ms_accepted_by'     => null,
+            ]);
+
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Daftar proyek Managed Service berhasil dikosongkan! Sekarang halaman Managed Service bersih tanpa proyek dummy.',
+            'url_ms' => url('/managed-service/projects'),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // Route Helper untuk membuat 2 dummy resmi: 1 Laporan Aktivitas Sales (A-G) & 1 Lesson Learned (Lost Deal)
 Route::get('/seed-sales-official-dummies', function () {
     try {

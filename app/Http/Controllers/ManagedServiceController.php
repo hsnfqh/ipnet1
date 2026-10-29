@@ -1157,15 +1157,10 @@ class ManagedServiceController extends Controller
 
         $query = Project::with(['creator', 'pmCycles', 'managedServiceTickets'])
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->where(function($q) {
-                $q->where('stage', 'Operate')
-                  ->orWhere('sales_stage', 'Closed Won')
-                  ->orWhere('status', 'In Progress')
-                  ->orWhereIn('handover_target', ['managed_service', 'both'])
-                  ->orWhere('name', 'like', '%pemeliharaan%')
-                  ->orWhere('name', 'like', '%maintenance%')
-                  ->orWhere('name', 'like', '%managed service%');
-            });
+            ->where('stage', 'Operate')
+            ->where('ms_handover_status', 'Accepted')
+            ->where('project_type', 'not like', '%One-Time%')
+            ->where('handover_target', '!=', 'pmo');
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -1195,11 +1190,14 @@ class ManagedServiceController extends Controller
         $incomingHandovers = Project::where(function($q) {
                 $q->where('stage', 'Operate')
                   ->orWhere('handover_target', 'managed_service')
+                  ->orWhere('handover_target', 'both')
                   ->orWhere('project_type', 'like', '%Managed Service%')
                   ->orWhere('name', 'like', '%pemeliharaan%')
                   ->orWhere('name', 'like', '%maintenance%');
             })
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where('project_type', 'not like', '%One-Time%')
+            ->where('handover_target', '!=', 'pmo')
             ->with(['creator', 'commercialHandoverBy', 'pm', 'msAcceptedBy'])
             ->latest('updated_at')
             ->get();
