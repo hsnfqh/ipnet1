@@ -45,7 +45,9 @@
         isSlaModalOpen: false,
         isPmModalOpen: false,
         activeCycle: null,
-        isCmModalOpen: false
+        isCmModalOpen: false,
+        isUploadBapModalOpen: false,
+        selectedUploadTicket: { id: null, number: '' }
      }">
     @include('components.sidebar')
     
@@ -1093,12 +1095,36 @@
                                             </td>
                                             <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                                 @if($t->attachment_path)
-                                                    <a href="{{ asset('storage/' . $t->attachment_path) }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-[#F1F5F9] text-[#1E293B] border border-[#CBD5E1] hover:bg-[#E2E8F0] transition">
-                                                        <svg class="w-3 h-3 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                    <div class="flex items-center justify-end gap-1.5">
+                                                        <a href="{{ route('ms.monitoring.cm.bap', $t->id) }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold border border-emerald-200 transition shadow-2xs">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                            <span>Lihat BAP</span>
+                                                        </a>
+                                                        <a href="{{ asset('storage/' . $t->attachment_path) }}" target="_blank" title="Download Berkas Asli" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 transition">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                        </a>
+                                                    </div>
+                                                @elseif(in_array($t->status, ['Resolved', 'Closed']))
+                                                    <a href="{{ route('ms.monitoring.cm.bap', $t->id) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold border border-emerald-200 transition shadow-2xs">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                         <span>Lihat BAP</span>
                                                     </a>
+                                                @elseif($t->status === 'In Progress')
+                                                    <div class="flex items-center justify-end gap-1.5">
+                                                        <a href="{{ route('ms.monitoring.cm.bap', $t->id) }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-semibold border border-amber-200 transition shadow-2xs">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                            <span>Draft BAP</span>
+                                                        </a>
+                                                        <button type="button" @click="selectedUploadTicket = { id: {{ $t->id }}, number: '{{ $t->ticket_number }}' }; isUploadBapModalOpen = true;" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold border border-slate-300 transition cursor-pointer">
+                                                            <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                            <span>Upload</span>
+                                                        </button>
+                                                    </div>
                                                 @else
-                                                    <span class="text-slate-400 text-[11px]">—</span>
+                                                    <button type="button" @click="selectedUploadTicket = { id: {{ $t->id }}, number: '{{ $t->ticket_number }}' }; isUploadBapModalOpen = true;" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold border border-slate-200 transition cursor-pointer">
+                                                        <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                        <span>Upload BAP</span>
+                                                    </button>
                                                 @endif
                                             </td>
                                         </tr>
@@ -1437,6 +1463,55 @@
                     <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E2E8F0]">
                         <button type="button" @click="isSlaModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-[#F8FAFC]">Batal</button>
                         <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-white text-xs font-bold shadow-md cursor-pointer">Simpan Perubahan SLA</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
+
+    <!-- ========================================================== -->
+    <!-- MODAL 5: UPLOAD BERKAS BAP CM                              -->
+    <!-- ========================================================== -->
+    <template x-teleport="body">
+        <div x-show="isUploadBapModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#E2E8F0]" @click.away="isUploadBapModalOpen = false">
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
+                    <div>
+                        <p class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Berita Acara Perbaikan (BAP)</p>
+                        <h3 class="text-[15px] font-bold text-[#1E293B]">Upload BAP Tiket <span x-text="selectedUploadTicket.number"></span></h3>
+                    </div>
+                    <button @click="isUploadBapModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold">&times;</button>
+                </div>
+
+                <form :action="'/managed-service/monitoring/cm-tickets/' + selectedUploadTicket.id + '/upload-bap'" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-semibold text-[#334155] mb-1">Pilih Berkas BAP (PDF / Scan Bertanda Tangan) <span class="text-[#8F0A0D]">*</span></label>
+                        <input type="file" name="bap_file" required accept=".pdf,.jpg,.jpeg,.png" class="w-full text-xs text-[#64748B] file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-50 file:text-[#8F0A0D] hover:file:bg-rose-100 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-[#334155] mb-1">Status Tiket Setelah Upload</label>
+                        <select name="status" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            <option value="Resolved" selected>Resolved (Perbaikan Tuntas & Disetujui Klien)</option>
+                            <option value="In Progress">Tetap In Progress (Draft BAP)</option>
+                            <option value="Closed">Closed (Ditutup Resmi)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-[#334155] mb-1">Catatan Tindakan / Resolusi (Opsional)</label>
+                        <textarea name="resolution_notes" rows="2" placeholder="Langkah perbaikan yang dilakukan..." class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]"></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E2E8F0]">
+                        <button type="button" @click="isUploadBapModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-[#F8FAFC]">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white">
+                            Simpan &amp; Unggah BAP
+                        </button>
                     </div>
                 </form>
             </div>

@@ -1778,5 +1778,60 @@ class ManagedServiceController extends Controller
 
         return redirect()->back()->with('success', 'Tiket Corrective Maintenance ' . $ticketNumber . ' berhasil dicatat.');
     }
-}
 
+    /**
+     * Tampilkan atau Cetak Berita Acara Perbaikan (BAP) Resmi untuk Corrective Maintenance
+     */
+    public function showCmBap($ticketId)
+    {
+        $ticket = ManagedServiceTicket::with(['project', 'assignedEngineer', 'creator'])->findOrFail($ticketId);
+        $project = $ticket->project;
+
+        // Jika user meminta berkas file asli fisik via parameter ?raw=1
+        if (request()->query('raw') && $ticket->attachment_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($ticket->attachment_path)) {
+            return response()->file(storage_path('app/public/' . $ticket->attachment_path));
+        }
+
+        return view('managed_service.cm_bap_preview', compact('ticket', 'project'));
+    }
+
+    /**
+     * Upload Berkas BAP Fisik / Tanda Tangan untuk Tiket CM
+     */
+    public function uploadCmBap(Request $request, $ticketId)
+    {
+        $ticket = ManagedServiceTicket::findOrFail($ticketId);
+
+        $validated = $request->validate([
+            'bap_file'         => 'required|file|max:51200',
+            'status'           => 'nullable|string|in:In Progress,Resolved,Closed',
+            'resolution_notes' => 'nullable|string',
+            'root_cause'       => 'nullable|string|max:255',
+        ]);
+
+        if ($request->hasFile('bap_file')) {
+            $ticket->attachment_path = FileUploadHelper::storePublicly($request->file('bap_file'), 'ms_cm_bap');
+        }
+
+        if (!empty($validated['status'])) {
+            $ticket->status = $validated['status'];
+            if (in_array($validated['status'], ['Resolved', 'Closed']) && !$ticket->resolved_at) {
+                $ticket->resolved_at = now();
+                $ticket->sla_met = $ticket->sla_deadline ? now()->lte($ticket->sla_deadline) : true;
+            }
+        }
+
+        if (!empty($validated['resolution_notes'])) {
+            $ticket->resolution_notes = $validated['resolution_notes'];
+        }
+
+        if (!empty($validated['root_cause'])) {
+            $ticket->root_cause = $validated['root_cause'];
+        }
+
+        $ticket->save();
+        self::syncTicketToTaskAndSchedule($ticket);
+
+        return redirect()->back()->with('success', 'Berkas BAP Tiket ' . $ticket->ticket_number . ' berhasil diunggah.');
+    }
+}
