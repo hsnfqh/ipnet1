@@ -511,51 +511,7 @@
                             </div>
                         @endforeach
 
-                        @if(isset($additionalDocs) && $additionalDocs->isNotEmpty())
-                            <div class="mt-5 pt-4 border-t border-[#E2E8F0] space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                                        <h3 class="text-[12px] font-bold text-[#1E293B] uppercase tracking-wider">
-                                            Lampiran Berkas Tambahan dari Sales / Presales
-                                        </h3>
-                                    </div>
-                                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                                        {{ $additionalDocs->count() }} Berkas Tambahan
-                                    </span>
-                                </div>
-                                <div class="space-y-2.5">
-                                    @foreach($additionalDocs as $addDoc)
-                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border border-[#E2E8F0] hover:border-[#CBD5E1] bg-white transition shadow-2xs">
-                                            <div class="flex items-start gap-3 min-w-0">
-                                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center shrink-0 mt-0.5">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <div class="flex items-center gap-2 flex-wrap">
-                                                        <h4 class="text-[12.5px] font-bold text-[#1E293B]">{{ $addDoc->document_title ?: ($addDoc->name ?: $addDoc->file_name) }}</h4>
-                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                                            {{ $addDoc->stage_name ?: 'Sales' }}
-                                                        </span>
-                                                    </div>
-                                                    <p class="text-[11px] text-[#64748B] mt-0.5">{{ $addDoc->file_name }} &bull; {{ $addDoc->created_at ? $addDoc->created_at->format('d M Y') : '-' }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
-                                                <a href="{{ asset('storage/' . $addDoc->file_path) }}" target="_blank" class="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F8FAFC] text-[#1E293B] text-[11px] font-bold transition flex items-center gap-1.5 border border-[#CBD5E1] shadow-2xs">
-                                                    <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                    <span>Lihat File</span>
-                                                </a>
-                                                <a href="{{ asset('storage/' . $addDoc->file_path) }}" download class="px-3 py-1.5 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#1E293B] text-[11px] font-bold transition flex items-center gap-1.5 border border-[#CBD5E1] shadow-2xs">
-                                                    <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                    <span>Download</span>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
+
                     </div>
                 </div>
             </div>

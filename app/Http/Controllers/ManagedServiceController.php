@@ -1239,7 +1239,7 @@ class ManagedServiceController extends Controller
 
                 foreach ($keys as $k) {
                     $kUpper = strtoupper($k);
-                    if ($docKey === $kUpper || $docKey === 'LAMPIRAN_' . $kUpper || str_starts_with($docKey, 'DOC_' . $kUpper)) {
+                    if ($docKey === $kUpper || str_contains($docKey, $kUpper) || $docKey === 'LAMPIRAN_' . $kUpper || str_starts_with($docKey, 'DOC_' . $kUpper)) {
                         return true;
                     }
                 }
@@ -1276,9 +1276,9 @@ class ManagedServiceController extends Controller
         $torNumber   = $project->tor_number ?: ('TOR-' . $project->id);
         $torDate     = $torDoc?->created_at?->format('Y-m-d') ?: $project->start_date;
 
-        // 4. BOQ
-        $boqDoc = $findDoc(['boq', 'bom'], ['boq', 'bom', 'bill of quantity', 'built of material'], ['BOQ', 'BOM']);
-        $boqFilePath = $project->boq_file ?: ($project->bom_file ?? null ?: ($boqDoc?->file_path));
+        // 4. BOQ (Prioritaskan dokumen BoQ resmi dari ProjectDocument / Presales)
+        $boqDoc = $findDoc(['boq', 'bom', 'boq_bom'], ['boq', 'bom', 'bill of quantity', 'built of material'], ['BOQ', 'BOM']);
+        $boqFilePath = $boqDoc?->file_path ?: ($project->boq_file ?: ($project->bom_file ?? null));
         $boqNumber   = 'BOQ-' . ($project->po_spk_number ?: $project->id);
         $boqDate     = $boqDoc?->created_at?->format('Y-m-d') ?: $project->start_date;
 
@@ -1289,8 +1289,8 @@ class ManagedServiceController extends Controller
         $baDate     = $baDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
 
         // 6. Dokumen Teknis & Topologi Proyek
-        $techDoc = $findDoc(['project_doc', 'technical_proposal', 'commercial_proposal', 'customer_requirement', 'PRP', 'PRJ', 'BRD'], ['proposal', 'topologi', 'arsitektur', 'teknis', 'desain', 'diagram', 'sizing'], ['PRP', 'PRJ', 'TOPOLOGY']) ?: $projectDocs->first(fn($d) => in_array($d->stage_name ?? '', ['Solution', 'Presales']));
-        $techFilePath = $project->proposal_file ?: ($project->technical_file ?? null ?: ($project->topology_file ?? null ?: ($techDoc?->file_path)));
+        $techDoc = $findDoc(['project_doc', 'technical_proposal', 'commercial_proposal', 'customer_requirement', 'PRP', 'PRJ', 'BRD', 'topology', 'solution'], ['proposal', 'topologi', 'arsitektur', 'teknis', 'desain', 'diagram', 'sizing'], ['PRP', 'PRJ', 'TOPOLOGY']) ?: $projectDocs->first(fn($d) => in_array($d->stage_name ?? '', ['Solution', 'Presales']));
+        $techFilePath = $techDoc?->file_path ?: ($project->proposal_file ?: ($project->technical_file ?? null ?: ($project->topology_file ?? null)));
         $techNumber   = 'DOC-' . $project->id;
         $techDate     = $techDoc?->created_at?->format('Y-m-d') ?: null;
 
@@ -1398,7 +1398,7 @@ class ManagedServiceController extends Controller
             return in_array($doc->file_path, $usedPaths);
         })->values();
 
-        $availableDocCount = count(array_filter($documents, fn($d) => !empty($d['file_path']))) + $additionalDocs->count();
+        $availableDocCount = count(array_filter($documents, fn($d) => !empty($d['file_path'])));
 
         $cmTickets = $project->managedServiceTickets()
             ->where(function($q) {
