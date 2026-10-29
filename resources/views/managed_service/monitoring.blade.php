@@ -657,12 +657,18 @@
                                             {{-- Prioritas & SLA --}}
                                             <td class="py-3.5 px-4 whitespace-nowrap">
                                                 @php
-                                                    $prio = $ticket->priority ?: 'Gold';
-                                                    $prioClass = match(strtolower($prio)) {
-                                                        'platinum', 'p1 - critical', 'critical' => 'bg-purple-50 text-purple-700 border-purple-200',
-                                                        'gold', 'p2 - major', 'major'           => 'bg-amber-50 text-amber-700 border-amber-200',
-                                                        'silver', 'p3 - minor', 'minor'         => 'bg-slate-100 text-slate-700 border-slate-300',
-                                                        default                                 => 'bg-blue-50 text-blue-700 border-blue-200',
+                                                    $prio = match(strtolower($ticket->priority ?? '')) {
+                                                        'critical', 'platinum'      => 'Critical',
+                                                        'high', 'gold', 'major'     => 'High',
+                                                        'medium', 'silver', 'minor' => 'Medium',
+                                                        'low', 'bronze'             => 'Low',
+                                                        default                     => ucfirst(strtolower($ticket->priority ?? 'Medium')),
+                                                    };
+                                                    $prioClass = match($prio) {
+                                                        'Critical' => 'bg-purple-50 text-purple-700 border-purple-200',
+                                                        'High'     => 'bg-rose-50 text-rose-700 border-rose-200',
+                                                        'Medium'   => 'bg-blue-50 text-blue-700 border-blue-200',
+                                                        default    => 'bg-slate-100 text-slate-700 border-slate-300',
                                                     };
                                                 @endphp
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold border {{ $prioClass }}">
@@ -871,10 +877,10 @@
                         <div>
                             <label class="block text-[12px] font-semibold text-[#334155] mb-1">Prioritas & SLA <span class="text-[#8F0A0D]">*</span></label>
                             <select name="priority" required class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="Platinum">P1 - Critical (MTTR 1 Jam)</option>
-                                <option value="Gold" selected>P2 - Major (MTTR 4 Jam)</option>
-                                <option value="Silver">P3 - Minor (MTTR 8 Jam)</option>
-                                <option value="Bronze">P4 - Low (MTTR 24 Jam)</option>
+                                <option value="Critical">Critical (P1 - MTTR 1 Jam)</option>
+                                <option value="High" selected>High (P2 - MTTR 4 Jam)</option>
+                                <option value="Medium">Medium (P3 - MTTR 8 Jam)</option>
+                                <option value="Low">Low (P4 - MTTR 24 Jam)</option>
                             </select>
                         </div>
 

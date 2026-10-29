@@ -83,7 +83,7 @@ class ManagedServiceController extends Controller
         $offlineAssets   = $assets->where('status', 'Offline')->count();
 
         $openTickets     = $tickets->whereIn('status', ['Open', 'In Progress', 'Pending Vendor'])->count();
-        $criticalTickets = $tickets->where('priority', 'P1 - Critical')->whereIn('status', ['Open', 'In Progress'])->count();
+        $criticalTickets = $tickets->whereIn('status', ['Open', 'In Progress'])->filter(fn($t) => stripos($t->priority, 'Critical') !== false || stripos($t->priority, 'P1') !== false || stripos($t->priority, 'Platinum') !== false)->count();
         $resolvedTickets = $tickets->whereIn('status', ['Resolved', 'Closed'])->count();
 
         $totalSlaChecked = $tickets->whereNotNull('resolved_at')->count();
@@ -201,7 +201,7 @@ class ManagedServiceController extends Controller
             });
 
             $openTicketsCount = $clientTickets->whereIn('status', ['Open', 'In Progress', 'Pending Vendor'])->count();
-            $criticalTicketsCount = $clientTickets->where('priority', 'P1 - Critical')->whereIn('status', ['Open', 'In Progress'])->count();
+            $criticalTicketsCount = $clientTickets->whereIn('status', ['Open', 'In Progress'])->filter(fn($t) => stripos($t->priority, 'Critical') !== false || stripos($t->priority, 'P1') !== false || stripos($t->priority, 'Platinum') !== false)->count();
 
             // Cek agenda PM bulan berjalan untuk proyek ini
             $pmCount = Schedule::where(function($q) use ($project) {
@@ -1134,7 +1134,7 @@ class ManagedServiceController extends Controller
                 'incident_date'    => now()->subWeeks(2)->toDateString(),
                 'type'             => 'Corrective Maintenance',
                 'category'         => 'Switch',
-                'priority'         => 'Gold',
+                'priority'         => 'High',
                 'status'           => 'Resolved',
                 'source'           => 'Portal',
                 'reported_by'      => 'Budi Santoso',
@@ -1436,10 +1436,30 @@ class ManagedServiceController extends Controller
         foreach ($cmTickets as $t) {
             $year = $t->created_at ? $t->created_at->format('Y') : date('Y');
             $expectedNum = 'CM-' . $projectCode . '-' . $year . '-' . str_pad($ticketSeq, 3, '0', STR_PAD_LEFT);
+            $needsSave = false;
+
             if ($t->ticket_number !== $expectedNum) {
                 $t->ticket_number = $expectedNum;
+                $needsSave = true;
+            }
+
+            // Normalisasi 4 level prioritas standar: Critical, High, Medium, Low
+            $normalizedPrio = match(strtolower($t->priority ?? '')) {
+                'platinum', 'critical'       => 'Critical',
+                'gold', 'high', 'major'      => 'High',
+                'silver', 'medium', 'minor'  => 'Medium',
+                'bronze', 'low'              => 'Low',
+                default                      => 'Medium',
+            };
+            if ($t->priority !== $normalizedPrio) {
+                $t->priority = $normalizedPrio;
+                $needsSave = true;
+            }
+
+            if ($needsSave) {
                 $t->save();
             }
+
             $ticketSeq++;
         }
 
@@ -1747,7 +1767,7 @@ class ManagedServiceController extends Controller
             'project_id'    => 'required|exists:projects,id',
             'title'         => 'required|string|max:255',
             'description'   => 'nullable|string',
-            'priority'      => 'required|string|in:Platinum,Gold,Silver,Bronze',
+            'priority'      => 'required|string|in:Critical,High,Medium,Low,Platinum,Gold,Silver,Bronze',
             'assigned_to'   => 'nullable|exists:users,id',
             'incident_date' => 'nullable|date',
             'attachment'    => 'nullable|file|max:51200',
@@ -1796,11 +1816,19 @@ class ManagedServiceController extends Controller
             $attachmentPath = FileUploadHelper::storePublicly($request->file('attachment'), 'ms_cm_docs');
         }
 
-        $slaHours = match($validated['priority']) {
-            'Platinum' => 1,
-            'Gold'     => 4,
-            'Silver'   => 8,
-            'Bronze'   => 24,
+        $normalizedPriority = match(strtolower($validated['priority'])) {
+            'critical', 'platinum'      => 'Critical',
+            'high', 'gold', 'major'     => 'High',
+            'medium', 'silver', 'minor' => 'Medium',
+            'low', 'bronze'             => 'Low',
+            default                     => 'Medium',
+        };
+
+        $slaHours = match($normalizedPriority) {
+            'Critical' => 1,
+            'High'     => 4,
+            'Medium'   => 8,
+            'Low'      => 24,
             default    => 4,
         };
 
@@ -1813,7 +1841,7 @@ class ManagedServiceController extends Controller
             'incident_date'   => $ticketDate->toDateString(),
             'type'            => 'Corrective Maintenance',
             'category'        => 'Troubleshooting',
-            'priority'        => $validated['priority'],
+            'priority'        => $normalizedPriority,
             'status'          => 'In Progress',
             'source'          => 'Portal',
             'reported_by'     => $project->customer_pic_technical ?: ($project->client ?: 'Klien'),

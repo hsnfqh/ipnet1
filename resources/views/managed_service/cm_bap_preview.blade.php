@@ -95,7 +95,23 @@
                             {{ $ticket->resolved_at ? \Carbon\Carbon::parse($ticket->resolved_at)->format('d F Y, H:i') . ' WIB' : 'Sedang Ditangani Teknisi' }}
                         </span>
                     </div>
-                    <div><span class="text-[#64748B]">Prioritas &amp; Target SLA MTTR:</span> <span class="font-bold text-[#0F172A]">{{ $ticket->priority ?: 'Gold' }} (Target MTTR: {{ str_contains(strtolower($ticket->priority ?? ''), 'critical') ? '1 Jam' : (str_contains(strtolower($ticket->priority ?? ''), 'high') ? '4 Jam' : '8 Jam') }})</span></div>
+                    @php
+                        $prioVal = match(strtolower($ticket->priority ?? '')) {
+                            'critical', 'platinum'      => 'Critical',
+                            'high', 'gold', 'major'     => 'High',
+                            'medium', 'silver', 'minor' => 'Medium',
+                            'low', 'bronze'             => 'Low',
+                            default                     => 'Medium',
+                        };
+                        $prioMttr = match($prioVal) {
+                            'Critical' => '1 Jam',
+                            'High'     => '4 Jam',
+                            'Medium'   => '8 Jam',
+                            'Low'      => '24 Jam',
+                            default    => '8 Jam',
+                        };
+                    @endphp
+                    <div><span class="text-[#64748B]">Prioritas &amp; Target SLA MTTR:</span> <span class="font-bold text-[#0F172A]">{{ $prioVal }} (Target MTTR: {{ $prioMttr }})</span></div>
                     <div><span class="text-[#64748B]">Kepatuhan SLA (SLA Compliance):</span> 
                         @if($ticket->resolved_at)
                             <span class="inline-flex items-center gap-1 font-bold text-emerald-700 font-mono">
