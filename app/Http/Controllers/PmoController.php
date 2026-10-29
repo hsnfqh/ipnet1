@@ -1263,13 +1263,20 @@ class PmoController extends Controller
     public function handoverToManagedService(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'sla_tier'              => 'required|string|in:Platinum,Gold,Silver,Bronze',
-            'maintenance_frequency' => 'required|string|max:100',
-            'sla_coverage_hours'    => 'required|string|max:100',
-            'service_start_date'    => 'required|date',
-            'service_end_date'      => 'nullable|date|after_or_equal:service_start_date',
+            'sla_tier'              => 'nullable|string|in:Platinum,Gold,Silver,Bronze',
+            'maintenance_frequency' => 'nullable|string|max:100',
+            'sla_coverage_hours'    => 'nullable|string|max:100',
+            'service_start_date'    => 'nullable|date',
+            'service_end_date'      => 'nullable|date',
             'special_notes'         => 'nullable|string',
         ]);
+
+        $slaTier   = $validated['sla_tier'] ?? ($project->sla_tier ?: 'Gold');
+        $maintFreq = $validated['maintenance_frequency'] ?? ($project->maintenance_frequency ?: 'Monthly');
+        $coverage  = $validated['sla_coverage_hours'] ?? ($project->sla_coverage_hours ?: '24x7');
+        $startDate = $validated['service_start_date'] ?? ($project->service_start_date ?: now()->toDateString());
+        $endDate   = $validated['service_end_date'] ?? $project->service_end_date;
+        $notes     = $validated['special_notes'] ?? ($project->special_notes ?: 'Pekerjaan implementasi telah selesai dan diserahkan ke Managed Service.');
 
         $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $existingHandoverData['ms_handover'] = [
@@ -1277,11 +1284,11 @@ class PmoController extends Controller
             'checklist_na'             => $request->input('checklist_na', []),
             'checklist_notes'          => $request->input('checklist_notes', []),
             'handover_status_selected' => $request->input('handover_status_selected', 'approved'),
-            'service_acceptance'       => $request->input('service_acceptance', ''),
+            'service_acceptance'       => $request->input('service_acceptance', 'Layanan implementasi telah rampung dan siap dialihkan ke tim pemeliharaan berkala.'),
             'risks_and_pic'            => $request->input('risks_and_pic', ''),
             'follow_up_date'           => $request->input('follow_up_date', ''),
-            'confirmation_notes'       => $request->input('confirmation_notes', ''),
-            'special_notes'            => $validated['special_notes'] ?? $project->special_notes,
+            'confirmation_notes'       => $request->input('confirmation_notes', 'Penyerahan tanggung jawab operasional dari Project Manager kepada Managed Service.'),
+            'special_notes'            => $notes,
             'submitted_at'             => now()->toDateTimeString(),
             'submitted_by'             => auth()->id(),
         ];
@@ -1290,14 +1297,14 @@ class PmoController extends Controller
             'stage'                 => 'Operate',
             'status'                => 'Active',
             'handover_target'       => 'managed_service',
-            'sla_tier'              => $validated['sla_tier'],
-            'maintenance_frequency' => $validated['maintenance_frequency'],
-            'sla_coverage_hours'    => $validated['sla_coverage_hours'],
-            'service_start_date'    => $validated['service_start_date'],
-            'service_end_date'      => $validated['service_end_date'],
+            'sla_tier'              => $slaTier,
+            'maintenance_frequency' => $maintFreq,
+            'sla_coverage_hours'    => $coverage,
+            'service_start_date'    => $startDate,
+            'service_end_date'      => $endDate,
             'ms_handover_status'    => 'Submitted',
             'handover_data'         => $existingHandoverData,
-            'special_notes'         => $validated['special_notes'] ?? $project->special_notes,
+            'special_notes'         => $notes,
         ]);
 
         // Kirim notifikasi ke Tim Managed Service

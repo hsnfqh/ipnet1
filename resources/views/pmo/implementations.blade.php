@@ -1152,14 +1152,14 @@
         </div>
     </template>
 
-    {{-- MODAL POP-UP KONFIRMASI SERAH TERIMA PM KE MANAGED SERVICE --}}
+    {{-- MODAL POP-UP KONFIRMASI INFORMASI SERAH TERIMA PM KE MANAGED SERVICE --}}
     <template x-teleport="body">
         <div x-show="handoverToMsModalOpen" 
              x-cloak
              class="fixed inset-0 bg-slate-900/60 backdrop-blur-2xs z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
              @click.self="handoverToMsModalOpen = false">
             
-            <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-[#CBD5E1] overflow-hidden my-auto transform transition-all">
+            <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#CBD5E1] overflow-hidden my-auto transform transition-all">
                 
                 {{-- Modal Header --}}
                 <div class="px-6 py-4.5 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
@@ -1181,9 +1181,9 @@
                     </button>
                 </div>
 
-                {{-- Modal Body --}}
-                <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-                    {{-- Banner Pertanyaan Utama --}}
+                {{-- Modal Body: Pure Information Card (Read-Only dari Sales & Kontrak) --}}
+                <div class="p-6 space-y-4">
+                    {{-- Alert Box Pertanyaan Konfirmasi --}}
                     <div class="p-4 rounded-xl bg-amber-50/80 border border-amber-200 flex items-start gap-3.5">
                         <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -1191,94 +1191,40 @@
                             </svg>
                         </div>
                         <div class="space-y-1">
-                            <h4 class="text-[13.5px] font-bold text-amber-950">
-                                Apakah pekerjaan implementasi proyek sudah selesai dan siap diserahkan ke Managed Service?
+                            <h4 class="text-[14px] font-bold text-amber-950">
+                                Apakah pekerjaan proyek sudah selesai dan diserahkan ke Managed Service?
                             </h4>
-                            <p class="text-[11.5px] text-amber-800 leading-relaxed">
-                                Setelah Anda menyerahkan proyek ini, tim <strong>Managed Service (MS)</strong> akan menerima notifikasi dan melakukan verifikasi kelengkapan dokumen teknis serta checklist serah terima operasional.
+                            <p class="text-[12px] text-amber-800 leading-relaxed">
+                                Seluruh informasi kontrak dan SLA yang telah disepakati dari Sales akan diteruskan ke tim <strong>Managed Service (MS)</strong> untuk verifikasi dokumen dan serah terima operasional.
                             </p>
                         </div>
                     </div>
 
-                    {{-- Ringkasan Proyek --}}
-                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
-                        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
-                            <span class="text-slate-500 font-medium">Nama Proyek:</span>
-                            <span class="font-bold text-slate-800 text-right truncate max-w-xs" x-text="activeProject?.name || '-'"></span>
+                    {{-- Informasi Rincian Proyek & Kontrak (Read-Only) --}}
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-2.5 text-xs">
+                        <div class="flex items-start justify-between gap-3 pb-2.5 border-b border-slate-200">
+                            <span class="text-slate-500 font-medium shrink-0">Nama Proyek:</span>
+                            <span class="font-bold text-slate-800 text-right leading-snug" x-text="activeProject?.name || '-'"></span>
                         </div>
-                        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
                             <span class="text-slate-500 font-medium">Klien / Pelanggan:</span>
                             <span class="font-bold text-slate-800" x-text="activeProject?.client || '-'"></span>
                         </div>
-                        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
                             <span class="text-slate-500 font-medium">Nomor Kontrak / SO:</span>
                             <span class="font-mono font-bold text-[#8F0A0D]" x-text="activeProject?.so_code || activeProject?.po_number || '-'"></span>
                         </div>
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
+                            <span class="text-slate-500 font-medium">Target SLA Kontrak:</span>
+                            <span class="font-bold text-slate-800" x-text="(activeProject?.sla_tier || 'Gold') + ' • ' + (activeProject?.sla_coverage_hours || '24x7')"></span>
+                        </div>
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
+                            <span class="text-slate-500 font-medium">Frekuensi Maintenance:</span>
+                            <span class="font-semibold text-slate-800" x-text="activeProject?.maintenance_frequency || 'Bulanan (Monthly)'"></span>
+                        </div>
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 font-medium">Diserahkan oleh (PM):</span>
-                            <span class="font-semibold text-slate-800" x-text="activeProject?.pm || 'Tim Project Manager'"></span>
-                        </div>
-                    </div>
-
-                    {{-- Form Konfigurasi Singkat Penyerahan --}}
-                    <div class="space-y-3 pt-1">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                            <div>
-                                <label class="block font-bold text-slate-700 text-[11px] uppercase tracking-wider mb-1">
-                                    Tanggal Mulai Layanan MS <span class="text-red-500">*</span>
-                                </label>
-                                <input type="date" 
-                                       x-model="msHandoverForm.service_start_date" 
-                                       class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
-                            </div>
-
-                            <div>
-                                <label class="block font-bold text-slate-700 text-[11px] uppercase tracking-wider mb-1">
-                                    Target SLA Kontrak <span class="text-red-500">*</span>
-                                </label>
-                                <select x-model="msHandoverForm.sla_tier" 
-                                        class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                    <option value="Platinum">Platinum (24x7 MTTR 2 Jam, Uptime 99.9%)</option>
-                                    <option value="Gold">Gold (8x5 MTTR 4 Jam, Uptime 99.5%)</option>
-                                    <option value="Silver">Silver (8x5 Next Business Day, Uptime 99.0%)</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block font-bold text-slate-700 text-[11px] uppercase tracking-wider mb-1">
-                                    Cakupan Jam Layanan
-                                </label>
-                                <select x-model="msHandoverForm.sla_coverage_hours" 
-                                        class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                    <option value="24x7">24 Jam x 7 Hari (Non-Stop)</option>
-                                    <option value="8x5">8 Jam x 5 Hari (Hari Kerja)</option>
-                                    <option value="12x7">12 Jam x 7 Hari</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block font-bold text-slate-700 text-[11px] uppercase tracking-wider mb-1">
-                                    Frekuensi Maintenance
-                                </label>
-                                <select x-model="msHandoverForm.maintenance_frequency" 
-                                        class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                    <option value="Monthly">Bulanan (Monthly)</option>
-                                    <option value="Quarterly">Triwulan (Quarterly)</option>
-                                    <option value="Semi-Annually">Semester (6 Bulan)</option>
-                                    <option value="Annually">Tahunan (Annual)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {{-- Catatan Penyerahan PM (Opsional) --}}
-                        <div>
-                            <label class="block font-bold text-slate-700 text-[11px] uppercase tracking-wider mb-1">
-                                Catatan Penyerahan dari Project Manager (Opsional)
-                            </label>
-                            <textarea x-model="msHandoverForm.special_notes" 
-                                      rows="3" 
-                                      placeholder="Tuliskan catatan teknis atau pesan penyerahan ke tim MS (contoh: Semua konfigurasi dan UAT klien telah tuntas. Siap dipantau berkala)..." 
-                                      class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 outline-none focus:border-[#8F0A0D] placeholder-slate-400"></textarea>
+                            <span class="font-semibold text-slate-800" x-text="activeProject?.pm || 'Rizki (Project Manager)'"></span>
                         </div>
                     </div>
                 </div>
