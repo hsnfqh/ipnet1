@@ -471,6 +471,9 @@
                                         {{-- 6. Aksi --}}
                                         <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                             <div class="flex items-center justify-end gap-1.5">
+                                                @php
+                                                    $resolvedLeadMs = $ho->msAcceptedBy?->name ?? ($ho->handover_data['lead_ms_name'] ?? ($leadMsName ?? 'Doris'));
+                                                @endphp
                                                 @if(!$isAccepted)
                                                     <button type="button" 
                                                             data-id="{{ $ho->id }}"
@@ -488,6 +491,7 @@
                                                             data-so="{{ $resolvedContractNum }}"
                                                             data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
                                                             data-pm="{{ is_object($ho->pm) ? ($ho->pm->name ?? 'Tim Managed Service') : ($ho->pm ?: 'Tim Managed Service') }}"
+                                                            data-lead-ms="{{ $resolvedLeadMs }}"
                                                             data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
                                                             data-handover-data="{{ json_encode($ho->handover_data ?? []) }}"
                                                             data-checklist="{{ json_encode($ho->documents_checklist ?? []) }}"
@@ -515,6 +519,7 @@
                                                             data-so="{{ $resolvedContractNum }}"
                                                             data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
                                                             data-pm="{{ is_object($ho->pm) ? ($ho->pm->name ?? 'Tim Managed Service') : ($ho->pm ?: 'Tim Managed Service') }}"
+                                                            data-lead-ms="{{ $resolvedLeadMs }}"
                                                             data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
                                                             data-handover-data="{{ json_encode($ho->handover_data ?? []) }}"
                                                             data-checklist="{{ json_encode($ho->documents_checklist ?? []) }}"
@@ -673,7 +678,7 @@
                                 </tr>
                                 <tr>
                                     <td class="py-2 px-3 font-bold bg-white border-r border-black">PIC Managed Service</td>
-                                    <td class="py-2 px-3 font-bold text-[#8F0A0D]" id="accept-modal-pm">Tim Managed Service</td>
+                                    <td class="py-2 px-3 font-bold text-[#8F0A0D]" id="accept-modal-pm">{{ $leadMsName ?? 'Doris' }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -852,7 +857,7 @@
                                     {{-- 2. Managed Service --}}
                                     <td class="p-3 border-r border-black align-top flex-col justify-between">
                                         <div class="space-y-1">
-                                            <p><strong class="font-bold">Nama:</strong> <span id="accept-modal-pm-sign" class="font-bold text-[#8F0A0D]">Tim Managed Service</span></p>
+                                            <p><strong class="font-bold">Nama:</strong> <span id="accept-modal-pm-sign" class="font-bold text-[#8F0A0D]">{{ $leadMsName ?? 'Doris' }}</span></p>
                                             <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
                                         </div>
                                         <div class="pt-6">
@@ -957,6 +962,7 @@
             so: btn.getAttribute('data-so'),
             sales: btn.getAttribute('data-sales'),
             pm: btn.getAttribute('data-pm'),
+            leadMs: btn.getAttribute('data-lead-ms') || '{{ $leadMsName ?? "Doris" }}',
             contract_value_formatted: btn.getAttribute('data-value'),
             sla_tier: btn.getAttribute('data-tier'),
             sla_coverage_hours: btn.getAttribute('data-coverage'),
@@ -999,7 +1005,7 @@
         var salesEl = document.getElementById('accept-modal-sales');
         if (salesEl) salesEl.textContent = p.sales || '—';
         var pmEl = document.getElementById('accept-modal-pm');
-        if (pmEl) pmEl.textContent = p.pm || 'Tim Managed Service';
+        if (pmEl) pmEl.textContent = p.leadMs || '{{ $leadMsName ?? "Doris" }}';
         
         // Tanggal Efektif & Masa Kontrak Rapi & Valid (Bahasa Indonesia & durasi 1 tahun penuh)
         var startFormatted = p.start_display || (p.service_start_date ? p.service_start_date.split('T')[0] : '');
@@ -1041,7 +1047,7 @@
         var salesSignEl = document.getElementById('accept-modal-sales-sign');
         if (salesSignEl) salesSignEl.textContent = p.sales || '—';
         var pmSignEl = document.getElementById('accept-modal-pm-sign');
-        if (pmSignEl) pmSignEl.textContent = p.pm || 'Tim Managed Service';
+        if (pmSignEl) pmSignEl.textContent = p.leadMs || '{{ $leadMsName ?? "Doris" }}';
 
         // SLA Inputs
         var slaTierEl = document.getElementById('accept-modal-sla-tier');

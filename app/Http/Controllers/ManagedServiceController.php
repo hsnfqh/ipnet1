@@ -983,6 +983,7 @@ class ManagedServiceController extends Controller
             'handover_pic_target'      => $request->input('handover_pic_target', ''),
             'handover_confirmation'    => $request->input('handover_confirmation', ''),
             'handover_work_limitations'=> $request->input('handover_work_limitations', ''),
+            'lead_ms_name'             => auth()->user()?->name ?? 'Doris',
             'special_notes'            => $validated['special_notes'] ?? $project->special_notes,
         ]);
 
@@ -1209,7 +1210,12 @@ class ManagedServiceController extends Controller
 
         $pendingHandoversCount = $incomingHandovers->where('ms_handover_status', '!=', 'Accepted')->count();
 
-        return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage'));
+        $leadMsUser = User::whereHas('roles', fn($r) => $r->whereIn('name', ['Lead Maintenance', 'Managed Service Coordinator']))
+            ->orWhere('name', 'like', '%Doris%')
+            ->first();
+        $leadMsName = $leadMsUser?->name ?? 'Doris';
+
+        return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage', 'leadMsName'));
     }
 
     /**
