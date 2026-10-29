@@ -1414,7 +1414,35 @@ class ManagedServiceController extends Controller
             ->where(function($q) {
                 $q->where('type', 'like', '%Corrective%')
                   ->orWhere('type', 'like', '%Incident%');
-            })->latest()->get();
+            })->orderBy('created_at', 'asc')->orderBy('id', 'asc')->get();
+
+        // Normalisasi nomor tiket CM agar urut rapi sesuai kode proyek/klien
+        $projectCode = 'NET';
+        if (!empty($project->client)) {
+            if (stripos($project->client, 'Telkom') !== false) {
+                $projectCode = 'TLK';
+            } elseif (stripos($project->client, 'Angkasa Pura') !== false) {
+                $projectCode = 'APS';
+            } elseif (stripos($project->client, 'PLN') !== false) {
+                $projectCode = 'PLN';
+            } elseif (stripos($project->client, 'Bank Rakyat Indonesia') !== false || stripos($project->client, 'BRI') !== false) {
+                $projectCode = 'BRI';
+            } elseif (stripos($project->client, 'Mandiri') !== false) {
+                $projectCode = 'MDR';
+            }
+        }
+
+        $ticketSeq = 1;
+        foreach ($cmTickets as $t) {
+            $year = $t->created_at ? $t->created_at->format('Y') : date('Y');
+            $expectedNum = 'CM-' . $projectCode . '-' . $year . '-' . str_pad($ticketSeq, 3, '0', STR_PAD_LEFT);
+            if ($t->ticket_number !== $expectedNum) {
+                $t->ticket_number = $expectedNum;
+                $t->save();
+            }
+            $ticketSeq++;
+        }
+
         $cmQuota = $project->cm_quota ?: 18;
         $cmUsed = $cmTickets->count();
         $cmRemaining = max(0, $cmQuota - $cmUsed);
@@ -1739,8 +1767,29 @@ class ManagedServiceController extends Controller
         }
 
         $ticketDate = !empty($validated['incident_date']) ? Carbon::parse($validated['incident_date']) : now();
-        $count = ManagedServiceTicket::whereYear('created_at', $ticketDate->year)->count() + 1;
-        $ticketNumber = 'CM-' . $ticketDate->year . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+
+        $projectCode = 'NET';
+        if (!empty($project->client)) {
+            if (stripos($project->client, 'Telkom') !== false) {
+                $projectCode = 'TLK';
+            } elseif (stripos($project->client, 'Angkasa Pura') !== false) {
+                $projectCode = 'APS';
+            } elseif (stripos($project->client, 'PLN') !== false) {
+                $projectCode = 'PLN';
+            } elseif (stripos($project->client, 'Bank Rakyat Indonesia') !== false || stripos($project->client, 'BRI') !== false) {
+                $projectCode = 'BRI';
+            } elseif (stripos($project->client, 'Mandiri') !== false) {
+                $projectCode = 'MDR';
+            }
+        }
+
+        $count = ManagedServiceTicket::where('project_id', $project->id)
+            ->where(function($q) {
+                $q->where('type', 'like', '%Corrective%')
+                  ->orWhere('type', 'like', '%Incident%');
+            })->count() + 1;
+
+        $ticketNumber = 'CM-' . $projectCode . '-' . $ticketDate->year . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
 
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {

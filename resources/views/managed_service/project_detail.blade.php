@@ -900,34 +900,37 @@
                         </div>
                     </div>
 
-                    {{-- Visual Timeline Tiket CM: Hanya tampilkan tiket yang benar-benar tercatat --}}
+                    {{-- Visual Kuota Stepper Sesuai Template: Berkelok seperti Ular (Snake Flow) --}}
                     @php
-                        $sortedTickets = $project->managedServiceTickets->sortBy('created_at')->values();
-                        $cmSlots = collect();
+                        $displayQuota = ($cmQuota >= 999) ? max(6, $cmUsed + 2) : min(24, max(1, (int)$cmQuota));
+                        $isSnakeCm = $displayQuota > 6;
+                        $cmChunkSize = 6; // 6 slot tiket per baris
 
-                        foreach ($sortedTickets as $index => $ticket) {
-                            $slotIndex = $index + 1;
-                            $ticketStatus = $ticket->status ?: 'Resolved';
+                        $cmSlots = collect();
+                        $sortedTickets = $cmTickets->values();
+
+                        for ($slotIndex = 1; $slotIndex <= $displayQuota; $slotIndex++) {
+                            $ticket = $sortedTickets->get($slotIndex - 1);
+                            $isUsed = ($ticket !== null) || ($slotIndex <= $cmUsed);
+                            $ticketStatus = $ticket ? $ticket->status : ($isUsed ? 'Resolved' : 'Available');
 
                             $cmSlots->push([
                                 'slot_number' => $slotIndex,
-                                'is_used'     => true,
+                                'is_used'     => $isUsed,
                                 'status'      => $ticketStatus,
                                 'ticket'      => $ticket,
                                 'label'       => 'Tiket #' . $slotIndex,
-                                'sub'         => $ticketStatus,
+                                'sub'         => $isUsed ? ($ticket ? $ticket->status : 'Terpakai') : 'Tersedia',
                             ]);
                         }
 
-                        $isSnakeCm = $cmSlots->count() > 6;
-                        $cmChunkSize = 6; // 6 slot tiket per baris
                         $cmRows = $isSnakeCm ? $cmSlots->chunk($cmChunkSize) : collect([$cmSlots]);
                     @endphp
 
                     <div class="pt-3 border-t border-[#E2E8F0] overflow-x-auto">
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                Timeline Tiket Corrective Maintenance ({{ $cmSlots->count() }} Tiket Tercatat &bull; Kuota Kontrak: {{ $cmQuota }} Tiket &bull; {{ $cmRemaining }} Kuota Tersisa)
+                                Visualisasi Slot Kuota Tiket ({{ $displayQuota }} Kuota &bull; {{ $cmUsed }} Terpakai &bull; {{ $cmRemaining }} Tersisa)
                             </span>
                         </div>
 
