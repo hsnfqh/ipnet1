@@ -1156,21 +1156,16 @@
     <template x-teleport="body">
         <div x-show="handoverToMsModalOpen" 
              x-cloak
-             class="fixed inset-0 bg-[#0F172A]/60 backdrop-blur-2xs z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+             class="fixed inset-0 bg-[#0F172A]/60 backdrop-blur-2xs z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
              @click.self="handoverToMsModalOpen = false">
             
-            <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#CBD5E1] overflow-hidden my-auto transform transition-all text-left">
+            <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-[#E2E8F0] overflow-hidden my-auto transform transition-all text-left">
                 
-                {{-- Modal Header: Konsisten dengan Header IPNET Card --}}
+                {{-- Header --}}
                 <div class="px-6 py-4.5 border-b border-[#E2E8F0] flex items-center justify-between bg-white shrink-0">
-                    <div>
-                        <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D] mr-2 inline-block"></span>
-                            TATA KELOLA PROYEK &bull; SERAH TERIMA
-                        </p>
-                        <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight mt-0.5">
-                            Serah Terima ke Managed Service
-                        </h3>
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
+                        <h3 class="text-base font-bold text-[#1E293B]">Serah Terima ke Managed Service</h3>
                     </div>
                     <button type="button" 
                             @click="handoverToMsModalOpen = false" 
@@ -1182,74 +1177,81 @@
                     </button>
                 </div>
 
-                {{-- Modal Body: Bersih, Rapi, Profesional, Tanpa Elemen AI --}}
+                {{-- Body --}}
                 <div class="p-6 space-y-4">
-                    {{-- Pertanyaan Konfirmasi --}}
-                    <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1.5">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                            <h4 class="text-[13.5px] font-bold text-[#1E293B]">
-                                Apakah pekerjaan proyek sudah selesai dan siap diserahkan ke Managed Service?
-                            </h4>
-                        </div>
-                        <p class="text-[12px] text-[#64748B] leading-relaxed pl-4">
-                            Pekerjaan implementasi (tahap Deliver) dinyatakan rampung. Seluruh data kontrak, SLA, dan dokumen teknis dari Sales akan diteruskan ke tim <strong>Managed Service (MS)</strong> untuk verifikasi dan serah terima operasional.
+                    {{-- Pertanyaan Konfirmasi: Bersih, Rapi, Simetris --}}
+                    <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                        <p class="text-[13.5px] font-bold text-[#1E293B] leading-snug">
+                            Apakah pekerjaan implementasi proyek ini sudah selesai dan siap diserahkan ke Managed Service?
+                        </p>
+                        <p class="text-xs text-[#64748B] mt-1.5 leading-relaxed">
+                            Proyek tahap <strong>Deliver</strong> akan dialihkan ke tahap <strong>Operate</strong>. Tim Managed Service akan menerima notifikasi dan memverifikasi dokumen teknis operasional.
                         </p>
                     </div>
 
-                    {{-- Informasi Rincian Proyek & Kontrak (Sesuai Data Sales & Kontrak) --}}
-                    <div class="border border-[#E2E8F0] rounded-xl overflow-hidden bg-white text-xs">
-                        <div class="bg-[#F8FAFC] px-4 py-2.5 border-b border-[#E2E8F0] flex items-center justify-between">
-                            <span class="font-bold text-[#475569] uppercase tracking-wider text-[11px]">Rincian Proyek &amp; Perjanjian Kontrak</span>
-                            <span class="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Data Kontrak Terverifikasi</span>
-                        </div>
-                        <div class="divide-y divide-[#F1F5F9] text-xs">
-                            <div class="px-4 py-2.5 flex items-start justify-between gap-3">
-                                <span class="text-[#64748B] font-medium shrink-0">Nama Proyek</span>
-                                <span class="font-bold text-[#1E293B] text-right leading-snug" x-text="activeProject?.name || '-'"></span>
-                            </div>
-                            <div class="px-4 py-2.5 flex items-center justify-between gap-3">
-                                <span class="text-[#64748B] font-medium shrink-0">Klien / Pelanggan</span>
-                                <span class="font-bold text-[#1E293B]" x-text="activeProject?.client || '-'"></span>
-                            </div>
-                            <div class="px-4 py-2.5 flex items-center justify-between gap-3">
-                                <span class="text-[#64748B] font-medium shrink-0">Nomor Kontrak / SO</span>
-                                <span class="font-mono font-bold text-[#8F0A0D]" x-text="activeProject?.so_code || activeProject?.po_number || '-'"></span>
-                            </div>
-                            <div class="px-4 py-2.5 flex items-center justify-between gap-3">
-                                <span class="text-[#64748B] font-medium shrink-0">SLA &amp; Jam Layanan</span>
-                                <span class="font-semibold text-[#1E293B] inline-flex items-center gap-1.5">
-                                    <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200/60" x-text="activeProject?.sla_tier || 'Gold'"></span>
-                                    <span class="text-slate-400">&bull;</span>
-                                    <span x-text="activeProject?.sla_coverage_hours || '24x7 Non-Stop'"></span>
-                                </span>
-                            </div>
-                            <div class="px-4 py-2.5 flex items-center justify-between gap-3">
-                                <span class="text-[#64748B] font-medium shrink-0">Frekuensi Maintenance</span>
-                                <span class="font-semibold text-[#1E293B]" x-text="activeProject?.maintenance_frequency || 'Bulanan (Monthly)'"></span>
-                            </div>
-                            <div class="px-4 py-2.5 flex items-center justify-between gap-3">
-                                <span class="text-[#64748B] font-medium shrink-0">Diserahkan oleh (PM)</span>
-                                <span class="font-bold text-[#1E293B]" x-text="activeProject?.pm || 'Rizki (Project Manager)'"></span>
-                            </div>
-                        </div>
+                    {{-- Tabel Data Simetris: 2 Kolom Rapi (Kiri Label 150px, Kanan Nilai Rata Kiri) --}}
+                    <div class="rounded-xl border border-[#E2E8F0] overflow-hidden bg-white">
+                        <table class="w-full text-xs border-collapse">
+                            <tbody class="divide-y divide-[#F1F5F9]">
+                                <tr>
+                                    <td class="w-40 py-2.5 px-4 bg-[#F8FAFC] font-semibold text-[#64748B] border-r border-[#E2E8F0] align-top">
+                                        Nama Proyek
+                                    </td>
+                                    <td class="py-2.5 px-4 font-bold text-[#1E293B] leading-snug text-left" x-text="activeProject?.name || '-'"></td>
+                                </tr>
+                                <tr>
+                                    <td class="w-40 py-2.5 px-4 bg-[#F8FAFC] font-semibold text-[#64748B] border-r border-[#E2E8F0]">
+                                        Klien / Pelanggan
+                                    </td>
+                                    <td class="py-2.5 px-4 font-bold text-[#1E293B] text-left" x-text="activeProject?.client || '-'"></td>
+                                </tr>
+                                <tr>
+                                    <td class="w-40 py-2.5 px-4 bg-[#F8FAFC] font-semibold text-[#64748B] border-r border-[#E2E8F0]">
+                                        Nomor Kontrak / SO
+                                    </td>
+                                    <td class="py-2.5 px-4 font-mono font-bold text-[#8F0A0D] text-left" x-text="activeProject?.so_code || activeProject?.po_number || '-'"></td>
+                                </tr>
+                                <tr>
+                                    <td class="w-40 py-2.5 px-4 bg-[#F8FAFC] font-semibold text-[#64748B] border-r border-[#E2E8F0]">
+                                        SLA Kontrak
+                                    </td>
+                                    <td class="py-2.5 px-4 font-semibold text-[#1E293B] text-left">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200" x-text="activeProject?.sla_tier || 'Gold'"></span>
+                                        <span class="text-slate-400 mx-1.5">&bull;</span>
+                                        <span x-text="activeProject?.sla_coverage_hours || '24x7 Non-Stop'"></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="w-40 py-2.5 px-4 bg-[#F8FAFC] font-semibold text-[#64748B] border-r border-[#E2E8F0]">
+                                        Pemeliharaan
+                                    </td>
+                                    <td class="py-2.5 px-4 font-semibold text-[#1E293B] text-left" x-text="activeProject?.maintenance_frequency || 'Bulanan (Monthly)'"></td>
+                                </tr>
+                                <tr>
+                                    <td class="w-40 py-2.5 px-4 bg-[#F8FAFC] font-semibold text-[#64748B] border-r border-[#E2E8F0]">
+                                        Diserahkan oleh
+                                    </td>
+                                    <td class="py-2.5 px-4 font-bold text-[#1E293B] text-left" x-text="(activeProject?.pm || 'Rizki') + ' (Project Manager)'"></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                {{-- Modal Footer: Konsisten Tombol IPNET --}}
-                <div class="px-6 py-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-end gap-2.5">
+                {{-- Footer: Tombol Simetris & Rapi --}}
+                <div class="px-6 py-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-end gap-3">
                     <button type="button" 
                             @click="handoverToMsModalOpen = false" 
-                            class="px-4 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+                            class="px-5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer">
                         Batal
                     </button>
                     <button type="button" 
                             @click="submitHandoverToMs()" 
                             class="btn-ipnet-gradient px-5 py-2.5 rounded-xl font-bold text-xs shadow-xs flex items-center gap-2 cursor-pointer transition active:scale-95">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                         </svg>
-                        <span>Konfirmasi &amp; Serahkan ke Managed Service</span>
+                        <span>Ya, Serahkan ke Managed Service</span>
                     </button>
                 </div>
             </div>
