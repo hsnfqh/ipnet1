@@ -614,7 +614,7 @@
                                                 @endif
                                             </div>
                                             <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">{{ $node['label'] }}</span>
-                                            <span class="text-[10px] {{ $isDone ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#94A3B8]') }}">{{ $node['sub'] }}</span>
+                                            <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
                                         </div>
                                     @else
                                         @php
@@ -685,7 +685,7 @@
                                                             @endif
                                                         </div>
                                                         <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">{{ $node['label'] }}</span>
-                                                        <span class="text-[10px] {{ $isDone ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#94A3B8]') }}">{{ $node['sub'] }}</span>
+                                                        <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
                                                     @else
                                                         @php
                                                             $isDone = $node['status'] === 'Completed';
