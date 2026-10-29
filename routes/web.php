@@ -570,6 +570,46 @@ Route::get('/seed-pmo-dummy-projects', function () {
     }
 });
 
+// Route Helper untuk membuat Data Proyek Implementasi Angkasa Pura Support (IGNR Denpasar)
+Route::get('/seed-angkasa-pura-project', function () {
+    try {
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+        $seeder = new \Database\Seeders\AngkasaPuraProjectSeeder();
+        $seeder->run();
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+
+        $project = \App\Models\Project::where('name', 'like', '%Angkasa Pura%')->first();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Proyek Implementasi Perangkat Network Bandara IGNR Denpasar (Angkasa Pura) berhasil dibuat!',
+            'project' => [
+                'id'             => $project?->id,
+                'name'           => $project?->name,
+                'client'         => $project?->client,
+                'sales'          => $project?->sales_name,
+                'pm'             => $project?->pm?->name ?? 'Rizki',
+                'stage'          => $project?->stage,
+                'status'         => $project?->status,
+                'type'           => $project?->project_type,
+                'progress'       => ($project?->progress ?? 19.82) . '%',
+                'contract_value' => 'Rp ' . number_format($project?->contract_value ?? 0, 0, ',', '.'),
+                'total_tasks'    => $project?->tasks()->count(),
+                'total_expenses' => 'Rp 57.878.006 (23 items)',
+                'url_detail'     => url('/pmo/projects/' . ($project?->id ?? 1)),
+                'url_implementations' => url('/pmo/implementations'),
+            ]
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // Route Helper untuk membuat 2 dummy resmi: 1 Laporan Aktivitas Sales (A-G) & 1 Lesson Learned (Lost Deal)
 Route::get('/seed-sales-official-dummies', function () {
     try {

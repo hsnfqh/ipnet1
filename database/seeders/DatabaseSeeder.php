@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             DummyUserSeeder::class,
             PmoDummyProjectsSeeder::class,
             TechnicalWorkflowScenarioSeeder::class,
+            AngkasaPuraProjectSeeder::class,
         ]);
     }
 }

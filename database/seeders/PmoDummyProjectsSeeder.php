@@ -291,5 +291,7 @@ class PmoDummyProjectsSeeder extends Seeder
             ['project_id' => $p5->id, 'title' => 'Integrasi SSID & RADIUS Portal'],
             ['engineer_id' => $engineerRorik ? $engineerRorik->id : 30, 'progress' => 0, 'status' => 'Pending', 'created_by' => $pmRizki ? $pmRizki->id : 5]
         );
+        // 6. Proyek Deliver Murni Implementasi Angkasa Pura Support (IGNR Denpasar)
+        (new \Database\Seeders\AngkasaPuraProjectSeeder())->run();
     }
 }

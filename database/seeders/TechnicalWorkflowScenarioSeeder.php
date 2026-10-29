@@ -910,5 +910,7 @@ class TechnicalWorkflowScenarioSeeder extends Seeder
                 );
             }
         }
+        // Skenario Tambahan: Proyek Deliver Murni Implementasi Angkasa Pura Support (IGNR Denpasar)
+        (new \Database\Seeders\AngkasaPuraProjectSeeder())->run();
     }
 }
