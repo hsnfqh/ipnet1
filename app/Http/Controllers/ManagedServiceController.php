@@ -307,7 +307,7 @@ class ManagedServiceController extends Controller
             'count_cm'   => $countCm,
         ];
 
-        // 8. Incoming Service Handovers (Dari Sales Tipe 2 & Pasca-Implementasi PMO)
+        // 8. Incoming Service Handovers (Dari Sales Tipe 2 & Pasca-Implementasi PMO) - Hanya yang Pending
         $incomingHandovers = Project::where(function($q) {
                 $q->where('stage', 'Operate')
                   ->orWhere('handover_target', 'managed_service')
@@ -316,6 +316,12 @@ class ManagedServiceController extends Controller
                   ->orWhere('name', 'like', '%maintenance%');
             })
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where('project_type', 'not like', '%One-Time%')
+            ->where('handover_target', '!=', 'pmo')
+            ->where(function($q) {
+                $q->whereNull('ms_handover_status')
+                  ->orWhere('ms_handover_status', '!=', 'Accepted');
+            })
             ->with(['creator', 'commercialHandoverBy', 'pm', 'msAcceptedBy'])
             ->latest('updated_at')
             ->get();
@@ -1186,7 +1192,7 @@ class ManagedServiceController extends Controller
 
         $projects = $query->latest()->paginate($perPage)->withQueryString();
 
-        // 2. Query Serah Terima Kontrak Layanan Masuk (Incoming Service Handovers)
+        // 2. Query Serah Terima Kontrak Layanan Masuk (Incoming Service Handovers) - Hanya yang Pending / Menunggu Aktivasi
         $incomingHandovers = Project::where(function($q) {
                 $q->where('stage', 'Operate')
                   ->orWhere('handover_target', 'managed_service')
@@ -1198,6 +1204,10 @@ class ManagedServiceController extends Controller
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
             ->where('project_type', 'not like', '%One-Time%')
             ->where('handover_target', '!=', 'pmo')
+            ->where(function($q) {
+                $q->whereNull('ms_handover_status')
+                  ->orWhere('ms_handover_status', '!=', 'Accepted');
+            })
             ->with(['creator', 'commercialHandoverBy', 'pm', 'msAcceptedBy'])
             ->latest('updated_at')
             ->get();
