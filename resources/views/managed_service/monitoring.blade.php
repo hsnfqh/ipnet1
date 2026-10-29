@@ -453,7 +453,11 @@
                                             {{-- Jadwal & Realisasi --}}
                                             <td class="py-3.5 px-4 whitespace-nowrap">
                                                 <div class="font-mono text-[12px] text-[#334155]">
-                                                    {{ $cycle->scheduled_date ? \Carbon\Carbon::parse($cycle->scheduled_date)->translatedFormat('d M Y') : '—' }}
+                                                    @if(in_array($cycle->activity_status, ['Completed', 'In Progress']) || $cycle->actual_date)
+                                                        {{ $cycle->scheduled_date ? \Carbon\Carbon::parse($cycle->scheduled_date)->translatedFormat('d M Y') : '—' }}
+                                                    @else
+                                                        <span class="text-slate-400 italic font-sans font-normal">Belum diisi</span>
+                                                    @endif
                                                 </div>
                                                 <div class="text-[11px] text-[#64748B] mt-0.5">
                                                     Realisasi: <span class="font-semibold {{ $isDone ? 'text-emerald-700' : 'text-[#94A3B8]' }}">{{ $cycle->actual_date ? \Carbon\Carbon::parse($cycle->actual_date)->translatedFormat('d M Y') : 'Belum visit' }}</span>

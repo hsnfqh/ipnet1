@@ -762,7 +762,11 @@
                                                     class="group inline-flex items-center gap-1.5 text-[#334155] hover:text-[#8F0A0D] transition cursor-pointer text-left" 
                                                     title="Klik untuk ubah jadwal target kunjungan PM">
                                                 <span class="font-semibold text-[12px] group-hover:underline">
-                                                    {{ $cycle->scheduled_date ? date('d M Y', strtotime($cycle->scheduled_date)) : 'Set Jadwal' }}
+                                                    @if(in_array($cycle->activity_status, ['Completed', 'In Progress']) || $cycle->actual_date)
+                                                        {{ $cycle->scheduled_date ? date('d M Y', strtotime($cycle->scheduled_date)) : 'Set Jadwal' }}
+                                                    @else
+                                                        <span class="text-slate-400 italic font-normal">Belum diisi</span>
+                                                    @endif
                                                 </span>
                                                 <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#8F0A0D] transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -896,37 +900,34 @@
                         </div>
                     </div>
 
-                    {{-- Visual Kuota Stepper: Memanjang jika <= 6, Berkelok seperti Ular (Snake Flow) jika > 6 --}}
+                    {{-- Visual Timeline Tiket CM: Hanya tampilkan tiket yang benar-benar tercatat --}}
                     @php
-                        $displayQuota = ($cmQuota >= 999) ? max(6, $cmUsed + 2) : min(24, max(1, (int)$cmQuota));
-                        $isSnakeCm = $displayQuota > 6;
-                        $cmChunkSize = 6; // 6 slot tiket per baris
-
-                        $cmSlots = collect();
                         $sortedTickets = $project->managedServiceTickets->sortBy('created_at')->values();
+                        $cmSlots = collect();
 
-                        for ($slotIndex = 1; $slotIndex <= $displayQuota; $slotIndex++) {
-                            $ticket = $sortedTickets->get($slotIndex - 1);
-                            $isUsed = ($ticket !== null) || ($slotIndex <= $cmUsed);
-                            $ticketStatus = $ticket ? $ticket->status : ($isUsed ? 'Resolved' : 'Available');
+                        foreach ($sortedTickets as $index => $ticket) {
+                            $slotIndex = $index + 1;
+                            $ticketStatus = $ticket->status ?: 'Resolved';
 
                             $cmSlots->push([
                                 'slot_number' => $slotIndex,
-                                'is_used'     => $isUsed,
+                                'is_used'     => true,
                                 'status'      => $ticketStatus,
                                 'ticket'      => $ticket,
-                                'label'       => $ticket ? ($ticket->ticket_number ?: ('Tiket #' . $slotIndex)) : ('Tiket #' . $slotIndex),
-                                'sub'         => $isUsed ? ($ticket ? $ticket->status : 'Terpakai') : 'Tersedia',
+                                'label'       => 'Tiket #' . $slotIndex,
+                                'sub'         => $ticketStatus,
                             ]);
                         }
 
+                        $isSnakeCm = $cmSlots->count() > 6;
+                        $cmChunkSize = 6; // 6 slot tiket per baris
                         $cmRows = $isSnakeCm ? $cmSlots->chunk($cmChunkSize) : collect([$cmSlots]);
                     @endphp
 
                     <div class="pt-3 border-t border-[#E2E8F0] overflow-x-auto">
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                Visualisasi Slot Kuota Tiket ({{ $displayQuota }} Kuota &bull; {{ $cmUsed }} Terpakai &bull; {{ $cmRemaining }} Tersisa)
+                                Timeline Tiket Corrective Maintenance ({{ $cmSlots->count() }} Tiket Tercatat &bull; Kuota Kontrak: {{ $cmQuota }} Tiket &bull; {{ $cmRemaining }} Kuota Tersisa)
                             </span>
                         </div>
 
