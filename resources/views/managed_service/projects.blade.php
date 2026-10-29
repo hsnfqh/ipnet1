@@ -689,7 +689,6 @@
                                 <tr class="bg-white text-black text-[11px] font-black uppercase tracking-wider border-b border-black">
                                     <th class="py-2 px-2.5 w-12 text-center border-r border-black">NO.</th>
                                     <th class="py-2 px-3 border-r border-black">INFORMASI</th>
-                                    <th class="py-2 px-2 text-center w-28 sm:w-32 border-r border-black">FILE / BUKTI</th>
                                     <th class="py-2 px-2 text-center w-36 sm:w-44 border-r border-black">STATUS / ISIAN</th>
                                     <th class="py-2 px-3 w-1/3 sm:w-2/5">CATATAN</th>
                                 </tr>
@@ -1148,9 +1147,6 @@
                         <div class="text-[10.5px] text-slate-500 mt-0.5 leading-snug">
                             ${item.default_note}
                         </div>
-                    </td>
-                    <td class="py-2.5 px-2 text-center align-middle whitespace-nowrap border-r border-black">
-                        ${fileSection}
                     </td>
                     <td class="py-2.5 px-2 text-center align-middle whitespace-nowrap border-r border-black">
                         <select id="accept-status-${item.key}" 

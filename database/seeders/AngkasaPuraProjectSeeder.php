@@ -1008,3 +1008,4 @@ class AngkasaPuraProjectSeeder extends Seeder
         }
     }
 }
+
