@@ -74,13 +74,6 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3 shrink-0">
-                        <a href="{{ url('/clean-maintenance-data?redirect=tickets') }}" onclick="return confirm('Apakah Anda yakin ingin MENGOSONGKAN seluruh tiket Maintenance (tiket, proyek MS dummy, siklus PM, aset) untuk keperluan uji coba?')" class="px-3.5 py-2.5 rounded-xl font-bold text-[12.5px] bg-red-50 border border-red-200 text-[#8F0A0D] hover:bg-red-100 transition flex items-center gap-2 shadow-xs cursor-pointer whitespace-nowrap">
-                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                            <span>Bersihkan Semua Data Maintenance</span>
-                        </a>
-
                         <a href="{{ route('public.helpdesk.index') }}"  target="_blank"
                            class="px-4 py-2.5 rounded-xl font-bold text-[12.5px] bg-white border border-[#CBD5E1] text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#94A3B8] transition flex items-center gap-2 shadow-xs cursor-pointer whitespace-nowrap">
                             <svg class="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">

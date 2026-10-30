@@ -213,17 +213,13 @@
             {{-- 2. METRIC SUMMARY CARDS (6 METRIC CARDS)                 --}}
             {{-- ======================================================== --}}
             <div class="anim-fade-up anim-delay-1">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3.5">
+                <div class="flex items-center justify-between mb-3.5">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> RINGKASAN OPERASIONAL
                         </p>
                         <h2 class="text-[18px] font-bold text-[#292929] tracking-tight">Status & Distribusi Penugasan SLA</h2>
                     </div>
-                    <a href="{{ url('/clean-maintenance-data?redirect=dashboard') }}" onclick="return confirm('Apakah Anda yakin ingin MENGOSONGKAN seluruh data transaksi Maintenance (tiket, proyek MS dummy, siklus PM, aset) untuk keperluan uji coba?')" class="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-[#8F0A0D] font-bold text-xs inline-flex items-center gap-1.5 transition shrink-0 shadow-2xs self-start sm:self-center">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        <span>Bersihkan Semua Data Maintenance</span>
-                    </a>
                 </div>
 
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
