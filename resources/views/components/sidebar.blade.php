@@ -68,7 +68,7 @@
             ['key' => 'dashboard',         'label' => 'Dashboard',         'route' => 'ms.dashboard'],
             ['key' => 'ms_projects',       'label' => 'Projects',          'route' => 'ms.projects.index'],
             ['key' => 'ms_tickets',        'label' => 'Tickets & SLA',     'route' => 'ms.tickets.index'],
-            ['key' => 'tasks',             'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
+            // ['key' => 'tasks',             'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
             ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',         'label' => 'Work Schedule',     'route' => 'schedules.index'],
             ['key' => 'ms_assets',         'label' => 'Asset',             'route' => 'ms.assets.internal'],
