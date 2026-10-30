@@ -90,17 +90,12 @@ class ManagedServiceController extends Controller
         $slaMetCount     = $tickets->where('sla_met', true)->whereNotNull('resolved_at')->count();
         $slaScore        = $totalSlaChecked > 0 ? round(($slaMetCount / $totalSlaChecked) * 100, 1) : 0;
 
-        // Proyek di Tahap Operate / Managed Service (Selesai Serah Terima atau Closed Won & In Progress)
+        // Proyek di Tahap Operate / Managed Service (Selesai Serah Terima ke Managed Service)
         $operateProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->where(function($q) {
-                $q->where('stage', 'Operate')
-                  ->orWhere('sales_stage', 'Closed Won')
-                  ->orWhere('status', 'In Progress')
-                  ->orWhereIn('handover_target', ['managed_service', 'both'])
-                  ->orWhere('name', 'like', '%pemeliharaan%')
-                  ->orWhere('name', 'like', '%maintenance%')
-                  ->orWhere('name', 'like', '%managed service%');
-            })
+            ->where('stage', 'Operate')
+            ->where('ms_handover_status', 'Accepted')
+            ->where('project_type', 'not like', '%One-Time%')
+            ->where('handover_target', '!=', 'pmo')
             ->get();
 
         // SLA Tier counts
@@ -1083,69 +1078,8 @@ class ManagedServiceController extends Controller
      */
     private function ensureSampleProjectExists(): void
     {
-        if (Project::count() === 0) {
-            $creatorId = auth()->id() ?: User::first()?->id ?: 1;
-            $sampleProject = Project::create([
-                'name'                      => 'Layanan Managed Service & Pemeliharaan Jaringan Bank Raya',
-                'client'                    => 'Bank Raya',
-                'sales_name'                => 'Raiza',
-                'presales_name'             => 'Akbar',
-                'location'                  => 'Menara BRI Lt. 12, Jakarta Selatan',
-                'project_type'              => 'Managed Service SLA',
-                'sla_tier'                  => 'Platinum',
-                'stage'                     => 'Operate',
-                'status'                    => 'Active',
-                'handover_target'           => 'managed_service',
-                'handover_status'           => null,
-                'commercial_handover_status'=> 'Approved',
-                'ms_handover_status'        => 'Accepted',
-                'progress'                  => 25,
-                'contract_value'            => 450000000,
-                'start_date'                => now()->subMonths(3)->toDateString(),
-                'deadline'                  => now()->addMonths(9)->toDateString(),
-                'service_start_date'        => now()->subMonths(3)->toDateString(),
-                'service_end_date'          => now()->addMonths(9)->toDateString(),
-                'po_spk_number'             => 'SPK/IPNET/BRY/2026/014',
-                'po_spk_date'               => now()->subMonths(3)->toDateString(),
-                'sla_commitment'            => '99.5% Uptime, 24x7 Standby Support, MTTR < 4 Jam',
-                'sla_coverage_hours'        => '24x7',
-                'maintenance_frequency'     => 'Quarterly',
-                'pm_frequency_type'         => 'per_3_bulan',
-                'pm_total_cycles'           => 4,
-                'cm_quota'                  => 18,
-                'mttr_hours'                => 4,
-                'call_response_time'        => '15 menit',
-                'incident_resolution_hours' => 4,
-                'sla_target_percentage'     => 99.50,
-                'customer_pic_technical'    => 'Bpk. Budi Santoso (Head of IT Ops - 081234567890)',
-                'customer_pic_business'     => 'Ibu Diana Putri (Procurement - 081298765432)',
-                'customer_pic_finance'      => 'Bpk. Hendra Gunawan (Finance)',
-                'created_by'                => $creatorId,
-            ]);
-
-            self::initPmCycles($sampleProject);
-
-            ManagedServiceTicket::create([
-                'ticket_number'    => 'CM-2026-001',
-                'project_id'       => $sampleProject->id,
-                'client_name'      => 'Bank Raya',
-                'title'            => 'Kegiatan Upgrade OS & Patching Security Core Switch',
-                'description'      => 'Upgrade firmware NOS dan verifikasi redundansi link failover.',
-                'incident_date'    => now()->subWeeks(2)->toDateString(),
-                'type'             => 'Corrective Maintenance',
-                'category'         => 'Switch',
-                'priority'         => 'High',
-                'status'           => 'Resolved',
-                'source'           => 'Portal',
-                'reported_by'      => 'Budi Santoso',
-                'contact_phone'    => '081234567890',
-                'assigned_to'      => $creatorId,
-                'resolved_at'      => now()->subWeeks(2)->addHours(2),
-                'sla_met'          => true,
-                'resolution_notes' => 'Upgrade OS selesai tanpa downtime transaksi nasabah.',
-                'created_by'       => $creatorId,
-            ]);
-        }
+        // No-op: prevent automatic dummy data generation so data stays clean
+        return;
     }
 
     /**

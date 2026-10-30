@@ -610,33 +610,144 @@ Route::get('/seed-angkasa-pura-project', function () {
     }
 });
 
-// Route Helper untuk mengosongkan daftar proyek Managed Service (reset proyek MS dummy)
-Route::get('/clear-managed-service-projects', function () {
+// Route Helper untuk membersihkan seluruh data operasional & dummy di modul Maintenance / Managed Service
+Route::get('/clean-maintenance-data', function () {
     try {
         if (function_exists('opcache_reset')) {
             @opcache_reset();
         }
-        \App\Models\Project::where('stage', 'Operate')
-            ->orWhere('ms_handover_status', 'Accepted')
-            ->update([
-                'ms_handover_status' => null,
-                'ms_accepted_at'     => null,
-                'ms_accepted_by'     => null,
-            ]);
+
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        $cleared = [];
+
+        // 1. Kosongkan tabel transaksional Managed Service
+        $msTables = [
+            'managed_service_tickets'   => 'Tiket Gangguan / Insiden (CM & Service Request)',
+            'managed_service_pm_cycles' => 'Siklus Preventive Maintenance (PM 1–12)',
+            'managed_service_reports'   => 'Laporan Maintenance & SLA',
+            'managed_service_assets'    => 'Aset Klien SLA (Configuration Items)',
+        ];
+
+        foreach ($msTables as $tbl => $label) {
+            if (\Illuminate\Support\Facades\Schema::hasTable($tbl)) {
+                $count = \Illuminate\Support\Facades\DB::table($tbl)->count();
+                \Illuminate\Support\Facades\DB::table($tbl)->truncate();
+                $cleared[] = "Tabel <strong>{$tbl}</strong> ({$label}): <strong>{$count}</strong> data dihapus/dikosongkan.";
+            }
+        }
+
+        // 2. Bersihkan Task terkait Maintenance / CM di modul Tasks
+        $tasksCount = 0;
+        if (\Illuminate\Support\Facades\Schema::hasTable('tasks')) {
+            $tasksCount = \App\Models\Task::where(function($q) {
+                $q->where('title', 'like', '[CM-%')
+                  ->orWhere('title', 'like', '[MS -%')
+                  ->orWhere('title', 'like', '%Preventive Maintenance%')
+                  ->orWhere('title', 'like', '%Siklus-%');
+            })->delete();
+        }
+        $cleared[] = "Penugasan Tim (Tasks) Maintenance / CM: <strong>{$tasksCount}</strong> tugas dibersihkan.";
+
+        // 3. Bersihkan Schedule terkait Maintenance / CM di Work Schedule
+        $schedCount = 0;
+        if (\Illuminate\Support\Facades\Schema::hasTable('schedules')) {
+            $schedCount = \App\Models\Schedule::where(function($q) {
+                $q->where('title', 'like', '[CM-%')
+                  ->orWhere('title', 'like', '[MS -%')
+                  ->orWhere('title', 'like', '%Preventive Maintenance%')
+                  ->orWhere('title', 'like', '%Siklus-%');
+            })->delete();
+        }
+        $cleared[] = "Jadwal Kalender (Schedules) Maintenance: <strong>{$schedCount}</strong> agenda dibersihkan.";
+
+        // 4. Hapus proyek dummy Bank Raya jika ada
+        $deletedDummy = 0;
+        if (\Illuminate\Support\Facades\Schema::hasTable('projects')) {
+            $deletedDummy = \App\Models\Project::where('name', 'like', '%Layanan Managed Service & Pemeliharaan Jaringan Bank Raya%')
+                ->orWhere('po_spk_number', 'SPK/IPNET/BRY/2026/014')
+                ->delete();
+        }
+        if ($deletedDummy > 0) {
+            $cleared[] = "Proyek Dummy Bank Raya: <strong>{$deletedDummy}</strong> proyek dummy dihapus.";
+        }
+
+        // 5. Reset status Handover Managed Service di seluruh proyek agar portofolio MS bersih
+        $updatedProjects = 0;
+        if (\Illuminate\Support\Facades\Schema::hasTable('projects')) {
+            $updatedProjects = \App\Models\Project::where('stage', 'Operate')
+                ->orWhereNotNull('ms_handover_status')
+                ->update([
+                    'ms_handover_status' => null,
+                    'ms_accepted_at'     => null,
+                    'ms_accepted_by'     => null,
+                    'stage'              => 'Implementation',
+                ]);
+        }
+        $cleared[] = "Status Handover Proyek MS: <strong>{$updatedProjects}</strong> proyek di-reset ke antrean awal.";
+
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Daftar proyek Managed Service berhasil dikosongkan! Sekarang halaman Managed Service bersih tanpa proyek dummy.',
-            'url_ms' => url('/managed-service/projects'),
-        ]);
+        return response("
+            <!DOCTYPE html>
+            <html lang='id'>
+            <head>
+                <meta charset='UTF-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <title>Data Maintenance Berhasil Dibersihkan</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #F8FAFC; color: #1E293B; margin: 0; padding: 40px 20px; }
+                    .card { max-width: 680px; margin: 0 auto; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 32px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+                    .header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+                    .icon { width: 48px; height: 48px; background: #DEF7EC; color: #03543F; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; flex-shrink: 0; }
+                    h2 { margin: 0; font-size: 20px; font-weight: 800; color: #0F172A; }
+                    p.sub { margin: 4px 0 0; font-size: 13px; color: #64748B; }
+                    .box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+                    h4 { margin: 0 0 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; font-weight: 700; }
+                    ul { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.8; color: #334155; }
+                    .btn-wrap { display: flex; gap: 12px; flex-wrap: wrap; }
+                    .btn-primary { display: inline-block; padding: 11px 22px; background: #8F0A0D; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 700; transition: background 0.2s; }
+                    .btn-primary:hover { background: #73080A; }
+                    .btn-secondary { display: inline-block; padding: 11px 22px; background: #F1F5F9; color: #334155; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 700; border: 1px solid #CBD5E1; transition: background 0.2s; }
+                    .btn-secondary:hover { background: #E2E8F0; }
+                </style>
+            </head>
+            <body>
+                <div class='card'>
+                    <div class='header'>
+                        <div class='icon'>&#10003;</div>
+                        <div>
+                            <h2>Seluruh Data Maintenance Berhasil Dibersihkan!</h2>
+                            <p class='sub'>Tabel tiket CM, siklus PM, laporan, aset klien, dan task maintenance telah di-reset ke kondisi bersih.</p>
+                        </div>
+                    </div>
+                    <div class='box'>
+                        <h4>Rincian Pembersihan Database:</h4>
+                        <ul>
+                            <li>" . implode("</li><li>", $cleared) . "</li>
+                        </ul>
+                    </div>
+                    <div class='btn-wrap'>
+                        <a href='/managed-service' class='btn-primary'>Buka Dashboard Maintenance &rarr;</a>
+                        <a href='/managed-service/projects' class='btn-secondary'>Buka Daftar Proyek MS</a>
+                    </div>
+                </div>
+            </body>
+            </html>
+        ");
     } catch (\Throwable $e) {
         return response()->json([
             'status' => 'error',
             'message' => $e->getMessage()
         ], 500);
     }
+});
+
+// Alias backward compatibility untuk route clear sebelumnya
+Route::get('/clear-managed-service-projects', function () {
+    return redirect('/clean-maintenance-data');
 });
 
 // Route Helper untuk membuat 2 dummy resmi: 1 Laporan Aktivitas Sales (A-G) & 1 Lesson Learned (Lost Deal)
