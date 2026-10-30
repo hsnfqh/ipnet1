@@ -50,6 +50,39 @@ class CheckRole
             return $next($request);
         }
 
+        // Fallback: Check if route requires Maintenance / Managed Service and user is Eris, Mario, Doris, or in Maintenance division
+        $isMsRoute = collect($parsedRoles)->contains(function ($role) {
+            return in_array(strtolower($role), [
+                'maintenance', 
+                'lead maintenance', 
+                'managed service', 
+                'field support', 
+                'field support (eos)',
+                'field engineer'
+            ]);
+        });
+
+        if ($isMsRoute && (
+            str_contains($email, 'eris') || 
+            str_contains($email, 'mario') || 
+            str_contains($email, 'doris') || 
+            str_contains($name, 'eris') || 
+            str_contains($name, 'mario') || 
+            str_contains($name, 'doris') || 
+            str_contains($pos, 'maintenance') || 
+            str_contains($pos, 'field support') || 
+            str_contains($pos, 'managed service') || 
+            ($user->division && str_contains(strtolower($user->division->name), 'maintenance')) ||
+            $user->hasAnyRole(['Maintenance', 'Lead Maintenance', 'Field Support (EOS)', 'Field Support', 'Managed Service', 'Engineer'])
+        )) {
+            try {
+                \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Maintenance', 'guard_name' => 'web']);
+                \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Lead Maintenance', 'guard_name' => 'web']);
+                $user->assignRole(['Maintenance', 'Field Support (EOS)']);
+            } catch (\Throwable $e) {}
+            return $next($request);
+        }
+
         // General position fallback: if user's position matches any allowed role
         foreach ($parsedRoles as $role) {
             if (strcasecmp($role, $user->position ?? '') === 0 || 

@@ -1174,8 +1174,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/proposals/{project}/download', [\App\Http\Controllers\PresalesProposalController::class, 'download'])->name('presales.proposals.download');
     });
 
+    // Alias redirect for underscore URL /managed_service
+    Route::any('/managed_service/{any?}', function ($any = null) {
+        return redirect('/managed-service/' . ltrim($any ?? '', '/'));
+    })->where('any', '.*');
+
     // Modul 4: MANAGED SERVICE (SERVICE DELIVERY - OPERATE & MAINTAIN)
-    Route::prefix('managed-service')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Group Leader Commercial & Solution|Lead Maintenance|Maintenance|PMO|Project Manager|Lead Engineer|Lead Divisi|Team Leader Engineering|Team Leader')->group(function () {
+    Route::prefix('managed-service')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Group Leader Commercial & Solution|Lead Maintenance|Maintenance|PMO|Project Manager|Lead Engineer|Lead Divisi|Team Leader Engineering|Team Leader|Field Support (EOS)|Field Support|Managed Service|Field Engineer|Engineer')->group(function () {
         Route::get('/', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])->name('ms.dashboard');
         Route::get('/dashboard', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])->name('ms.dashboard.alias');
 
