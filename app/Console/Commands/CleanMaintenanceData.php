@@ -82,7 +82,7 @@ class CleanMaintenanceData extends Command
                 ->orWhere('handover_target', 'managed_service')
                 ->orWhere('handover_target', 'both')
                 ->update([
-                    'ms_handover_status' => null,
+                    'ms_handover_status' => 'Draft',
                     'ms_accepted_at'     => null,
                     'ms_accepted_by'     => null,
                     'stage'              => 'Implementation',
