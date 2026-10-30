@@ -1247,95 +1247,98 @@
     <!-- ========================================================== -->
     <template x-teleport="body">
         <div x-show="isPmModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] max-h-[90vh] overflow-y-auto" @click.away="isPmModalOpen = false">
-                <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
+            <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden" @click.away="isPmModalOpen = false">
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] px-6 py-4 shrink-0 bg-white">
                     <div>
                         <p class="text-[10.5px] font-bold text-emerald-700 uppercase tracking-wider">Update Realisasi PM</p>
                         <h3 class="text-[15px] font-bold text-[#1E293B]" x-text="activeCycle ? activeCycle.cycle_label : 'Siklus PM'"></h3>
                     </div>
-                    <button @click="isPmModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold">&times;</button>
+                    <button @click="isPmModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold leading-none">&times;</button>
                 </div>
 
-                <form :action="'/managed-service/monitoring/pm-cycles/' + (activeCycle ? activeCycle.id : '')" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <form :action="'/managed-service/monitoring/pm-cycles/' + (activeCycle ? activeCycle.id : '')" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
 
-                    <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">Status Kunjungan (Activity) <span class="text-[#8F0A0D]">*</span></label>
-                        <select name="activity_status" :value="activeCycle ? activeCycle.activity_status : 'Scheduled'" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                            <option value="Scheduled">Scheduled (Terjadwal)</option>
-                            <option value="In Progress">In Progress (Sedang Dikerjakan)</option>
-                            <option value="Completed">Completed (Selesai Dilaksanakan)</option>
-                        </select>
-                    </div>
-
-                    {{-- Jadwal Target & Tanggal Realisasi Visit (Bisa Diubah oleh Tim MS) --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div class="p-6 overflow-y-auto space-y-4 flex-1">
                         <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">
-                                Jadwal Target Kunjungan <span class="text-[#8F0A0D]">*</span>
-                            </label>
-                            <input type="date" name="scheduled_date" :value="activeCycle ? (activeCycle.scheduled_date ? String(activeCycle.scheduled_date).split('T')[0] : '') : ''" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Status Kunjungan (Activity) <span class="text-[#8F0A0D]">*</span></label>
+                            <select name="activity_status" :value="activeCycle ? activeCycle.activity_status : 'Scheduled'" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                <option value="Scheduled">Scheduled (Terjadwal)</option>
+                                <option value="In Progress">In Progress (Sedang Dikerjakan)</option>
+                                <option value="Completed">Completed (Selesai Dilaksanakan)</option>
+                            </select>
+                        </div>
+
+                        {{-- Jadwal Target & Tanggal Realisasi Visit (Bisa Diubah oleh Tim MS) --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">
+                                    Jadwal Target Kunjungan <span class="text-[#8F0A0D]">*</span>
+                                </label>
+                                <input type="date" name="scheduled_date" :value="activeCycle ? (activeCycle.scheduled_date ? String(activeCycle.scheduled_date).split('T')[0] : '') : ''" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">
+                                    Tanggal Realisasi Visit
+                                </label>
+                                <input type="date" name="actual_date" :value="activeCycle ? (activeCycle.actual_date ? String(activeCycle.actual_date).split('T')[0] : '') : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">
-                                Tanggal Realisasi Visit
-                            </label>
-                            <input type="date" name="actual_date" :value="activeCycle ? (activeCycle.actual_date ? String(activeCycle.actual_date).split('T')[0] : '') : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Field Engineer</label>
-                        <select name="assigned_engineer_id" :value="activeCycle ? activeCycle.assigned_engineer_id : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                            <option value="">Pilih Field Engineer</option>
-                            @foreach($engineers as $eng)
-                                <option value="{{ $eng->id }}">{{ $eng->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">Upload Laporan PM (PDF)</label>
-                        <input type="file" name="report_file" accept=".pdf" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Status Laporan PM</label>
-                            <select name="report_status" :value="activeCycle ? activeCycle.report_status : 'Pending'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="Pending">Pending (Belum Diupload)</option>
-                                <option value="Submitted">Submitted (Menunggu Review)</option>
-                                <option value="Approved">Approved (Disetujui Klien)</option>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Field Engineer</label>
+                            <select name="assigned_engineer_id" :value="activeCycle ? activeCycle.assigned_engineer_id : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                <option value="">Pilih Field Engineer</option>
+                                @foreach($engineers as $eng)
+                                    <option value="{{ $eng->id }}">{{ $eng->name }}</option>
+                                @endforeach
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Status BA / Milestone Penagihan</label>
-                            <select name="billing_ba_status" :value="activeCycle ? activeCycle.billing_ba_status : 'Pending'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="Pending">Pending</option>
-                                <option value="Submitted">Submitted</option>
-                                <option value="Signed">Signed (Ditandatangani)</option>
-                                <option value="Invoiced">Invoiced (Ditagihkan)</option>
-                            </select>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Upload Laporan PM (PDF)</label>
+                            <input type="file" name="report_file" accept=".pdf" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Status Laporan PM</label>
+                                <select name="report_status" :value="activeCycle ? activeCycle.report_status : 'Pending'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                    <option value="Pending">Pending (Belum Diupload)</option>
+                                    <option value="Submitted">Submitted (Menunggu Review)</option>
+                                    <option value="Approved">Approved (Disetujui Klien)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Status BA / Milestone Penagihan</label>
+                                <select name="billing_ba_status" :value="activeCycle ? activeCycle.billing_ba_status : 'Pending'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Submitted">Submitted</option>
+                                    <option value="Signed">Signed (Ditandatangani)</option>
+                                    <option value="Invoiced">Invoiced (Ditagihkan)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Upload Berita Acara (BA / Milestone)</label>
+                            <input type="file" name="billing_ba_file" accept=".pdf,.doc,.docx" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Catatan Pelaksanaan Inspeksi</label>
+                            <textarea name="notes" rows="2" :value="activeCycle ? activeCycle.notes : ''" placeholder="Catatan temuan teknis saat kunjungan..." class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]"></textarea>
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">Upload Berita Acara (BA / Milestone)</label>
-                        <input type="file" name="billing_ba_file" accept=".pdf,.doc,.docx" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">Catatan Pelaksanaan Inspeksi</label>
-                        <textarea name="notes" rows="2" :value="activeCycle ? activeCycle.notes : ''" placeholder="Catatan temuan teknis saat kunjungan..." class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]"></textarea>
-                    </div>
-
-                    <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E2E8F0]">
-                        <button type="button" @click="isPmModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-[#F8FAFC]">
+                    {{-- Fixed Footer (Always visible, does NOT scroll) --}}
+                    <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
+                        <button type="button" @click="isPmModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-200 transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white">
+                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white cursor-pointer">
                             Simpan Realisasi PM
                         </button>
                     </div>
@@ -1349,8 +1352,8 @@
     <!-- ========================================================== -->
     <template x-teleport="body">
         <div x-show="isCmModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] max-h-[90vh] overflow-y-auto" @click.away="isCmModalOpen = false">
-                <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
+            <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden" @click.away="isCmModalOpen = false">
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] px-6 py-4 shrink-0 bg-white">
                     <div>
                         <p class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Tiket Insiden / Perbaikan</p>
                         <h3 class="text-[15px] font-bold text-[#1E293B] flex items-center gap-1.5">
@@ -1358,83 +1361,86 @@
                             <span x-show="selectedCmSlot" class="text-xs font-semibold text-[#8F0A0D]" x-text="'(Slot #' + selectedCmSlot + ')'"></span>
                         </h3>
                     </div>
-                    <button @click="isCmModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold">&times;</button>
+                    <button @click="isCmModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold leading-none">&times;</button>
                 </div>
 
-                <form action="{{ route('ms.monitoring.cm.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <form action="{{ route('ms.monitoring.cm.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
                     <input type="hidden" name="project_id" value="{{ $project->id }}">
 
-                    <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">Judul Insiden / Aktivitas CM <span class="text-[#8F0A0D]">*</span></label>
-                        <input type="text" name="title" required placeholder="Contoh: Penggantian SFP Module Port 2 Core Switch" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div class="p-6 overflow-y-auto space-y-4 flex-1">
                         <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Prioritas & SLA <span class="text-[#8F0A0D]">*</span></label>
-                            <select name="priority" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="Critical">Critical (P1 - MTTR 1 Jam)</option>
-                                <option value="High" selected>High (P2 - MTTR 4 Jam)</option>
-                                <option value="Medium">Medium (P3 - MTTR 8 Jam)</option>
-                                <option value="Low">Low (P4 - MTTR 24 Jam)</option>
-                            </select>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Judul Insiden / Aktivitas CM <span class="text-[#8F0A0D]">*</span></label>
+                            <input type="text" name="title" required placeholder="Contoh: Penggantian SFP Module Port 2 Core Switch" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Prioritas & SLA <span class="text-[#8F0A0D]">*</span></label>
+                                <select name="priority" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                    <option value="Critical">Critical (P1 - MTTR 1 Jam)</option>
+                                    <option value="High" selected>High (P2 - MTTR 4 Jam)</option>
+                                    <option value="Medium">Medium (P3 - MTTR 8 Jam)</option>
+                                    <option value="Low">Low (P4 - MTTR 24 Jam)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Tanggal Mulai Insiden / Pelaksanaan <span class="text-[#8F0A0D]">*</span></label>
+                                <input type="date" name="incident_date" value="{{ date('Y-m-d') }}" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Nama Pelapor / PIC Klien</label>
+                                <input type="text" name="reported_by" value="{{ $project->customer_pic_technical ?: ($project->client ?: '') }}" placeholder="Nama PIC" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Kontak Telepon / WA</label>
+                                <input type="text" name="contact_phone" placeholder="08xxxxxxxxxx" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Field Support Engineer</label>
+                                <select name="assigned_to" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                    <option value="">Pilih Teknisi</option>
+                                    @foreach($engineers as $eng)
+                                        <option value="{{ $eng->id }}">{{ $eng->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Status Tiket</label>
+                                <select name="status" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                    <option value="In Progress" selected>In Progress (Sedang Ditangani)</option>
+                                    <option value="Resolved">Resolved (Selesai Penanganan)</option>
+                                    <option value="Open">Open (Baru Diterima)</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Tanggal Mulai Insiden / Pelaksanaan <span class="text-[#8F0A0D]">*</span></label>
-                            <input type="date" name="incident_date" value="{{ date('Y-m-d') }}" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Nama Pelapor / PIC Klien</label>
-                            <input type="text" name="reported_by" value="{{ $project->customer_pic_technical ?: ($project->client ?: '') }}" placeholder="Nama PIC" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Rincian Gangguan / Masalah</label>
+                            <textarea name="description" rows="2" placeholder="Jelaskan indikasi error atau alasan kebutuhan corrective..." class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]"></textarea>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Kontak Telepon / WA</label>
-                            <input type="text" name="contact_phone" placeholder="08xxxxxxxxxx" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Upload Berita Acara Perbaikan (BAP / Foto Bukti)</label>
+                            <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Field Support Engineer</label>
-                            <select name="assigned_to" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="">Pilih Teknisi</option>
-                                @foreach($engineers as $eng)
-                                    <option value="{{ $eng->id }}">{{ $eng->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Status Tiket</label>
-                            <select name="status" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="In Progress" selected>In Progress (Sedang Ditangani)</option>
-                                <option value="Resolved">Resolved (Selesai Penanganan)</option>
-                                <option value="Open">Open (Baru Diterima)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">Rincian Gangguan / Masalah</label>
-                        <textarea name="description" rows="2" placeholder="Jelaskan indikasi error atau alasan kebutuhan corrective..." class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">Upload Berita Acara Perbaikan (BAP / Foto Bukti)</label>
-                        <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
-                    </div>
-
-                    <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E2E8F0]">
-                        <button type="button" @click="isCmModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-[#F8FAFC]">
+                    {{-- Fixed Footer --}}
+                    <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
+                        <button type="button" @click="isCmModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-200 transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white">
+                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white cursor-pointer">
                             Catat Tiket CM
                         </button>
                     </div>
@@ -1448,8 +1454,8 @@
     <!-- ========================================================== -->
     <template x-teleport="body">
         <div x-show="isCmDetailModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] max-h-[90vh] overflow-y-auto" @click.away="isCmDetailModalOpen = false">
-                <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
+            <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden" @click.away="isCmDetailModalOpen = false">
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] px-6 py-4 shrink-0 bg-white">
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Detail &amp; Update Tiket CM</span>
@@ -1457,97 +1463,100 @@
                         </div>
                         <h3 class="text-[15px] font-bold text-[#1E293B] mt-0.5" x-text="activeCmTicket ? activeCmTicket.title : 'Tiket CM'"></h3>
                     </div>
-                    <button @click="isCmDetailModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold">&times;</button>
+                    <button @click="isCmDetailModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold leading-none">&times;</button>
                 </div>
 
-                <form :action="'/managed-service/monitoring/cm-tickets/' + (activeCmTicket ? activeCmTicket.id : '') + '/update'" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <form :action="'/managed-service/monitoring/cm-tickets/' + (activeCmTicket ? activeCmTicket.id : '') + '/update'" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
 
-                    <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">Judul Insiden / Aktivitas CM <span class="text-[#8F0A0D]">*</span></label>
-                        <input type="text" name="title" :value="activeCmTicket ? activeCmTicket.title : ''" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                    <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                        <div>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Judul Insiden / Aktivitas CM <span class="text-[#8F0A0D]">*</span></label>
+                            <input type="text" name="title" :value="activeCmTicket ? activeCmTicket.title : ''" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Status Tiket <span class="text-[#8F0A0D]">*</span></label>
+                                <select name="status" :value="activeCmTicket ? activeCmTicket.status : 'Resolved'" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                    <option value="In Progress">In Progress (Sedang Ditangani)</option>
+                                    <option value="Resolved">Resolved (Selesai Perbaikan)</option>
+                                    <option value="Closed">Closed (Ditutup Resmi)</option>
+                                    <option value="Open">Open (Baru Diterima)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Prioritas &amp; SLA <span class="text-[#8F0A0D]">*</span></label>
+                                <select name="priority" :value="activeCmTicket ? activeCmTicket.priority : 'High'" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                    <option value="Critical">Critical (P1 - MTTR 1 Jam)</option>
+                                    <option value="High">High (P2 - MTTR 4 Jam)</option>
+                                    <option value="Medium">Medium (P3 - MTTR 8 Jam)</option>
+                                    <option value="Low">Low (P4 - MTTR 24 Jam)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {{-- Tanggal Mulai & Tanggal Selesai Restorasi --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">
+                                    Tanggal Mulai / Insiden <span class="text-[#8F0A0D]">*</span>
+                                </label>
+                                <input type="date" name="incident_date" :value="activeCmTicket ? (activeCmTicket.incident_date ? String(activeCmTicket.incident_date).split('T')[0] : (activeCmTicket.created_at ? String(activeCmTicket.created_at).split('T')[0] : '')) : ''" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">
+                                    Tanggal Selesai Restorasi
+                                </label>
+                                <input type="date" name="resolved_at" :value="activeCmTicket ? (activeCmTicket.resolved_at ? String(activeCmTicket.resolved_at).split('T')[0] : '') : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Field Support Engineer</label>
+                                <select name="assigned_to" :value="activeCmTicket ? activeCmTicket.assigned_to : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                    <option value="">Pilih Teknisi</option>
+                                    @foreach($engineers as $eng)
+                                        <option value="{{ $eng->id }}">{{ $eng->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Pelapor / Kontak Klien</label>
+                                <input type="text" name="reported_by" :value="activeCmTicket ? activeCmTicket.reported_by : ''" placeholder="Nama Pelapor" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Catatan Tindakan / Resolusi</label>
+                            <textarea name="resolution_notes" rows="2" :value="activeCmTicket ? activeCmTicket.resolution_notes : ''" placeholder="Catatan langkah perbaikan insiden..." class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]"></textarea>
+                        </div>
+
+                        {{-- Upload / View BAP Berkas --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-xs font-semibold text-[#334155]">Upload Berkas BAP (PDF / Foto Bukti)</label>
+                                <template x-if="activeCmTicket && activeCmTicket.attachment_path">
+                                    <a :href="'/storage/' + activeCmTicket.attachment_path" target="_blank" class="text-[11px] font-bold text-emerald-700 hover:underline flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        <span>Lihat Berkas BAP Terunggah</span>
+                                    </a>
+                                </template>
+                            </div>
+                            <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Status Tiket <span class="text-[#8F0A0D]">*</span></label>
-                            <select name="status" :value="activeCmTicket ? activeCmTicket.status : 'Resolved'" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="In Progress">In Progress (Sedang Ditangani)</option>
-                                <option value="Resolved">Resolved (Selesai Perbaikan)</option>
-                                <option value="Closed">Closed (Ditutup Resmi)</option>
-                                <option value="Open">Open (Baru Diterima)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Prioritas &amp; SLA <span class="text-[#8F0A0D]">*</span></label>
-                            <select name="priority" :value="activeCmTicket ? activeCmTicket.priority : 'High'" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="Critical">Critical (P1 - MTTR 1 Jam)</option>
-                                <option value="High">High (P2 - MTTR 4 Jam)</option>
-                                <option value="Medium">Medium (P3 - MTTR 8 Jam)</option>
-                                <option value="Low">Low (P4 - MTTR 24 Jam)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {{-- Tanggal Mulai & Tanggal Selesai Restorasi --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">
-                                Tanggal Mulai / Insiden <span class="text-[#8F0A0D]">*</span>
-                            </label>
-                            <input type="date" name="incident_date" :value="activeCmTicket ? (activeCmTicket.incident_date ? String(activeCmTicket.incident_date).split('T')[0] : (activeCmTicket.created_at ? String(activeCmTicket.created_at).split('T')[0] : '')) : ''" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">
-                                Tanggal Selesai Restorasi
-                            </label>
-                            <input type="date" name="resolved_at" :value="activeCmTicket ? (activeCmTicket.resolved_at ? String(activeCmTicket.resolved_at).split('T')[0] : '') : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Field Support Engineer</label>
-                            <select name="assigned_to" :value="activeCmTicket ? activeCmTicket.assigned_to : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="">Pilih Teknisi</option>
-                                @foreach($engineers as $eng)
-                                    <option value="{{ $eng->id }}">{{ $eng->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Pelapor / Kontak Klien</label>
-                            <input type="text" name="reported_by" :value="activeCmTicket ? activeCmTicket.reported_by : ''" placeholder="Nama Pelapor" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">Catatan Tindakan / Resolusi</label>
-                        <textarea name="resolution_notes" rows="2" :value="activeCmTicket ? activeCmTicket.resolution_notes : ''" placeholder="Catatan langkah perbaikan insiden..." class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]"></textarea>
-                    </div>
-
-                    {{-- Upload / View BAP Berkas --}}
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="text-xs font-semibold text-[#334155]">Upload Berkas BAP (PDF / Foto Bukti)</label>
-                            <template x-if="activeCmTicket && activeCmTicket.attachment_path">
-                                <a :href="'/storage/' + activeCmTicket.attachment_path" target="_blank" class="text-[11px] font-bold text-emerald-700 hover:underline flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    <span>Lihat Berkas BAP Terunggah</span>
-                                </a>
-                            </template>
-                        </div>
-                        <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
-                    </div>
-
-                    <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E2E8F0]">
-                        <button type="button" @click="isCmDetailModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-[#F8FAFC]">
+                    {{-- Fixed Footer --}}
+                    <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
+                        <button type="button" @click="isCmDetailModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-200 transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white">
+                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white cursor-pointer">
                             Simpan Perubahan Tiket
                         </button>
                     </div>
