@@ -713,18 +713,10 @@
                                                 @if($ticket->attachment_path)
                                                     <a href="{{ asset('storage/' . $ticket->attachment_path) }}" target="_blank" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-bold transition border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
                                                         <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                        <span>BAP Lampiran</span>
-                                                    </a>
-                                                @elseif(in_array($ticket->status, ['Resolved', 'Closed']))
-                                                    <a href="{{ route('ms.monitoring.cm.bap', $ticket->id) }}" target="_blank" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-bold transition border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
-                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                         <span>Lihat BAP</span>
                                                     </a>
                                                 @else
-                                                    <a href="{{ route('ms.monitoring.cm.bap', $ticket->id) }}" target="_blank" class="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold transition border border-amber-200 flex items-center gap-1.5 shadow-2xs">
-                                                        <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                        <span>Draft BAP</span>
-                                                    </a>
+                                                    <span class="text-[11px] text-[#94A3B8] font-medium">—</span>
                                                 @endif
                                             </td>
 
