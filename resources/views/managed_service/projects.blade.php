@@ -67,8 +67,14 @@
                         <p class="text-[13px] text-[#64748B] mt-0.5">Kelola pelaksanaan kontrak berjalan, dokumen legal BAST/SPK, serah terima masuk (onboarding), dan monitoring SLA</p>
                     </div>
 
-                    {{-- Tab Switcher: Segmented Toggle Styled Like Reference (Gambar 2) on the right side --}}
-                    <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0 self-start lg:self-center">
+                    <div class="flex flex-wrap items-center gap-3 shrink-0 self-start lg:self-center">
+                        <a href="{{ url('/clean-maintenance-data?redirect=projects') }}" onclick="return confirm('Apakah Anda yakin ingin MENGOSONGKAN seluruh data proyek Maintenance (tiket, proyek MS dummy, siklus PM, aset) untuk keperluan uji coba?')" class="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-[#8F0A0D] font-bold text-xs inline-flex items-center gap-1.5 transition shadow-2xs">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <span>Bersihkan Semua Data Maintenance</span>
+                        </a>
+
+                        {{-- Tab Switcher: Segmented Toggle Styled Like Reference (Gambar 2) on the right side --}}
+                        <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs">
                         {{-- Tab 1: Kontrak Layanan Aktif --}}
                         <button type="button" 
                                 @click="activeTab = 'active'" 
@@ -102,6 +108,7 @@
                                 {{ $pendingHandoversCount ?? ($incomingHandovers->count() ?? 0) }}
                             </span>
                         </button>
+                    </div>
                     </div>
                 </div>
             </div>

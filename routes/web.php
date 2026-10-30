@@ -637,58 +637,84 @@ Route::get('/clean-maintenance-data', function () {
             }
         }
 
-        // 2. Bersihkan Task terkait Maintenance / CM di modul Tasks
-        $tasksCount = 0;
-        if (\Illuminate\Support\Facades\Schema::hasTable('tasks')) {
-            $tasksCount = \App\Models\Task::where(function($q) {
-                $q->where('title', 'like', '[CM-%')
-                  ->orWhere('title', 'like', '[MS -%')
-                  ->orWhere('title', 'like', '%Preventive Maintenance%')
-                  ->orWhere('title', 'like', '%Siklus-%');
-            })->delete();
-        }
-        $cleared[] = "Penugasan Tim (Tasks) Maintenance / CM: <strong>{$tasksCount}</strong> tugas dibersihkan.";
-
-        // 3. Bersihkan Schedule terkait Maintenance / CM di Work Schedule
-        $schedCount = 0;
-        if (\Illuminate\Support\Facades\Schema::hasTable('schedules')) {
-            $schedCount = \App\Models\Schedule::where(function($q) {
-                $q->where('title', 'like', '[CM-%')
-                  ->orWhere('title', 'like', '[MS -%')
-                  ->orWhere('title', 'like', '%Preventive Maintenance%')
-                  ->orWhere('title', 'like', '%Siklus-%');
-            })->delete();
-        }
-        $cleared[] = "Jadwal Kalender (Schedules) Maintenance: <strong>{$schedCount}</strong> agenda dibersihkan.";
-
-        // 4. Hapus proyek dummy Bank Raya jika ada
-        $deletedDummy = 0;
+        // 2. Hapus proyek dummy khusus Managed Service (Telkom MS 24/7 & Bank Raya)
         if (\Illuminate\Support\Facades\Schema::hasTable('projects')) {
-            $deletedDummy = \App\Models\Project::where('name', 'like', '%Layanan Managed Service & Pemeliharaan Jaringan Bank Raya%')
-                ->orWhere('po_spk_number', 'SPK/IPNET/BRY/2026/014')
-                ->delete();
-        }
-        if ($deletedDummy > 0) {
-            $cleared[] = "Proyek Dummy Bank Raya: <strong>{$deletedDummy}</strong> proyek dummy dihapus.";
-        }
+            $msDummyProjects = \App\Models\Project::where(function($q) {
+                $q->where('name', 'like', '%Kontrak Managed Service & Pemeliharaan Jaringan 24/7 PT Telkom Indonesia Tbk%')
+                  ->orWhere('name', 'like', '%Layanan Managed Service & Pemeliharaan Jaringan Bank Raya%')
+                  ->orWhere('po_spk_number', 'KTR/TLK-NET/2026/021')
+                  ->orWhere('po_spk_number', 'SPK/IPNET/BRY/2026/014');
+            })->get();
 
-        // 5. Reset status Handover Managed Service di seluruh proyek agar portofolio MS bersih
-        $updatedProjects = 0;
-        if (\Illuminate\Support\Facades\Schema::hasTable('projects')) {
+            $deletedProjectNames = [];
+            foreach ($msDummyProjects as $dp) {
+                $deletedProjectNames[] = $dp->name;
+                if (\Illuminate\Support\Facades\Schema::hasTable('tasks')) {
+                    \App\Models\Task::where('project_id', $dp->id)->forceDelete();
+                }
+                if (\Illuminate\Support\Facades\Schema::hasTable('schedules')) {
+                    \App\Models\Schedule::where('project_id', $dp->id)->forceDelete();
+                }
+                $dp->forceDelete();
+            }
+            if (count($deletedProjectNames) > 0) {
+                $cleared[] = "Proyek Dummy Managed Service: <strong>" . count($deletedProjectNames) . "</strong> proyek dihapus (" . implode(', ', $deletedProjectNames) . ").";
+            }
+
+            // 3. Reset status Handover Managed Service di seluruh proyek tersisa agar portofolio & incoming handover MS kosong 0
             $updatedProjects = \App\Models\Project::where('stage', 'Operate')
                 ->orWhereNotNull('ms_handover_status')
+                ->orWhere('handover_target', 'managed_service')
+                ->orWhere('handover_target', 'both')
                 ->update([
                     'ms_handover_status' => null,
                     'ms_accepted_at'     => null,
                     'ms_accepted_by'     => null,
                     'stage'              => 'Implementation',
+                    'handover_target'    => 'pmo',
                 ]);
+            $cleared[] = "Reset Handover Proyek MS: <strong>{$updatedProjects}</strong> proyek di-reset (Kontrak Aktif: 0, Incoming Handover: 0).";
         }
-        $cleared[] = "Status Handover Proyek MS: <strong>{$updatedProjects}</strong> proyek di-reset ke antrean awal.";
+
+        // 4. Bersihkan Task terkait Maintenance / CM di modul Tasks
+        $tasksCount = 0;
+        if (\Illuminate\Support\Facades\Schema::hasTable('tasks')) {
+            $tasksCount = \App\Models\Task::where(function($q) {
+                $q->where('title', 'like', '[CM-%')
+                  ->orWhere('title', 'like', '[MS-%')
+                  ->orWhere('title', 'like', '%[MS -%')
+                  ->orWhere('title', 'like', '%Preventive Maintenance%')
+                  ->orWhere('title', 'like', '%Siklus-%')
+                  ->orWhere('title', 'like', '%Maintenance%');
+            })->forceDelete();
+        }
+        $cleared[] = "Penugasan Tim (Tasks) Maintenance / CM: <strong>{$tasksCount}</strong> tugas dibersihkan.";
+
+        // 5. Bersihkan Schedule terkait Maintenance / CM di Work Schedule
+        $schedCount = 0;
+        if (\Illuminate\Support\Facades\Schema::hasTable('schedules')) {
+            $schedCount = \App\Models\Schedule::where(function($q) {
+                $q->where('title', 'like', '[CM-%')
+                  ->orWhere('title', 'like', '[MS-%')
+                  ->orWhere('title', 'like', '%[MS -%')
+                  ->orWhere('title', 'like', '%Preventive Maintenance%')
+                  ->orWhere('title', 'like', '%Siklus-%')
+                  ->orWhere('title', 'like', '%Maintenance%');
+            })->forceDelete();
+        }
+        $cleared[] = "Jadwal Kalender (Schedules) Maintenance: <strong>{$schedCount}</strong> agenda dibersihkan.";
 
         \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+
+        if (request()->query('redirect') === 'dashboard') {
+            return redirect()->route('ms.dashboard')->with('success', 'Seluruh data Maintenance berhasil dibersihkan! Modul siap untuk uji coba.');
+        } elseif (request()->query('redirect') === 'projects') {
+            return redirect()->route('ms.projects.index')->with('success', 'Seluruh data proyek Maintenance berhasil dibersihkan! Modul siap untuk uji coba.');
+        } elseif (request()->query('redirect') === 'tickets') {
+            return redirect()->route('ms.tickets.index')->with('success', 'Seluruh tiket Maintenance berhasil dibersihkan! Modul siap untuk uji coba.');
+        }
 
         return response("
             <!DOCTYPE html>
@@ -720,7 +746,7 @@ Route::get('/clean-maintenance-data', function () {
                         <div class='icon'>&#10003;</div>
                         <div>
                             <h2>Seluruh Data Maintenance Berhasil Dibersihkan!</h2>
-                            <p class='sub'>Tabel tiket CM, siklus PM, laporan, aset klien, dan task maintenance telah di-reset ke kondisi bersih.</p>
+                            <p class='sub'>Tabel tiket CM, siklus PM, laporan, aset klien, proyek dummy Telkom/Bank Raya, dan task maintenance telah di-reset kosong 100%.</p>
                         </div>
                     </div>
                     <div class='box'>
@@ -732,6 +758,7 @@ Route::get('/clean-maintenance-data', function () {
                     <div class='btn-wrap'>
                         <a href='/managed-service' class='btn-primary'>Buka Dashboard Maintenance &rarr;</a>
                         <a href='/managed-service/projects' class='btn-secondary'>Buka Daftar Proyek MS</a>
+                        <a href='/managed-service/tickets' class='btn-secondary'>Buka Tiket SLA</a>
                     </div>
                 </div>
             </body>

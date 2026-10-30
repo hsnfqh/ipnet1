@@ -56,47 +56,65 @@ class CleanMaintenanceData extends Command
             }
         }
 
-        // 2. Bersihkan Task terkait Maintenance / CM
-        if (Schema::hasTable('tasks')) {
-            $tasksCount = Task::where(function($q) {
-                $q->where('title', 'like', '[CM-%')
-                  ->orWhere('title', 'like', '[MS -%')
-                  ->orWhere('title', 'like', '%Preventive Maintenance%')
-                  ->orWhere('title', 'like', '%Siklus-%');
-            })->delete();
-            $this->line(" - Tasks Maintenance / CM: {$tasksCount} task dihapus.");
-        }
-
-        // 3. Bersihkan Schedule terkait Maintenance / CM
-        if (Schema::hasTable('schedules')) {
-            $schedCount = Schedule::where(function($q) {
-                $q->where('title', 'like', '[CM-%')
-                  ->orWhere('title', 'like', '[MS -%')
-                  ->orWhere('title', 'like', '%Preventive Maintenance%')
-                  ->orWhere('title', 'like', '%Siklus-%');
-            })->delete();
-            $this->line(" - Schedules Maintenance / CM: {$schedCount} agenda dihapus.");
-        }
-
-        // 4. Hapus proyek dummy Bank Raya jika ada
+        // 2. Hapus proyek dummy Managed Service (Telkom MS 24/7 & Bank Raya)
         if (Schema::hasTable('projects')) {
-            $deletedDummy = Project::where('name', 'like', '%Layanan Managed Service & Pemeliharaan Jaringan Bank Raya%')
-                ->orWhere('po_spk_number', 'SPK/IPNET/BRY/2026/014')
-                ->delete();
-            if ($deletedDummy > 0) {
-                $this->line(" - Proyek Dummy Bank Raya: {$deletedDummy} proyek dihapus.");
+            $msDummyProjects = Project::where(function($q) {
+                $q->where('name', 'like', '%Kontrak Managed Service & Pemeliharaan Jaringan 24/7 PT Telkom Indonesia Tbk%')
+                  ->orWhere('name', 'like', '%Layanan Managed Service & Pemeliharaan Jaringan Bank Raya%')
+                  ->orWhere('po_spk_number', 'KTR/TLK-NET/2026/021')
+                  ->orWhere('po_spk_number', 'SPK/IPNET/BRY/2026/014');
+            })->get();
+
+            foreach ($msDummyProjects as $dp) {
+                if (Schema::hasTable('tasks')) {
+                    Task::where('project_id', $dp->id)->forceDelete();
+                }
+                if (Schema::hasTable('schedules')) {
+                    Schedule::where('project_id', $dp->id)->forceDelete();
+                }
+                $dp->forceDelete();
+                $this->line(" - Proyek Dummy Managed Service dihapus: {$dp->name}");
             }
 
-            // 5. Reset status Handover Managed Service di proyek lain
+            // 3. Reset status Handover Managed Service di seluruh proyek tersisa agar portofolio & incoming handover MS kosong 0
             $updatedProjects = Project::where('stage', 'Operate')
                 ->orWhereNotNull('ms_handover_status')
+                ->orWhere('handover_target', 'managed_service')
+                ->orWhere('handover_target', 'both')
                 ->update([
                     'ms_handover_status' => null,
                     'ms_accepted_at'     => null,
                     'ms_accepted_by'     => null,
                     'stage'              => 'Implementation',
+                    'handover_target'    => 'pmo',
                 ]);
             $this->line(" - Reset Handover Proyek MS: {$updatedProjects} proyek di-reset.");
+        }
+
+        // 4. Bersihkan Task terkait Maintenance / CM
+        if (Schema::hasTable('tasks')) {
+            $tasksCount = Task::where(function($q) {
+                $q->where('title', 'like', '[CM-%')
+                  ->orWhere('title', 'like', '[MS-%')
+                  ->orWhere('title', 'like', '%[MS -%')
+                  ->orWhere('title', 'like', '%Preventive Maintenance%')
+                  ->orWhere('title', 'like', '%Siklus-%')
+                  ->orWhere('title', 'like', '%Maintenance%');
+            })->forceDelete();
+            $this->line(" - Tasks Maintenance / CM: {$tasksCount} task dihapus.");
+        }
+
+        // 5. Bersihkan Schedule terkait Maintenance / CM
+        if (Schema::hasTable('schedules')) {
+            $schedCount = Schedule::where(function($q) {
+                $q->where('title', 'like', '[CM-%')
+                  ->orWhere('title', 'like', '[MS-%')
+                  ->orWhere('title', 'like', '%[MS -%')
+                  ->orWhere('title', 'like', '%Preventive Maintenance%')
+                  ->orWhere('title', 'like', '%Siklus-%')
+                  ->orWhere('title', 'like', '%Maintenance%');
+            })->forceDelete();
+            $this->line(" - Schedules Maintenance / CM: {$schedCount} agenda dihapus.");
         }
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
