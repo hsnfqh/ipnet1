@@ -252,18 +252,18 @@
                                           class="w-full px-4 py-2.5 text-xs sm:text-[13px] font-medium text-slate-800 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl outline-none focus:bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none shadow-2xs"></textarea>
                             </div>
 
-                            {{-- Tugaskan ke Teknisi PIC (Internal SLA) --}}
+                            {{-- Tugaskan ke PIC Managed Service (Internal SLA) --}}
                             @php
                                 $engList = $engineers ?? ($maintenanceEngineers ?? collect([]));
                             @endphp
                             @if($engList->count() > 0)
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                                        Tugaskan ke Teknisi PIC (Opsional)
+                                        Tugaskan ke PIC Managed Service (Opsional)
                                     </label>
                                     <select name="assigned_to"
                                             class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs sm:text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                        <option value="">-- Tugaskan ke Tim Maintenance / Belum Ditugaskan --</option>
+                                        <option value="">-- Tugaskan ke PIC Managed Service / Belum Ditugaskan --</option>
                                         @foreach($engList as $eng)
                                             <option value="{{ $eng->id }}">{{ $eng->name }}</option>
                                         @endforeach

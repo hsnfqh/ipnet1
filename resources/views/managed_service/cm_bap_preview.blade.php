@@ -128,7 +128,7 @@
                     <div><span class="text-[#64748B]">Waktu Insiden Masuk:</span> <span class="font-bold text-[#0F172A]">{{ $ticket->incident_date ? \Carbon\Carbon::parse($ticket->incident_date)->format('d F Y, H:i') : $ticket->created_at->format('d F Y, H:i') }} WIB</span></div>
                     <div><span class="text-[#64748B]">Waktu Restorasi Selesai:</span> 
                         <span class="font-bold {{ $ticket->resolved_at ? 'text-emerald-700' : 'text-amber-700' }}">
-                            {{ $ticket->resolved_at ? \Carbon\Carbon::parse($ticket->resolved_at)->format('d F Y, H:i') . ' WIB' : 'Sedang Ditangani Teknisi' }}
+                            {{ $ticket->resolved_at ? \Carbon\Carbon::parse($ticket->resolved_at)->format('d F Y, H:i') . ' WIB' : 'Sedang Ditangani PIC Managed Service' }}
                         </span>
                     </div>
                     @php
@@ -168,9 +168,9 @@
                     <div class="text-[#64748B] text-[9.5px] mt-0.5">{{ $ticket->contact_phone ?: '0812-8899-2341' }} &bull; {{ $ticket->client_name ?: $project->client }}</div>
                 </div>
                 <div>
-                    <span class="text-[#64748B] block text-[9.5px] uppercase font-bold tracking-wider">Teknisi Pelaksana (Field Engineer IPNET):</span>
+                    <span class="text-[#64748B] block text-[9.5px] uppercase font-bold tracking-wider">PIC Managed Service (IPNET):</span>
                     <strong class="text-[#8F0A0D] text-[11px]">{{ $ticket->assignedEngineer?->name ?: 'Mario' }}</strong>
-                    <div class="text-[#64748B] text-[9.5px] mt-0.5">Field Support &amp; Maintenance Engineer &bull; Managed Service IPNET</div>
+                    <div class="text-[#64748B] text-[9.5px] mt-0.5">PIC Managed Service &amp; Maintenance &bull; PT IPNET</div>
                 </div>
             </div>
 
@@ -309,7 +309,7 @@
                     <div class="border border-[#CBD5E1] p-2.5 rounded-lg bg-white flex flex-col justify-between">
                         <div>
                             <div class="text-[9.5px] font-bold text-[#64748B] uppercase">Dikerjakan Oleh:</div>
-                            <div class="font-bold text-[#0F172A] text-[10.5px] mt-0.5">Teknisi Lapangan (IPNET)</div>
+                            <div class="font-bold text-[#0F172A] text-[10.5px] mt-0.5">PIC Managed Service (IPNET)</div>
                         </div>
                         <div class="py-3">
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -318,7 +318,7 @@
                         </div>
                         <div class="border-t border-[#E2E8F0] pt-1.5">
                             <strong class="text-[#8F0A0D] block">{{ $ticket->assignedEngineer?->name ?: 'Mario' }}</strong>
-                            <span class="text-[9px] text-[#64748B]">Field Support Engineer</span>
+                            <span class="text-[9px] text-[#64748B]">PIC Managed Service</span>
                         </div>
                     </div>
 

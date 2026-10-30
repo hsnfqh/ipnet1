@@ -120,7 +120,7 @@
                     <div><span class="text-[#64748B]">Jadwal Target:</span> <span class="font-bold text-[#0F172A]">{{ $cycle->scheduled_date ? date('d F Y', strtotime($cycle->scheduled_date)) : '-' }}</span></div>
                     <div><span class="text-[#64748B]">Realisasi Visit:</span> <span class="font-bold text-emerald-700">{{ $cycle->actual_date ? date('d F Y', strtotime($cycle->actual_date)) : date('d F Y') }}</span></div>
                     <div><span class="text-[#64748B]">Target SLA Kontrak:</span> <span class="font-bold text-[#0F172A]">{{ $project->sla_tier ?: 'Gold' }} (Coverage {{ $project->sla_coverage_hours ?: '24x7' }})</span></div>
-                    <div><span class="text-[#64748B]">Teknisi Lapangan (PIC):</span> <span class="font-bold text-[#8F0A0D]">{{ $cycle->assignedEngineer?->name ?: 'Eris (Field Support Engineer)' }}</span></div>
+                    <div><span class="text-[#64748B]">PIC Managed Service:</span> <span class="font-bold text-[#8F0A0D]">{{ $cycle->assignedEngineer?->name ?: 'Eris' }}</span></div>
                 </div>
             </div>
 
@@ -218,7 +218,7 @@
                     <div class="border border-[#CBD5E1] p-2.5 rounded-lg bg-white flex flex-col justify-between">
                         <div>
                             <div class="text-[9.5px] font-bold text-[#64748B] uppercase">Dikerjakan Oleh:</div>
-                            <div class="font-bold text-[#0F172A] text-[10.5px] mt-0.5">Teknisi Lapangan (PIC)</div>
+                            <div class="font-bold text-[#0F172A] text-[10.5px] mt-0.5">PIC Managed Service (IPNET)</div>
                         </div>
                         <div class="py-3">
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -227,7 +227,7 @@
                         </div>
                         <div class="border-t border-[#E2E8F0] pt-1.5">
                             <strong class="text-[#8F0A0D] block">{{ $cycle->assignedEngineer?->name ?: 'Eris' }}</strong>
-                            <span class="text-[9px] text-[#64748B]">Field Support Engineer</span>
+                            <span class="text-[9px] text-[#64748B]">PIC Managed Service</span>
                         </div>
                     </div>
 
