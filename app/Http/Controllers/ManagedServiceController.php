@@ -1695,8 +1695,17 @@ class ManagedServiceController extends Controller
         $project = $cycle->project;
 
         $reportFile = $cycle->report_file ?: ($cycle->report_file_path ?? null);
-        if ($reportFile && \Illuminate\Support\Facades\Storage::disk('public')->exists($reportFile)) {
-            return response()->file(storage_path('app/public/' . $reportFile));
+        if (request()->query('raw') && $reportFile) {
+            $candidates = [
+                storage_path('app/public/' . $reportFile),
+                public_path('storage/' . $reportFile),
+                base_path('../public_html/storage/' . $reportFile),
+            ];
+            foreach ($candidates as $filePath) {
+                if (file_exists($filePath) && !is_dir($filePath)) {
+                    return response()->file($filePath);
+                }
+            }
         }
 
         return view('managed_service.pm_report_preview', compact('cycle', 'project'));
@@ -1960,8 +1969,17 @@ class ManagedServiceController extends Controller
         $project = $ticket->project;
 
         // Jika user meminta berkas file asli fisik via parameter ?raw=1
-        if (request()->query('raw') && $ticket->attachment_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($ticket->attachment_path)) {
-            return response()->file(storage_path('app/public/' . $ticket->attachment_path));
+        if (request()->query('raw') && $ticket->attachment_path) {
+            $candidates = [
+                storage_path('app/public/' . $ticket->attachment_path),
+                public_path('storage/' . $ticket->attachment_path),
+                base_path('../public_html/storage/' . $ticket->attachment_path),
+            ];
+            foreach ($candidates as $filePath) {
+                if (file_exists($filePath) && !is_dir($filePath)) {
+                    return response()->file($filePath);
+                }
+            }
         }
 
         return view('managed_service.cm_bap_preview', compact('ticket', 'project'));
