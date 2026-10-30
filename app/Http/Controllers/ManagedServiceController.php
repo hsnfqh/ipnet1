@@ -1768,6 +1768,7 @@ class ManagedServiceController extends Controller
             'title'         => 'required|string|max:255',
             'description'   => 'nullable|string',
             'priority'      => 'required|string|in:Critical,High,Medium,Low,Platinum,Gold,Silver,Bronze',
+            'status'        => 'nullable|string|in:Open,In Progress,Resolved,Closed',
             'assigned_to'   => 'nullable|exists:users,id',
             'incident_date' => 'nullable|date',
             'attachment'    => 'nullable|file|max:51200',
@@ -1832,6 +1833,9 @@ class ManagedServiceController extends Controller
             default    => 4,
         };
 
+        $status = $validated['status'] ?? 'In Progress';
+        $resolvedAt = in_array($status, ['Resolved', 'Closed']) ? $ticketDate->copy()->addHours(2) : null;
+
         $ticket = ManagedServiceTicket::create([
             'ticket_number'   => $ticketNumber,
             'project_id'      => $project->id,
@@ -1842,18 +1846,109 @@ class ManagedServiceController extends Controller
             'type'            => 'Corrective Maintenance',
             'category'        => 'Troubleshooting',
             'priority'        => $normalizedPriority,
-            'status'          => 'In Progress',
+            'status'          => $status,
             'source'          => 'Portal',
             'reported_by'     => $project->customer_pic_technical ?: ($project->client ?: 'Klien'),
             'assigned_to'     => $validated['assigned_to'] ?: auth()->id(),
             'attachment_path' => $attachmentPath,
             'sla_deadline'    => $ticketDate->copy()->addHours($slaHours),
+            'resolved_at'     => $resolvedAt,
+            'sla_met'         => true,
             'created_by'      => auth()->id(),
         ]);
 
         self::syncTicketToTaskAndSchedule($ticket);
 
         return redirect()->back()->with('success', 'Tiket Corrective Maintenance ' . $ticketNumber . ' berhasil dicatat.');
+    }
+
+    /**
+     * Update Data & Realisasi Tiket Corrective Maintenance (CM)
+     */
+    public function updateCmTicket(Request $request, $ticketId)
+    {
+        $ticket = ManagedServiceTicket::findOrFail($ticketId);
+
+        $validated = $request->validate([
+            'title'            => 'nullable|string|max:255',
+            'status'           => 'required|string|in:Open,In Progress,Pending Vendor,Resolved,Closed',
+            'priority'         => 'nullable|string|in:Critical,High,Medium,Low,Platinum,Gold,Silver,Bronze',
+            'incident_date'    => 'nullable|date',
+            'resolved_at'      => 'nullable|date',
+            'assigned_to'      => 'nullable|exists:users,id',
+            'reported_by'      => 'nullable|string|max:255',
+            'contact_phone'    => 'nullable|string|max:50',
+            'resolution_notes' => 'nullable|string',
+            'root_cause'       => 'nullable|string|max:255',
+            'attachment'       => 'nullable|file|max:51200',
+            'bap_file'         => 'nullable|file|max:51200',
+        ]);
+
+        if (!empty($validated['title'])) {
+            $ticket->title = $validated['title'];
+        }
+
+        if (!empty($validated['priority'])) {
+            $ticket->priority = match(strtolower($validated['priority'])) {
+                'critical', 'platinum'      => 'Critical',
+                'high', 'gold', 'major'     => 'High',
+                'medium', 'silver', 'minor' => 'Medium',
+                'low', 'bronze'             => 'Low',
+                default                     => 'Medium',
+            };
+        }
+
+        if (!empty($validated['incident_date'])) {
+            $ticket->incident_date = Carbon::parse($validated['incident_date']);
+        }
+
+        if (array_key_exists('assigned_to', $validated)) {
+            $ticket->assigned_to = $validated['assigned_to'];
+        }
+
+        if (isset($validated['reported_by'])) {
+            $ticket->reported_by = $validated['reported_by'];
+        }
+
+        if (isset($validated['contact_phone'])) {
+            $ticket->contact_phone = $validated['contact_phone'];
+        }
+
+        if (isset($validated['resolution_notes'])) {
+            $ticket->resolution_notes = $validated['resolution_notes'];
+        }
+
+        if (isset($validated['root_cause'])) {
+            $ticket->root_cause = $validated['root_cause'];
+        }
+
+        $ticket->status = $validated['status'];
+
+        if (in_array($validated['status'], ['Resolved', 'Closed'])) {
+            if (!empty($validated['resolved_at'])) {
+                $ticket->resolved_at = Carbon::parse($validated['resolved_at']);
+            } elseif (!$ticket->resolved_at) {
+                $ticket->resolved_at = now();
+            }
+
+            if ($ticket->sla_deadline && $ticket->resolved_at) {
+                $ticket->sla_met = $ticket->resolved_at->lte($ticket->sla_deadline);
+            }
+        } else {
+            if (empty($validated['resolved_at'])) {
+                $ticket->resolved_at = null;
+            }
+        }
+
+        $file = $request->file('attachment') ?: $request->file('bap_file');
+        if ($file) {
+            $ticket->attachment_path = FileUploadHelper::storePublicly($file, 'ms_cm_bap');
+        }
+
+        $ticket->save();
+        self::syncTicketToTaskAndSchedule($ticket);
+
+        return redirect()->back()->with('success', 'Data Tiket Corrective Maintenance ' . $ticket->ticket_number . ' berhasil diperbarui.');
     }
 
     /**

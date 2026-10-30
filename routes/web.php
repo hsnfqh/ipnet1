@@ -1056,6 +1056,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/monitoring/cm-tickets', [\App\Http\Controllers\ManagedServiceController::class, 'storeCmTicket'])->name('ms.monitoring.cm.store');
         Route::get('/monitoring/cm-tickets/{ticket}/bap', [\App\Http\Controllers\ManagedServiceController::class, 'showCmBap'])->name('ms.monitoring.cm.bap');
         Route::post('/monitoring/cm-tickets/{ticket}/upload-bap', [\App\Http\Controllers\ManagedServiceController::class, 'uploadCmBap'])->name('ms.monitoring.cm.upload_bap');
+        Route::post('/monitoring/cm-tickets/{ticket}/update', [\App\Http\Controllers\ManagedServiceController::class, 'updateCmTicket'])->name('ms.monitoring.cm.update');
         
         // Assets Management (Internal Perusahaan & External Klien)
         Route::get('/assets/internal', [\App\Http\Controllers\ManagedServiceController::class, 'internalAssets'])->name('ms.assets.internal');

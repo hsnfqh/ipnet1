@@ -46,6 +46,9 @@
         isPmModalOpen: false,
         activeCycle: null,
         isCmModalOpen: false,
+        isCmDetailModalOpen: false,
+        activeCmTicket: null,
+        selectedCmSlot: null,
         isUploadBapModalOpen: false,
         selectedUploadTicket: { id: null, number: '' }
      }">
@@ -914,13 +917,22 @@
                             $isUsed = ($ticket !== null) || ($slotIndex <= $cmUsed);
                             $ticketStatus = $ticket ? $ticket->status : ($isUsed ? 'Resolved' : 'Available');
 
+                            // Format tanggal d/m/Y seperti pada PM jika ada tanggal insiden / pelaksanaan
+                            if ($ticket) {
+                                $tDate = $ticket->incident_date ?: ($ticket->resolved_at ?: $ticket->created_at);
+                                $subText = !empty($tDate) ? \Carbon\Carbon::parse($tDate)->format('d/m/Y') : ($ticket->status ?: 'Resolved');
+                            } else {
+                                $subText = 'Tersedia';
+                            }
+
                             $cmSlots->push([
                                 'slot_number' => $slotIndex,
                                 'is_used'     => $isUsed,
                                 'status'      => $ticketStatus,
                                 'ticket'      => $ticket,
                                 'label'       => 'Tiket #' . $slotIndex,
-                                'sub'         => $isUsed ? ($ticket ? $ticket->status : 'Terpakai') : 'Tersedia',
+                                'sub'         => $subText,
+                                'is_next'     => (!$isUsed && $slotIndex === ($cmUsed + 1)),
                             ]);
                         }
 
@@ -943,20 +955,42 @@
                                     @php
                                         $isResolved = in_array($slot['status'], ['Resolved', 'Closed']);
                                         $isInProg = in_array($slot['status'], ['In Progress', 'Assigned']);
+                                        $isNext = $slot['is_next'] ?? false;
+                                        $ticketObj = $slot['ticket'];
                                     @endphp
-                                    <div class="relative z-10 flex flex-col items-center text-center">
-                                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all
-                                            {{ $slot['is_used'] ? ($isResolved ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' : ($isInProg ? 'bg-amber-500 border-amber-500 text-white animate-pulse' : 'bg-[#8F0A0D] border-[#8F0A0D] text-white shadow-xs')) : 'bg-white border-[#CBD5E1] text-[#94A3B8]' }}">
+                                    <div class="relative z-10 flex flex-col items-center text-center cursor-pointer group"
+                                         @if($ticketObj)
+                                             @click="activeCmTicket = {{ json_encode($ticketObj) }}; isCmDetailModalOpen = true"
+                                         @else
+                                             @click="selectedCmSlot = {{ $slot['slot_number'] }}; isCmModalOpen = true"
+                                         @endif
+                                         title="{{ $ticketObj ? ($ticketObj->ticket_number . ' - ' . $ticketObj->title . ' (' . $ticketObj->status . ') - Klik untuk Update') : ('Tiket #' . $slot['slot_number'] . ' - Klik untuk Catat / Mulai Tiket Baru') }}">
+                                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all group-hover:scale-110
+                                            {{ $slot['is_used'] 
+                                                ? ($isResolved 
+                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' 
+                                                    : ($isInProg 
+                                                        ? 'bg-amber-500 border-amber-500 text-white animate-pulse' 
+                                                        : 'bg-[#8F0A0D] border-[#8F0A0D] text-white shadow-xs')) 
+                                                : ($isNext 
+                                                    ? 'bg-white border-[#8F0A0D] text-[#8F0A0D] ring-2 ring-[#8F0A0D]/20 shadow-xs' 
+                                                    : 'bg-white border-[#CBD5E1] text-[#94A3B8] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
                                             @if($slot['is_used'])
-                                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                @if($isResolved)
+                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                @elseif($isInProg)
+                                                    {{ $slot['slot_number'] }}
+                                                @else
+                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                @endif
                                             @else
                                                 {{ $slot['slot_number'] }}
                                             @endif
                                         </div>
-                                        <span class="text-[11px] font-bold mt-1.5 {{ $slot['is_used'] ? 'text-[#1E293B]' : 'text-[#64748B]' }}">
+                                        <span class="text-[11px] font-bold mt-1.5 transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#8F0A0D]')) : ($isNext ? 'text-[#8F0A0D]' : 'text-[#1E293B] group-hover:text-[#8F0A0D]') }}">
                                             Tiket #{{ $slot['slot_number'] }}
                                         </span>
-                                        <span class="text-[10px] {{ $slot['is_used'] ? 'text-emerald-700 font-semibold' : 'text-[#94A3B8]' }}">
+                                        <span class="text-[10px] transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#8F0A0D] font-medium')) : ($isNext ? 'text-[#8F0A0D] font-bold' : 'text-[#94A3B8] group-hover:text-[#8F0A0D]') }}">
                                             {{ $slot['sub'] }}
                                         </span>
                                     </div>
@@ -998,22 +1032,46 @@
                                                 @php
                                                     $isResolved = in_array($slot['status'], ['Resolved', 'Closed']);
                                                     $isInProg = in_array($slot['status'], ['In Progress', 'Assigned']);
+                                                    $isNext = $slot['is_next'] ?? false;
+                                                    $ticketObj = $slot['ticket'];
                                                 @endphp
                                                 <div class="flex-1 flex flex-col items-center text-center">
-                                                    <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all hover:scale-110
-                                                        {{ $slot['is_used'] ? ($isResolved ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' : ($isInProg ? 'bg-amber-500 border-amber-500 text-white animate-pulse' : 'bg-[#8F0A0D] border-[#8F0A0D] text-white shadow-xs')) : 'bg-white border-[#CBD5E1] text-[#94A3B8]' }}">
-                                                        @if($slot['is_used'])
-                                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                        @else
-                                                            {{ $slot['slot_number'] }}
-                                                        @endif
+                                                    <div class="cursor-pointer group flex flex-col items-center"
+                                                         @if($ticketObj)
+                                                             @click="activeCmTicket = {{ json_encode($ticketObj) }}; isCmDetailModalOpen = true"
+                                                         @else
+                                                             @click="selectedCmSlot = {{ $slot['slot_number'] }}; isCmModalOpen = true"
+                                                         @endif
+                                                         title="{{ $ticketObj ? ($ticketObj->ticket_number . ' - ' . $ticketObj->title . ' (' . $ticketObj->status . ') - Klik untuk Update') : ('Tiket #' . $slot['slot_number'] . ' - Klik untuk Catat / Mulai Tiket Baru') }}">
+                                                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all group-hover:scale-110
+                                                            {{ $slot['is_used'] 
+                                                                ? ($isResolved 
+                                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' 
+                                                                    : ($isInProg 
+                                                                        ? 'bg-amber-500 border-amber-500 text-white animate-pulse' 
+                                                                        : 'bg-[#8F0A0D] border-[#8F0A0D] text-white shadow-xs')) 
+                                                                : ($isNext 
+                                                                    ? 'bg-white border-[#8F0A0D] text-[#8F0A0D] ring-2 ring-[#8F0A0D]/20 shadow-xs' 
+                                                                    : 'bg-white border-[#CBD5E1] text-[#94A3B8] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
+                                                            @if($slot['is_used'])
+                                                                @if($isResolved)
+                                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                                @elseif($isInProg)
+                                                                    {{ $slot['slot_number'] }}
+                                                                @else
+                                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                                @endif
+                                                            @else
+                                                                {{ $slot['slot_number'] }}
+                                                            @endif
+                                                        </div>
+                                                        <span class="text-[11px] font-bold mt-1.5 transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#8F0A0D]')) : ($isNext ? 'text-[#8F0A0D]' : 'text-[#1E293B] group-hover:text-[#8F0A0D]') }}">
+                                                            Tiket #{{ $slot['slot_number'] }}
+                                                        </span>
+                                                        <span class="text-[10px] transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#8F0A0D] font-medium')) : ($isNext ? 'text-[#8F0A0D] font-bold' : 'text-[#94A3B8] group-hover:text-[#8F0A0D]') }}">
+                                                            {{ $slot['sub'] }}
+                                                        </span>
                                                     </div>
-                                                    <span class="text-[11px] font-bold mt-1.5 {{ $slot['is_used'] ? 'text-[#1E293B]' : 'text-[#64748B]' }}">
-                                                        Tiket #{{ $slot['slot_number'] }}
-                                                    </span>
-                                                    <span class="text-[10px] {{ $slot['is_used'] ? 'text-emerald-700 font-semibold' : 'text-[#94A3B8]' }}">
-                                                        {{ $slot['sub'] }}
-                                                    </span>
                                                 </div>
                                             @endforeach
 
@@ -1117,8 +1175,12 @@
                                                 @endif
                                             </td>
                                             <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                                                @if($t->attachment_path)
-                                                    <div class="flex items-center justify-end gap-1.5">
+                                                <div class="flex items-center justify-end gap-1.5">
+                                                    <button type="button" @click="activeCmTicket = {{ json_encode($t) }}; isCmDetailModalOpen = true" title="Detail & Update Tiket" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold border border-slate-300 transition cursor-pointer">
+                                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                        <span>Update</span>
+                                                    </button>
+                                                    @if($t->attachment_path)
                                                         <a href="{{ route('ms.monitoring.cm.bap', $t->id) }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold border border-emerald-200 transition shadow-2xs">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                             <span>Lihat BAP</span>
@@ -1126,14 +1188,12 @@
                                                         <a href="{{ asset('storage/' . $t->attachment_path) }}" target="_blank" title="Download Berkas Asli" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 transition">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                         </a>
-                                                    </div>
-                                                @elseif(in_array($t->status, ['Resolved', 'Closed']))
-                                                    <a href="{{ route('ms.monitoring.cm.bap', $t->id) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold border border-emerald-200 transition shadow-2xs">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                        <span>Lihat BAP</span>
-                                                    </a>
-                                                @elseif($t->status === 'In Progress')
-                                                    <div class="flex items-center justify-end gap-1.5">
+                                                    @elseif(in_array($t->status, ['Resolved', 'Closed']))
+                                                        <a href="{{ route('ms.monitoring.cm.bap', $t->id) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold border border-emerald-200 transition shadow-2xs">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                            <span>Lihat BAP</span>
+                                                        </a>
+                                                    @elseif($t->status === 'In Progress')
                                                         <a href="{{ route('ms.monitoring.cm.bap', $t->id) }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-semibold border border-amber-200 transition shadow-2xs">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                             <span>Draft BAP</span>
@@ -1142,13 +1202,13 @@
                                                             <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                                             <span>Upload</span>
                                                         </button>
-                                                    </div>
-                                                @else
-                                                    <button type="button" @click="selectedUploadTicket = { id: {{ $t->id }}, number: '{{ $t->ticket_number }}' }; isUploadBapModalOpen = true;" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold border border-slate-200 transition cursor-pointer">
-                                                        <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                                        <span>Upload BAP</span>
-                                                    </button>
-                                                @endif
+                                                    @else
+                                                        <button type="button" @click="selectedUploadTicket = { id: {{ $t->id }}, number: '{{ $t->ticket_number }}' }; isUploadBapModalOpen = true;" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold border border-slate-200 transition cursor-pointer">
+                                                            <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                            <span>Upload BAP</span>
+                                                        </button>
+                                                    @endif
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -1320,7 +1380,10 @@
                 <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
                     <div>
                         <p class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Tiket Insiden / Perbaikan</p>
-                        <h3 class="text-[15px] font-bold text-[#1E293B]">Catat Tiket Corrective Maintenance</h3>
+                        <h3 class="text-[15px] font-bold text-[#1E293B] flex items-center gap-1.5">
+                            <span>Catat Tiket Corrective Maintenance</span>
+                            <span x-show="selectedCmSlot" class="text-xs font-semibold text-[#8F0A0D]" x-text="'(Slot #' + selectedCmSlot + ')'"></span>
+                        </h3>
                     </div>
                     <button @click="isCmModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold">&times;</button>
                 </div>
@@ -1346,15 +1409,15 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Tanggal Insiden</label>
-                            <input type="date" name="incident_date" value="{{ date('Y-m-d') }}" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Tanggal Mulai Insiden / Pelaksanaan <span class="text-[#8F0A0D]">*</span></label>
+                            <input type="date" name="incident_date" value="{{ date('Y-m-d') }}" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
                             <label class="block text-xs font-semibold text-[#334155] mb-1">Nama Pelapor / PIC Klien</label>
-                            <input type="text" name="reported_by" placeholder="Nama PIC" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            <input type="text" name="reported_by" value="{{ $project->customer_pic_technical ?: ($project->client ?: '') }}" placeholder="Nama PIC" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
                         </div>
 
                         <div>
@@ -1377,9 +1440,9 @@
                         <div>
                             <label class="block text-xs font-semibold text-[#334155] mb-1">Status Tiket</label>
                             <select name="status" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                <option value="In Progress" selected>In Progress (Sedang Ditangani)</option>
+                                <option value="Resolved">Resolved (Selesai Penanganan)</option>
                                 <option value="Open">Open (Baru Diterima)</option>
-                                <option value="In Progress">In Progress (Sedang Ditangani)</option>
-                                <option value="Resolved">Resolved (Selesai)</option>
                             </select>
                         </div>
                     </div>
@@ -1390,7 +1453,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-[#334155] mb-1">Upload Berita Acara Perbaikan (BAP / Foto)</label>
+                        <label class="block text-xs font-semibold text-[#334155] mb-1">Upload Berita Acara Perbaikan (BAP / Foto Bukti)</label>
                         <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
                     </div>
 
@@ -1405,6 +1468,120 @@
                 </form>
             </div>
         </div>
+    </template>
+
+    <!-- ========================================================== -->
+    <!-- MODAL 3B: DETAIL & UPDATE TIKET CM (KLIK NODE TIKET / AKSI)-->
+    <!-- ========================================================== -->
+    <template x-teleport="body">
+        <div x-show="isCmDetailModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] max-h-[90vh] overflow-y-auto" @click.away="isCmDetailModalOpen = false">
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Detail &amp; Update Tiket CM</span>
+                            <span class="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200" x-text="activeCmTicket ? activeCmTicket.ticket_number : ''"></span>
+                        </div>
+                        <h3 class="text-[15px] font-bold text-[#1E293B] mt-0.5" x-text="activeCmTicket ? activeCmTicket.title : 'Tiket CM'"></h3>
+                    </div>
+                    <button @click="isCmDetailModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold">&times;</button>
+                </div>
+
+                <form :action="'/managed-service/monitoring/cm-tickets/' + (activeCmTicket ? activeCmTicket.id : '') + '/update'" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    @csrf
+
+                    <div>
+                        <label class="block text-xs font-semibold text-[#334155] mb-1">Judul Insiden / Aktivitas CM <span class="text-[#8F0A0D]">*</span></label>
+                        <input type="text" name="title" :value="activeCmTicket ? activeCmTicket.title : ''" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Status Tiket <span class="text-[#8F0A0D]">*</span></label>
+                            <select name="status" :value="activeCmTicket ? activeCmTicket.status : 'Resolved'" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                <option value="In Progress">In Progress (Sedang Ditangani)</option>
+                                <option value="Resolved">Resolved (Selesai Perbaikan)</option>
+                                <option value="Closed">Closed (Ditutup Resmi)</option>
+                                <option value="Open">Open (Baru Diterima)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Prioritas &amp; SLA <span class="text-[#8F0A0D]">*</span></label>
+                            <select name="priority" :value="activeCmTicket ? activeCmTicket.priority : 'High'" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                <option value="Critical">Critical (P1 - MTTR 1 Jam)</option>
+                                <option value="High">High (P2 - MTTR 4 Jam)</option>
+                                <option value="Medium">Medium (P3 - MTTR 8 Jam)</option>
+                                <option value="Low">Low (P4 - MTTR 24 Jam)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Tanggal Mulai & Tanggal Selesai Restorasi --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">
+                                Tanggal Mulai / Insiden <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <input type="date" name="incident_date" :value="activeCmTicket ? (activeCmTicket.incident_date ? String(activeCmTicket.incident_date).split('T')[0] : (activeCmTicket.created_at ? String(activeCmTicket.created_at).split('T')[0] : '')) : ''" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">
+                                Tanggal Selesai Restorasi
+                            </label>
+                            <input type="date" name="resolved_at" :value="activeCmTicket ? (activeCmTicket.resolved_at ? String(activeCmTicket.resolved_at).split('T')[0] : '') : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Field Support Engineer</label>
+                            <select name="assigned_to" :value="activeCmTicket ? activeCmTicket.assigned_to : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                <option value="">Pilih Teknisi</option>
+                                @foreach($engineers as $eng)
+                                    <option value="{{ $eng->id }}">{{ $eng->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">Pelapor / Kontak Klien</label>
+                            <input type="text" name="reported_by" :value="activeCmTicket ? activeCmTicket.reported_by : ''" placeholder="Nama Pelapor" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-[#334155] mb-1">Catatan Tindakan / Resolusi</label>
+                        <textarea name="resolution_notes" rows="2" :value="activeCmTicket ? activeCmTicket.resolution_notes : ''" placeholder="Catatan langkah perbaikan insiden..." class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]"></textarea>
+                    </div>
+
+                    {{-- Upload / View BAP Berkas --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-semibold text-[#334155]">Upload Berkas BAP (PDF / Foto Bukti)</label>
+                            <template x-if="activeCmTicket && activeCmTicket.id">
+                                <a :href="'/managed-service/monitoring/cm-tickets/' + activeCmTicket.id + '/bap'" target="_blank" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    <span>Buka Form BAP Resmi</span>
+                                </a>
+                            </template>
+                        </div>
+                        <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E2E8F0]">
+                        <button type="button" @click="isCmDetailModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-[#F8FAFC]">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white">
+                            Simpan Perubahan Tiket
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
     </template>
 
     <!-- ========================================================== -->
