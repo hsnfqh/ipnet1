@@ -1364,6 +1364,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{project}/documents/upload', [\App\Http\Controllers\ProjectDocumentController::class, 'upload'])->name('projects.documents.upload');
         Route::post('/{project}/documents/{document}/verify', [\App\Http\Controllers\ProjectDocumentController::class, 'verify'])->name('projects.documents.verify');
         Route::get('/{project}/documents/{document}/download', [\App\Http\Controllers\ProjectDocumentController::class, 'download'])->name('projects.documents.download');
+        Route::get('/{project}/documents/{document}/view', [\App\Http\Controllers\ProjectDocumentController::class, 'view'])->name('projects.documents.view');
         Route::delete('/{project}/documents/{document}', [\App\Http\Controllers\ProjectDocumentController::class, 'delete'])->name('projects.documents.delete');
     });
 

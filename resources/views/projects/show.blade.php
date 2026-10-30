@@ -1230,11 +1230,12 @@
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                                            <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" 
-                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shadow-2xs" 
-                                               title="Unduh Berkas Timeline">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                <span>Unduh</span>
+                                            <a href="{{ route('projects.documents.view', [$project->id, $doc->id]) }}" 
+                                               target="_blank"
+                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shadow-2xs cursor-pointer" 
+                                               title="Lihat Berkas Timeline">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                <span>Lihat</span>
                                             </a>
                                             @if($canAddMilestone)
                                                 <form action="{{ route('projects.documents.delete', [$project->id, $doc->id]) }}" 
@@ -1750,11 +1751,12 @@
                                                             </div>
                                                         </div>
                                                         <div class="flex items-center gap-1.5 shrink-0">
-                                                            <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" 
-                                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shadow-2xs" 
-                                                               title="Unduh Berkas">
-                                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                                <span>Unduh</span>
+                                                            <a href="{{ route('projects.documents.view', [$project->id, $doc->id]) }}" 
+                                                               target="_blank"
+                                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shadow-2xs cursor-pointer" 
+                                                               title="Lihat Berkas">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                                <span>Lihat</span>
                                                             </a>
                                                             <form action="{{ route('projects.documents.delete', [$project->id, $doc->id]) }}" 
                                                                   method="POST" 

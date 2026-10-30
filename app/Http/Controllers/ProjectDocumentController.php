@@ -300,10 +300,49 @@ class ProjectDocumentController extends Controller
     }
 
     /**
+     * Lihat / Preview Berkas Dokumen di Browser (Inline)
+     */
+    public function view(Project $project, ProjectDocument $document)
+    {
+        if ($document->project_id !== $project->id || !$document->file_path) {
+            abort(404, 'Berkas dokumen tidak ditemukan.');
+        }
+
+        $isSalesDoc = ($document->stage_name === 'Sales') || str_starts_with($document->document_key ?? '', 'sales_berkas');
+        if ($isSalesDoc && !self::canAccessSalesDocs($project)) {
+            abort(403, 'Akses ditolak. Berkas Sales ini bersifat rahasia dan hanya dapat diakses oleh Sales terkait dan Pimpinan.');
+        }
+
+        $filePath = $document->file_path;
+        $resolvedPath = null;
+        if (Storage::disk('public')->exists($filePath)) {
+            $resolvedPath = Storage::disk('public')->path($filePath);
+        } elseif (file_exists(public_path('storage/' . $filePath))) {
+            $resolvedPath = public_path('storage/' . $filePath);
+        } elseif (file_exists(storage_path('app/public/' . $filePath))) {
+            $resolvedPath = storage_path('app/public/' . $filePath);
+        }
+
+        if ($resolvedPath && file_exists($resolvedPath)) {
+            $mime = @mime_content_type($resolvedPath) ?: 'application/octet-stream';
+            return response()->file($resolvedPath, [
+                'Content-Type'        => $mime,
+                'Content-Disposition' => 'inline; filename="' . addslashes($document->file_name ?: basename($resolvedPath)) . '"',
+            ]);
+        }
+
+        abort(404, 'Berkas fisik tidak ditemukan di server.');
+    }
+
+    /**
      * Unduh Berkas Dokumen dengan Aman
      */
     public function download(Project $project, ProjectDocument $document)
     {
+        if (request()->has('view') || request()->has('inline')) {
+            return $this->view($project, $document);
+        }
+
         if ($document->project_id !== $project->id || !$document->file_path) {
             abort(404, 'Berkas dokumen tidak ditemukan.');
         }
