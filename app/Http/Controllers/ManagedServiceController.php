@@ -1687,7 +1687,7 @@ class ManagedServiceController extends Controller
     }
 
     /**
-     * Tampilkan atau Cetak Laporan PM Resmi
+     * Tampilkan Berkas Laporan PM Asli
      */
     public function showPmReport($cycleId)
     {
@@ -1695,7 +1695,7 @@ class ManagedServiceController extends Controller
         $project = $cycle->project;
 
         $reportFile = $cycle->report_file ?: ($cycle->report_file_path ?? null);
-        if (request()->query('raw') && $reportFile) {
+        if ($reportFile) {
             $candidates = [
                 storage_path('app/public/' . $reportFile),
                 public_path('storage/' . $reportFile),
@@ -1706,9 +1706,11 @@ class ManagedServiceController extends Controller
                     return response()->file($filePath);
                 }
             }
+            return redirect(asset('storage/' . $reportFile));
         }
 
-        return view('managed_service.pm_report_preview', compact('cycle', 'project'));
+        return redirect()->route('ms.projects.show', ['project' => $project->id, 'tab' => 'pm'])
+            ->with('error', 'Berkas dokumen laporan PM belum diunggah.');
     }
 
     /**
@@ -1961,15 +1963,14 @@ class ManagedServiceController extends Controller
     }
 
     /**
-     * Tampilkan atau Cetak Berita Acara Perbaikan (BAP) Resmi untuk Corrective Maintenance
+     * Tampilkan Berkas BAP CM Asli
      */
     public function showCmBap($ticketId)
     {
         $ticket = ManagedServiceTicket::with(['project', 'assignedEngineer', 'creator'])->findOrFail($ticketId);
         $project = $ticket->project;
 
-        // Jika user meminta berkas file asli fisik via parameter ?raw=1
-        if (request()->query('raw') && $ticket->attachment_path) {
+        if ($ticket->attachment_path) {
             $candidates = [
                 storage_path('app/public/' . $ticket->attachment_path),
                 public_path('storage/' . $ticket->attachment_path),
@@ -1980,9 +1981,11 @@ class ManagedServiceController extends Controller
                     return response()->file($filePath);
                 }
             }
+            return redirect(asset('storage/' . $ticket->attachment_path));
         }
 
-        return view('managed_service.cm_bap_preview', compact('ticket', 'project'));
+        return redirect()->route('ms.projects.show', ['project' => $project->id, 'tab' => 'cm'])
+            ->with('error', 'Berkas dokumen BAP belum diunggah.');
     }
 
     /**
