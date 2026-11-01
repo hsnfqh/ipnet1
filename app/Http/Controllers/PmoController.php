@@ -1404,6 +1404,33 @@ class PmoController extends Controller
         $project->handover_data = $handoverData;
         $project->save();
 
+        // Otomatis sinkronkan personil yang ditugaskan Lead ke siklus Preventive Maintenance & Schedules
+        $primaryEngineerId = !empty($validated['engineer_ids']) ? (int) $validated['engineer_ids'][0] : null;
+        if ($primaryEngineerId) {
+            // Update personil di seluruh siklus PM yang belum selesai
+            if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_pm_cycles')) {
+                \App\Models\ManagedServicePmCycle::where('project_id', $project->id)
+                    ->where('activity_status', '!=', 'Completed')
+                    ->whereNull('assigned_engineer_id')
+                    ->update(['assigned_engineer_id' => $primaryEngineerId]);
+            }
+
+            // Update personil di jadwal kunjungan Preventive Maintenance pada tabel schedules
+            if (\Illuminate\Support\Facades\Schema::hasTable('schedules')) {
+                $pmSchedules = \App\Models\Schedule::where('project_id', $project->id)
+                    ->where('category', 'Preventive Maintenance')
+                    ->whereNull('engineer_id')
+                    ->get();
+
+                foreach ($pmSchedules as $sched) {
+                    $sched->update(['engineer_id' => $primaryEngineerId]);
+                    if (\Illuminate\Support\Facades\Schema::hasTable('schedule_user')) {
+                        $sched->engineers()->sync([$primaryEngineerId]);
+                    }
+                }
+            }
+        }
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,

@@ -723,7 +723,7 @@
                                 <thead class="bg-slate-50/80 border-b border-slate-200/80">
                                     <tr class="text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
                                         <th class="py-3 px-4 rounded-l-xl">Proyek &amp; Klien</th>
-                                        <th class="py-3 px-4">Project Manager (PM)</th>
+                                        <th class="py-3 px-4">PM / PIC Operasional</th>
                                         <th class="py-3 px-4">Personil Tim Lapangan (Lead)</th>
                                         <th class="py-3 px-4">Progres &amp; Target</th>
                                         <th class="py-3 px-4 text-right rounded-r-xl">Aksi</th>
@@ -740,7 +740,7 @@
                                             {{-- Proyek & Klien --}}
                                             <td class="py-3 px-4">
                                                 <div class="flex items-start gap-2.5">
-                                                    <div class="w-8 h-8 rounded-lg bg-red-50/90 text-[#8F0A0D] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 border border-red-200/60">
+                                                    <div class="w-8 h-8 rounded-lg {{ ($p->handover_target === 'managed_service' || strtolower($p->stage ?? '') === 'operate') ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-red-50/90 text-[#8F0A0D] border-red-200/60' }} font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 border">
                                                         {{ strtoupper(substr($p->name, 0, 2)) }}
                                                     </div>
                                                     <div class="min-w-0">
@@ -753,6 +753,11 @@
                                                                     {{ $p->so_code }}
                                                                 </span>
                                                             @endif
+                                                            @if($p->handover_target === 'managed_service' || strtolower($p->stage ?? '') === 'operate')
+                                                                <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                    Managed Service
+                                                                </span>
+                                                            @endif
                                                         </div>
                                                         <p class="text-slate-500 text-[11.5px] mt-0.5 font-normal">
                                                             {{ $p->client }}
@@ -761,17 +766,29 @@
                                                 </div>
                                             </td>
 
-                                            {{-- Project Manager (PM) --}}
+                                            {{-- PM / PIC Operasional --}}
                                             <td class="py-3 px-4 whitespace-nowrap">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-[10px] font-medium flex items-center justify-center border border-slate-200">
-                                                        {{ strtoupper(substr($p->pm ? $p->pm->name : 'PM', 0, 1)) }}
+                                                @if($p->handover_target === 'managed_service' || strtolower($p->stage ?? '') === 'operate')
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold flex items-center justify-center border border-emerald-200">
+                                                            MS
+                                                        </div>
+                                                        <div>
+                                                            <p class="font-medium text-slate-700 text-xs">{{ $p->msAcceptedBy ? $p->msAcceptedBy->name : 'Tim Managed Service' }}</p>
+                                                            <p class="text-[10px] text-emerald-600 font-semibold">Managed Service PIC</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p class="font-medium text-slate-700 text-xs">{{ $p->pm ? $p->pm->name : 'Belum Ditunjuk' }}</p>
-                                                        <p class="text-[10px] text-slate-400 font-normal">Project Manager</p>
+                                                @else
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-[10px] font-medium flex items-center justify-center border border-slate-200">
+                                                            {{ strtoupper(substr($p->pm ? $p->pm->name : 'PM', 0, 1)) }}
+                                                        </div>
+                                                        <div>
+                                                            <p class="font-medium text-slate-700 text-xs">{{ $p->pm ? $p->pm->name : 'Belum Ditunjuk' }}</p>
+                                                            <p class="text-[10px] text-slate-400 font-normal">Project Manager</p>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                @endif
                                             </td>
 
                                             {{-- Tim Lapangan (Delegasi Lead) --}}

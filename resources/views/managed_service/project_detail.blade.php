@@ -570,7 +570,7 @@
                                 // Tanggal hanya tampil jika sudah ada inputan realisasi visit (actual_date terisi)
                                 $subText = !empty($cycle->actual_date) 
                                     ? date('d/m/Y', strtotime($cycle->actual_date)) 
-                                    : ($cycle->activity_status === 'In Progress' ? 'In Progress' : 'Terjadwal');
+                                    : (!empty($cycle->scheduled_date) ? date('d/m/Y', strtotime($cycle->scheduled_date)) : ($cycle->activity_status === 'In Progress' ? 'In Progress' : 'Terjadwal'));
 
                                 $pmNodeItems->push([
                                     'is_milestone' => false,
@@ -765,10 +765,10 @@
                                                     class="group inline-flex items-center gap-1.5 text-[#334155] hover:text-[#8F0A0D] transition cursor-pointer text-left" 
                                                     title="Klik untuk ubah jadwal target kunjungan PM">
                                                 <span class="font-semibold text-[12px] group-hover:underline">
-                                                    @if(in_array($cycle->activity_status, ['Completed', 'In Progress']) || $cycle->actual_date)
-                                                        {{ $cycle->scheduled_date ? date('d M Y', strtotime($cycle->scheduled_date)) : 'Set Jadwal' }}
+                                                    @if($cycle->scheduled_date)
+                                                        <span class="text-slate-800 font-semibold">{{ date('d M Y', strtotime($cycle->scheduled_date)) }}</span>
                                                     @else
-                                                        <span class="text-slate-400 italic font-normal">Belum diisi</span>
+                                                        <span class="text-slate-400 italic font-normal">Set Jadwal</span>
                                                     @endif
                                                 </span>
                                                 <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#8F0A0D] transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -784,7 +784,29 @@
                                             @endif
                                         </td>
                                         <td class="py-3.5 px-4 text-[#334155] font-medium">
-                                            {{ $cycle->assignedEngineer?->name ?: '—' }}
+                                            @if($cycle->assignedEngineer)
+                                                <div class="flex items-center gap-1.5">
+                                                    <div class="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[9px] flex items-center justify-center border border-slate-200">
+                                                        {{ strtoupper(substr($cycle->assignedEngineer->name, 0, 1)) }}
+                                                    </div>
+                                                    <span class="font-semibold text-slate-800 text-[12px]">{{ $cycle->assignedEngineer->name }}</span>
+                                                </div>
+                                            @elseif(!empty($project->handover_data['assigned_engineers']))
+                                                <div class="flex items-center gap-1.5">
+                                                    <div class="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[9px] flex items-center justify-center border border-slate-200">
+                                                        {{ strtoupper(substr($project->handover_data['assigned_engineers'][0]['name'] ?? 'T', 0, 1)) }}
+                                                    </div>
+                                                    <div>
+                                                        <span class="font-semibold text-slate-800 text-[12px]">{{ $project->handover_data['assigned_engineers'][0]['name'] ?? 'Tim Lapangan' }}</span>
+                                                        <span class="text-[9.5px] text-emerald-600 block font-normal">Dari Lead Engineer</span>
+                                                    </div>
+                                                </div>
+                                            @else
+                                                <span class="text-amber-600 font-medium text-[11px] inline-flex items-center gap-1">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                    Menunggu Lead
+                                                </span>
+                                            @endif
                                         </td>
                                         <td class="py-3.5 px-4 text-center">
                                             @if($cycle->activity_status === 'Completed')

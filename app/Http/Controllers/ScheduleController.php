@@ -220,6 +220,11 @@ class ScheduleController extends Controller
                     }
                 }
                 $q->orWhere('created_by', $user->id);
+                // Tampilkan jadwal PM atau task tanpa teknisi agar Lead Engineer dapat mendelegasikan
+                $q->orWhere(function($subQ) {
+                    $subQ->whereNull('engineer_id')
+                         ->whereIn('category', ['Preventive Maintenance', 'Task', 'Kegiatan', 'Corrective Maintenance']);
+                });
             });
         }
 
@@ -617,6 +622,33 @@ class ScheduleController extends Controller
                 if ($hasScheduleUser && !empty($engineerIds)) {
                     $schedule->engineers()->sync($engineerIds);
                 }
+
+                // Sync personil ke ManagedServicePmCycle jika kategori Preventive Maintenance
+                if ($schedule->category === 'Preventive Maintenance' && !empty($schedule->project_id)) {
+                    $engId = $schedule->engineer_id ?: (!empty($engineerIds) ? $engineerIds[0] : null);
+                    if ($engId && Schema::hasTable('managed_service_pm_cycles')) {
+                        $cycle = null;
+                        if ($schedule->date) {
+                            $cycle = \App\Models\ManagedServicePmCycle::where('project_id', $schedule->project_id)
+                                ->where('scheduled_date', $schedule->date->toDateString())
+                                ->first();
+                        }
+                        if (!$cycle) {
+                            $cycle = \App\Models\ManagedServicePmCycle::where('project_id', $schedule->project_id)
+                                ->where('cycle_label', 'like', "%{$schedule->title}%")
+                                ->first();
+                        }
+                        if (!$cycle) {
+                            $cycle = \App\Models\ManagedServicePmCycle::where('project_id', $schedule->project_id)
+                                ->where('activity_status', '!=', 'Completed')
+                                ->whereNull('assigned_engineer_id')
+                                ->first();
+                        }
+                        if ($cycle) {
+                            $cycle->update(['assigned_engineer_id' => $engId]);
+                        }
+                    }
+                }
                 $withRelations = ['project', 'engineer', 'creator'];
                 if ($hasScheduleUser) {
                     $withRelations[] = 'engineers';
@@ -910,6 +942,33 @@ class ScheduleController extends Controller
                 }
             }
 
+            // Sync personil ke ManagedServicePmCycle jika kategori Preventive Maintenance
+            if ($schedule->category === 'Preventive Maintenance' && !empty($schedule->project_id)) {
+                $engId = $schedule->engineer_id ?: (!empty($engineerIdsList) ? $engineerIdsList[0] : null);
+                if ($engId && Schema::hasTable('managed_service_pm_cycles')) {
+                    $cycle = null;
+                    if ($schedule->date) {
+                        $cycle = \App\Models\ManagedServicePmCycle::where('project_id', $schedule->project_id)
+                            ->where('scheduled_date', $schedule->date->toDateString())
+                            ->first();
+                    }
+                    if (!$cycle) {
+                        $cycle = \App\Models\ManagedServicePmCycle::where('project_id', $schedule->project_id)
+                            ->where('cycle_label', 'like', "%{$schedule->title}%")
+                            ->first();
+                    }
+                    if (!$cycle) {
+                        $cycle = \App\Models\ManagedServicePmCycle::where('project_id', $schedule->project_id)
+                            ->where('activity_status', '!=', 'Completed')
+                            ->whereNull('assigned_engineer_id')
+                            ->first();
+                    }
+                    if ($cycle) {
+                        $cycle->update(['assigned_engineer_id' => $engId]);
+                    }
+                }
+            }
+
             // Kirim notifikasi ke seluruh engineer jika agenda diperbarui
             $creator = auth()->user();
             $creatorName = $creator ? $creator->name : 'Team Leader';
@@ -1097,9 +1156,14 @@ class ScheduleController extends Controller
 
             $schedules = Schedule::with(['project', 'engineer'])
                 ->when($scopeIds !== null, function($query) use ($scopeIds) {
-                    return count($scopeIds) === 1
-                        ? $query->where('engineer_id', $scopeIds[0])
-                        : $query->whereIn('engineer_id', $scopeIds);
+                    return $query->where(function($q) use ($scopeIds) {
+                        if (count($scopeIds) === 1) {
+                            $q->where('engineer_id', $scopeIds[0]);
+                        } else {
+                            $q->whereIn('engineer_id', $scopeIds);
+                        }
+                        $q->orWhereNull('engineer_id');
+                    });
                 })
                 ->whereBetween('date', [$start, $end])
                 ->get()

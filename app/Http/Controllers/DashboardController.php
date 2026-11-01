@@ -377,7 +377,7 @@ class DashboardController extends Controller
         })->values();
 
         // Filter projects sesuai scope role yang login (kecualikan dummy/internal Day Off & Draft yang masih dicoba-coba)
-        $projectsQuery = Project::with(['tasks.engineer', 'creator', 'pm', 'division'])
+        $projectsQuery = Project::with(['tasks.engineer', 'creator', 'pm', 'division', 'msAcceptedBy'])
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
             ->where('client', '!=', 'Internal / Umum')
             ->whereNotIn('status', ['Draft', 'draft'])
@@ -398,15 +398,19 @@ class DashboardController extends Controller
                 if (!empty($teamIds)) {
                     $q->orWhereHas('tasks', fn($tq) => $tq->whereIn('engineer_id', $teamIds));
                 }
+                $q->orWhere('handover_target', 'managed_service')
+                  ->orWhere('stage', 'Operate')
+                  ->orWhere('ms_handover_status', 'Accepted');
             });
         }
         $projects = $projectsQuery->latest('updated_at')->get();
 
-        // Proyek yang resmi diserahkan PMO (Deliver/On Progress) untuk didelegasikan oleh Lead Engineer
+        // Proyek yang resmi diserahkan PMO (Deliver/On Progress) atau Managed Service (Operate/Accepted) untuk didelegasikan oleh Lead Engineer
         $leadProjects = $projects->filter(function($p) {
             return in_array($p->handover_status, ['Approved', 'Conditional']) 
-                || in_array(strtolower($p->stage ?? ''), ['deliver', 'execution', 'closing', 'completed'])
-                || in_array(strtolower($p->status ?? ''), ['in progress', 'on progress', 'active']);
+                || in_array(strtolower($p->stage ?? ''), ['deliver', 'execution', 'closing', 'completed', 'operate'])
+                || in_array(strtolower($p->status ?? ''), ['in progress', 'on progress', 'active'])
+                || ($p->handover_target === 'managed_service' && in_array($p->ms_handover_status, ['Accepted', 'Approved']));
         })->values();
 
         $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
@@ -429,6 +433,10 @@ class DashboardController extends Controller
                     }
                 }
                 $q->orWhere('created_by', $user->id);
+                $q->orWhere(function($subQ) {
+                    $subQ->whereNull('engineer_id')
+                         ->whereIn('category', ['Preventive Maintenance', 'Task', 'Kegiatan', 'Corrective Maintenance']);
+                });
             });
         }
         $schedules = $schedulesQuery->get();

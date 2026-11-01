@@ -794,20 +794,26 @@ class ManagedServiceController extends Controller
             $taskPriority = 'Low';
         }
 
-        $clientName = $ticket->client_name ?: ($ticket->asset?->client_name ?: 'Layanan Managed Service');
-        $proj = Project::firstOrCreate(
-            ['name' => 'Layanan SLA & Maintenance Support'],
-            [
-                'client'       => $clientName,
-                'location'     => $ticket->asset?->location_site ?? 'On-Site Klien',
-                'start_date'   => now()->toDateString(),
-                'deadline'     => $ticket->sla_deadline ? $ticket->sla_deadline->format('Y-m-d') : now()->addMonth()->toDateString(),
-                'status'       => 'In Progress',
-                'project_type' => 'Maintenance SLA',
-                'division_id'  => 3,
-                'created_by'   => $ticket->created_by ?: (auth()->id() ?: 1),
-            ]
-        );
+        $proj = null;
+        if (!empty($ticket->project_id)) {
+            $proj = Project::find($ticket->project_id);
+        }
+        if (!$proj) {
+            $clientName = $ticket->client_name ?: ($ticket->asset?->client_name ?: 'Layanan Managed Service');
+            $proj = Project::firstOrCreate(
+                ['name' => 'Layanan SLA & Maintenance Support'],
+                [
+                    'client'       => $clientName,
+                    'location'     => $ticket->asset?->location_site ?? 'On-Site Klien',
+                    'start_date'   => now()->toDateString(),
+                    'deadline'     => $ticket->sla_deadline ? $ticket->sla_deadline->format('Y-m-d') : now()->addMonth()->toDateString(),
+                    'status'       => 'In Progress',
+                    'project_type' => 'Maintenance SLA',
+                    'division_id'  => 3,
+                    'created_by'   => $ticket->created_by ?: (auth()->id() ?: 1),
+                ]
+            );
+        }
 
         $deadlineDate = $ticket->sla_deadline ? $ticket->sla_deadline->format('Y-m-d') : now()->toDateString();
         $deadlineTime = $ticket->sla_deadline ? $ticket->sla_deadline->format('H:i:00') : '10:00:00';
@@ -845,9 +851,9 @@ class ManagedServiceController extends Controller
                 'date'        => $scheduleDate,
                 'start_time'  => $scheduleStartTime,
                 'end_time'    => date('H:i:s', strtotime($scheduleStartTime . ' +3 hours')),
-                'category'    => 'Preventive Maintenance',
+                'category'    => 'Corrective Maintenance',
                 'status'      => $taskStatus === 'Completed' ? 'Completed' : ($taskStatus === 'In Progress' ? 'In Progress' : 'Pending'),
-                'description' => "Penanganan Tiket SLA {$ticket->ticket_number} - {$ticket->client_name}\nStatus: {$ticket->status}",
+                'description' => "Penanganan Tiket Corrective Maintenance {$ticket->ticket_number} - {$ticket->client_name}\nStatus: {$ticket->status}",
                 'project_id'  => $proj->id,
                 'engineer_id' => $assignedUserId,
             ]
@@ -970,12 +976,22 @@ class ManagedServiceController extends Controller
             'type'       => $msUser?->signature_type ?: 'signature_qr',
         ];
 
+        $freqMap = [
+            'Monthly'   => 'per_bulan',
+            'Quarterly' => 'per_3_bulan',
+            'Bi-Annual' => 'per_6_bulan',
+            'Annual'    => 'tahunan',
+        ];
+        $maintFreqInput = $validated['maintenance_frequency'] ?? ($project->maintenance_frequency ?: 'Monthly');
+        $mappedPmFreq = $freqMap[$maintFreqInput] ?? ($project->pm_frequency_type ?: 'per_bulan');
+
         $updateData = [
             'ms_handover_status'    => 'Accepted',
             'ms_accepted_at'        => now(),
             'ms_accepted_by'        => auth()->id(),
             'sla_tier'              => $validated['sla_tier'],
-            'maintenance_frequency' => $validated['maintenance_frequency'] ?? ($project->maintenance_frequency ?: 'Monthly'),
+            'maintenance_frequency' => $maintFreqInput,
+            'pm_frequency_type'     => $mappedPmFreq,
             'sla_coverage_hours'    => $validated['sla_coverage_hours'] ?? ($project->sla_coverage_hours ?: '24x7'),
             'service_start_date'    => $validated['service_start_date'] ?? $project->service_start_date,
             'service_end_date'      => $validated['service_end_date'] ?? $project->service_end_date,
@@ -984,6 +1000,16 @@ class ManagedServiceController extends Controller
             'status'                => 'Active',
             'handover_data'         => $existingHandoverData,
         ];
+
+        if (empty($project->cm_quota)) {
+            $updateData['cm_quota'] = match($validated['sla_tier']) {
+                'Platinum' => 18,
+                'Gold'     => 12,
+                'Silver'   => 8,
+                'Bronze'   => 4,
+                default    => 12,
+            };
+        }
 
         if ($request->has('documents_checklist')) {
             $updateData['documents_checklist'] = $request->input('documents_checklist');
@@ -1007,6 +1033,9 @@ class ManagedServiceController extends Controller
 
         $project->update($updateData);
 
+        // Auto inisialisasi PM cycles berdasarkan SLA & frekuensi kunjungan
+        self::initPmCycles($project);
+
         // Kirim notifikasi konfirmasi ke Sales PIC
         if ($project->commercial_handover_by) {
             \App\Models\Notification::create([
@@ -1017,6 +1046,24 @@ class ManagedServiceController extends Controller
                 'url'     => route('sales.handover.index'),
                 'is_read' => false,
             ]);
+        }
+
+        // Kirim notifikasi ke Lead Engineer agar proyek muncul untuk penugasan tim
+        $leadUsers = \App\Models\User::whereHas('roles', function($r) {
+            $r->whereIn('name', ['Lead Engineer', 'lead_engineer', 'Lead Project', 'lead']);
+        })->orWhere('position', 'like', '%Lead%')->get();
+
+        foreach ($leadUsers as $lead) {
+            try {
+                \App\Models\Notification::create([
+                    'user_id' => $lead->id,
+                    'title'   => 'Proyek Managed Service Siap Personil: ' . $project->name,
+                    'message' => "Kontrak Managed Service untuk '{$project->client}' (SLA {$project->sla_tier}) resmi aktif di tahap Operate. Anda dapat mengalokasikan teknisi pelaksana.",
+                    'type'    => 'project_assignment',
+                    'url'     => route('dashboard.lead'),
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {}
         }
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -1047,15 +1094,21 @@ class ManagedServiceController extends Controller
         $startDate = $project->service_start_date ? Carbon::parse($project->service_start_date) : ($project->start_date ? Carbon::parse($project->start_date) : now());
         $endDate   = $project->service_end_date ? Carbon::parse($project->service_end_date) : ($project->deadline ? Carbon::parse($project->deadline) : null);
 
-        $monthsInterval = match($project->pm_frequency_type) {
-            'per_bulan'   => 1,
-            'per_2_bulan' => 2,
-            'per_3_bulan' => 3,
-            'per_4_bulan' => 4,
-            'per_6_bulan' => 6,
-            'tahunan'     => 12,
-            default       => 3,
-        };
+        $rawFreq = strtolower(trim((string) ($project->pm_frequency_type ?: ($project->maintenance_frequency ?: 'per_bulan'))));
+        $monthsInterval = 1;
+        if (str_contains($rawFreq, 'quarter') || str_contains($rawFreq, 'triwulan') || str_contains($rawFreq, '3')) {
+            $monthsInterval = 3;
+        } elseif (str_contains($rawFreq, 'semi') || str_contains($rawFreq, 'bi-annual') || str_contains($rawFreq, 'semester') || str_contains($rawFreq, '6')) {
+            $monthsInterval = 6;
+        } elseif (str_contains($rawFreq, 'bi-month') || str_contains($rawFreq, '2_bulan') || str_contains($rawFreq, '2 bulan')) {
+            $monthsInterval = 2;
+        } elseif (str_contains($rawFreq, '4_bulan') || str_contains($rawFreq, '4 bulan')) {
+            $monthsInterval = 4;
+        } elseif (str_contains($rawFreq, 'tahun') || str_contains($rawFreq, 'annual') || str_contains($rawFreq, '12')) {
+            $monthsInterval = 12;
+        } else {
+            $monthsInterval = 1; // Default Monthly
+        }
 
         if ($project->pm_total_cycles && $project->pm_total_cycles > 0) {
             $totalCycles = (int) $project->pm_total_cycles;
@@ -1063,32 +1116,135 @@ class ManagedServiceController extends Controller
             $diffMonths = max(1, (int) round($startDate->floatDiffInMonths($endDate)));
             $totalCycles = max(1, (int) floor($diffMonths / $monthsInterval));
         } else {
-            $totalCycles = match($project->pm_frequency_type) {
-                'per_bulan'   => 12,
-                'per_2_bulan' => 6,
-                'per_4_bulan' => 3,
-                'per_6_bulan' => 2,
-                'tahunan'     => 1,
-                default       => 4,
+            $totalCycles = match($monthsInterval) {
+                1 => 12,
+                2 => 6,
+                3 => 4,
+                4 => 3,
+                6 => 2,
+                12 => 1,
+                default => 12,
             };
+        }
+
+        if (empty($project->pm_total_cycles) || $project->pm_total_cycles != $totalCycles) {
+            $project->update(['pm_total_cycles' => $totalCycles]);
+        }
+
+        // Personil teknisi yang sudah didelegasikan oleh Lead Engineer (jika ada)
+        $assignedEngId = null;
+        if (is_array($project->handover_data)) {
+            $assigned = $project->handover_data['assigned_engineers'] ?? [];
+            if (!empty($assigned) && isset($assigned[0]['id'])) {
+                $assignedEngId = (int) $assigned[0]['id'];
+            }
         }
 
         for ($i = 1; $i <= $totalCycles; $i++) {
             $schedDate = $startDate->copy()->addMonths(($i - 1) * $monthsInterval + $monthsInterval);
             $isFirstCompleted = ($i === 1) && ($project->progress >= 25);
-            ManagedServicePmCycle::create([
-                'project_id'        => $project->id,
-                'cycle_number'      => $i,
-                'cycle_label'       => 'PM ' . $i . ' (Bulan ke-' . (($i - 1) * $monthsInterval + $monthsInterval) . ')',
-                'scheduled_date'    => $schedDate->toDateString(),
-                'activity_status'   => $isFirstCompleted ? 'Completed' : 'Scheduled',
-                'actual_date'       => $isFirstCompleted ? $schedDate->copy()->subDays(2)->toDateString() : null,
-                'activity_notes'    => $isFirstCompleted ? 'Preventive maintenance berkala selesai dilaksanakan sesuai checklist inspeksi.' : null,
-                'report_status'     => $isFirstCompleted ? 'Approved' : 'Pending',
-                'billing_ba_status' => $isFirstCompleted ? 'Signed' : 'Pending',
+            $cycle = ManagedServicePmCycle::create([
+                'project_id'           => $project->id,
+                'cycle_number'         => $i,
+                'cycle_label'          => 'PM ' . $i . ' (Bulan ke-' . (($i - 1) * $monthsInterval + $monthsInterval) . ')',
+                'scheduled_date'       => $schedDate->toDateString(),
+                'assigned_engineer_id' => $assignedEngId,
+                'activity_status'      => $isFirstCompleted ? 'Completed' : 'Scheduled',
+                'actual_date'          => $isFirstCompleted ? $schedDate->copy()->subDays(2)->toDateString() : null,
+                'activity_notes'       => $isFirstCompleted ? 'Preventive maintenance berkala selesai dilaksanakan sesuai checklist inspeksi.' : null,
+                'report_status'        => $isFirstCompleted ? 'Approved' : 'Pending',
+                'billing_ba_status'    => $isFirstCompleted ? 'Signed' : 'Pending',
             ]);
         }
     }
+
+    /**
+     * Otomatis sinkronisasi jadwal PM Cycle ke tabel Schedules (Jadwal Kerja Tim)
+     * agar langsung muncul di kalender / dashboard Lead Engineer & personil teknisi
+     */
+    public static function syncPmCycleToSchedule(ManagedServicePmCycle $cycle): ?Schedule
+    {
+        if (empty($cycle->scheduled_date)) {
+            return null;
+        }
+
+        if (!Schema::hasTable('schedules')) {
+            return null;
+        }
+
+        $project = $cycle->project;
+        $title = 'PM ' . $cycle->cycle_label . ': ' . ($project ? $project->name : 'Proyek MS');
+        $dateStr = Carbon::parse($cycle->scheduled_date)->toDateString();
+
+        // Cari schedule yang sudah ada untuk siklus ini atau proyek ini
+        $schedule = Schedule::where('project_id', $cycle->project_id)
+            ->where(function($q) use ($cycle, $title) {
+                $q->where('title', $title)
+                  ->orWhere('title', 'like', "%{$cycle->cycle_label}%");
+            })
+            ->first();
+
+        // Cari engineer default: dari cycle, atau dari penugasan tim oleh Lead di project
+        $engineerId = $cycle->assigned_engineer_id;
+        if (empty($engineerId) && $project && is_array($project->handover_data)) {
+            $assigned = $project->handover_data['assigned_engineers'] ?? [];
+            if (!empty($assigned) && isset($assigned[0]['id'])) {
+                $engineerId = (int) $assigned[0]['id'];
+                $cycle->update(['assigned_engineer_id' => $engineerId]);
+            }
+        }
+
+        $scheduleData = [
+            'project_id'  => $cycle->project_id,
+            'title'       => $title,
+            'category'    => 'Preventive Maintenance',
+            'date'        => $dateStr,
+            'start_time'  => '09:00:00',
+            'end_time'    => '17:00:00',
+            'location'    => $project?->location ?: ($project?->client ?: 'On-Site Klien'),
+            'description' => "Jadwal Preventive Maintenance ({$cycle->cycle_label}) untuk proyek '{$project?->name}'. Catatan: " . ($cycle->activity_notes ?: 'Sesuai SLA Kontrak Managed Service'),
+            'engineer_id' => $engineerId,
+        ];
+
+        if ($schedule) {
+            // Jika teknisi di schedule sudah diisi oleh Lead Engineer tapi di cycle belum, kita sync ke cycle
+            if ($schedule->engineer_id && empty($cycle->assigned_engineer_id)) {
+                $cycle->update(['assigned_engineer_id' => $schedule->engineer_id]);
+                $scheduleData['engineer_id'] = $schedule->engineer_id;
+            }
+            $schedule->update($scheduleData);
+        } else {
+            $scheduleData['created_by'] = auth()->id() ?: 1;
+            $schedule = Schedule::create($scheduleData);
+        }
+
+        if ($schedule->engineer_id && Schema::hasTable('schedule_user')) {
+            $schedule->engineers()->sync([(int) $schedule->engineer_id]);
+        }
+
+        // Kirim notifikasi ke Lead Engineer jika tanggal ditentukan tapi personil belum ditugaskan
+        if (empty($schedule->engineer_id)) {
+            $leadUsers = User::whereHas('roles', function($r) {
+                $r->whereIn('name', ['Lead Engineer', 'lead_engineer', 'Lead Project', 'lead']);
+            })->orWhere('position', 'like', '%Lead%')->get();
+
+            foreach ($leadUsers as $lead) {
+                try {
+                    \App\Models\Notification::create([
+                        'user_id' => $lead->id,
+                        'title'   => 'Jadwal Kunjungan PM Ditentukan: ' . ($project?->name ?? 'Proyek MS'),
+                        'message' => "Tim Managed Service telah menentukan jadwal kunjungan {$cycle->cycle_label} pada " . Carbon::parse($dateStr)->format('d M Y') . ". Silakan tugaskan personil teknisi pelaksana.",
+                        'type'    => 'schedule_assignment',
+                        'url'     => route('schedules.index'),
+                        'is_read' => false,
+                    ]);
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        return $schedule;
+    }
+
 
     /**
      * Pastikan minimal ada 1 proyek sampel (Bank Raya sesuai sketsa user) jika database kosong
@@ -1706,6 +1862,11 @@ class ManagedServiceController extends Controller
         }
 
         $cycle->update($validated);
+
+        // Otomatis sinkronisasi ke Jadwal Kerja Tim (Schedule)
+        if (!empty($cycle->scheduled_date)) {
+            self::syncPmCycleToSchedule($cycle);
+        }
 
         $project = $cycle->project;
         if ($project) {
