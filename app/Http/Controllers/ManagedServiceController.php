@@ -46,6 +46,7 @@ class ManagedServiceController extends Controller
     public function dashboard(Request $request)
     {
         $this->ensureTablesExist();
+        $this->ensureSampleProjectExists();
 
         $selectedYear = $request->input('year', 2026);
         $selectedClient = $request->input('client');
@@ -1251,8 +1252,147 @@ class ManagedServiceController extends Controller
      */
     private function ensureSampleProjectExists(): void
     {
-        // No-op: prevent automatic dummy data generation so data stays clean
-        return;
+        if (!Schema::hasTable('projects')) {
+            return;
+        }
+
+        $hasOperate = Project::where(function($q) {
+            $q->where('stage', 'Operate')
+              ->where('ms_handover_status', 'Accepted');
+        })->orWhere('name', 'like', '%Managed Service Network & Security Maintenance%')->exists();
+
+        if ($hasOperate) {
+            return;
+        }
+
+        try {
+            $salesUser = User::whereHas('roles', fn($r) => $r->where('name', 'Sales'))->first() ?? User::find(8) ?? User::first();
+            $msLead    = User::whereHas('roles', fn($r) => $r->whereIn('name', ['Managed Service', 'Lead Maintenance', 'Team Leader']))->first() ?? User::find(35) ?? User::first();
+            $leadEng   = User::whereHas('roles', fn($r) => $r->where('name', 'like', '%Lead%'))->first() ?? User::find(28) ?? User::first();
+            $fieldTech = User::where('name', 'Mario')->first() ?? User::find(36) ?? User::first();
+            $fieldTech2= User::where('name', 'Eris')->first() ?? User::find(37) ?? User::first();
+
+            $salesUser?->ensureSignatureQrToken();
+            $msLead?->ensureSignatureQrToken();
+
+            $project = Project::create([
+                'name'                  => 'Managed Service Network & Security Maintenance 2026/2027',
+                'client'                => 'PT Bank Central Asia Tbk',
+                'contract_value'        => 360000000,
+                'status'                => 'Active',
+                'sales_stage'           => 'Closed Won',
+                'stage'                 => 'Operate',
+                'handover_target'       => 'managed_service',
+                'project_type'          => 'Maintenance SLA',
+                'maintenance_frequency' => 'Quarterly',
+                'pm_frequency_type'     => 'per_3_bulan',
+                'pm_total_cycles'       => 4,
+                'sla_tier'              => 'Gold',
+                'cm_quota'              => 12,
+                'sla_coverage_hours'    => '24x7',
+                'service_start_date'    => now()->startOfMonth()->toDateString(),
+                'service_end_date'      => now()->addYear()->endOfMonth()->toDateString(),
+                'location'              => 'Menara BCA Lt. 18, Jl. MH Thamrin No. 1, Jakarta Pusat',
+                'created_by'            => $salesUser?->id ?: 1,
+                'commercial_handover_by'=> $salesUser?->id ?: 1,
+                'commercial_handover_at'=> now(),
+                'handover_status'       => 'Approved',
+                'ms_handover_status'    => 'Accepted',
+                'ms_accepted_at'        => now(),
+                'ms_accepted_by'        => $msLead?->id ?: 1,
+                'progress'              => 0,
+                'handover_data'         => [
+                    'so_code'                  => 'SO-2026-MS-BCA01',
+                    'so_number'                => 'SO-2026-MS-BCA01',
+                    'lead_ms_name'             => $msLead?->name ?: 'Doris',
+                    'lead_engineer_name'       => $leadEng?->name ?: 'Nugraha Pratama',
+                    'handover_status_selected' => 'approved',
+                    'handover_confirmation'    => 'Berkas kontrak SLA dan topologi jaringan verified.',
+                    'commercial_signature'     => [
+                        'signed'     => true,
+                        'user_id'    => $salesUser?->id ?: 1,
+                        'user_name'  => $salesUser?->name ?: 'Hendry Wibowo',
+                        'user_role'  => 'Sales / Account Manager',
+                        'signed_at'  => now()->format('Y-m-d H:i:s'),
+                        'qr_token'   => $salesUser?->signature_qr_token,
+                        'signature'  => $salesUser?->signature_data,
+                        'type'       => 'signature_qr',
+                    ],
+                    'ms_signature'             => [
+                        'signed'     => true,
+                        'user_id'    => $msLead?->id ?: 1,
+                        'user_name'  => $msLead?->name ?: 'Doris',
+                        'user_role'  => 'Lead Maintenance / MS',
+                        'signed_at'  => now()->format('Y-m-d H:i:s'),
+                        'qr_token'   => $msLead?->signature_qr_token,
+                        'signature'  => $msLead?->signature_data,
+                        'type'       => 'signature_qr',
+                    ],
+                    'assigned_engineers'       => [
+                        [
+                            'id'          => $fieldTech?->id ?: 1,
+                            'name'        => $fieldTech?->name ?: 'Mario',
+                            'email'       => $fieldTech?->email ?: 'mario@ipnetsolusindo.com',
+                            'position'    => 'Field Support (EOS)',
+                            'role'        => 'PIC Lapangan Utama',
+                            'division'    => 'Tim Maintenance',
+                            'assigned_at' => now()->format('d M Y H:i'),
+                            'assigned_by' => $leadEng?->name ?: 'Lead Engineer',
+                        ],
+                        [
+                            'id'          => $fieldTech2?->id ?: 1,
+                            'name'        => $fieldTech2?->name ?: 'Eris',
+                            'email'       => $fieldTech2?->email ?: 'eris@ipnetsolusindo.com',
+                            'position'    => 'Field Support',
+                            'role'        => 'Teknisi Pendamping',
+                            'division'    => 'Tim Maintenance',
+                            'assigned_at' => now()->format('d M Y H:i'),
+                            'assigned_by' => $leadEng?->name ?: 'Lead Engineer',
+                        ],
+                    ],
+                ],
+            ]);
+
+            self::initPmCycles($project);
+
+            $firstCycle = ManagedServicePmCycle::where('project_id', $project->id)->first();
+            if ($firstCycle) {
+                $visitDate = now()->addDays(5)->toDateString();
+                $firstCycle->update([
+                    'scheduled_date'       => $visitDate,
+                    'assigned_engineer_id' => $fieldTech?->id ?: 1,
+                    'activity_status'      => 'Scheduled',
+                    'activity_notes'       => 'Pemeriksaan berkala Q1: Cek suhu rack server, kabel patch cord, switch core Cisco, dan failover router backup.',
+                ]);
+                self::syncPmCycleToSchedule($firstCycle);
+            }
+
+            // Buat sample tiket CM
+            $ticketNumber = 'CM-BCA-' . date('Y') . '-001';
+            if (Schema::hasTable('managed_service_tickets') && !ManagedServiceTicket::where('ticket_number', $ticketNumber)->exists()) {
+                $cmTicket = ManagedServiceTicket::create([
+                    'ticket_number'   => $ticketNumber,
+                    'project_id'      => $project->id,
+                    'client_name'     => $project->client,
+                    'title'           => 'Port Switch Access Lt. 18 Flapping / Link Down',
+                    'description'     => 'Port GigabitEthernet 1/0/24 pada switch Cisco Catalyst 2960 mengalami intermittent flapping ke server absensi.',
+                    'incident_date'   => now()->toDateString(),
+                    'type'            => 'Corrective Maintenance',
+                    'category'        => 'Troubleshooting',
+                    'priority'        => 'High',
+                    'status'          => 'In Progress',
+                    'source'          => 'Portal',
+                    'reported_by'     => 'Bapak Iwan (IT Ops BCA)',
+                    'assigned_to'     => $fieldTech?->id ?: 1,
+                    'sla_deadline'    => now()->addHours(4),
+                    'sla_met'         => true,
+                    'created_by'      => $msLead?->id ?: 1,
+                ]);
+                self::syncTicketToTaskAndSchedule($cmTicket);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ensureSampleProjectExists error: ' . $e->getMessage());
+        }
     }
 
     /**

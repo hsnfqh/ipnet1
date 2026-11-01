@@ -60,9 +60,10 @@ Route::get('/fix-cpanel-deploy', function () {
     $output[] = "=== LATEST COMMIT ===";
     $output[] = shell_exec("git -C \"$path\" log -n 1 --oneline 2>&1") ?? 'N/A';
     try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         \Illuminate\Support\Facades\Artisan::call('view:clear');
         \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        $output[] = "=== CACHE CLEARED ===";
+        $output[] = "=== MIGRATED AND CACHE CLEARED ===";
     } catch (\Throwable $e) {}
     return '<pre>' . implode("\n", $output) . '</pre>';
 });
