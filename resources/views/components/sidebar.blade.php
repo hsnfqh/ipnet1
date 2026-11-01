@@ -153,8 +153,8 @@
         ];
     }
 
-    // Menu Pengaturan selalu ada untuk semua Role
-    $navItems[] = ['key' => 'settings', 'label' => 'Pengaturan', 'route' => 'settings.index'];
+    // Menu Settings selalu ada untuk semua Role
+    $navItems[] = ['key' => 'settings', 'label' => 'Settings', 'route' => 'settings.index'];
 @endphp
 
 <style>
