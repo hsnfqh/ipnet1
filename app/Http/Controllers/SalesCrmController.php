@@ -1399,7 +1399,7 @@ class SalesCrmController extends Controller
             }
 
             return redirect()->back()
-                ->with('success', "Berkas Commercial Handover untuk proyek '{$project->name}' berhasil dikirim ke Tim Delivery & PMO.");
+                ->with('success', "Berkas Serah Terima untuk proyek '{$project->name}' berhasil ditandatangani digital & diserahkan! Berkas telah masuk ke antrean PMO (Tab 'Incoming Handover') untuk diverifikasi & disahkan oleh Project Manager.");
         }
     }
 

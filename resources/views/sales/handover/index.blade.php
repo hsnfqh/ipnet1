@@ -91,6 +91,20 @@
                 </div>
             @endif
 
+            @if($errors->any())
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs shadow-xs anim-fade-up">
+                    <div class="font-bold mb-1.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Pengajuan Serah Terima Gagal: Mohon lengkapi data berikut</span>
+                    </div>
+                    <ul class="list-disc list-inside space-y-1 text-slate-700 pl-1 font-medium">
+                        @foreach($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             {{-- 3 SUMMARY METRIC CARDS --}}
             @php
                 $totalHandoverCount = $handoverProjects->total();
@@ -376,7 +390,8 @@
 
                 {{-- Form Body with Scrollable Area --}}
                 <form id="commercialHandoverForm" 
-                      :action="'/sales/handover/' + selectedProject.id + '/submit'" 
+                      :action="formAction || ('/sales/handover/' + (selectedProject ? selectedProject.id : '') + '/submit')" 
+                      @submit="if (!formAction || formAction.includes('undefined')) { if (selectedProject && selectedProject.id) { formAction = '/sales/handover/' + selectedProject.id + '/submit'; $el.action = formAction; } }"
                       method="POST" 
                       enctype="multipart/form-data" 
                       class="flex flex-col flex-1 min-h-0 overflow-hidden">
@@ -774,6 +789,7 @@
         return {
             isHandoverModalOpen: false,
             selectedProject: {},
+            formAction: '',
             formTarget: 'pmo',
             formTargets: ['pmo'],
             formPoNum: '',
@@ -809,6 +825,11 @@
 
             openHandoverModal(proj) {
                 this.selectedProject = proj;
+                this.formAction = '/sales/handover/' + proj.id + '/submit';
+                this.$nextTick(() => {
+                    const formEl = document.getElementById('commercialHandoverForm');
+                    if (formEl) formEl.action = '/sales/handover/' + proj.id + '/submit';
+                });
                 const pName = (proj.name || '').toLowerCase();
                 const pType = (proj.project_type || '').toLowerCase();
                 const isMsAuto = proj.handover_target === 'managed_service' 
@@ -824,7 +845,7 @@
                 } else {
                     this.formTargets = ['pmo'];
                 }
-                this.formPoNum = proj.po_spk_number || '';
+                this.formPoNum = proj.po_spk_number || proj.po_number || proj.so_code || ('PO-' + new Date().getFullYear() + '-' + String(proj.id).padStart(4, '0'));
                 this.formPoDate = proj.po_spk_date ? proj.po_spk_date.split('T')[0] : '{{ date('Y-m-d') }}';
                 this.formContractValue = proj.contract_value || 0;
                 this.formBilling = proj.billing_terms || (this.formTarget === 'managed_service' ? 'Pembayaran tagihan rutin per bulan (Net 30 hari) setelah rekap SLA bulanan terbit.' : 'DP 30% setelah PO terbit, 50% setelah delivery barang on-site, 20% pelunasan setelah BAST selesai.');

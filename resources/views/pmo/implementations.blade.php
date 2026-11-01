@@ -113,6 +113,30 @@
 
 
 
+            {{-- ALERT BANNER KETIKA ADA INCOMING HANDOVER MENUNGGU PERSETUJUAN --}}
+            <template x-if="activeTab !== 'pending_handover' && (handoverPendingCount + handoverConditionalCount) > 0">
+                <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 anim-fade-up">
+                    <div class="flex items-center gap-3">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping shrink-0"></span>
+                        <div>
+                            <h4 class="text-xs font-bold text-amber-950 flex items-center gap-2">
+                                <span>Ada <span x-text="handoverPendingCount + handoverConditionalCount"></span> Berkas Serah Terima Baru Masuk dari Sales!</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-200 text-amber-900">Menunggu TTD &amp; Verifikasi</span>
+                            </h4>
+                            <p class="text-[11px] text-amber-800 mt-0.5">
+                                Berkas handover telah ditandatangani digital oleh Sales PIC. Buka tab Incoming Handover untuk verifikasi &amp; tanda tangani persetujuan PMO.
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" 
+                            @click="activeTab = 'pending_handover'; currentPage = 1;" 
+                            class="px-4 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5 self-start sm:self-auto shrink-0 active:scale-95">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        <span>Buka Incoming Handover</span>
+                    </button>
+                </div>
+            </template>
+
             <!-- ========================================================== -->
             <!-- 4. DAFTAR PORTOFOLIO PROYEK & KONTROL IMPLEMENTASI        -->
             <!-- ========================================================== -->
