@@ -161,7 +161,7 @@
             @endif
 
             {{-- ══ SECTION 2: 3 SUMMARY CARDS RAPI & SEIMBANG (FULL WIDTH) ══ --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 anim-fade-up anim-delay-1">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 anim-fade-up anim-delay-1">
                 {{-- Card 1: Profil Pengguna --}}
                 <div class="ipnet-card p-5 flex items-center justify-between">
                     <div class="min-w-0 pr-3">
@@ -169,8 +169,8 @@
                         <h3 class="text-[17px] font-bold text-[#1E293B] mt-1 truncate">{{ $user->name }}</h3>
                         <p class="text-[12px] text-[#94A3B8] mt-0.5 truncate">{{ $user->email }}</p>
                     </div>
-                    <div class="w-12 h-12 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#8F0A0D] shadow-xs shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <div class="w-10 h-10 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#8F0A0D] shadow-xs shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
                     </div>
@@ -183,8 +183,8 @@
                         <h3 class="text-[17px] font-bold text-[#2563EB] mt-1">Terproteksi</h3>
                         <p class="text-[12px] text-[#94A3B8] mt-0.5">Enkripsi Kata Sandi Bcrypt Aktif</p>
                     </div>
-                    <div class="w-12 h-12 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#2563EB] shadow-xs shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <div class="w-10 h-10 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#2563EB] shadow-xs shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                         </svg>
                     </div>
@@ -201,8 +201,8 @@
                             {{ $user->has_signature ? 'Siap digunakan pada BA / SPK' : 'Diperlukan untuk stempel otomatis' }}
                         </p>
                     </div>
-                    <div class="w-12 h-12 rounded-2xl {{ $user->has_signature ? 'bg-[#F0FDF4] border-[#BBF7D0] text-[#16A34A]' : 'bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]' }} border flex items-center justify-center shadow-xs shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <div class="w-10 h-10 rounded-xl {{ $user->has_signature ? 'bg-[#F0FDF4] border-[#BBF7D0] text-[#16A34A]' : 'bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]' }} border flex items-center justify-center shadow-xs shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                         </svg>
                     </div>
@@ -227,42 +227,44 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                         {{-- Kartu Ringkasan Akun (Kolom Kiri 5 Span) --}}
-                        <div class="lg:col-span-5 space-y-5">
-                            <div class="p-6 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-5 text-center sm:text-left flex flex-col sm:flex-row items-center sm:items-start gap-5">
-                                <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#8F0A0D] to-[#B91C1C] text-white text-2xl font-extrabold flex items-center justify-center shrink-0 shadow-md">
+                        <div class="lg:col-span-5 space-y-4">
+                            <div class="p-4 sm:p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center gap-3.5">
+                                <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-[15px] shrink-0 text-white shadow-xs ring-2 ring-red-100"
+                                     style="background: linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%);">
                                     {{ $user->initials }}
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <h4 class="text-xl font-bold text-[#1E293B]">{{ $user->name }}</h4>
-                                    <p class="text-[13px] text-[#64748B] font-medium mt-0.5">{{ $user->position ?? $user->role_label }}</p>
-                                    <p class="text-[12px] text-[#94A3B8]">PT IP Network Solusindo</p>
-                                    <div class="flex flex-wrap items-center gap-2 mt-3 justify-center sm:justify-start">
-                                        <span class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-[#8F0A0D]/10 text-[#8F0A0D] uppercase tracking-wider border border-[#8F0A0D]/20">
+                                    <div class="flex items-center gap-2">
+                                        <h4 class="text-[16px] font-bold text-[#1E293B] truncate">{{ $user->name }}</h4>
+                                        <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                            {{ $user->status ?? 'Active' }}
+                                        </span>
+                                    </div>
+                                    <p class="text-[12px] text-[#64748B] font-medium truncate mt-0.5">{{ $user->position ?? $user->role_label }} • PT IP Network Solusindo</p>
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#8F0A0D]/10 text-[#8F0A0D] uppercase tracking-wider border border-[#8F0A0D]/20">
                                             {{ $user->role_label }}
                                         </span>
                                         @if($user->division)
-                                        <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                                             {{ $user->division->name }}
                                         </span>
                                         @endif
-                                        <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            {{ $user->status ?? 'Active' }}
-                                        </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="p-5 rounded-2xl bg-white border border-[#E2E8F0] space-y-3">
-                                <span class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider block">Catatan Akun Sistem</span>
+                            <div class="p-4 rounded-2xl bg-white border border-[#E2E8F0] space-y-2.5">
+                                <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider block">Catatan Akun Sistem</span>
                                 <div class="text-[12px] text-[#475569] space-y-2 leading-relaxed">
                                     <p class="flex items-start gap-2">
-                                        <svg class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                         <span>Alamat email resmi digunakan sebagai pengenal otentikasi login tunggal.</span>
                                     </p>
                                     <p class="flex items-start gap-2">
-                                        <svg class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                         <span>Perubahan divisi organisasi dan hak akses dikelola oleh Administrator Sistem.</span>
                                     </p>
                                 </div>
@@ -275,21 +277,21 @@
                                 @csrf
 
                                 <div>
-                                    <label class="block text-[12px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
+                                    <label class="block text-[11.5px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
                                         Nama Lengkap <span class="text-[#8F0A0D]">*</span>
                                     </label>
                                     <input type="text" name="name" value="{{ old('name', $user->name) }}" required
-                                           class="w-full px-4 py-3 rounded-xl border border-[#CBD5E1] text-[13.5px] font-semibold text-[#1E293B] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none transition">
+                                           class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] font-semibold text-[#1E293B] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none transition">
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                     <div>
-                                        <label class="block text-[12px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
+                                        <label class="block text-[11.5px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
                                             Alamat Email (Login)
                                         </label>
                                         <div class="relative">
                                             <input type="email" value="{{ $user->email }}" readonly
-                                                   class="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[13.5px] font-semibold text-[#64748B] cursor-not-allowed outline-none">
+                                                   class="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[13px] font-semibold text-[#64748B] cursor-not-allowed outline-none">
                                             <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                             </div>
@@ -297,35 +299,35 @@
                                     </div>
 
                                     <div>
-                                        <label class="block text-[12px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
+                                        <label class="block text-[11.5px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
                                             Nomor WhatsApp / Telepon
                                         </label>
                                         <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="Contoh: 081234567890"
-                                               class="w-full px-4 py-3 rounded-xl border border-[#CBD5E1] text-[13.5px] font-semibold text-[#1E293B] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none transition">
+                                               class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] font-semibold text-[#1E293B] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none transition">
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                     <div>
-                                        <label class="block text-[12px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">
+                                        <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">
                                             Jabatan / Posisi
                                         </label>
                                         <input type="text" value="{{ $user->position ?: ($user->role_label) }}" readonly
-                                               class="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[13px] font-semibold text-[#64748B] cursor-not-allowed outline-none">
+                                               class="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[12.5px] font-semibold text-[#64748B] cursor-not-allowed outline-none">
                                     </div>
 
                                     <div>
-                                        <label class="block text-[12px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">
+                                        <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">
                                             Divisi Kerja
                                         </label>
                                         <input type="text" value="{{ $user->division ? $user->division->name : 'Operasional & Proyek' }}" readonly
-                                               class="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[13px] font-semibold text-[#64748B] cursor-not-allowed outline-none">
+                                               class="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[12.5px] font-semibold text-[#64748B] cursor-not-allowed outline-none">
                                     </div>
                                 </div>
 
-                                <div class="pt-3">
+                                <div class="pt-2">
                                     <button type="submit"
-                                            class="btn-ipnet-gradient w-full sm:w-auto px-7 py-3 rounded-xl font-bold text-[13px] shadow-md flex items-center justify-center gap-2 cursor-pointer transition">
+                                            class="btn-ipnet-gradient w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-[12.5px] shadow-md flex items-center justify-center gap-2 cursor-pointer transition">
                                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                         <span>Simpan Perubahan Profil</span>
                                     </button>
@@ -352,20 +354,20 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                         {{-- Formulir Ubah Kata Sandi (Kolom Kiri 7 Span) --}}
                         <div class="lg:col-span-7">
-                            <form action="{{ route('settings.password') }}" method="POST" class="space-y-5">
+                            <form action="{{ route('settings.password') }}" method="POST" class="space-y-4">
                                 @csrf
 
                                 {{-- Password Saat Ini --}}
                                 <div>
-                                    <label class="block text-[12px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
+                                    <label class="block text-[11.5px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
                                         Password Saat Ini <span class="text-[#8F0A0D]">*</span>
                                     </label>
                                     <div class="relative">
                                         <input :type="showCurrent ? 'text' : 'password'" name="current_password" required placeholder="Masukkan kata sandi saat ini"
-                                               class="w-full px-4 py-3 pr-11 rounded-xl border border-[#CBD5E1] text-[13.5px] font-semibold text-[#1E293B] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none transition">
+                                               class="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-[#CBD5E1] text-[13px] font-semibold text-[#1E293B] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none transition">
                                         <button type="button" @click="showCurrent = !showCurrent"
                                                 class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
                                             <svg x-show="!showCurrent" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -376,12 +378,12 @@
 
                                 {{-- Password Baru --}}
                                 <div>
-                                    <label class="block text-[12px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
+                                    <label class="block text-[11.5px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
                                         Password Baru <span class="text-[#8F0A0D]">*</span>
                                     </label>
                                     <div class="relative">
                                         <input :type="showNew ? 'text' : 'password'" name="password" required placeholder="Minimal 8 karakter"
-                                               class="w-full px-4 py-3 pr-11 rounded-xl border border-[#CBD5E1] text-[13.5px] font-semibold text-[#1E293B] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none transition">
+                                               class="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-[#CBD5E1] text-[13px] font-semibold text-[#1E293B] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none transition">
                                         <button type="button" @click="showNew = !showNew"
                                                 class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
                                             <svg x-show="!showNew" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -392,12 +394,12 @@
 
                                 {{-- Konfirmasi Password Baru --}}
                                 <div>
-                                    <label class="block text-[12px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
+                                    <label class="block text-[11.5px] font-bold text-[#334155] uppercase tracking-wider mb-1.5">
                                         Konfirmasi Password Baru <span class="text-[#8F0A0D]">*</span>
                                     </label>
                                     <div class="relative">
                                         <input :type="showConfirm ? 'text' : 'password'" name="password_confirmation" required placeholder="Ulangi kata sandi baru"
-                                               class="w-full px-4 py-3 pr-11 rounded-xl border border-[#CBD5E1] text-[13.5px] font-semibold text-[#1E293B] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none transition">
+                                               class="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-[#CBD5E1] text-[13px] font-semibold text-[#1E293B] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none transition">
                                         <button type="button" @click="showConfirm = !showConfirm"
                                                 class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
                                             <svg x-show="!showConfirm" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -408,7 +410,7 @@
 
                                 <div class="pt-2">
                                     <button type="submit"
-                                            class="btn-ipnet-gradient w-full sm:w-auto px-7 py-3 rounded-xl font-bold text-[13px] shadow-md flex items-center justify-center gap-2 cursor-pointer transition">
+                                            class="btn-ipnet-gradient w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-[12.5px] shadow-md flex items-center justify-center gap-2 cursor-pointer transition">
                                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                         <span>Simpan Password Baru</span>
                                     </button>
