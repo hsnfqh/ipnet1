@@ -1152,6 +1152,7 @@ Route::middleware(['auth'])->group(function () {
         // Dedicated Menu 3: Commercial Handover to Delivery/PMO
         Route::get('/handover', [\App\Http\Controllers\SalesCrmController::class, 'commercialHandoverIndex'])->name('sales.handover.index');
         Route::post('/handover/{project}/submit', [\App\Http\Controllers\SalesCrmController::class, 'submitCommercialHandover'])->name('sales.handover.submit');
+        Route::get('/handover/{project}/document', [\App\Http\Controllers\SalesCrmController::class, 'showHandoverDocument'])->name('sales.handover.document');
     });
 
     // Public / Project-level Lost Analysis PDF
@@ -1367,6 +1368,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{project}/documents/{document}/download', [\App\Http\Controllers\ProjectDocumentController::class, 'download'])->name('projects.documents.download');
         Route::get('/{project}/documents/{document}/view', [\App\Http\Controllers\ProjectDocumentController::class, 'view'])->name('projects.documents.view');
         Route::delete('/{project}/documents/{document}', [\App\Http\Controllers\ProjectDocumentController::class, 'delete'])->name('projects.documents.delete');
+        Route::get('/{project}/handover-document', [\App\Http\Controllers\SalesCrmController::class, 'showHandoverDocument'])->name('projects.handover.document');
     });
 
     // Tasks

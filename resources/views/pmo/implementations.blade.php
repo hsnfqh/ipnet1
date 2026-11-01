@@ -1021,16 +1021,23 @@
                                         <div class="font-bold text-[11px] text-black">Diserahkan oleh</div>
                                         <div class="text-[10px] text-slate-600 font-medium">Sales / Commercial</div>
                                     </div>
-                                    <div class="my-auto py-1 text-center">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                            <span>Verified Digital</span>
-                                        </span>
+                                    <div class="my-auto py-1 text-center flex flex-col items-center justify-center">
+                                        <template x-if="activeProject?.handover_data?.sales_signature?.signature">
+                                            <div class="h-14 flex items-center justify-center">
+                                                <img :src="activeProject.handover_data.sales_signature.signature" alt="TTD Sales" class="max-h-12 max-w-full object-contain filter drop-shadow-2xs">
+                                            </div>
+                                        </template>
+                                        <template x-if="!activeProject?.handover_data?.sales_signature?.signature">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                <span>Verified Digital</span>
+                                            </span>
+                                        </template>
                                     </div>
                                     <div class="text-[10px] border-t border-slate-300 pt-1 text-slate-700 space-y-0.5">
-                                        <p class="truncate">Nama: <strong class="text-black" x-text="activeProject?.sales_name || '—'"></strong></p>
-                                        <p>Tanggal: <span x-text="activeProject?.handover_submitted_at ? activeProject.handover_submitted_at.substring(0, 10) : '{{ date('d/m/Y') }}'"></span></p>
-                                        <p>Tanda tangan: <span class="italic text-slate-500">[Digital Approved]</span></p>
+                                        <p class="truncate">Nama: <strong class="text-black" x-text="activeProject?.handover_data?.sales_signature?.user_name || activeProject?.sales_name || '—'"></strong></p>
+                                        <p>Tanggal: <span x-text="activeProject?.handover_data?.sales_signature?.signed_at ? activeProject.handover_data.sales_signature.signed_at.substring(0, 10) : (activeProject?.handover_submitted_at ? activeProject.handover_submitted_at.substring(0, 10) : '{{ date('d/m/Y') }}')"></span></p>
+                                        <p class="truncate font-mono text-[9px] text-[#8F0A0D] font-bold" x-show="activeProject?.handover_data?.sales_signature?.qr_token" x-text="'Token: ' + activeProject.handover_data.sales_signature.qr_token"></p>
                                     </div>
                                 </div>
 
@@ -1040,15 +1047,23 @@
                                         <div class="font-bold text-[11px] text-black">Diterima oleh</div>
                                         <div class="text-[10px] text-slate-600 font-medium">PMO / Project Manager</div>
                                     </div>
-                                    <div class="my-auto py-1 text-center">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                            <span>PMO Verified</span>
-                                        </span>
+                                    <div class="my-auto py-1 text-center flex flex-col items-center justify-center">
+                                        <template x-if="activeProject?.handover_data?.pm_signature?.signature">
+                                            <div class="h-14 flex items-center justify-center">
+                                                <img :src="activeProject.handover_data.pm_signature.signature" alt="TTD PM" class="max-h-12 max-w-full object-contain filter drop-shadow-2xs">
+                                            </div>
+                                        </template>
+                                        <template x-if="!activeProject?.handover_data?.pm_signature?.signature">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                <span>Siap Tanda Tangan</span>
+                                            </span>
+                                        </template>
                                     </div>
                                     <div class="text-[10px] border-t border-slate-300 pt-1 text-slate-700 space-y-0.5">
-                                        <p class="truncate">Nama: <strong class="text-black" x-text="activeProject?.pm || 'Tim Delivery PMO'"></strong></p>
-                                        <p>Tanggal: {{ date('d/m/Y') }}</p>
-                                        <p>Tanda tangan: <span class="italic text-slate-500">[PMO Approved]</span></p>
+                                        <p class="truncate">Nama: <strong class="text-black" x-text="activeProject?.handover_data?.pm_signature?.user_name || activeProject?.pm || '{{ auth()->user()->name }}'"></strong></p>
+                                        <p>Tanggal: <span x-text="activeProject?.handover_data?.pm_signature?.signed_at ? activeProject.handover_data.pm_signature.signed_at.substring(0, 10) : '{{ date('d/m/Y') }}'"></span></p>
+                                        <p class="truncate font-mono text-[9px] text-[#8F0A0D] font-bold" x-show="activeProject?.handover_data?.pm_signature?.qr_token" x-text="'Token: ' + activeProject.handover_data.pm_signature.qr_token"></p>
                                     </div>
                                 </div>
 
@@ -1097,9 +1112,18 @@
 
                 {{-- Modal Footer Actions Persis Gambar 2 --}}
                 <div class="px-6 py-4 border-t border-[#E2E8F0] bg-white flex flex-wrap items-center justify-between gap-2.5 shrink-0 no-print">
-                    <button type="button" @click="handoverReviewModalOpen = false" class="px-4 py-2 border border-[#CBD5E1] rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
-                        Tutup
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="handoverReviewModalOpen = false" class="px-4 py-2 border border-[#CBD5E1] rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+                            Tutup
+                        </button>
+                        <template x-if="activeProject">
+                            <a :href="'/sales/handover/' + activeProject.id + '/document'" target="_blank"
+                               class="px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <span>Lihat Berita Acara</span>
+                            </a>
+                        </template>
+                    </div>
 
                     <div class="flex items-center gap-2">
                         {{-- Tombol sesuai status radio yang dipilih --}}
@@ -1126,7 +1150,7 @@
                                     @click="approveHandover()" 
                                     class="px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                <span>Sahkan Serah Terima (Handover Approved)</span>
+                                <span>Tanda Tangani & Sahkan Serah Terima</span>
                             </button>
                         </template>
                     </div>

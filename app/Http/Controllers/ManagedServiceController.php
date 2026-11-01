@@ -953,6 +953,22 @@ class ManagedServiceController extends Controller
             'special_notes'         => 'nullable|string',
             'documents_checklist'   => 'nullable|array',
         ]);
+        $msUser = auth()->user();
+        if ($msUser) {
+            $msUser->ensureSignatureQrToken();
+        }
+
+        $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $existingHandoverData['ms_signature'] = [
+            'signed'     => true,
+            'user_id'    => $msUser?->id,
+            'user_name'  => $msUser?->name,
+            'user_role'  => $msUser?->role_label ?: 'Lead Maintenance / MS',
+            'signed_at'  => now()->format('Y-m-d H:i:s'),
+            'qr_token'   => $msUser?->signature_qr_token,
+            'signature'  => $msUser?->signature_data,
+            'type'       => $msUser?->signature_type ?: 'signature_qr',
+        ];
 
         $updateData = [
             'ms_handover_status'    => 'Accepted',
@@ -966,6 +982,7 @@ class ManagedServiceController extends Controller
             'special_notes'         => $validated['special_notes'] ?? $project->special_notes,
             'stage'                 => 'Operate',
             'status'                => 'Active',
+            'handover_data'         => $existingHandoverData,
         ];
 
         if ($request->has('documents_checklist')) {

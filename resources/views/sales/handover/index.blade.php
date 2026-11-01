@@ -310,6 +310,14 @@
                                     {{-- Aksi --}}
                                     <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-1.5">
+                                            @if($hp->commercial_handover_status === 'Submitted' || $hp->commercial_handover_status === 'Approved' || $hp->ms_handover_status === 'Accepted' || !empty($hp->handover_data))
+                                                <a href="{{ route('sales.handover.document', $hp->id) }}" target="_blank"
+                                                   class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 text-[11px] font-semibold rounded-lg border border-slate-300 shadow-xs transition cursor-pointer flex items-center gap-1"
+                                                   title="Lihat Berita Acara Serah Terima">
+                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                    <span>BA Serah Terima</span>
+                                                </a>
+                                            @endif
                                             <button type="button" 
                                                     @click="openHandoverModal({{ json_encode($hp) }})"
                                                     class="px-2.5 py-1 bg-white hover:bg-red-50 text-[#8F0A0D] text-[11px] font-bold rounded-lg border border-red-200 shadow-xs hover:border-[#8F0A0D] transition cursor-pointer">
@@ -652,6 +660,77 @@
                             </div>
                         </div>
 
+                        {{-- 5. PENGESAHAN & TANDA TANGAN PENYERAH (SALES PIC) --}}
+                        <div class="pt-3 border-t border-gray-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
+                                    5. Pengesahan &amp; Tanda Tangan Digital Penyerah (Sales PIC)
+                                </label>
+                                <span class="text-[10.5px] font-bold text-[#8F0A0D] bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
+                                    Otomatis Tersambung dari Settings
+                                </span>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-white border border-[#CBD5E1] shadow-2xs space-y-3">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-xs"
+                                             style="background: linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%);">
+                                            {{ auth()->user()->initials }}
+                                        </div>
+                                        <div>
+                                            <h5 class="text-[13px] font-bold text-[#1E293B]">{{ auth()->user()->name }}</h5>
+                                            <p class="text-[11px] text-[#64748B]">{{ auth()->user()->position ?? auth()->user()->role_label }} &bull; PT IP Network Solusindo</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-left sm:text-right">
+                                        <span class="text-[10.5px] text-slate-400 block font-medium">Tanggal Penyerahan</span>
+                                        <span class="text-[12px] font-bold text-slate-800">{{ date('d M Y') }}</span>
+                                    </div>
+                                </div>
+
+                                {{-- Pratinjau Tanda Tangan Sales --}}
+                                @if(auth()->user()->has_signature)
+                                <div class="flex items-center justify-between p-3 rounded-lg bg-[#F8FAFC] border border-slate-200">
+                                    <div class="flex items-center gap-3">
+                                        <div class="h-12 w-28 bg-white border border-slate-200 rounded p-1 flex items-center justify-center">
+                                            <img src="{{ auth()->user()->signature_data }}" alt="Tanda Tangan" class="max-h-10 max-w-full object-contain filter drop-shadow-2xs">
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                                <span class="text-[11.5px] font-bold text-emerald-700">Tanda Tangan Tersimpan Siap Digunakan</span>
+                                            </div>
+                                            <p class="text-[10.5px] text-slate-500 font-mono mt-0.5">Token: {{ auth()->user()->signature_qr_token }}</p>
+                                        </div>
+                                    </div>
+                                    <a href="{{ route('settings.index') }}#signature" target="_blank" class="text-[11px] font-bold text-[#8F0A0D] hover:underline shrink-0">
+                                        Ubah di Settings &rarr;
+                                    </a>
+                                </div>
+                                @else
+                                <div class="p-3 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                        <span class="text-[11.5px] text-amber-800 font-medium">Anda belum menyimpan tanda tangan digital. Dokumen akan diajukan dengan otentikasi akun login Anda.</span>
+                                    </div>
+                                    <a href="{{ route('settings.index') }}" target="_blank" class="text-[11px] font-bold text-[#8F0A0D] underline shrink-0 ml-2">
+                                        Atur di Settings
+                                    </a>
+                                </div>
+                                @endif
+
+                                {{-- Pernyataan Penyerah --}}
+                                <label class="flex items-start gap-2.5 pt-1 cursor-pointer select-none">
+                                    <input type="checkbox" required checked class="mt-0.5 w-4 h-4 text-[#8F0A0D] accent-[#8F0A0D] rounded cursor-pointer">
+                                    <span class="text-[11.5px] text-slate-700 leading-snug">
+                                        Saya menyatakan dengan sadar bahwa seluruh data komersial, kontrak PO/SPK, dan lingkup pekerjaan di atas telah valid serta siap diserahterimakan kepada tim teknis pelaksanaan.
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
                     </div>
 
                     {{-- Fixed Footer --}}
@@ -660,14 +739,22 @@
                             Target Penyerahan: <strong class="text-gray-900" x-text="formTarget === 'managed_service' ? 'Tim Managed Service (Operate)' : 'Tim PMO & Delivery (Deliver)'"></strong>
                         </div>
                         <div class="flex items-center gap-2.5">
+                            <template x-if="selectedProject && (selectedProject.commercial_handover_status === 'Submitted' || selectedProject.commercial_handover_status === 'Approved' || selectedProject.ms_handover_status === 'Accepted')">
+                                <a :href="'/sales/handover/' + selectedProject.id + '/document'" target="_blank"
+                                   class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+                                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <span>Lihat BA Serah Terima</span>
+                                </a>
+                            </template>
                             <button type="button" 
                                     @click="isHandoverModalOpen = false" 
                                     class="px-4 py-2 text-[12.5px] font-bold text-[#475569] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl transition cursor-pointer">
                                 Batal
                             </button>
                             <button type="submit" 
-                                    class="px-5 py-2 text-[12.5px] font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-md transition cursor-pointer"
-                                    x-text="formTarget === 'managed_service' ? 'Kirim Serah Terima ke Managed Service' : 'Kirim Serah Terima ke PMO'">
+                                    class="px-5 py-2 text-[12.5px] font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-md transition cursor-pointer flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                <span x-text="formTarget === 'managed_service' ? 'Tanda Tangani & Serahkan ke Managed Service' : 'Tanda Tangani & Serahkan ke PMO'"></span>
                             </button>
                         </div>
                     </div>

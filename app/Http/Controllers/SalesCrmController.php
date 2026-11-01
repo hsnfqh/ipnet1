@@ -1304,6 +1304,23 @@ class SalesCrmController extends Controller
         }
         $isManagedService = ($target === 'managed_service');
 
+        $salesUser = auth()->user();
+        if ($salesUser) {
+            $salesUser->ensureSignatureQrToken();
+        }
+
+        $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
+        $existingHandoverData['sales_signature'] = [
+            'signed'     => true,
+            'user_id'    => $salesUser?->id,
+            'user_name'  => $salesUser?->name,
+            'user_role'  => $salesUser?->role_label ?: 'Sales PIC',
+            'signed_at'  => now()->format('Y-m-d H:i:s'),
+            'qr_token'   => $salesUser?->signature_qr_token,
+            'signature'  => $salesUser?->signature_data,
+            'type'       => $salesUser?->signature_type ?: 'signature_qr',
+        ];
+
         $updateData = [
             'handover_target'            => $target,
             'po_spk_number'              => $validated['po_spk_number'],
@@ -1321,6 +1338,7 @@ class SalesCrmController extends Controller
             'commercial_handover_status' => $isManagedService ? 'Approved' : 'Submitted',
             'commercial_handover_at'     => now(),
             'commercial_handover_by'     => auth()->id(),
+            'handover_data'              => $existingHandoverData,
         ];
 
         if ($isManagedService) {
@@ -1504,5 +1522,49 @@ class SalesCrmController extends Controller
         $fileName = "Laporan-Lesson-Learned-Sales-{$cleanTitle}-" . date('Ymd') . ".pdf";
 
         return $pdf->stream($fileName);
+    }
+
+    /**
+     * Tampilkan Format Resmi Berita Acara Serah Terima Proyek (Internal Handover)
+     */
+    public function showHandoverDocument(Project $project)
+    {
+        $project->load(['pm', 'division', 'creator', 'commercialHandoverBy', 'msAcceptedBy']);
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
+        $salesSignature = $handoverData['sales_signature'] ?? null;
+        $pmSignature = $handoverData['pm_signature'] ?? null;
+        $msSignature = $handoverData['ms_signature'] ?? null;
+
+        $generateQr = function($token) {
+            if (empty($token)) return '';
+            try {
+                $payload = route('public.signature.verify', $token);
+                $svg = (string) \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+                    ->size(70)
+                    ->margin(0)
+                    ->color(143, 10, 13)
+                    ->errorCorrection('M')
+                    ->generate($payload);
+                return preg_replace('/<\?xml.*?\?>/i', '', $svg);
+            } catch (\Throwable $e) {
+                return '';
+            }
+        };
+
+        $salesQrSvg = !empty($salesSignature['qr_token']) ? $generateQr($salesSignature['qr_token']) : '';
+        $pmQrSvg = !empty($pmSignature['qr_token']) ? $generateQr($pmSignature['qr_token']) : '';
+        $msQrSvg = !empty($msSignature['qr_token']) ? $generateQr($msSignature['qr_token']) : '';
+
+        return view('sales.handover.document', compact(
+            'project',
+            'handoverData',
+            'salesSignature',
+            'pmSignature',
+            'msSignature',
+            'salesQrSvg',
+            'pmQrSvg',
+            'msQrSvg'
+        ));
     }
 }

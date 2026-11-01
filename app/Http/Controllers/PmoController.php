@@ -1060,6 +1060,22 @@ class PmoController extends Controller
             'division_id' => 'required|exists:divisions,id',
             'checklist'   => 'nullable',
         ]);
+        $pmUser = auth()->user();
+        if ($pmUser) {
+            $pmUser->ensureSignatureQrToken();
+        }
+
+        $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $existingHandoverData['pm_signature'] = [
+            'signed'     => true,
+            'user_id'    => $pmUser?->id,
+            'user_name'  => $pmUser?->name,
+            'user_role'  => $pmUser?->role_label ?: 'Project Manager / PMO',
+            'signed_at'  => now()->format('Y-m-d H:i:s'),
+            'qr_token'   => $pmUser?->signature_qr_token,
+            'signature'  => $pmUser?->signature_data,
+            'type'       => $pmUser?->signature_type ?: 'signature_qr',
+        ];
 
         $updateData = [
             'handover_status'      => 'Approved',
@@ -1070,6 +1086,7 @@ class PmoController extends Controller
             'process_status'       => 'In Progress',
             'pm_id'                => $validated['pm_id'],
             'division_id'          => $validated['division_id'],
+            'handover_data'        => $existingHandoverData,
         ];
 
         if ($request->has('checklist')) {
