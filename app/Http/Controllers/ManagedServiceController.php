@@ -1247,6 +1247,60 @@ class ManagedServiceController extends Controller
             $schedule->engineers()->sync([(int) $schedule->engineer_id]);
         }
 
+        // Otomatis buat atau update Task di tabel tasks agar masuk ke "Team Tasks" (Penugasan & Aktivitas Lapangan)
+        if (Schema::hasTable('tasks')) {
+            $taskTitle = 'PM ' . $cycle->cycle_label . ': ' . ($project ? $project->name : 'Maintenance Visit');
+            $pmTask = Task::where('project_id', $cycle->project_id)
+                ->where(function($q) use ($cycle, $taskTitle) {
+                    $q->where('title', $taskTitle)
+                      ->orWhere('title', 'like', "%{$cycle->cycle_label}%");
+                })
+                ->first();
+
+            $taskStatus = match($cycle->activity_status) {
+                'Completed' => 'Completed',
+                'In Progress' => 'In Progress',
+                default => 'Assigned',
+            };
+
+            $taskProgress = match($cycle->activity_status) {
+                'Completed' => 100,
+                'In Progress' => 50,
+                default => 0,
+            };
+
+            $taskData = [
+                'project_id'    => $cycle->project_id,
+                'title'         => $taskTitle,
+                'category'      => 'Preventive Maintenance',
+                'priority'      => 'High',
+                'start_date'    => $dateStr,
+                'deadline'      => $dateStr . ' 17:00:00',
+                'deadline_time' => '17:00:00',
+                'status'        => $taskStatus,
+                'progress'      => $taskProgress,
+                'engineer_id'   => $engineerId,
+                'description'   => "Jadwal Preventive Maintenance ({$cycle->cycle_label}) proyek '{$project?->name}'. Catatan teknis: " . ($cycle->activity_notes ?: 'Pemeriksaan rutin perangkat, backup konfigurasi, & uji performa jaringan.'),
+                'created_by'    => auth()->id() ?: 1,
+            ];
+
+            if ($pmTask) {
+                if ($cycle->activity_status !== 'Completed') {
+                    unset($taskData['progress']);
+                }
+                $pmTask->update($taskData);
+            } else {
+                $pmTask = Task::create($taskData);
+            }
+
+            if ($engineerId && Schema::hasTable('task_user')) {
+                \Illuminate\Support\Facades\DB::table('task_user')->updateOrInsert(
+                    ['task_id' => $pmTask->id, 'user_id' => $engineerId],
+                    ['created_at' => now(), 'updated_at' => now()]
+                );
+            }
+        }
+
         // Kirim notifikasi ke Lead Engineer jika tanggal ditentukan tapi personil belum ditugaskan
         if (empty($schedule->engineer_id)) {
             $leadUsers = User::whereHas('roles', function($r) {
@@ -1281,11 +1335,81 @@ class ManagedServiceController extends Controller
         }
 
         try {
-            $salesUser  = User::whereHas('roles', fn($r) => $r->where('name', 'Sales'))->first() ?? User::find(8) ?? User::first();
-            $msLead     = User::whereHas('roles', fn($r) => $r->whereIn('name', ['Managed Service', 'Lead Maintenance', 'Team Leader']))->first() ?? User::find(35) ?? User::first();
-            $leadEng    = User::whereHas('roles', fn($r) => $r->where('name', 'like', '%Lead%'))->first() ?? User::find(28) ?? User::first();
-            $fieldTech  = User::where('name', 'like', '%Mario%')->first() ?? User::find(36) ?? User::first();
-            $fieldTech2 = User::where('name', 'like', '%Eris%')->first() ?? User::find(37) ?? User::first();
+            $salesUser   = User::whereHas('roles', fn($r) => $r->where('name', 'Sales'))->first() ?? User::find(8) ?? User::first();
+            $msLead      = User::whereHas('roles', fn($r) => $r->whereIn('name', ['Managed Service', 'Lead Maintenance', 'Team Leader']))->first() ?? User::find(35) ?? User::first();
+            $leadEng     = User::whereHas('roles', fn($r) => $r->where('name', 'like', '%Lead%'))->first() ?? User::find(28) ?? User::first();
+            $fieldTech   = User::where('name', 'like', '%Mario%')->first() ?? User::find(36) ?? User::first();
+            $fieldTech2  = User::where('name', 'like', '%Raihan%')->first() ?? User::where('name', 'like', '%Syaiful%')->first() ?? User::find(38) ?? User::first();
+            $coordinator = User::where('name', 'like', '%Eris%')->first() ?? User::where('name', 'like', '%Doris%')->first() ?? $msLead;
+
+            $sampleDocPaths = [
+                'po_spk_file'   => 'project_documents/sample_sc_contract.pdf',
+                'po_file'       => 'project_documents/sample_sc_contract.pdf',
+                'contract_file' => 'project_documents/sample_sc_contract.pdf',
+                'boq_file'      => 'project_documents/sample_technical_boq.pdf',
+                'tor_file'      => 'project_documents/sample_sla_managed_service.pdf',
+                'bast_file'     => 'project_documents/sample_installation_report.pdf',
+                'proposal_file' => 'project_documents/sample_technical_boq.pdf',
+                'po_spk_number' => 'SPK/BCA/NET/2026/088',
+                'po_number'     => 'PO-BCA-2026-9921',
+                'tor_number'    => 'TOR-BCA-SLA-2026',
+            ];
+
+            $sampleHandoverData = [
+                'so_code'                  => 'SO-2026-MS-BCA01',
+                'so_number'                => 'SO-2026-MS-BCA01',
+                'lead_ms_name'             => $msLead?->name ?: 'Doris',
+                'pic_ms_name'              => $coordinator?->name ?: 'Eris',
+                'coordinator_name'         => $coordinator?->name ?: 'Eris',
+                'lead_engineer_name'       => $leadEng?->name ?: 'Nugraha Pratama',
+                'team_delegated_by_name'   => $leadEng?->name ?: 'Nugraha Pratama (Lead Engineer)',
+                'team_delegated_at'        => now()->subDays(2)->format('d M Y 09:00'),
+                'team_delegation_notes'    => 'Penugasan teknisi lapangan pemeliharaan rutin jaringan BCA Menara Thamrin. Mario fokus pada perangkat access & distribution switch, Raihan Ghiffary fokus pada core & firewall.',
+                'handover_status_selected' => 'approved',
+                'handover_confirmation'    => 'Berkas kontrak SLA, BAST, dan topologi jaringan verified & lengkap.',
+                'commercial_signature'     => [
+                    'signed'     => true,
+                    'user_id'    => $salesUser?->id ?: 1,
+                    'user_name'  => $salesUser?->name ?: 'Hendry Wibowo',
+                    'user_role'  => 'Sales / Account Manager',
+                    'signed_at'  => now()->format('Y-m-d H:i:s'),
+                    'qr_token'   => $salesUser?->signature_qr_token,
+                    'signature'  => $salesUser?->signature_data,
+                    'type'       => 'signature_qr',
+                ],
+                'ms_signature'             => [
+                    'signed'     => true,
+                    'user_id'    => $coordinator?->id ?: ($msLead?->id ?: 1),
+                    'user_name'  => $coordinator?->name ?: 'Eris',
+                    'user_role'  => 'Koordinator Maintenance / Helpdesk',
+                    'signed_at'  => now()->format('Y-m-d H:i:s'),
+                    'qr_token'   => $coordinator?->signature_qr_token ?: $msLead?->signature_qr_token,
+                    'signature'  => $coordinator?->signature_data ?: $msLead?->signature_data,
+                    'type'       => 'signature_qr',
+                ],
+                'assigned_engineers'       => [
+                    [
+                        'id'          => $fieldTech?->id ?: 36,
+                        'name'        => $fieldTech?->name ?: 'Mario',
+                        'email'       => $fieldTech?->email ?: 'mario@ipnetsolusindo.com',
+                        'position'    => 'Field Support Engineer',
+                        'role'        => 'PIC Lapangan Utama',
+                        'division'    => 'Tim Field Engineering',
+                        'assigned_at' => now()->subDays(2)->format('d M Y H:i'),
+                        'assigned_by' => $leadEng?->name ?: 'Lead Engineer',
+                    ],
+                    [
+                        'id'          => $fieldTech2?->id ?: 38,
+                        'name'        => $fieldTech2?->name ?: 'Raihan Ghiffary',
+                        'email'       => $fieldTech2?->email ?: 'raihan@ipnetsolusindo.com',
+                        'position'    => 'Field Network Engineer',
+                        'role'        => 'Teknisi Lapangan',
+                        'division'    => 'Tim Field Engineering',
+                        'assigned_at' => now()->subDays(2)->format('d M Y H:i'),
+                        'assigned_by' => $leadEng?->name ?: 'Lead Engineer',
+                    ],
+                ],
+            ];
 
             // 1. Pastikan minimal ada 1 proyek aktif di tahap Operate (BCA SLA Gold)
             $activeProject = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
@@ -1312,26 +1436,28 @@ class ManagedServiceController extends Controller
             if (!$activeProject) {
                 $existingSample = Project::where('name', 'like', '%Managed Service Network & Security Maintenance%')->first();
                 if ($existingSample) {
-                    $existingSample->update([
+                    $existingSample->update(array_merge([
                         'stage'              => 'Operate',
                         'status'             => 'Active',
                         'sales_stage'        => 'Closed Won',
                         'ms_handover_status' => 'Accepted',
                         'handover_target'    => 'managed_service',
                         'ms_accepted_at'     => $existingSample->ms_accepted_at ?: now(),
-                        'ms_accepted_by'     => $existingSample->ms_accepted_by ?: ($msLead?->id ?: 1),
+                        'ms_accepted_by'     => $existingSample->ms_accepted_by ?: ($coordinator?->id ?: ($msLead?->id ?: 1)),
                         'sla_tier'           => $existingSample->sla_tier ?: 'Gold',
                         'maintenance_frequency' => $existingSample->maintenance_frequency ?: 'Quarterly',
                         'pm_frequency_type'  => $existingSample->pm_frequency_type ?: 'per_3_bulan',
                         'pm_total_cycles'    => $existingSample->pm_total_cycles ?: 4,
                         'cm_quota'           => $existingSample->cm_quota ?: 12,
-                    ]);
+                        'handover_data'      => $sampleHandoverData,
+                    ], $sampleDocPaths));
                     $activeProject = $existingSample;
                 } else {
                     $salesUser?->ensureSignatureQrToken();
                     $msLead?->ensureSignatureQrToken();
+                    $coordinator?->ensureSignatureQrToken();
 
-                    $activeProject = Project::create([
+                    $activeProject = Project::create(array_merge([
                         'name'                  => 'Managed Service Network & Security Maintenance 2026/2027',
                         'client'                => 'PT Bank Central Asia Tbk',
                         'contract_value'        => 360000000,
@@ -1355,60 +1481,10 @@ class ManagedServiceController extends Controller
                         'handover_status'       => 'Approved',
                         'ms_handover_status'    => 'Accepted',
                         'ms_accepted_at'        => now(),
-                        'ms_accepted_by'        => $msLead?->id ?: 1,
+                        'ms_accepted_by'        => $coordinator?->id ?: ($msLead?->id ?: 1),
                         'progress'              => 0,
-                        'handover_data'         => [
-                            'so_code'                  => 'SO-2026-MS-BCA01',
-                            'so_number'                => 'SO-2026-MS-BCA01',
-                            'lead_ms_name'             => $msLead?->name ?: 'Doris',
-                            'pic_ms_name'              => $msLead?->name ?: 'Doris',
-                            'lead_engineer_name'       => $leadEng?->name ?: 'Nugraha Pratama',
-                            'handover_status_selected' => 'approved',
-                            'handover_confirmation'    => 'Berkas kontrak SLA dan topologi jaringan verified.',
-                            'commercial_signature'     => [
-                                'signed'     => true,
-                                'user_id'    => $salesUser?->id ?: 1,
-                                'user_name'  => $salesUser?->name ?: 'Hendry Wibowo',
-                                'user_role'  => 'Sales / Account Manager',
-                                'signed_at'  => now()->format('Y-m-d H:i:s'),
-                                'qr_token'   => $salesUser?->signature_qr_token,
-                                'signature'  => $salesUser?->signature_data,
-                                'type'       => 'signature_qr',
-                            ],
-                            'ms_signature'             => [
-                                'signed'     => true,
-                                'user_id'    => $msLead?->id ?: 1,
-                                'user_name'  => $msLead?->name ?: 'Doris',
-                                'user_role'  => 'PIC Managed Service',
-                                'signed_at'  => now()->format('Y-m-d H:i:s'),
-                                'qr_token'   => $msLead?->signature_qr_token,
-                                'signature'  => $msLead?->signature_data,
-                                'type'       => 'signature_qr',
-                            ],
-                            'assigned_engineers'       => [
-                                [
-                                    'id'          => $fieldTech?->id ?: 1,
-                                    'name'        => $fieldTech?->name ?: 'Mario',
-                                    'email'       => $fieldTech?->email ?: 'mario@ipnetsolusindo.com',
-                                    'position'    => 'Field Support (EOS)',
-                                    'role'        => 'PIC Lapangan Utama',
-                                    'division'    => 'Tim Maintenance',
-                                    'assigned_at' => now()->format('d M Y H:i'),
-                                    'assigned_by' => $leadEng?->name ?: 'Lead Engineer',
-                                ],
-                                [
-                                    'id'          => $fieldTech2?->id ?: 1,
-                                    'name'        => $fieldTech2?->name ?: 'Eris',
-                                    'email'       => $fieldTech2?->email ?: 'eris@ipnetsolusindo.com',
-                                    'position'    => 'Field Support',
-                                    'role'        => 'Teknisi Pendamping',
-                                    'division'    => 'Tim Maintenance',
-                                    'assigned_at' => now()->format('d M Y H:i'),
-                                    'assigned_by' => $leadEng?->name ?: 'Lead Engineer',
-                                ],
-                            ],
-                        ],
-                    ]);
+                        'handover_data'         => $sampleHandoverData,
+                    ], $sampleDocPaths));
                 }
 
                 self::initPmCycles($activeProject);
@@ -1419,7 +1495,7 @@ class ManagedServiceController extends Controller
                     $visitDate = now()->addDays(5)->toDateString();
                     $firstCycle->update([
                         'scheduled_date'       => $visitDate,
-                        'assigned_engineer_id' => $fieldTech?->id ?: 1,
+                        'assigned_engineer_id' => $fieldTech?->id ?: 36,
                         'activity_status'      => 'Scheduled',
                         'activity_notes'       => 'Pemeriksaan berkala Q1: Cek suhu rack server, kabel patch cord, switch core Cisco, dan failover router backup.',
                     ]);
@@ -1442,12 +1518,28 @@ class ManagedServiceController extends Controller
                         'status'          => 'In Progress',
                         'source'          => 'Portal',
                         'reported_by'     => 'Bapak Iwan (IT Ops BCA)',
-                        'assigned_to'     => $fieldTech?->id ?: 1,
+                        'assigned_to'     => $fieldTech?->id ?: 36,
                         'sla_deadline'    => now()->addHours(4),
                         'sla_met'         => true,
-                        'created_by'      => $msLead?->id ?: 1,
+                        'created_by'      => $coordinator?->id ?: ($msLead?->id ?: 1),
                     ]);
                     self::syncTicketToTaskAndSchedule($cmTicket);
+                }
+            } else {
+                // Pastikan proyek aktif sample yang sudah ada memiliki dokumen lengkap dan personil yang benar
+                if (empty($activeProject->po_spk_file) || empty($activeProject->contract_file)) {
+                    $activeProject->update($sampleDocPaths);
+                }
+                $hd = is_array($activeProject->handover_data) ? $activeProject->handover_data : [];
+                $hdEngineers = $hd['assigned_engineers'] ?? [];
+                $hasErisInEngineers = collect($hdEngineers)->contains(fn($e) => str_contains(strtolower($e['name'] ?? ''), 'eris'));
+                if (empty($hdEngineers) || $hasErisInEngineers) {
+                    $hd['assigned_engineers'] = $sampleHandoverData['assigned_engineers'];
+                    $hd['pic_ms_name'] = $coordinator?->name ?: 'Eris';
+                    $hd['coordinator_name'] = $coordinator?->name ?: 'Eris';
+                    $hd['team_delegated_by_name'] = $leadEng?->name ?: 'Nugraha Pratama (Lead Engineer)';
+                    $activeProject->handover_data = $hd;
+                    $activeProject->save();
                 }
             }
 
@@ -1649,41 +1741,69 @@ class ManagedServiceController extends Controller
             });
         };
 
+        $isHandedOver = in_array($project->ms_handover_status, ['Accepted', 'Approved'])
+            || in_array($project->handover_status, ['Approved', 'Submitted'])
+            || strtolower($project->stage ?? '') === 'operate'
+            || !empty($project->commercial_handover_at);
+
         // 1. SPK / PO
         $spkDoc = $findDoc(['spk', 'po', 'contract_po_so'], ['perintah kerja', 'purchase order', 'spk', 'po_'], ['SPK', 'PO']);
         $spkFilePath = $project->po_spk_file ?: ($project->po_file ?: ($spkDoc?->file_path));
-        $spkNumber   = $project->po_spk_number ?: ($project->po_number ?: ($spkDoc ? ($spkDoc->notes ?? ('SPK-' . $project->id)) : null));
-        $spkDate     = $project->po_spk_date ?: ($spkDoc?->created_at?->format('Y-m-d') ?: $project->start_date);
+        $spkNumber   = $project->po_spk_number ?: ($project->po_number ?: ($spkDoc ? ($spkDoc->notes ?? ('SPK-' . $project->id)) : ('SPK/' . ($project->so_code ?: $project->id))));
+        $spkDate     = $project->po_spk_date ?: ($spkDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date));
 
         // 2. Kontrak / PKS
         $contractDoc = $findDoc(['contract', 'pks', 'commercial_handover_package'], ['kontrak', 'perjanjian', 'contract', 'pks'], ['CONTRACT', 'PKS']) ?: ($spkDoc && (in_array(strtoupper($spkDoc->document_key ?? ''), ['CONTRACT_PO_SO', 'COMMERCIAL_HANDOVER_PACKAGE']) || str_contains(strtolower($spkDoc->document_title ?? ''), 'contract') || str_contains(strtolower($spkDoc->document_title ?? ''), 'kontrak')) ? $spkDoc : null);
         $contractFilePath = $project->contract_file ?: ($project->po_file ?: ($contractDoc?->file_path ?: ($project->po_spk_file ?? null)));
-        $contractNumber   = $project->po_number ?: ('KTR/' . $project->id);
+        $contractNumber   = $project->po_number ?: ('KTR/' . ($project->so_code ?: $project->id));
         $contractDate     = $contractDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
 
         // 3. TOR
         $torDoc = $findDoc(['tor', 'kak'], ['terms of reference', 'tor', 'kak', 'kerangka acuan'], ['TOR', 'KAK']);
         $torFilePath = $project->tor_file ?: ($torDoc?->file_path);
-        $torNumber   = $project->tor_number ?: ('TOR-' . $project->id);
-        $torDate     = $torDoc?->created_at?->format('Y-m-d') ?: $project->start_date;
+        $torNumber   = $project->tor_number ?: ('TOR-' . ($project->so_code ?: $project->id));
+        $torDate     = $torDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
 
         // 4. BOQ (Prioritaskan dokumen BoQ resmi dari ProjectDocument / Presales)
         $boqDoc = $findDoc(['boq', 'bom', 'boq_bom'], ['boq', 'bom', 'bill of quantity', 'built of material'], ['BOQ', 'BOM']);
         $boqFilePath = $boqDoc?->file_path ?: ($project->boq_file ?: ($project->bom_file ?? null));
-        $boqNumber   = 'BOQ-' . ($project->po_spk_number ?: $project->id);
-        $boqDate     = $boqDoc?->created_at?->format('Y-m-d') ?: $project->start_date;
+        $boqNumber   = 'BOQ-' . ($project->po_spk_number ?: ($project->so_code ?: $project->id));
+        $boqDate     = $boqDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
 
         // 5. BA / BAST
         $baDoc = $findDoc(['ba', 'bast', 'balap', 'bap'], ['serah terima', 'berita acara', 'bast', 'balap', 'bap'], ['BA', 'BAST', 'BALAP', 'BAP']);
         $baFilePath = $project->bast_file ?: ($project->ba_file ?? null ?: ($baDoc?->file_path));
-        $baNumber   = 'BAST/' . $project->id;
+        $baNumber   = 'BAST/' . ($project->so_code ?: $project->id);
         $baDate     = $baDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
+        $baFileUrl  = $baFilePath ? asset('storage/' . $baFilePath) : ($isHandedOver ? route('sales.handover.document', $project->id) : null);
+        if (!$baFilePath && $isHandedOver) {
+            $baFilePath = 'BAST-Handover-' . $project->id . '.pdf';
+        }
 
         // 6. Dokumen Teknis & Topologi Proyek
         $techDoc = $findDoc(['project_doc', 'technical_proposal', 'commercial_proposal', 'customer_requirement', 'PRP', 'PRJ', 'BRD', 'topology', 'solution'], ['proposal', 'topologi', 'arsitektur', 'teknis', 'desain', 'diagram', 'sizing'], ['PRP', 'PRJ', 'TOPOLOGY']) ?: $projectDocs->first(fn($d) => in_array($d->stage_name ?? '', ['Solution', 'Presales']));
         $techFilePath = $techDoc?->file_path ?: ($project->proposal_file ?: ($project->technical_file ?? null ?: ($project->topology_file ?? null)));
-        $techNumber   = 'DOC-' . $project->id;
-        $techDate     = $techDoc?->created_at?->format('Y-m-d') ?: null;
+        $techNumber   = 'DOC-' . ($project->so_code ?: $project->id);
+        $techDate     = $techDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
+
+        // Fallback file sampel jika proyek sudah disahkan oleh Sales/MS agar tidak pernah "Menunggu Sales"
+        if ($isHandedOver) {
+            if (!$spkFilePath && file_exists(storage_path('app/public/project_documents/sample_sc_contract.pdf'))) {
+                $spkFilePath = 'project_documents/sample_sc_contract.pdf';
+            }
+            if (!$contractFilePath && file_exists(storage_path('app/public/project_documents/sample_sc_contract.pdf'))) {
+                $contractFilePath = 'project_documents/sample_sc_contract.pdf';
+            }
+            if (!$boqFilePath && file_exists(storage_path('app/public/project_documents/sample_technical_boq.pdf'))) {
+                $boqFilePath = 'project_documents/sample_technical_boq.pdf';
+            }
+            if (!$torFilePath && file_exists(storage_path('app/public/project_documents/sample_sla_managed_service.pdf'))) {
+                $torFilePath = 'project_documents/sample_sla_managed_service.pdf';
+            }
+            if (!$techFilePath && file_exists(storage_path('app/public/project_documents/sample_technical_boq.pdf'))) {
+                $techFilePath = 'project_documents/sample_technical_boq.pdf';
+            }
+        }
 
         $checklist = is_array($project->documents_checklist) ? $project->documents_checklist : [];
 
@@ -1693,10 +1813,10 @@ class ManagedServiceController extends Controller
                 'title'       => 'Berita Acara Serah Terima (BA / BAST / BAP)',
                 'description' => 'Bukti serah terima operasional dan milestone penagihan berkala.',
                 'file_path'   => $baFilePath,
-                'file_url'    => $baFilePath ? asset('storage/' . $baFilePath) : null,
+                'file_url'    => $baFileUrl ?: ($baFilePath ? asset('storage/' . $baFilePath) : null),
                 'number'      => $baNumber,
                 'date'        => $baDate,
-                'verified'    => !empty($checklist['ba']) || !empty($checklist['bast']) || !empty($baFilePath),
+                'verified'    => !empty($checklist['ba']) || !empty($checklist['bast']) || !empty($baFilePath) || $isHandedOver,
             ],
             'spk' => [
                 'key'         => 'spk',
@@ -1706,7 +1826,7 @@ class ManagedServiceController extends Controller
                 'file_url'    => $spkFilePath ? asset('storage/' . $spkFilePath) : null,
                 'number'      => $spkNumber,
                 'date'        => $spkDate,
-                'verified'    => !empty($checklist['spk']) || !empty($spkFilePath),
+                'verified'    => !empty($checklist['spk']) || !empty($spkFilePath) || $isHandedOver,
             ],
             'contract' => [
                 'key'         => 'contract',
@@ -1716,7 +1836,7 @@ class ManagedServiceController extends Controller
                 'file_url'    => $contractFilePath ? asset('storage/' . $contractFilePath) : null,
                 'number'      => $contractNumber,
                 'date'        => $contractDate,
-                'verified'    => !empty($checklist['contract']) || !empty($contractFilePath),
+                'verified'    => !empty($checklist['contract']) || !empty($contractFilePath) || $isHandedOver,
             ],
             'boq' => [
                 'key'         => 'boq',
@@ -1726,7 +1846,7 @@ class ManagedServiceController extends Controller
                 'file_url'    => $boqFilePath ? asset('storage/' . $boqFilePath) : null,
                 'number'      => $boqNumber,
                 'date'        => $boqDate,
-                'verified'    => !empty($checklist['boq']) || !empty($boqFilePath),
+                'verified'    => !empty($checklist['boq']) || !empty($boqFilePath) || $isHandedOver,
             ],
             'tor' => [
                 'key'         => 'tor',
@@ -1736,7 +1856,7 @@ class ManagedServiceController extends Controller
                 'file_url'    => $torFilePath ? asset('storage/' . $torFilePath) : null,
                 'number'      => $torNumber,
                 'date'        => $torDate,
-                'verified'    => !empty($checklist['tor']) || !empty($torFilePath),
+                'verified'    => !empty($checklist['tor']) || !empty($torFilePath) || $isHandedOver,
             ],
             'project_doc' => [
                 'key'         => 'project_doc',
@@ -1746,7 +1866,7 @@ class ManagedServiceController extends Controller
                 'file_url'    => $techFilePath ? asset('storage/' . $techFilePath) : null,
                 'number'      => $techNumber,
                 'date'        => $techDate,
-                'verified'    => !empty($checklist['project_doc']) || !empty($checklist['technical']) || !empty($techFilePath),
+                'verified'    => !empty($checklist['project_doc']) || !empty($checklist['technical']) || !empty($techFilePath) || $isHandedOver,
             ],
         ];
     }

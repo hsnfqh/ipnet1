@@ -227,13 +227,24 @@
 
                 <!-- TEAM & ENGINEER DELEGATION INFO BANNER -->
                 @php
-                    $assignedEngs = $project->handover_data['assigned_engineers'] ?? [];
+                    $allAssigned = $project->handover_data['assigned_engineers'] ?? [];
                     $delegatedBy = $project->handover_data['team_delegated_by_name'] ?? 'Lead Engineer';
                     $delegatedAt = $project->handover_data['team_delegated_at'] ?? null;
                     $delegationNotes = $project->handover_data['team_delegation_notes'] ?? null;
+                    $coordinatorName = $project->handover_data['coordinator_name'] ?? ($project->handover_data['pic_ms_name'] ?? ($project->msAcceptedBy?->name ?? 'Tim Maintenance'));
+                    
+                    // Pisahkan personil lapangan asli (field engineers) dari pendamping/helpdesk
+                    $fieldEngineers = collect($allAssigned)->filter(function($e) {
+                        $name = strtolower($e['name'] ?? '');
+                        return !str_contains($name, 'doris') && !str_contains($name, 'eris');
+                    })->values()->all();
+
+                    if (empty($fieldEngineers) && !empty($allAssigned)) {
+                        $fieldEngineers = $allAssigned;
+                    }
                 @endphp
-                @if(!empty($assignedEngs))
-                    <div class="p-3.5 rounded-xl bg-gradient-to-r from-emerald-50/80 to-slate-50 border border-emerald-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-3">
+                @if(!empty($fieldEngineers))
+                    <div class="p-3.5 rounded-xl bg-gradient-to-r from-emerald-50/80 via-white to-slate-50 border border-emerald-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-3 shadow-2xs">
                         <div class="flex items-start gap-3">
                             <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -246,18 +257,25 @@
                                         <span class="text-[10.5px] text-slate-500 font-normal">({{ $delegatedAt }})</span>
                                     @endif
                                 </div>
-                                <div class="flex items-center gap-2.5 mt-1 flex-wrap">
-                                    @foreach($assignedEngs as $idx => $eng)
+                                <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                                    @foreach($fieldEngineers as $idx => $eng)
                                         <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200/90 shadow-2xs">
                                             <span class="w-2 h-2 rounded-full {{ $idx === 0 ? 'bg-emerald-500' : 'bg-blue-500' }}"></span>
                                             <span class="font-bold text-slate-800 text-xs">{{ $eng['name'] }}</span>
-                                            <span class="text-[10.5px] text-slate-500 font-medium">({{ $eng['role'] ?? ($idx === 0 ? 'PIC Utama' : 'Pendamping') }})</span>
+                                            <span class="text-[10.5px] text-slate-500 font-medium">({{ $eng['role'] ?? ($idx === 0 ? 'PIC Utama' : 'Teknisi Lapangan') }})</span>
                                         </div>
                                     @endforeach
+
+                                    {{-- Badge Koordinator / Helpdesk Maintenance (Pendamping) --}}
+                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                        <span class="font-semibold text-xs text-slate-700">{{ $coordinatorName }}</span>
+                                        <span class="text-[10px] text-slate-500 font-normal">(Helpdesk &amp; Pendamping)</span>
+                                    </div>
                                 </div>
                                 @if($delegationNotes)
-                                    <p class="text-[11px] text-slate-600 mt-1 italic font-normal">
-                                        <span class="font-semibold text-slate-700">Catatan Lead:</span> "{{ $delegationNotes }}"
+                                    <p class="text-[11px] text-slate-600 mt-1.5 italic font-normal">
+                                        <span class="font-semibold text-slate-700">Catatan Lead:</span> &ldquo;{{ $delegationNotes }}&rdquo;
                                     </p>
                                 @endif
                             </div>
@@ -512,15 +530,19 @@
                         @endphp
 
                         @foreach($documents as $docKey => $doc)
+                            @php
+                                $hasDocFile = !empty($doc['file_path']) || !empty($doc['file_url']);
+                                $viewUrl = !empty($doc['file_url']) ? $doc['file_url'] : (!empty($doc['file_path']) ? asset('storage/' . $doc['file_path']) : null);
+                            @endphp
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-[#E2E8F0] hover:border-[#CBD5E1] bg-white transition shadow-2xs">
                                 <div class="flex items-start gap-3 min-w-0">
-                                    <div class="w-9 h-9 rounded-xl {{ $doc['file_path'] ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-[#F1F5F9] text-[#64748B] border border-[#E2E8F0]' }} flex items-center justify-center shrink-0 mt-0.5">
+                                    <div class="w-9 h-9 rounded-xl {{ $hasDocFile ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-[#F1F5F9] text-[#64748B] border border-[#E2E8F0]' }} flex items-center justify-center shrink-0 mt-0.5">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     </div>
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <h3 class="text-[13px] font-bold text-[#1E293B]">{{ $doc['title'] }}</h3>
-                                            @if($doc['file_path'])
+                                            @if($hasDocFile)
                                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
                                                     Tersedia
@@ -539,15 +561,15 @@
                                 </div>
 
                                 <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
-                                    @if($doc['file_path'])
+                                    @if($hasDocFile && $viewUrl)
                                         {{-- View / Lihat File --}}
-                                        <a href="{{ asset('storage/' . $doc['file_path']) }}" target="_blank" class="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F8FAFC] text-[#1E293B] text-[11px] font-bold transition flex items-center gap-1.5 border border-[#CBD5E1] shadow-2xs">
+                                        <a href="{{ $viewUrl }}" target="_blank" class="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F8FAFC] text-[#1E293B] text-[11px] font-bold transition flex items-center gap-1.5 border border-[#CBD5E1] shadow-2xs">
                                             <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             <span>Lihat File</span>
                                         </a>
 
                                         {{-- Download / Unduh --}}
-                                        <a href="{{ asset('storage/' . $doc['file_path']) }}" download class="px-3 py-1.5 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#1E293B] text-[11px] font-bold transition flex items-center gap-1.5 border border-[#CBD5E1] shadow-2xs">
+                                        <a href="{{ $viewUrl }}" download class="px-3 py-1.5 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#1E293B] text-[11px] font-bold transition flex items-center gap-1.5 border border-[#CBD5E1] shadow-2xs">
                                             <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             <span>Download</span>
                                         </a>

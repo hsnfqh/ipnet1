@@ -745,7 +745,7 @@
                                                     </div>
                                                     <div class="min-w-0">
                                                         <div class="flex items-center gap-1.5 flex-wrap">
-                                                            <a href="{{ route('projects.show', $p->id) }}" class="font-semibold text-slate-800 text-[13px] hover:text-[#8F0A0D] transition line-clamp-1">
+                                                            <a href="{{ ($p->handover_target === 'managed_service' || strtolower($p->stage ?? '') === 'operate') ? route('ms.projects.show', $p->id) : route('projects.show', $p->id) }}" class="font-semibold text-slate-800 text-[13px] hover:text-[#8F0A0D] transition line-clamp-1">
                                                                 {{ $p->name }}
                                                             </a>
                                                             @if(!empty($p->so_code))
@@ -838,7 +838,7 @@
                                                         </svg>
                                                         <span>{{ $isAssigned ? 'Kelola Tim' : 'Tugaskan Tim' }}</span>
                                                     </button>
-                                                    <a href="{{ route('projects.show', $p->id) }}" 
+                                                    <a href="{{ ($p->handover_target === 'managed_service' || strtolower($p->stage ?? '') === 'operate') ? route('ms.projects.show', $p->id) : route('projects.show', $p->id) }}" 
                                                        class="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition cursor-pointer flex items-center justify-center" 
                                                        title="Lihat Detail Proyek">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>

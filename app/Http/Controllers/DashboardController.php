@@ -377,7 +377,14 @@ class DashboardController extends Controller
         })->values();
 
         // Filter projects sesuai scope role yang login (kecualikan dummy/internal Day Off & Draft yang masih dicoba-coba)
-        $projectsQuery = Project::with(['tasks.engineer', 'creator', 'pm', 'division', 'msAcceptedBy'])
+        $projectWith = ['tasks.engineer', 'creator', 'pm', 'division', 'msAcceptedBy'];
+        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_pm_cycles')) {
+            $projectWith[] = 'pmCycles.assignedEngineer';
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_tickets')) {
+            $projectWith[] = 'managedServiceTickets.assignedEngineer';
+        }
+        $projectsQuery = Project::with($projectWith)
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
             ->where('client', '!=', 'Internal / Umum')
             ->whereNotIn('status', ['Draft', 'draft'])
@@ -410,7 +417,8 @@ class DashboardController extends Controller
             return in_array($p->handover_status, ['Approved', 'Conditional']) 
                 || in_array(strtolower($p->stage ?? ''), ['deliver', 'execution', 'closing', 'completed', 'operate'])
                 || in_array(strtolower($p->status ?? ''), ['in progress', 'on progress', 'active'])
-                || ($p->handover_target === 'managed_service' && in_array($p->ms_handover_status, ['Accepted', 'Approved']));
+                || ($p->handover_target === 'managed_service' && in_array($p->ms_handover_status, ['Accepted', 'Approved']))
+                || in_array($p->ms_handover_status, ['Accepted', 'Approved']);
         })->values();
 
         $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');

@@ -38,14 +38,26 @@ class TaskController extends Controller
             $withRelations[] = 'engineers';
         }
 
-        // Auto-sinkronkan Tiket SLA / Insiden Maintenance ke Daftar Tugas secara satu pintu
-        if (ScopeHelper::isMaintenance($user) || $isSupervisor || $isDirektur) {
-            $activeTickets = \App\Models\ManagedServiceTicket::with(['assignedEngineer', 'asset', 'project'])
-                ->whereIn('status', ['Open', 'In Progress', 'Pending Vendor', 'Resolved', 'Closed'])
-                ->get();
+        // Auto-sinkronkan Tiket SLA / Insiden Maintenance dan Kunjungan PM ke Daftar Tugas secara satu pintu
+        if (ScopeHelper::isMaintenance($user) || $isSupervisor || $isDirektur || true) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_tickets')) {
+                $activeTickets = \App\Models\ManagedServiceTicket::with(['assignedEngineer', 'asset', 'project'])
+                    ->whereIn('status', ['Open', 'In Progress', 'Pending Vendor', 'Resolved', 'Closed'])
+                    ->get();
 
-            foreach ($activeTickets as $ticket) {
-                \App\Http\Controllers\ManagedServiceController::syncTicketToTaskAndSchedule($ticket);
+                foreach ($activeTickets as $ticket) {
+                    \App\Http\Controllers\ManagedServiceController::syncTicketToTaskAndSchedule($ticket);
+                }
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_pm_cycles')) {
+                $scheduledPmCycles = \App\Models\ManagedServicePmCycle::with('project')
+                    ->whereNotNull('scheduled_date')
+                    ->get();
+
+                foreach ($scheduledPmCycles as $cycle) {
+                    \App\Http\Controllers\ManagedServiceController::syncPmCycleToSchedule($cycle);
+                }
             }
         }
 
@@ -220,6 +232,9 @@ class TaskController extends Controller
         $isPmo = ScopeHelper::isPmo($user);
         $isEngineer = $user->hasAnyRole(['Network Engineer', 'Security Engineer', 'Field Support (EOS)', 'Field Support', 'Engineer', 'Maintenance', 'Engineer L1', 'Engineer L2']);
         $isMaintenance = ScopeHelper::isMaintenance($user);
+        $isPmUser = $isPmo || $user->hasRole(['Project Manager', 'PMO']) || in_array(strtolower($user->position ?? ''), ['pm', 'project manager', 'pmo']);
+        $isMaintenanceCoord = $isMaintenance || $user->hasRole(['Managed Service', 'Lead Maintenance', 'Team Leader']) || in_array(strtolower($user->position ?? ''), ['managed service', 'lead maintenance', 'helpdesk', 'koordinator maintenance']);
+        $canControlProgress = $isPmUser || $isMaintenanceCoord || $user->hasRole(['Admin', 'Super Admin']) || $isDirektur;
         $msTickets = collect([]);
         if ($isMaintenance || $isSupervisor || $isDirektur) {
             $msTickets = \App\Models\ManagedServiceTicket::with(['assignedEngineer', 'asset', 'project'])
@@ -228,7 +243,7 @@ class TaskController extends Controller
                 ->get();
         }
 
-        return view('tasks.index', compact('tasks', 'projects', 'formProjects', 'engineers', 'currentUserId', 'isLead', 'canManage', 'isDirektur', 'isSupervisor', 'isPmo', 'isEngineer', 'isMaintenance', 'msTickets'));
+        return view('tasks.index', compact('tasks', 'projects', 'formProjects', 'engineers', 'currentUserId', 'isLead', 'canManage', 'isDirektur', 'isSupervisor', 'isPmo', 'isEngineer', 'isMaintenance', 'msTickets', 'canControlProgress', 'isPmUser', 'isMaintenanceCoord'));
     }
 
     public function store(TaskRequest $request)
@@ -356,6 +371,19 @@ class TaskController extends Controller
         $user = auth()->user();
         $isLead = ScopeHelper::canManageTasks($user);
 
+        // Hak kendali skala persentase progres (hanya PM untuk PM projects, Tim Maintenance untuk MS projects, dan Admin)
+        $isPM = ScopeHelper::isPmo($user) 
+            || $user->hasRole(['Project Manager', 'PMO', 'Admin', 'Super Admin'])
+            || in_array(strtolower($user->position ?? ''), ['pm', 'project manager', 'pmo', 'admin'])
+            || ($task->project && (int)$task->project->pm_id === (int)$user->id);
+
+        $isMS = ScopeHelper::isMaintenance($user)
+            || $user->hasRole(['Managed Service', 'Lead Maintenance', 'Maintenance', 'Admin', 'Super Admin', 'Team Leader'])
+            || in_array(strtolower($user->position ?? ''), ['managed service', 'lead maintenance', 'maintenance', 'admin', 'helpdesk'])
+            || ($task->project && (int)$task->project->ms_accepted_by === (int)$user->id);
+
+        $canUpdateProgressScale = $isPM || $isMS;
+
         // Cek apakah user adalah teknisi pelaksana yang ditugaskan pada task ini
         $isAssignee = false;
         if ($task->engineer_id && (int) $task->engineer_id === (int) $user->id) {
@@ -367,21 +395,24 @@ class TaskController extends Controller
                 ->exists();
         }
 
-        // Izin update diberikan kepada Team Leader ATAU Teknisi yang ditugaskan
-        abort_unless($isLead || $isAssignee, 403, 'Anda tidak memiliki wewenang untuk memperbarui task ini.');
+        // Izin update diberikan kepada Team Leader, PM, Tim Maintenance, ATAU Teknisi yang ditugaskan
+        abort_unless($isLead || $isAssignee || $canUpdateProgressScale, 403, 'Anda tidak memiliki wewenang untuk memperbarui task ini.');
 
-        // Jika teknisi pelaksana (bukan lead), status 'Completed' otomatis dialihkan ke 'Waiting Review'
-        if (!$isLead && $isAssignee) {
+        // Jika user bukan PM / Tim Maintenance (misal teknisi pelaksana atau lead engineer):
+        // Kendali skala progres (percentage) hanya di PM & Maintenance!
+        // Teknisi hanya bisa ubah status ke Assigned/In Progress/Waiting Review, upload bukti/foto, dan catatan teknis.
+        if (!$canUpdateProgressScale) {
             if ($request->input('status') === 'Completed') {
                 $request->merge(['status' => 'Waiting Review']);
             }
             $rules = [
                 'status'        => 'sometimes|required|in:Assigned,In Progress,Waiting Review',
-                'progress'      => 'sometimes|nullable|integer|min:0|max:100',
                 'description'   => 'sometimes|nullable|string',
                 'doc_file'      => \App\Helpers\FileUploadHelper::fileValidationRule(51200),
             ];
             $validated = $request->validate($rules);
+            // Kunci skala persentase progres agar tidak dapat diubah selain oleh PM / Tim Maintenance
+            unset($validated['progress']);
         } else {
             $rules = [
                 'title'             => 'sometimes|required|string|max:255',

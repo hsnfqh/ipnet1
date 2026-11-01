@@ -448,6 +448,60 @@ class PmoController extends Controller
         $planValAtCurrentWeek = $weeklyRecords[min(count($weeklyRecords) - 1, max(0, $currentWeek - 1))]['plan_percent'] ?? 0;
         $currentVariance = round($currentProgressPercent - $planValAtCurrentWeek, 2);
 
+        // Summary Progress Indicator (Hijau / Kuning / Merah)
+        // Berdasarkan kesehatan task mingguan dan deviasi Kurva S
+        $overdueTasks = $project->tasks->whereNotIn('status', ['Completed', 'Done'])
+            ->filter(fn($t) => $t->deadline && \Carbon\Carbon::parse($t->deadline)->isPast());
+        $overdueTasksCount = $overdueTasks->count();
+        $tasksOnTrackCount = max(0, $totalTasks - $overdueTasksCount);
+
+        if ($overdueTasksCount > 0 || $currentVariance < -10 || $healthStatus === 'Delayed') {
+            $summaryProgress = [
+                'status'         => 'red',
+                'color_name'     => 'Merah',
+                'badge_class'    => 'bg-rose-50 text-rose-700 border-rose-200/80',
+                'dot_class'      => 'bg-rose-600',
+                'gradient_class' => 'from-rose-500 to-red-600',
+                'bg_card'        => 'bg-gradient-to-r from-rose-50/70 via-white to-slate-50 border-rose-200/80',
+                'label'          => 'Melewati Tenggat Waktu (Kritis / At Risk)',
+                'headline'       => 'Terdapat task mingguan melewati deadline atau deviasi Kurva S tertinggal',
+                'description'    => "Terdapat {$overdueTasksCount} task melewati deadline dengan deviasi progres mingguan {$currentVariance}%. Diperlukan percepatan personil lapangan.",
+                'variance'       => $currentVariance,
+                'overdue_count'  => $overdueTasksCount,
+                'on_track_count' => $tasksOnTrackCount,
+            ];
+        } elseif ($currentVariance < -2 || $healthStatus === 'At-Risk' || ($currentProgressPercent < 50 && $currentWeek > ($totalWeeks / 2))) {
+            $summaryProgress = [
+                'status'         => 'yellow',
+                'color_name'     => 'Kuning',
+                'badge_class'    => 'bg-amber-50 text-amber-800 border-amber-200/80',
+                'dot_class'      => 'bg-amber-500',
+                'gradient_class' => 'from-amber-400 to-amber-600',
+                'bg_card'        => 'bg-gradient-to-r from-amber-50/70 via-white to-slate-50 border-amber-200/80',
+                'label'          => 'Sedang Berjalan (Pertengahan / Toleransi Normal)',
+                'headline'       => 'Pekerjaan berjalan dalam batas toleransi jadwal kerja mingguan',
+                'description'    => "Deviasi mingguan tercatat {$currentVariance}% tanpa task kritis terlambat. Personil aktif mengejar milestone berjalan.",
+                'variance'       => $currentVariance,
+                'overdue_count'  => $overdueTasksCount,
+                'on_track_count' => $tasksOnTrackCount,
+            ];
+        } else {
+            $summaryProgress = [
+                'status'         => 'green',
+                'color_name'     => 'Hijau',
+                'badge_class'    => 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+                'dot_class'      => 'bg-emerald-500',
+                'gradient_class' => 'from-emerald-500 to-teal-600',
+                'bg_card'        => 'bg-gradient-to-r from-emerald-50/70 via-white to-slate-50 border-emerald-200/80',
+                'label'          => 'Selesai Tepat Waktu (On Track)',
+                'headline'       => 'Seluruh task mingguan tepat waktu sesuai target Kurva S',
+                'description'    => "Progres aktual berjalan optimal (+{$currentVariance}%) dan 0 task terlambat. Distribusi tugas tim berada dalam jalur rencana.",
+                'variance'       => $currentVariance,
+                'overdue_count'  => 0,
+                'on_track_count' => $totalTasks,
+            ];
+        }
+
         $sCurveUpdateDate = now()->format('d M Y');
         $divisions = \App\Models\Division::all();
 
@@ -466,6 +520,7 @@ class PmoController extends Controller
             'healthStatus',
             'healthStatusText',
             'currentVariance',
+            'summaryProgress',
             'planValAtCurrentWeek',
             'taskShareList',
             'taskShareChartData',

@@ -918,6 +918,48 @@
                         </div>
                     </div>
 
+                    {{-- Summary Progress Indicator Berdasarkan Task Mingguan & Kurva S (Hijau / Kuning / Merah) --}}
+                    @if(isset($summaryProgress))
+                        <div class="p-4 rounded-xl border {{ $summaryProgress['bg_card'] }} flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
+                            <div class="flex items-start gap-3.5 min-w-0">
+                                <div class="w-9 h-9 rounded-xl {{ $summaryProgress['status'] === 'green' ? 'bg-emerald-600 text-white' : ($summaryProgress['status'] === 'yellow' ? 'bg-amber-500 text-white' : 'bg-rose-600 text-white') }} flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                                    @if($summaryProgress['status'] === 'green')
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    @elseif($summaryProgress['status'] === 'yellow')
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    @else
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    @endif
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Summary Progress Proyek</span>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ $summaryProgress['badge_class'] }}">
+                                            <span class="w-2 h-2 rounded-full {{ $summaryProgress['dot_class'] }} {{ $summaryProgress['status'] === 'red' ? 'animate-pulse' : '' }}"></span>
+                                            {{ $summaryProgress['label'] }}
+                                        </span>
+                                    </div>
+                                    <h4 class="text-[13px] font-bold text-slate-800 mt-1">{{ $summaryProgress['headline'] }}</h4>
+                                    <p class="text-[11.5px] text-slate-500 mt-0.5 font-normal">{{ $summaryProgress['description'] }}</p>
+                                </div>
+                            </div>
+
+                            {{-- Mini Metrics --}}
+                            <div class="flex items-center gap-3 shrink-0 border-t md:border-t-0 md:border-l border-slate-200/80 pt-3 md:pt-0 md:pl-4">
+                                <div class="text-left md:text-right">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Kesehatan Task Mingguan</span>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{{ $summaryProgress['on_track_count'] }} Tepat Waktu</span>
+                                        @if($summaryProgress['overdue_count'] > 0)
+                                            <span class="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">{{ $summaryProgress['overdue_count'] }} Terlambat</span>
+                                        @endif
+                                    </div>
+                                    <span class="text-[10.5px] text-slate-500 block mt-1 font-medium">Deviasi Kurva S: <strong class="{{ $summaryProgress['variance'] >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">{{ $summaryProgress['variance'] > 0 ? '+' : '' }}{{ $summaryProgress['variance'] }}%</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Status Banner Penugasan Lead --}}
                     @if(count($assignedEngineers) > 0)
                         <div class="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 text-xs">

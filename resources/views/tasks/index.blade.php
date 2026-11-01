@@ -299,11 +299,11 @@
                                         <template x-if="isMyTask(task) && task.status !== 'Completed'">
                                             <button @click="openProgressModal(task)"
                                                     class="w-1/2 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#72080a] text-white text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
-                                                    title="Update Progress & Bukti Lapangan">
+                                                    :title="canControlProgress ? 'Update Progress & Skala' : 'Upload Bukti Dokumentasi Lapangan'">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                                 </svg>
-                                                Update
+                                                <span x-text="canControlProgress ? 'Update' : 'Upload Bukti'"></span>
                                             </button>
                                         </template>
                                     </div>
@@ -608,7 +608,7 @@
                                                 class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
                                             <option value="In Progress">In Progress</option>
                                             <option value="Waiting Review">Waiting Review</option>
-                                            <template x-if="isLead">
+                                            <template x-if="canControlProgress">
                                                 <option value="Completed">Completed</option>
                                             </template>
                                             <option value="Assigned">Assigned</option>
@@ -621,11 +621,24 @@
                                             </label>
                                             <span class="text-[13px] font-black text-[#8F0A0D]" x-text="progressForm.progress + '%'"></span>
                                         </div>
-                                        <div class="pt-2">
-                                            <input type="range" min="0" max="100" step="5" x-model="progressForm.progress" 
-                                                   @input="if(progressForm.progress == 100 && !isLead) { progressForm.status = 'Waiting Review'; } else if(progressForm.progress > 0 && progressForm.status === 'Assigned') { progressForm.status = 'In Progress'; }"
-                                                   class="w-full accent-[#8F0A0D] cursor-pointer">
-                                        </div>
+                                        <template x-if="canControlProgress">
+                                            <div class="pt-2">
+                                                <input type="range" min="0" max="100" step="5" x-model="progressForm.progress" 
+                                                       @input="if(progressForm.progress == 100) { progressForm.status = 'Completed'; } else if(progressForm.progress > 0 && progressForm.status === 'Assigned') { progressForm.status = 'In Progress'; }"
+                                                       class="w-full accent-[#8F0A0D] cursor-pointer">
+                                            </div>
+                                        </template>
+                                        <template x-if="!canControlProgress">
+                                            <div class="pt-1.5 space-y-1.5">
+                                                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+                                                    <div class="h-full bg-gradient-to-r from-[#8F0A0D] to-[#B91C1C] rounded-full transition-all" :style="'width: ' + progressForm.progress + '%'"></div>
+                                                </div>
+                                                <p class="text-[10.5px] text-slate-500 font-medium flex items-center gap-1">
+                                                    <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                    <span>Skala % dikelola oleh PM / Tim Maintenance</span>
+                                                </p>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
 
@@ -1039,6 +1052,9 @@
                 engineers: @json($engineers),
                 msTickets: @json($msTickets ?? []),
                 isMaintenance: {{ ($isMaintenance ?? false) ? 'true' : 'false' }},
+                canControlProgress: {{ ($canControlProgress ?? false) ? 'true' : 'false' }},
+                isPmUser: {{ ($isPmUser ?? false) ? 'true' : 'false' }},
+                isMaintenanceCoord: {{ ($isMaintenanceCoord ?? false) ? 'true' : 'false' }},
                 selectedTicketId: '',
                 currentUserId: {{ (int) $currentUserId }},
                 isLead: {{ $isLead ? 'true' : 'false' }},
