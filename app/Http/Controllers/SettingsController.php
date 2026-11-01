@@ -16,6 +16,8 @@ class SettingsController extends Controller
      */
     public function index()
     {
+        User::ensureSettingsSchemaReady();
+
         $user = auth()->user()->load(['roles', 'division', 'team']);
         $user->ensureSignatureQrToken();
 
@@ -117,6 +119,7 @@ class SettingsController extends Controller
      */
     public function updateSignature(Request $request)
     {
+        User::ensureSettingsSchemaReady();
         $user = auth()->user();
 
         $request->validate([
@@ -214,8 +217,10 @@ class SettingsController extends Controller
      */
     public function verifySignature(string $token)
     {
+        User::ensureSettingsSchemaReady();
         $user = User::where('signature_qr_token', $token)->first();
 
         return view('public.verify-signature', compact('user', 'token'));
     }
 }
+

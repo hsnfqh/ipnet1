@@ -9,6 +9,9 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Artisan;
 
 class User extends Authenticatable
 {
@@ -169,11 +172,66 @@ class User extends Authenticatable
         return !empty($this->signature_data);
     }
 
+    /**
+     * Pastikan skema tabel users untuk preferensi & tanda tangan digital selalu tersedia di server hosting
+     */
+    public static function ensureSettingsSchemaReady(): void
+    {
+        if (function_exists('opcache_reset')) { @opcache_reset(); }
+
+        try {
+            if (!Schema::hasColumn('users', 'signature_qr_token')) {
+                try {
+                    Artisan::call('migrate', ['--force' => true]);
+                } catch (\Throwable $ex) {}
+
+                if (!Schema::hasColumn('users', 'signature_qr_token')) {
+                    Schema::table('users', function (Blueprint $table) {
+                        if (!Schema::hasColumn('users', 'signature_data')) {
+                            $table->longText('signature_data')->nullable();
+                        }
+                        if (!Schema::hasColumn('users', 'signature_type')) {
+                            $table->string('signature_type')->default('signature_qr');
+                        }
+                        if (!Schema::hasColumn('users', 'signature_qr_token')) {
+                            $table->string('signature_qr_token', 64)->nullable();
+                        }
+                        if (!Schema::hasColumn('users', 'signature_updated_at')) {
+                            $table->timestamp('signature_updated_at')->nullable();
+                        }
+                        if (!Schema::hasColumn('users', 'notification_web')) {
+                            $table->boolean('notification_web')->default(true);
+                        }
+                        if (!Schema::hasColumn('users', 'notification_email')) {
+                            $table->boolean('notification_email')->default(false);
+                        }
+                        if (!Schema::hasColumn('users', 'theme_preference')) {
+                            $table->string('theme_preference')->default('system');
+                        }
+                        if (!Schema::hasColumn('users', 'timezone_preference')) {
+                            $table->string('timezone_preference')->default('Asia/Jakarta');
+                        }
+                    });
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('User::ensureSettingsSchemaReady error: ' . $e->getMessage());
+        }
+    }
+
     public function ensureSignatureQrToken()
     {
+        self::ensureSettingsSchemaReady();
+
         if (empty($this->signature_qr_token)) {
             $this->signature_qr_token = strtoupper('SIG-' . substr(hash('sha256', $this->id . '-' . $this->email . '-' . microtime(true)), 0, 16));
-            $this->saveQuietly();
+            try {
+                if (Schema::hasColumn('users', 'signature_qr_token')) {
+                    $this->saveQuietly();
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('User ensureSignatureQrToken save warning: ' . $e->getMessage());
+            }
         }
         return $this->signature_qr_token;
     }
