@@ -77,29 +77,40 @@ class ActivitySignatureController extends Controller
             'verification_hash' => $sig?->verification_hash,
             'pic' => [
                 'signed'    => !empty($sig?->pic_signature),
+                'signature' => $sig?->pic_signature,
                 'name'      => $sig?->pic_name,
                 'title'     => $sig?->pic_title ?? 'PIC Field Engineer',
                 'signed_at' => $sig?->pic_signed_at?->format('d M Y, H:i') . ' WIB',
+                'qr_svg'    => $sig?->picUser?->signature_qr_svg,
             ],
             'lead' => [
                 'signed'    => !empty($sig?->lead_signature),
+                'signature' => $sig?->lead_signature,
                 'name'      => $sig?->lead_name,
                 'title'     => $sig?->lead_title ?? 'Lead Network Engineer',
                 'signed_at' => $sig?->lead_signed_at?->format('d M Y, H:i') . ' WIB',
+                'qr_svg'    => $sig?->leadUser?->signature_qr_svg,
             ],
             'head' => [
                 'signed'    => !empty($sig?->head_signature),
+                'signature' => $sig?->head_signature,
                 'name'      => $sig?->head_name,
                 'title'     => $sig?->head_title ?? 'Head of Division',
                 'signed_at' => $sig?->head_signed_at?->format('d M Y, H:i') . ' WIB',
+                'qr_svg'    => $sig?->headUser?->signature_qr_svg,
             ],
             'report_data'     => $sig?->report_data ?? null,
             'user_permissions' => [
-                'can_sign_pic'  => (bool) ($isEngineer || $isLead),
-                'can_sign_lead' => (bool) ($isLead || $isExecutiveOrGl),
-                'can_sign_head' => (bool) $isExecutiveOrGl,
-                'user_name'     => $currentUser?->name,
-                'user_role'     => $currentUser?->getRoleNames()->first() ?? 'Staff',
+                'can_sign_pic'           => (bool) ($isEngineer || $isLead),
+                'can_sign_lead'          => (bool) ($isLead || $isExecutiveOrGl),
+                'can_sign_head'          => (bool) $isExecutiveOrGl,
+                'user_name'              => $currentUser?->name,
+                'user_role'              => $currentUser?->getRoleNames()->first() ?? 'Staff',
+                'has_saved_signature'    => !empty($currentUser?->signature_data),
+                'saved_signature_data'   => $currentUser?->signature_data,
+                'saved_signature_type'   => $currentUser?->signature_type ?: 'signature_qr',
+                'saved_signature_qr_svg' => $currentUser?->signature_qr_svg,
+                'saved_signature_token'  => $currentUser?->signature_qr_token,
             ]
         ]);
     }
@@ -110,12 +121,14 @@ class ActivitySignatureController extends Controller
     public function storeSignature(Request $request): JsonResponse
     {
         $request->validate([
-            'scope_key'      => 'required|string',
-            'role_type'      => 'required|in:pic,lead,head',
-            'signature_data' => 'required|string', // data:image/png;base64,...
-            'project_id'     => 'nullable|integer',
-            'project_name'   => 'nullable|string',
-            'log_ids'        => 'nullable|array',
+            'scope_key'       => 'required|string',
+            'role_type'       => 'required|in:pic,lead,head',
+            'signature_data'  => 'nullable|string', // data:image/png;base64,...
+            'use_saved'       => 'nullable|boolean',
+            'save_as_default' => 'nullable|boolean',
+            'project_id'      => 'nullable|integer',
+            'project_name'    => 'nullable|string',
+            'log_ids'         => 'nullable|array',
         ]);
 
         $currentUser = auth()->user();
@@ -126,6 +139,24 @@ class ActivitySignatureController extends Controller
         $scopeKey = $request->input('scope_key');
         $roleType = $request->input('role_type');
         $signatureData = $request->input('signature_data');
+
+        // Jika opsi gunakan tanda tangan tersimpan dipilih atau data kosong
+        if ($request->boolean('use_saved') || empty($signatureData)) {
+            $signatureData = $currentUser->signature_data;
+            if (empty($signatureData)) {
+                return response()->json([
+                    'error' => 'Anda belum memiliki tanda tangan tersimpan di Pengaturan. Silakan atur tanda tangan di menu Pengaturan terlebih dahulu.'
+                ], 422);
+            }
+        }
+
+        // Simpan sebagai default jika diinginkan
+        if ($request->boolean('save_as_default') && !empty($signatureData)) {
+            $currentUser->signature_data = $signatureData;
+            $currentUser->signature_updated_at = now();
+            $currentUser->ensureSignatureQrToken();
+            $currentUser->save();
+        }
 
         // Validasi format signature PNG base64
         if (!str_starts_with($signatureData, 'data:image/png;base64,')) {

@@ -571,7 +571,30 @@
                                         <input type="text" x-model="reportFormData.identitas.nama_engineer" placeholder="Nama Engineer" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
                                     </td>
                                     <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.pic?.signed ? sigInfo?.pic?.signed_at : '{{ date('d/m/Y') }}'"></td>
-                                    <td class="py-6 px-3 text-center min-h-[56px]"></td>
+                                    <td class="py-3 px-3 text-center align-middle min-h-[56px]">
+                                        <template x-if="sigInfo?.pic?.signed && sigInfo?.pic?.signature">
+                                            <div class="inline-flex items-center justify-center gap-2.5">
+                                                <img :src="sigInfo.pic.signature" alt="TTD Engineer" class="max-h-12 max-w-[90px] object-contain">
+                                                <template x-if="sigInfo.pic.qr_svg">
+                                                    <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.pic.qr_svg"></div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                        <template x-if="!sigInfo?.pic?.signed">
+                                            <div>
+                                                <template x-if="sigInfo?.user_permissions?.can_sign_pic">
+                                                    <button type="button" @click="openSignaturePad('pic', 'Engineer')"
+                                                            class="px-3 py-1.5 text-xs font-bold rounded-lg border border-[#8F0A0D] text-[#8F0A0D] bg-red-50 hover:bg-[#8F0A0D] hover:text-white transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                        <span>Tandatangani</span>
+                                                    </button>
+                                                </template>
+                                                <template x-if="!sigInfo?.user_permissions?.can_sign_pic">
+                                                    <span class="text-[11px] text-gray-400 font-medium italic">Menunggu TTD</span>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </td>
                                 </tr>
                                 <tr class="border-b border-[#1E293B]">
                                     <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Project Manager / Team Leader</td>
@@ -579,7 +602,30 @@
                                         <input type="text" x-model="reportFormData.identitas.nama_leader" placeholder="Nama PM / Team Leader" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
                                     </td>
                                     <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.lead?.signed ? sigInfo?.lead?.signed_at : '{{ date('d/m/Y') }}'"></td>
-                                    <td class="py-6 px-3 text-center min-h-[56px]"></td>
+                                    <td class="py-3 px-3 text-center align-middle min-h-[56px]">
+                                        <template x-if="sigInfo?.lead?.signed && sigInfo?.lead?.signature">
+                                            <div class="inline-flex items-center justify-center gap-2.5">
+                                                <img :src="sigInfo.lead.signature" alt="TTD Leader" class="max-h-12 max-w-[90px] object-contain">
+                                                <template x-if="sigInfo.lead.qr_svg">
+                                                    <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.lead.qr_svg"></div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                        <template x-if="!sigInfo?.lead?.signed">
+                                            <div>
+                                                <template x-if="sigInfo?.user_permissions?.can_sign_lead">
+                                                    <button type="button" @click="openSignaturePad('lead', 'Project Manager / Team Leader')"
+                                                            class="px-3 py-1.5 text-xs font-bold rounded-lg border border-[#8F0A0D] text-[#8F0A0D] bg-red-50 hover:bg-[#8F0A0D] hover:text-white transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                        <span>Tandatangani</span>
+                                                    </button>
+                                                </template>
+                                                <template x-if="!sigInfo?.user_permissions?.can_sign_lead">
+                                                    <span class="text-[11px] text-gray-400 font-medium italic">Menunggu TTD</span>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Customer / Site Representative</td>
@@ -587,7 +633,9 @@
                                         <input type="text" x-model="reportFormData.identitas.pic_customer" placeholder="Ketik nama PIC Klien / Customer..." class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
                                     </td>
                                     <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle">{{ date('d/m/Y') }}</td>
-                                    <td class="py-6 px-3 text-center min-h-[56px]"></td>
+                                    <td class="py-3 px-3 text-center align-middle min-h-[56px] text-slate-400 text-xs italic">
+                                        ( Tanda Tangan &amp; Cap Klien )
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1137,25 +1185,73 @@
                                     </thead>
                                     <tbody>
                                         <tr class="border-b border-[#1E293B]">
-                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer / PIC</td>
-                                            <td class="p-1 border-r border-[#1E293B]">
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Engineer / PIC</td>
+                                            <td class="p-1 border-r border-[#1E293B] align-middle">
                                                 <input type="text" x-model="reportFormData.ms_identitas.engineer_pic" placeholder="" class="w-full p-1 text-xs font-bold bg-transparent border-0">
                                             </td>
-                                            <td class="py-6 px-3 text-center min-h-[56px]"></td>
+                                            <td class="py-3 px-3 text-center align-middle min-h-[56px]">
+                                                <template x-if="sigInfo?.pic?.signed && sigInfo?.pic?.signature">
+                                                    <div class="inline-flex items-center justify-center gap-2.5">
+                                                        <img :src="sigInfo.pic.signature" alt="TTD Engineer" class="max-h-12 max-w-[90px] object-contain">
+                                                        <template x-if="sigInfo.pic.qr_svg">
+                                                            <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.pic.qr_svg"></div>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                                <template x-if="!sigInfo?.pic?.signed">
+                                                    <div>
+                                                        <template x-if="sigInfo?.user_permissions?.can_sign_pic">
+                                                            <button type="button" @click="openSignaturePad('pic', 'Engineer / PIC')"
+                                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg border border-[#8F0A0D] text-[#8F0A0D] bg-red-50 hover:bg-[#8F0A0D] hover:text-white transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                                <span>Tandatangani</span>
+                                                            </button>
+                                                        </template>
+                                                        <template x-if="!sigInfo?.user_permissions?.can_sign_pic">
+                                                            <span class="text-[11px] text-gray-400 font-medium italic">Menunggu TTD</span>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                            </td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
-                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Team Leader / Service Manager</td>
-                                            <td class="p-1 border-r border-[#1E293B]">
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Team Leader / Service Manager</td>
+                                            <td class="p-1 border-r border-[#1E293B] align-middle">
                                                 <input type="text" x-model="reportFormData.ms_verifikasi.lead_name" placeholder="" class="w-full p-1 text-xs font-bold bg-transparent border-0">
                                             </td>
-                                            <td class="py-6 px-3 text-center min-h-[56px]"></td>
+                                            <td class="py-3 px-3 text-center align-middle min-h-[56px]">
+                                                <template x-if="sigInfo?.lead?.signed && sigInfo?.lead?.signature">
+                                                    <div class="inline-flex items-center justify-center gap-2.5">
+                                                        <img :src="sigInfo.lead.signature" alt="TTD Leader" class="max-h-12 max-w-[90px] object-contain">
+                                                        <template x-if="sigInfo.lead.qr_svg">
+                                                            <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.lead.qr_svg"></div>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                                <template x-if="!sigInfo?.lead?.signed">
+                                                    <div>
+                                                        <template x-if="sigInfo?.user_permissions?.can_sign_lead">
+                                                            <button type="button" @click="openSignaturePad('lead', 'Team Leader / Service Manager')"
+                                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg border border-[#8F0A0D] text-[#8F0A0D] bg-red-50 hover:bg-[#8F0A0D] hover:text-white transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                                <span>Tandatangani</span>
+                                                            </button>
+                                                        </template>
+                                                        <template x-if="!sigInfo?.user_permissions?.can_sign_lead">
+                                                            <span class="text-[11px] text-gray-400 font-medium italic">Menunggu TTD</span>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                            </td>
                                         </tr>
                                         <tr>
-                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Customer / Authorized Representative</td>
-                                            <td class="p-1 border-r border-[#1E293B]">
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Customer / Authorized Representative</td>
+                                            <td class="p-1 border-r border-[#1E293B] align-middle">
                                                 <input type="text" x-model="reportFormData.ms_verifikasi.customer_name" placeholder="" class="w-full p-1 text-xs font-bold bg-transparent border-0">
                                             </td>
-                                            <td class="py-6 px-3 text-center min-h-[56px]"></td>
+                                            <td class="py-3 px-3 text-center align-middle min-h-[56px] text-slate-400 text-xs italic">
+                                                ( Tanda Tangan &amp; Cap Klien )
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1480,14 +1576,60 @@
                                     </thead>
                                     <tbody>
                                         <tr class="border-b border-[#1E293B]">
-                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer / Shift PIC</td>
-                                            <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="reportFormData.hd_identitas.nama_engineer" class="w-full p-1 text-xs font-bold bg-transparent border-0"></td>
-                                            <td class="py-6 px-3 text-center min-h-[56px]"></td>
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Engineer / Shift PIC</td>
+                                            <td class="p-1 border-r border-[#1E293B] align-middle"><input type="text" x-model="reportFormData.hd_identitas.nama_engineer" class="w-full p-1 text-xs font-bold bg-transparent border-0"></td>
+                                            <td class="py-3 px-3 text-center align-middle min-h-[56px]">
+                                                <template x-if="sigInfo?.pic?.signed && sigInfo?.pic?.signature">
+                                                    <div class="inline-flex items-center justify-center gap-2.5">
+                                                        <img :src="sigInfo.pic.signature" alt="TTD Engineer" class="max-h-12 max-w-[90px] object-contain">
+                                                        <template x-if="sigInfo.pic.qr_svg">
+                                                            <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.pic.qr_svg"></div>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                                <template x-if="!sigInfo?.pic?.signed">
+                                                    <div>
+                                                        <template x-if="sigInfo?.user_permissions?.can_sign_pic">
+                                                            <button type="button" @click="openSignaturePad('pic', 'Engineer / Shift PIC')"
+                                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg border border-[#8F0A0D] text-[#8F0A0D] bg-red-50 hover:bg-[#8F0A0D] hover:text-white transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                                <span>Tandatangani</span>
+                                                            </button>
+                                                        </template>
+                                                        <template x-if="!sigInfo?.user_permissions?.can_sign_pic">
+                                                            <span class="text-[11px] text-gray-400 font-medium italic">Menunggu TTD</span>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                            </td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
-                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Team Leader</td>
-                                            <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="reportFormData.hd_identitas.team_leader" class="w-full p-1 text-xs font-bold bg-transparent border-0"></td>
-                                            <td class="py-6 px-3 text-center min-h-[56px]"></td>
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Team Leader</td>
+                                            <td class="p-1 border-r border-[#1E293B] align-middle"><input type="text" x-model="reportFormData.hd_identitas.team_leader" class="w-full p-1 text-xs font-bold bg-transparent border-0"></td>
+                                            <td class="py-3 px-3 text-center align-middle min-h-[56px]">
+                                                <template x-if="sigInfo?.lead?.signed && sigInfo?.lead?.signature">
+                                                    <div class="inline-flex items-center justify-center gap-2.5">
+                                                        <img :src="sigInfo.lead.signature" alt="TTD Leader" class="max-h-12 max-w-[90px] object-contain">
+                                                        <template x-if="sigInfo.lead.qr_svg">
+                                                            <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.lead.qr_svg"></div>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                                <template x-if="!sigInfo?.lead?.signed">
+                                                    <div>
+                                                        <template x-if="sigInfo?.user_permissions?.can_sign_lead">
+                                                            <button type="button" @click="openSignaturePad('lead', 'Team Leader')"
+                                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg border border-[#8F0A0D] text-[#8F0A0D] bg-red-50 hover:bg-[#8F0A0D] hover:text-white transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                                <span>Tandatangani</span>
+                                                            </button>
+                                                        </template>
+                                                        <template x-if="!sigInfo?.user_permissions?.can_sign_lead">
+                                                            <span class="text-[11px] text-gray-400 font-medium italic">Menunggu TTD</span>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                            </td>
                                         </tr>
                                         <tr>
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer Shift Berikutnya / Handover</td>

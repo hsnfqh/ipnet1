@@ -305,6 +305,7 @@ Route::get('/sign/{token}', [DigitalSignatureController::class, 'clientSignShow'
 Route::get('/sign/{token}/stream-pdf', [DigitalSignatureController::class, 'clientStreamPdf'])->name('client.digital_signature.stream_pdf');
 Route::post('/sign/{token}', [DigitalSignatureController::class, 'clientSignSubmit'])->name('client.digital_signature.submit');
 Route::get('/verify-document-sign/{hash}', [DigitalSignatureController::class, 'verifyPublic'])->name('public.digital_signature.verify');
+Route::get('/verify-signature/{token}', [\App\Http\Controllers\SettingsController::class, 'verifySignature'])->name('public.signature.verify');
 
 // Public Document Verification (Target QR Code Scan - Langsung Membuka Halaman PDF Resmi di Layar HP / Browser)
 Route::get('/verify-document/{documentNumber}', function ($documentNumber) {
@@ -1452,6 +1453,16 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
         Route::post('/certification', [ProfileController::class, 'uploadCertification'])->name('profile.certification');
         Route::delete('/certification/{certification}', [ProfileController::class, 'deleteCertification'])->name('profile.certification.delete');
+    });
+
+    // Pengaturan Sistem, Profil & Tanda Tangan Digital (Semua Role)
+    Route::prefix('settings')->group(function () {
+        Route::get('/', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+        Route::post('/profile', [\App\Http\Controllers\SettingsController::class, 'updateProfile'])->name('settings.profile');
+        Route::post('/password', [\App\Http\Controllers\SettingsController::class, 'updatePassword'])->name('settings.password');
+        Route::post('/signature', [\App\Http\Controllers\SettingsController::class, 'updateSignature'])->name('settings.signature');
+        Route::delete('/signature', [\App\Http\Controllers\SettingsController::class, 'deleteSignature'])->name('settings.signature.delete');
+        Route::post('/preferences', [\App\Http\Controllers\SettingsController::class, 'updatePreferences'])->name('settings.preferences');
     });
 
     // Stream Sertifikasi (Aman dari kendala symlink cPanel & Terproteksi Hak Akses)

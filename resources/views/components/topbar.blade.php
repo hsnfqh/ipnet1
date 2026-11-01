@@ -179,7 +179,7 @@
         <div class="hidden sm:block w-px h-[26px] bg-wms-line"></div>
 
         <!-- User Profile Link -->
-        <a href="{{ route('profile.show') }}" class="flex items-center gap-[9px] hover:opacity-85 transition-opacity" title="Lihat Profil Saya">
+        <a href="{{ route('settings.index') }}" class="flex items-center gap-[9px] hover:opacity-85 transition-opacity" title="Pengaturan Akun & Profil">
             <x-avatar :name="$user->name" size="34" tone="linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%)" />
             <div class="hidden sm:block">
                 <div class="text-[13px] font-semibold text-wms-ink-900 leading-tight">{{ $user->name }}</div>

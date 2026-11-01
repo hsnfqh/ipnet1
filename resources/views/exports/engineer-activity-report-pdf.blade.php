@@ -904,7 +904,18 @@
                     <td style="padding: 10px 6px;"><strong>{{ !empty($msVerifikasi['engineer_name']) ? $msVerifikasi['engineer_name'] : $msEngineer }}</strong></td>
                     <td class="sig-container" style="padding: 6px; text-align: center;">
                         @if(!empty($docSig?->pic_signature))
-                            <img src="{{ $docSig->pic_signature }}" alt="TTD Engineer" class="sig-img">
+                            <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
+                                <tr>
+                                    <td style="border: none; padding: 0 4px; vertical-align: middle;">
+                                        <img src="{{ $docSig->pic_signature }}" alt="TTD Engineer" class="sig-img" style="max-height: 40px; max-width: 90px;">
+                                    </td>
+                                    @if(!empty($docSig->picUser?->signature_qr_data_uri))
+                                    <td style="border: none; padding: 0 2px; vertical-align: middle;">
+                                        <img src="{{ $docSig->picUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
+                                    </td>
+                                    @endif
+                                </tr>
+                            </table>
                         @else
                             <div style="font-size: 6.8pt; color: #64748B;">Digital Verified</div>
                         @endif
@@ -915,7 +926,18 @@
                     <td style="padding: 10px 6px;"><strong>{{ !empty($msVerifikasi['lead_name']) ? $msVerifikasi['lead_name'] : (!empty($rData['ms_identitas']['team_leader']) ? $rData['ms_identitas']['team_leader'] : ($docSig?->lead_name ?? ($docSig?->leadUser?->name ?? '-'))) }}</strong></td>
                     <td class="sig-container" style="padding: 6px; text-align: center;">
                         @if(!empty($docSig?->lead_signature))
-                            <img src="{{ $docSig->lead_signature }}" alt="TTD Leader" class="sig-img">
+                            <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
+                                <tr>
+                                    <td style="border: none; padding: 0 4px; vertical-align: middle;">
+                                        <img src="{{ $docSig->lead_signature }}" alt="TTD Leader" class="sig-img" style="max-height: 40px; max-width: 90px;">
+                                    </td>
+                                    @if(!empty($docSig->leadUser?->signature_qr_data_uri))
+                                    <td style="border: none; padding: 0 2px; vertical-align: middle;">
+                                        <img src="{{ $docSig->leadUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
+                                    </td>
+                                    @endif
+                                </tr>
+                            </table>
                         @else
                             <div style="font-size: 6.8pt; color: #64748B;">Digital Verified</div>
                         @endif
@@ -1242,7 +1264,18 @@
                     <td style="padding: 10px 6px;"><strong>{{ $hdEngineer }}</strong></td>
                     <td class="sig-container" style="padding: 6px; text-align: center;">
                         @if(!empty($docSig?->pic_signature))
-                            <img src="{{ $docSig->pic_signature }}" alt="TTD PIC" class="sig-img">
+                            <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
+                                <tr>
+                                    <td style="border: none; padding: 0 4px; vertical-align: middle;">
+                                        <img src="{{ $docSig->pic_signature }}" alt="TTD PIC" class="sig-img" style="max-height: 40px; max-width: 90px;">
+                                    </td>
+                                    @if(!empty($docSig->picUser?->signature_qr_data_uri))
+                                    <td style="border: none; padding: 0 2px; vertical-align: middle;">
+                                        <img src="{{ $docSig->picUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
+                                    </td>
+                                    @endif
+                                </tr>
+                            </table>
                         @else
                             <div style="font-size: 6.8pt; color: #64748B;">Digital Verified</div>
                         @endif
@@ -1253,7 +1286,18 @@
                     <td style="padding: 10px 6px;"><strong>{{ $hdLeader }}</strong></td>
                     <td class="sig-container" style="padding: 6px; text-align: center;">
                         @if(!empty($docSig?->lead_signature))
-                            <img src="{{ $docSig->lead_signature }}" alt="TTD Leader" class="sig-img">
+                            <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
+                                <tr>
+                                    <td style="border: none; padding: 0 4px; vertical-align: middle;">
+                                        <img src="{{ $docSig->lead_signature }}" alt="TTD Leader" class="sig-img" style="max-height: 40px; max-width: 90px;">
+                                    </td>
+                                    @if(!empty($docSig->leadUser?->signature_qr_data_uri))
+                                    <td style="border: none; padding: 0 2px; vertical-align: middle;">
+                                        <img src="{{ $docSig->leadUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
+                                    </td>
+                                    @endif
+                                </tr>
+                            </table>
                         @else
                             <div style="font-size: 6.8pt; color: #64748B;">Digital Verified</div>
                         @endif
@@ -1775,7 +1819,22 @@
                 <td class="text-center">{{ $picSignedAt }}</td>
                 <td class="sig-container">
                     @if(!empty($docSig?->pic_signature))
-                        <img src="{{ $docSig->pic_signature }}" alt="TTD PIC" class="sig-img">
+                        <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
+                            <tr>
+                                <td style="border: none; padding: 0 4px; vertical-align: middle;">
+                                    <img src="{{ $docSig->pic_signature }}" alt="TTD PIC" class="sig-img" style="max-height: 40px; max-width: 90px;">
+                                </td>
+                                @if(!empty($docSig->picUser?->signature_qr_data_uri))
+                                <td style="border: none; padding: 0 2px; vertical-align: middle;">
+                                    <img src="{{ $docSig->picUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
+                                </td>
+                                @elseif(!empty($qrCodeBase64))
+                                <td style="border: none; padding: 0 2px; vertical-align: middle;">
+                                    <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 32px; width: 32px; display: block;">
+                                </td>
+                                @endif
+                            </tr>
+                        </table>
                     @elseif(!empty($docSig?->pic_signed_at) && !empty($qrCodeBase64))
                         <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 38px; width: 38px; display: block; margin: 0 auto;">
                     @else
@@ -1790,7 +1849,22 @@
                 <td class="text-center">{{ $leadSignedAt }}</td>
                 <td class="sig-container">
                     @if(!empty($docSig?->lead_signature))
-                        <img src="{{ $docSig->lead_signature }}" alt="TTD Lead" class="sig-img">
+                        <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
+                            <tr>
+                                <td style="border: none; padding: 0 4px; vertical-align: middle;">
+                                    <img src="{{ $docSig->lead_signature }}" alt="TTD Lead" class="sig-img" style="max-height: 40px; max-width: 90px;">
+                                </td>
+                                @if(!empty($docSig->leadUser?->signature_qr_data_uri))
+                                <td style="border: none; padding: 0 2px; vertical-align: middle;">
+                                    <img src="{{ $docSig->leadUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
+                                </td>
+                                @elseif(!empty($qrCodeBase64))
+                                <td style="border: none; padding: 0 2px; vertical-align: middle;">
+                                    <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 32px; width: 32px; display: block;">
+                                </td>
+                                @endif
+                            </tr>
+                        </table>
                     @elseif(!empty($qrCodeBase64) && !empty($docSig?->lead_signed_at))
                         <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 38px; width: 38px; display: block; margin: 0 auto;">
                     @else

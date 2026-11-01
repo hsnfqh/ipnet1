@@ -152,6 +152,9 @@
             // ['key' => 'attendance',  'label' => 'Attendance',         'route' => 'attendance.index'],
         ];
     }
+
+    // Menu Pengaturan selalu ada untuk semua Role
+    $navItems[] = ['key' => 'settings', 'label' => 'Pengaturan', 'route' => 'settings.index'];
 @endphp
 
 <style>
@@ -366,6 +369,7 @@
                                  ($item['key'] === 'ms_projects' && in_array($currentRoute, ['ms.projects.index', 'ms.projects.show'])) ||
                                  ($item['key'] === 'ms_assets' && in_array($currentRoute, ['ms.assets.index', 'ms.assets.internal', 'ms.assets.external'])) ||
                                  ($item['key'] === 'ms_monitoring' && (in_array($currentRoute, ['ms.monitoring.index', 'ms.monitoring.pm', 'ms.monitoring.cm']) || $childActive)) ||
+                                 ($item['key'] === 'settings' && str_starts_with($currentRoute, 'settings.')) ||
                                  ($item['key'] === 'digital_signatures' && str_starts_with($currentRoute, 'digital_signatures.'))) && (!request()->has('status') || request('status') === '');
                 }
             @endphp
@@ -429,6 +433,12 @@
                     @case('digital_signatures')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    @break
+                    @case('settings')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     @break
                     @case('handover')

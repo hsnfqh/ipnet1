@@ -30,6 +30,14 @@ class User extends Authenticatable
         'division_id',
         'team_id',
         'level',
+        'signature_data',
+        'signature_type',
+        'signature_qr_token',
+        'signature_updated_at',
+        'notification_web',
+        'notification_email',
+        'theme_preference',
+        'timezone_preference',
     ];
 
     protected $hidden = [
@@ -42,6 +50,9 @@ class User extends Authenticatable
         'password' => 'hashed',
         'last_login_at' => 'datetime',
         'certification_uploaded_at' => 'datetime',
+        'signature_updated_at' => 'datetime',
+        'notification_web' => 'boolean',
+        'notification_email' => 'boolean',
     ];
 
     // Relationships
@@ -151,5 +162,45 @@ class User extends Authenticatable
     public function getIsActiveAttribute()
     {
         return $this->status === 'Active';
+    }
+
+    public function getHasSignatureAttribute()
+    {
+        return !empty($this->signature_data);
+    }
+
+    public function ensureSignatureQrToken()
+    {
+        if (empty($this->signature_qr_token)) {
+            $this->signature_qr_token = strtoupper('SIG-' . substr(hash('sha256', $this->id . '-' . $this->email . '-' . microtime(true)), 0, 16));
+            $this->saveQuietly();
+        }
+        return $this->signature_qr_token;
+    }
+
+    public function getSignatureQrSvgAttribute()
+    {
+        $token = $this->ensureSignatureQrToken();
+        $payload = route('public.signature.verify', $token);
+
+        try {
+            $svg = (string) \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+                ->size(80)
+                ->margin(0)
+                ->errorCorrection('M')
+                ->generate($payload);
+
+            return preg_replace('/<\?xml.*?\?>/i', '', $svg);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('User QR SVG error: ' . $e->getMessage());
+            return '';
+        }
+    }
+
+    public function getSignatureQrDataUriAttribute()
+    {
+        $svg = $this->signature_qr_svg;
+        if (empty($svg)) return '';
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
 }

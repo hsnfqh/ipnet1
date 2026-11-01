@@ -744,9 +744,33 @@
                     </button>
                 </div>
 
+                {{-- Opsi 1-Klik Tanda Tangan Tersimpan dari Pengaturan --}}
+                <div x-show="sigInfo?.user_permissions?.has_saved_signature" class="mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex items-center justify-between gap-3 shadow-2xs">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-12 h-10 rounded-xl bg-white border border-emerald-200 p-1 flex items-center justify-center shrink-0 shadow-2xs">
+                            <template x-if="sigInfo?.user_permissions?.saved_signature_data">
+                                <img :src="sigInfo.user_permissions.saved_signature_data" alt="TTD Tersimpan" class="max-h-8 max-w-full object-contain">
+                            </template>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                                <span>Tanda Tangan Tersimpan</span>
+                                <span class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-emerald-200 text-emerald-800">1-KLIK</span>
+                            </div>
+                            <div class="text-[11px] text-emerald-700 truncate">Tempelkan langsung tanda tangan Anda tanpa perlu menggambar ulang.</div>
+                        </div>
+                    </div>
+                    <button type="button" @click="submitSavedSignature()" :disabled="signatureSaving"
+                            class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-xs shrink-0 cursor-pointer flex items-center gap-1.5 disabled:opacity-50">
+                        <span>Gunakan</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </div>
+
                 <div class="mb-4">
                     <p class="text-[12px] text-gray-500 mb-2.5">
-                        Bubuhkan tanda tangan Anda di area kanvas bawah ini menggunakan mouse atau sentuhan jari:
+                        <span x-show="sigInfo?.user_permissions?.has_saved_signature">Atau gambar tanda tangan manual baru di bawah ini:</span>
+                        <span x-show="!sigInfo?.user_permissions?.has_saved_signature">Bubuhkan tanda tangan Anda di area kanvas bawah ini menggunakan mouse atau sentuhan jari:</span>
                     </p>
                     <div class="relative bg-[#F8FAFC] border-2 border-dashed border-[#CBD5E1] rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
                         <canvas id="signature-canvas" width="460" height="170" class="w-full h-44 cursor-crosshair touch-none bg-transparent"></canvas>
@@ -755,6 +779,11 @@
                             <span class="text-[9.5px] text-gray-400 font-semibold tracking-widest uppercase">Garis Tanda Tangan Resmi</span>
                         </div>
                     </div>
+
+                    <label class="flex items-center gap-2 text-xs font-semibold text-gray-600 cursor-pointer mt-2.5">
+                        <input type="checkbox" x-model="saveAsDefaultSignature" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                        <span>Simpan tanda tangan ini sebagai default di Pengaturan</span>
+                    </label>
                 </div>
 
                 <div class="flex items-center justify-between pt-2">
@@ -812,6 +841,7 @@ function engineerActivityManager() {
         signatureRoleType: '',
         signatureRoleLabel: '',
         signatureSaving: false,
+        saveAsDefaultSignature: false,
         canvasObj: null,
         ctxObj: null,
         isDrawing: false,
@@ -1705,6 +1735,47 @@ function engineerActivityManager() {
             return canvas.toDataURL() === blank.toDataURL();
         },
 
+        async submitSavedSignature() {
+            if (!this.selectedDetail?.scope_key || !this.signatureRoleType) return;
+            this.signatureSaving = true;
+
+            const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const logIds = (this.selectedDetail?.items || []).map(i => i.id).filter(Boolean);
+
+            try {
+                const res = await fetch('{{ route("engineer.activity_log.signature_store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token
+                    },
+                    body: JSON.stringify({
+                        scope_key: this.selectedDetail?.scope_key,
+                        project_id: this.selectedDetail?.project_id,
+                        project_name: this.selectedDetail?.project_name,
+                        role_type: this.signatureRoleType,
+                        use_saved: true,
+                        log_ids: logIds
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    this.closeSignaturePad();
+                    if (this.selectedDetail?.scope_key) {
+                        await this.fetchSignatureStatus(this.selectedDetail.scope_key);
+                    }
+                } else {
+                    alert(data.message || data.error || 'Gagal membubuhkan tanda tangan tersimpan.');
+                }
+            } catch (e) {
+                alert('Terjadi kesalahan: ' + e.message);
+            } finally {
+                this.signatureSaving = false;
+            }
+        },
+
         async submitSignature() {
             if (!this.canvasObj || this.isCanvasEmpty(this.canvasObj)) {
                 alert('Silakan bubuhkan tanda tangan Anda terlebih dahulu pada kanvas.');
@@ -1731,6 +1802,7 @@ function engineerActivityManager() {
                         project_name: this.selectedDetail?.project_name,
                         role_type: this.signatureRoleType,
                         signature_data: signatureData,
+                        save_as_default: this.saveAsDefaultSignature,
                         log_ids: logIds
                     })
                 });
