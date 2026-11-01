@@ -65,6 +65,12 @@ Route::get('/fix-cpanel-deploy', function () {
         \Illuminate\Support\Facades\Artisan::call('cache:clear');
         $output[] = "=== MIGRATED AND CACHE CLEARED ===";
     } catch (\Throwable $e) {}
+    try {
+        app(\App\Http\Controllers\ManagedServiceController::class)->ensureSampleProjectExists();
+        $output[] = "=== MANAGED SERVICE PROJECTS SEED & HEAL SUCCESSFUL ===";
+    } catch (\Throwable $e) {
+        $output[] = "=== MS HEAL ERROR: " . $e->getMessage() . " ===";
+    }
     return '<pre>' . implode("\n", $output) . '</pre>';
 });
 

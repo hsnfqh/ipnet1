@@ -341,7 +341,7 @@
                             <p class="text-[15px] font-bold text-[#1E293B] mt-0.5">{{ $project->client }}</p>
                         </div>
 
-                        <!-- Sales PIC & Pre-Sales PIC -->
+                        <!-- Sales PIC & Pre-Sales PIC & PIC Managed Service -->
                         <div class="grid grid-cols-2 gap-3 pt-1">
                             <div class="bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0]">
                                 <span class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider block">Sales PIC</span>
@@ -350,6 +350,13 @@
                             <div class="bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0]">
                                 <span class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider block">Pre-Sales / SA</span>
                                 <p class="text-[13px] font-bold text-[#1E293B] mt-0.5">{{ $project->presales_name ?: 'Akbar' }}</p>
+                            </div>
+                            <div class="bg-[#FFF5F5] p-3 rounded-xl border border-[#FECDD3] col-span-2">
+                                <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider block">PIC Managed Service (Penerima Kontrak)</span>
+                                <p class="text-[13px] font-bold text-[#8F0A0D] mt-0.5 flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    <span>{{ $project->msAcceptedBy?->name ?? ($project->handover_data['pic_ms_name'] ?? ($project->handover_data['lead_ms_name'] ?? 'Tim Managed Service')) }}</span>
+                                </p>
                             </div>
                         </div>
 

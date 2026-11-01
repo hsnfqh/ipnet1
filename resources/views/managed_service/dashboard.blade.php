@@ -210,6 +210,29 @@
             </div>
 
             {{-- ======================================================== --}}
+            {{-- INCOMING HANDOVER ALERT (SIAPA CEPAT JADI PIC)            --}}
+            {{-- ======================================================== --}}
+            @if(isset($pendingHandoversCount) && $pendingHandoversCount > 0)
+                <div class="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs anim-fade-up">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-xs sm:text-sm font-bold text-amber-950">Ada {{ $pendingHandoversCount }} Proyek Serah Terima Masuk (Incoming Handover) Menunggu Diterima</h4>
+                            <p class="text-[11.5px] text-amber-800">Tim Managed Service berdiri mandiri tanpa hirarki kaku. Personil yang pertama kali menerima &amp; menandatangani serah terima akan otomatis menjadi PIC resmi proyek.</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('ms.projects.index', ['tab' => 'incoming']) }}" class="shrink-0 px-3.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                        <span>Lihat &amp; Terima Proyek</span>
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            @endif
+
+            {{-- ======================================================== --}}
             {{-- 2. METRIC SUMMARY CARDS (6 METRIC CARDS)                 --}}
             {{-- ======================================================== --}}
             <div class="anim-fade-up anim-delay-1">

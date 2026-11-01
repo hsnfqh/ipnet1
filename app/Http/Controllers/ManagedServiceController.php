@@ -93,10 +93,24 @@ class ManagedServiceController extends Controller
 
         // Proyek di Tahap Operate / Managed Service (Selesai Serah Terima ke Managed Service)
         $operateProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->where('stage', 'Operate')
-            ->where('ms_handover_status', 'Accepted')
-            ->where('project_type', 'not like', '%One-Time%')
-            ->where('handover_target', '!=', 'pmo')
+            ->where(function($q) {
+                $q->where('ms_handover_status', 'Accepted')
+                  ->orWhere(function($sub) {
+                      $sub->where('stage', 'Operate')
+                          ->where(function($s) {
+                              $s->whereNull('handover_target')
+                                ->orWhere('handover_target', '!=', 'pmo');
+                          });
+                  });
+            })
+            ->where(function($q) {
+                $q->whereNull('project_type')
+                  ->orWhere('project_type', 'not like', '%One-Time%');
+            })
+            ->where(function($q) {
+                $q->whereNull('handover_target')
+                  ->orWhere('handover_target', '!=', 'pmo');
+            })
             ->get();
 
         // SLA Tier counts
@@ -305,15 +319,21 @@ class ManagedServiceController extends Controller
 
         // 8. Incoming Service Handovers (Dari Sales Tipe 2 & Pasca-Implementasi PMO) - Hanya yang Pending
         $incomingHandovers = Project::where(function($q) {
-                $q->where('stage', 'Operate')
-                  ->orWhere('handover_target', 'managed_service')
+                $q->where('handover_target', 'managed_service')
+                  ->orWhere('handover_target', 'both')
                   ->orWhere('project_type', 'like', '%Managed Service%')
                   ->orWhere('name', 'like', '%pemeliharaan%')
                   ->orWhere('name', 'like', '%maintenance%');
             })
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->where('project_type', 'not like', '%One-Time%')
-            ->where('handover_target', '!=', 'pmo')
+            ->where(function($q) {
+                $q->whereNull('project_type')
+                  ->orWhere('project_type', 'not like', '%One-Time%');
+            })
+            ->where(function($q) {
+                $q->whereNull('handover_target')
+                  ->orWhere('handover_target', '!=', 'pmo');
+            })
             ->where(function($q) {
                 $q->whereNull('ms_handover_status')
                   ->orWhere('ms_handover_status', '!=', 'Accepted');
@@ -970,7 +990,7 @@ class ManagedServiceController extends Controller
             'signed'     => true,
             'user_id'    => $msUser?->id,
             'user_name'  => $msUser?->name,
-            'user_role'  => $msUser?->role_label ?: 'Lead Maintenance / MS',
+            'user_role'  => 'PIC Managed Service',
             'signed_at'  => now()->format('Y-m-d H:i:s'),
             'qr_token'   => $msUser?->signature_qr_token,
             'signature'  => $msUser?->signature_data,
@@ -999,6 +1019,7 @@ class ManagedServiceController extends Controller
             'special_notes'         => $validated['special_notes'] ?? $project->special_notes,
             'stage'                 => 'Operate',
             'status'                => 'Active',
+            'handover_target'       => 'managed_service',
             'handover_data'         => $existingHandoverData,
         ];
 
@@ -1028,7 +1049,9 @@ class ManagedServiceController extends Controller
             'handover_pic_target'      => $request->input('handover_pic_target', ''),
             'handover_confirmation'    => $request->input('handover_confirmation', ''),
             'handover_work_limitations'=> $request->input('handover_work_limitations', ''),
-            'lead_ms_name'             => auth()->user()?->name ?? 'Doris',
+            'lead_ms_name'             => $msUser?->name ?? 'Tim Managed Service',
+            'pic_ms_name'              => $msUser?->name ?? 'Tim Managed Service',
+            'pic_name'                 => $msUser?->name ?? 'Tim Managed Service',
             'special_notes'            => $validated['special_notes'] ?? $project->special_notes,
         ]);
 
@@ -1248,147 +1271,241 @@ class ManagedServiceController extends Controller
 
 
     /**
-     * Pastikan minimal ada 1 proyek sampel (Bank Raya sesuai sketsa user) jika database kosong
+     * Pastikan minimal ada 1 proyek sampel aktif dan 1 incoming handover (siapa cepat jadi PIC)
      */
-    private function ensureSampleProjectExists(): void
+    public function ensureSampleProjectExists(): void
     {
         if (!Schema::hasTable('projects')) {
             return;
         }
 
-        $hasOperate = Project::where(function($q) {
-            $q->where('stage', 'Operate')
-              ->where('ms_handover_status', 'Accepted');
-        })->orWhere('name', 'like', '%Managed Service Network & Security Maintenance%')->exists();
-
-        if ($hasOperate) {
-            return;
-        }
-
         try {
-            $salesUser = User::whereHas('roles', fn($r) => $r->where('name', 'Sales'))->first() ?? User::find(8) ?? User::first();
-            $msLead    = User::whereHas('roles', fn($r) => $r->whereIn('name', ['Managed Service', 'Lead Maintenance', 'Team Leader']))->first() ?? User::find(35) ?? User::first();
-            $leadEng   = User::whereHas('roles', fn($r) => $r->where('name', 'like', '%Lead%'))->first() ?? User::find(28) ?? User::first();
-            $fieldTech = User::where('name', 'Mario')->first() ?? User::find(36) ?? User::first();
-            $fieldTech2= User::where('name', 'Eris')->first() ?? User::find(37) ?? User::first();
+            $salesUser  = User::whereHas('roles', fn($r) => $r->where('name', 'Sales'))->first() ?? User::find(8) ?? User::first();
+            $msLead     = User::whereHas('roles', fn($r) => $r->whereIn('name', ['Managed Service', 'Lead Maintenance', 'Team Leader']))->first() ?? User::find(35) ?? User::first();
+            $leadEng    = User::whereHas('roles', fn($r) => $r->where('name', 'like', '%Lead%'))->first() ?? User::find(28) ?? User::first();
+            $fieldTech  = User::where('name', 'like', '%Mario%')->first() ?? User::find(36) ?? User::first();
+            $fieldTech2 = User::where('name', 'like', '%Eris%')->first() ?? User::find(37) ?? User::first();
 
-            $salesUser?->ensureSignatureQrToken();
-            $msLead?->ensureSignatureQrToken();
+            // 1. Pastikan minimal ada 1 proyek aktif di tahap Operate (BCA SLA Gold)
+            $activeProject = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+                ->where(function($q) {
+                    $q->where('ms_handover_status', 'Accepted')
+                      ->orWhere(function($sub) {
+                          $sub->where('stage', 'Operate')
+                              ->where(function($s) {
+                                  $s->whereNull('handover_target')
+                                    ->orWhere('handover_target', '!=', 'pmo');
+                              });
+                      });
+                })
+                ->where(function($q) {
+                    $q->whereNull('project_type')
+                      ->orWhere('project_type', 'not like', '%One-Time%');
+                })
+                ->where(function($q) {
+                    $q->whereNull('handover_target')
+                      ->orWhere('handover_target', '!=', 'pmo');
+                })
+                ->first();
 
-            $project = Project::create([
-                'name'                  => 'Managed Service Network & Security Maintenance 2026/2027',
-                'client'                => 'PT Bank Central Asia Tbk',
-                'contract_value'        => 360000000,
-                'status'                => 'Active',
-                'sales_stage'           => 'Closed Won',
-                'stage'                 => 'Operate',
-                'handover_target'       => 'managed_service',
-                'project_type'          => 'Maintenance SLA',
-                'maintenance_frequency' => 'Quarterly',
-                'pm_frequency_type'     => 'per_3_bulan',
-                'pm_total_cycles'       => 4,
-                'sla_tier'              => 'Gold',
-                'cm_quota'              => 12,
-                'sla_coverage_hours'    => '24x7',
-                'service_start_date'    => now()->startOfMonth()->toDateString(),
-                'service_end_date'      => now()->addYear()->endOfMonth()->toDateString(),
-                'location'              => 'Menara BCA Lt. 18, Jl. MH Thamrin No. 1, Jakarta Pusat',
-                'created_by'            => $salesUser?->id ?: 1,
-                'commercial_handover_by'=> $salesUser?->id ?: 1,
-                'commercial_handover_at'=> now(),
-                'handover_status'       => 'Approved',
-                'ms_handover_status'    => 'Accepted',
-                'ms_accepted_at'        => now(),
-                'ms_accepted_by'        => $msLead?->id ?: 1,
-                'progress'              => 0,
-                'handover_data'         => [
-                    'so_code'                  => 'SO-2026-MS-BCA01',
-                    'so_number'                => 'SO-2026-MS-BCA01',
-                    'lead_ms_name'             => $msLead?->name ?: 'Doris',
-                    'lead_engineer_name'       => $leadEng?->name ?: 'Nugraha Pratama',
-                    'handover_status_selected' => 'approved',
-                    'handover_confirmation'    => 'Berkas kontrak SLA dan topologi jaringan verified.',
-                    'commercial_signature'     => [
-                        'signed'     => true,
-                        'user_id'    => $salesUser?->id ?: 1,
-                        'user_name'  => $salesUser?->name ?: 'Hendry Wibowo',
-                        'user_role'  => 'Sales / Account Manager',
-                        'signed_at'  => now()->format('Y-m-d H:i:s'),
-                        'qr_token'   => $salesUser?->signature_qr_token,
-                        'signature'  => $salesUser?->signature_data,
-                        'type'       => 'signature_qr',
-                    ],
-                    'ms_signature'             => [
-                        'signed'     => true,
-                        'user_id'    => $msLead?->id ?: 1,
-                        'user_name'  => $msLead?->name ?: 'Doris',
-                        'user_role'  => 'Lead Maintenance / MS',
-                        'signed_at'  => now()->format('Y-m-d H:i:s'),
-                        'qr_token'   => $msLead?->signature_qr_token,
-                        'signature'  => $msLead?->signature_data,
-                        'type'       => 'signature_qr',
-                    ],
-                    'assigned_engineers'       => [
-                        [
-                            'id'          => $fieldTech?->id ?: 1,
-                            'name'        => $fieldTech?->name ?: 'Mario',
-                            'email'       => $fieldTech?->email ?: 'mario@ipnetsolusindo.com',
-                            'position'    => 'Field Support (EOS)',
-                            'role'        => 'PIC Lapangan Utama',
-                            'division'    => 'Tim Maintenance',
-                            'assigned_at' => now()->format('d M Y H:i'),
-                            'assigned_by' => $leadEng?->name ?: 'Lead Engineer',
+            if (!$activeProject) {
+                $existingSample = Project::where('name', 'like', '%Managed Service Network & Security Maintenance%')->first();
+                if ($existingSample) {
+                    $existingSample->update([
+                        'stage'              => 'Operate',
+                        'status'             => 'Active',
+                        'sales_stage'        => 'Closed Won',
+                        'ms_handover_status' => 'Accepted',
+                        'handover_target'    => 'managed_service',
+                        'ms_accepted_at'     => $existingSample->ms_accepted_at ?: now(),
+                        'ms_accepted_by'     => $existingSample->ms_accepted_by ?: ($msLead?->id ?: 1),
+                        'sla_tier'           => $existingSample->sla_tier ?: 'Gold',
+                        'maintenance_frequency' => $existingSample->maintenance_frequency ?: 'Quarterly',
+                        'pm_frequency_type'  => $existingSample->pm_frequency_type ?: 'per_3_bulan',
+                        'pm_total_cycles'    => $existingSample->pm_total_cycles ?: 4,
+                        'cm_quota'           => $existingSample->cm_quota ?: 12,
+                    ]);
+                    $activeProject = $existingSample;
+                } else {
+                    $salesUser?->ensureSignatureQrToken();
+                    $msLead?->ensureSignatureQrToken();
+
+                    $activeProject = Project::create([
+                        'name'                  => 'Managed Service Network & Security Maintenance 2026/2027',
+                        'client'                => 'PT Bank Central Asia Tbk',
+                        'contract_value'        => 360000000,
+                        'status'                => 'Active',
+                        'sales_stage'           => 'Closed Won',
+                        'stage'                 => 'Operate',
+                        'handover_target'       => 'managed_service',
+                        'project_type'          => 'Maintenance SLA',
+                        'maintenance_frequency' => 'Quarterly',
+                        'pm_frequency_type'     => 'per_3_bulan',
+                        'pm_total_cycles'       => 4,
+                        'sla_tier'              => 'Gold',
+                        'cm_quota'              => 12,
+                        'sla_coverage_hours'    => '24x7',
+                        'service_start_date'    => now()->startOfMonth()->toDateString(),
+                        'service_end_date'      => now()->addYear()->endOfMonth()->toDateString(),
+                        'location'              => 'Menara BCA Lt. 18, Jl. MH Thamrin No. 1, Jakarta Pusat',
+                        'created_by'            => $salesUser?->id ?: 1,
+                        'commercial_handover_by'=> $salesUser?->id ?: 1,
+                        'commercial_handover_at'=> now(),
+                        'handover_status'       => 'Approved',
+                        'ms_handover_status'    => 'Accepted',
+                        'ms_accepted_at'        => now(),
+                        'ms_accepted_by'        => $msLead?->id ?: 1,
+                        'progress'              => 0,
+                        'handover_data'         => [
+                            'so_code'                  => 'SO-2026-MS-BCA01',
+                            'so_number'                => 'SO-2026-MS-BCA01',
+                            'lead_ms_name'             => $msLead?->name ?: 'Doris',
+                            'pic_ms_name'              => $msLead?->name ?: 'Doris',
+                            'lead_engineer_name'       => $leadEng?->name ?: 'Nugraha Pratama',
+                            'handover_status_selected' => 'approved',
+                            'handover_confirmation'    => 'Berkas kontrak SLA dan topologi jaringan verified.',
+                            'commercial_signature'     => [
+                                'signed'     => true,
+                                'user_id'    => $salesUser?->id ?: 1,
+                                'user_name'  => $salesUser?->name ?: 'Hendry Wibowo',
+                                'user_role'  => 'Sales / Account Manager',
+                                'signed_at'  => now()->format('Y-m-d H:i:s'),
+                                'qr_token'   => $salesUser?->signature_qr_token,
+                                'signature'  => $salesUser?->signature_data,
+                                'type'       => 'signature_qr',
+                            ],
+                            'ms_signature'             => [
+                                'signed'     => true,
+                                'user_id'    => $msLead?->id ?: 1,
+                                'user_name'  => $msLead?->name ?: 'Doris',
+                                'user_role'  => 'PIC Managed Service',
+                                'signed_at'  => now()->format('Y-m-d H:i:s'),
+                                'qr_token'   => $msLead?->signature_qr_token,
+                                'signature'  => $msLead?->signature_data,
+                                'type'       => 'signature_qr',
+                            ],
+                            'assigned_engineers'       => [
+                                [
+                                    'id'          => $fieldTech?->id ?: 1,
+                                    'name'        => $fieldTech?->name ?: 'Mario',
+                                    'email'       => $fieldTech?->email ?: 'mario@ipnetsolusindo.com',
+                                    'position'    => 'Field Support (EOS)',
+                                    'role'        => 'PIC Lapangan Utama',
+                                    'division'    => 'Tim Maintenance',
+                                    'assigned_at' => now()->format('d M Y H:i'),
+                                    'assigned_by' => $leadEng?->name ?: 'Lead Engineer',
+                                ],
+                                [
+                                    'id'          => $fieldTech2?->id ?: 1,
+                                    'name'        => $fieldTech2?->name ?: 'Eris',
+                                    'email'       => $fieldTech2?->email ?: 'eris@ipnetsolusindo.com',
+                                    'position'    => 'Field Support',
+                                    'role'        => 'Teknisi Pendamping',
+                                    'division'    => 'Tim Maintenance',
+                                    'assigned_at' => now()->format('d M Y H:i'),
+                                    'assigned_by' => $leadEng?->name ?: 'Lead Engineer',
+                                ],
+                            ],
                         ],
-                        [
-                            'id'          => $fieldTech2?->id ?: 1,
-                            'name'        => $fieldTech2?->name ?: 'Eris',
-                            'email'       => $fieldTech2?->email ?: 'eris@ipnetsolusindo.com',
-                            'position'    => 'Field Support',
-                            'role'        => 'Teknisi Pendamping',
-                            'division'    => 'Tim Maintenance',
-                            'assigned_at' => now()->format('d M Y H:i'),
-                            'assigned_by' => $leadEng?->name ?: 'Lead Engineer',
-                        ],
-                    ],
-                ],
-            ]);
+                    ]);
+                }
 
-            self::initPmCycles($project);
+                self::initPmCycles($activeProject);
 
-            $firstCycle = ManagedServicePmCycle::where('project_id', $project->id)->first();
-            if ($firstCycle) {
-                $visitDate = now()->addDays(5)->toDateString();
-                $firstCycle->update([
-                    'scheduled_date'       => $visitDate,
-                    'assigned_engineer_id' => $fieldTech?->id ?: 1,
-                    'activity_status'      => 'Scheduled',
-                    'activity_notes'       => 'Pemeriksaan berkala Q1: Cek suhu rack server, kabel patch cord, switch core Cisco, dan failover router backup.',
-                ]);
-                self::syncPmCycleToSchedule($firstCycle);
+                // Buat jadwal PM terdekat
+                $firstCycle = ManagedServicePmCycle::where('project_id', $activeProject->id)->first();
+                if ($firstCycle) {
+                    $visitDate = now()->addDays(5)->toDateString();
+                    $firstCycle->update([
+                        'scheduled_date'       => $visitDate,
+                        'assigned_engineer_id' => $fieldTech?->id ?: 1,
+                        'activity_status'      => 'Scheduled',
+                        'activity_notes'       => 'Pemeriksaan berkala Q1: Cek suhu rack server, kabel patch cord, switch core Cisco, dan failover router backup.',
+                    ]);
+                    self::syncPmCycleToSchedule($firstCycle);
+                }
+
+                // Buat sample tiket CM
+                $ticketNumber = 'CM-BCA-' . date('Y') . '-001';
+                if (Schema::hasTable('managed_service_tickets') && !ManagedServiceTicket::where('ticket_number', $ticketNumber)->exists()) {
+                    $cmTicket = ManagedServiceTicket::create([
+                        'ticket_number'   => $ticketNumber,
+                        'project_id'      => $activeProject->id,
+                        'client_name'     => $activeProject->client,
+                        'title'           => 'Port Switch Access Lt. 18 Flapping / Link Down',
+                        'description'     => 'Port GigabitEthernet 1/0/24 pada switch Cisco Catalyst 2960 mengalami intermittent flapping ke server absensi.',
+                        'incident_date'   => now()->toDateString(),
+                        'type'            => 'Corrective Maintenance',
+                        'category'        => 'Troubleshooting',
+                        'priority'        => 'High',
+                        'status'          => 'In Progress',
+                        'source'          => 'Portal',
+                        'reported_by'     => 'Bapak Iwan (IT Ops BCA)',
+                        'assigned_to'     => $fieldTech?->id ?: 1,
+                        'sla_deadline'    => now()->addHours(4),
+                        'sla_met'         => true,
+                        'created_by'      => $msLead?->id ?: 1,
+                    ]);
+                    self::syncTicketToTaskAndSchedule($cmTicket);
+                }
             }
 
-            // Buat sample tiket CM
-            $ticketNumber = 'CM-BCA-' . date('Y') . '-001';
-            if (Schema::hasTable('managed_service_tickets') && !ManagedServiceTicket::where('ticket_number', $ticketNumber)->exists()) {
-                $cmTicket = ManagedServiceTicket::create([
-                    'ticket_number'   => $ticketNumber,
-                    'project_id'      => $project->id,
-                    'client_name'     => $project->client,
-                    'title'           => 'Port Switch Access Lt. 18 Flapping / Link Down',
-                    'description'     => 'Port GigabitEthernet 1/0/24 pada switch Cisco Catalyst 2960 mengalami intermittent flapping ke server absensi.',
-                    'incident_date'   => now()->toDateString(),
-                    'type'            => 'Corrective Maintenance',
-                    'category'        => 'Troubleshooting',
-                    'priority'        => 'High',
-                    'status'          => 'In Progress',
-                    'source'          => 'Portal',
-                    'reported_by'     => 'Bapak Iwan (IT Ops BCA)',
-                    'assigned_to'     => $fieldTech?->id ?: 1,
-                    'sla_deadline'    => now()->addHours(4),
-                    'sla_met'         => true,
-                    'created_by'      => $msLead?->id ?: 1,
+            // 2. Pastikan ada 1 proyek sampel Incoming Handover yang MENUNGGU DITERIMA (Siapa cepat dia dapat PIC)
+            $hasIncoming = Project::where(function($q) {
+                $q->where('handover_target', 'managed_service')
+                  ->orWhere('handover_target', 'both')
+                  ->orWhere('project_type', 'like', '%Managed Service%')
+                  ->orWhere('name', 'like', '%pemeliharaan%')
+                  ->orWhere('name', 'like', '%maintenance%');
+            })->where(function($q) {
+                $q->whereNull('ms_handover_status')
+                  ->orWhere('ms_handover_status', 'Pending')
+                  ->orWhere('ms_handover_status', 'Draft')
+                  ->orWhere('ms_handover_status', 'Submitted');
+            })->exists();
+
+            if (!$hasIncoming) {
+                $salesUser?->ensureSignatureQrToken();
+                Project::create([
+                    'name'                  => 'Maintenance Core Network & Firewall SLA 2026',
+                    'client'                => 'PT Astra International Tbk',
+                    'contract_value'        => 240000000,
+                    'status'                => 'Active',
+                    'sales_stage'           => 'Closed Won',
+                    'stage'                 => 'Implementation',
+                    'handover_target'       => 'managed_service',
+                    'project_type'          => 'Managed Service SLA',
+                    'maintenance_frequency' => 'Monthly',
+                    'pm_frequency_type'     => 'per_bulan',
+                    'pm_total_cycles'       => 12,
+                    'sla_tier'              => 'Platinum',
+                    'cm_quota'              => 18,
+                    'sla_coverage_hours'    => '24x7',
+                    'service_start_date'    => now()->toDateString(),
+                    'service_end_date'      => now()->addYear()->toDateString(),
+                    'location'              => 'Menara Astra, Jl. Jend. Sudirman Kav. 5-6, Jakarta Pusat',
+                    'created_by'            => $salesUser?->id ?: 1,
+                    'commercial_handover_by'=> $salesUser?->id ?: 1,
+                    'commercial_handover_at'=> now()->subHours(2),
+                    'handover_status'       => 'Approved',
+                    'ms_handover_status'    => 'Pending',
+                    'progress'              => 0,
+                    'handover_data'         => [
+                        'so_code'                  => 'SO-2026-MS-ASTRA01',
+                        'so_number'                => 'SO-2026-MS-ASTRA01',
+                        'lead_engineer_name'       => $leadEng?->name ?: 'Nugraha Pratama',
+                        'commercial_signature'     => [
+                            'signed'     => true,
+                            'user_id'    => $salesUser?->id ?: 1,
+                            'user_name'  => $salesUser?->name ?: 'Hendry Wibowo',
+                            'user_role'  => 'Sales / Account Manager',
+                            'signed_at'  => now()->subHours(2)->format('Y-m-d H:i:s'),
+                            'qr_token'   => $salesUser?->signature_qr_token,
+                            'signature'  => $salesUser?->signature_data,
+                            'type'       => 'signature_qr',
+                        ],
+                    ],
                 ]);
-                self::syncTicketToTaskAndSchedule($cmTicket);
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('ensureSampleProjectExists error: ' . $e->getMessage());
@@ -1408,12 +1525,26 @@ class ManagedServiceController extends Controller
             $perPage = 10;
         }
 
-        $query = Project::with(['creator', 'pmCycles', 'managedServiceTickets'])
+        $query = Project::with(['creator', 'pmCycles', 'managedServiceTickets', 'msAcceptedBy'])
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->where('stage', 'Operate')
-            ->where('ms_handover_status', 'Accepted')
-            ->where('project_type', 'not like', '%One-Time%')
-            ->where('handover_target', '!=', 'pmo');
+            ->where(function($q) {
+                $q->where('ms_handover_status', 'Accepted')
+                  ->orWhere(function($sub) {
+                      $sub->where('stage', 'Operate')
+                          ->where(function($s) {
+                              $s->whereNull('handover_target')
+                                ->orWhere('handover_target', '!=', 'pmo');
+                          });
+                  });
+            })
+            ->where(function($q) {
+                $q->whereNull('project_type')
+                  ->orWhere('project_type', 'not like', '%One-Time%');
+            })
+            ->where(function($q) {
+                $q->whereNull('handover_target')
+                  ->orWhere('handover_target', '!=', 'pmo');
+            });
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -1441,16 +1572,21 @@ class ManagedServiceController extends Controller
 
         // 2. Query Serah Terima Kontrak Layanan Masuk (Incoming Service Handovers) - Hanya yang Pending / Menunggu Aktivasi
         $incomingHandovers = Project::where(function($q) {
-                $q->where('stage', 'Operate')
-                  ->orWhere('handover_target', 'managed_service')
+                $q->where('handover_target', 'managed_service')
                   ->orWhere('handover_target', 'both')
                   ->orWhere('project_type', 'like', '%Managed Service%')
                   ->orWhere('name', 'like', '%pemeliharaan%')
                   ->orWhere('name', 'like', '%maintenance%');
             })
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->where('project_type', 'not like', '%One-Time%')
-            ->where('handover_target', '!=', 'pmo')
+            ->where(function($q) {
+                $q->whereNull('project_type')
+                  ->orWhere('project_type', 'not like', '%One-Time%');
+            })
+            ->where(function($q) {
+                $q->whereNull('handover_target')
+                  ->orWhere('handover_target', '!=', 'pmo');
+            })
             ->where(function($q) {
                 $q->whereNull('ms_handover_status')
                   ->orWhere('ms_handover_status', '!=', 'Accepted');
@@ -1464,13 +1600,10 @@ class ManagedServiceController extends Controller
         }
 
         $pendingHandoversCount = $incomingHandovers->where('ms_handover_status', '!=', 'Accepted')->count();
+        $currentUserName = auth()->user()?->name ?? 'Tim Managed Service';
+        $leadMsName = $currentUserName;
 
-        $leadMsUser = User::whereHas('roles', fn($r) => $r->whereIn('name', ['Lead Maintenance', 'Managed Service Coordinator']))
-            ->orWhere('name', 'like', '%Doris%')
-            ->first();
-        $leadMsName = $leadMsUser?->name ?? 'Doris';
-
-        return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage', 'leadMsName'));
+        return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage', 'leadMsName', 'currentUserName'));
     }
 
     /**

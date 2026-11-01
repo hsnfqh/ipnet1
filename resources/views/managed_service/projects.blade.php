@@ -236,11 +236,20 @@
                                                 <span class="text-[#475569]">{{ $p->sales_name ?: ($p->creator?->name ?: '-') }}</span>
                                             </div>
                                             @php
+                                                $picMsName = $p->msAcceptedBy?->name ?? ($p->handover_data['pic_ms_name'] ?? ($p->handover_data['lead_ms_name'] ?? null));
+                                            @endphp
+                                            @if($picMsName)
+                                                <div class="text-[11px] text-[#8F0A0D] font-bold flex items-center gap-1 mt-0.5">
+                                                    <svg class="w-3 h-3 text-[#8F0A0D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                    <span>PIC MS: {{ $picMsName }}</span>
+                                                </div>
+                                            @endif
+                                            @php
                                                 $assignedEngs = $p->handover_data['assigned_engineers'] ?? [];
                                             @endphp
                                             @if(!empty($assignedEngs))
-                                                <div class="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 mt-1">
-                                                    <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                <div class="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 mt-0.5">
+                                                    <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                                                     <span class="truncate max-w-[150px]" title="{{ implode(', ', array_column($assignedEngs, 'name')) }}">
                                                         Teknisi: {{ $assignedEngs[0]['name'] }}{{ count($assignedEngs) > 1 ? ' +' . (count($assignedEngs)-1) : '' }}
                                                     </span>
@@ -483,36 +492,40 @@
                                         <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                             <div class="flex items-center justify-end gap-1.5">
                                                 @php
-                                                    $resolvedLeadMs = $ho->msAcceptedBy?->name ?? ($ho->handover_data['lead_ms_name'] ?? ($leadMsName ?? 'Doris'));
+                                                    $resolvedLeadMs = $ho->msAcceptedBy?->name ?? ($ho->handover_data['pic_ms_name'] ?? ($ho->handover_data['lead_ms_name'] ?? auth()->user()->name));
                                                 @endphp
                                                 @if(!$isAccepted)
-                                                    <button type="button" 
-                                                            data-id="{{ $ho->id }}"
-                                                            data-name="{{ $ho->name }}"
-                                                            data-client="{{ $ho->client ?: '-' }}"
-                                                            data-value="{{ $formattedValue ?: '—' }}"
-                                                            data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
-                                                            data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
-                                                            data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
-                                                            data-start="{{ $startDateVal }}"
-                                                            data-end="{{ $endDateVal }}"
-                                                            data-start-display="{{ $startDateDisplay }}"
-                                                            data-end-display="{{ $endDateDisplay }}"
-                                                            data-notes="{{ $ho->special_notes ?: '' }}"
-                                                            data-so="{{ $resolvedContractNum }}"
-                                                            data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
-                                                            data-pm="{{ is_object($ho->pm) ? ($ho->pm->name ?? 'Tim Managed Service') : ($ho->pm ?: 'Tim Managed Service') }}"
-                                                            data-lead-ms="{{ $resolvedLeadMs }}"
-                                                            data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
-                                                            data-handover-data="{{ json_encode($ho->handover_data ?? []) }}"
-                                                            data-checklist="{{ json_encode($ho->documents_checklist ?? []) }}"
-                                                            onclick="window.triggerAcceptModal(this)"
-                                                            class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11.5px] font-bold rounded-lg shadow-2xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
-                                                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                                        </svg>
-                                                        <span>Terima &amp; Aktivasi</span>
-                                                    </button>
+                                                    <div class="flex flex-col items-end gap-1">
+                                                        <button type="button" 
+                                                                data-id="{{ $ho->id }}"
+                                                                data-name="{{ $ho->name }}"
+                                                                data-client="{{ $ho->client ?: '-' }}"
+                                                                data-value="{{ $formattedValue ?: '—' }}"
+                                                                data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
+                                                                data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
+                                                                data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
+                                                                data-start="{{ $startDateVal }}"
+                                                                data-end="{{ $endDateVal }}"
+                                                                data-start-display="{{ $startDateDisplay }}"
+                                                                data-end-display="{{ $endDateDisplay }}"
+                                                                data-notes="{{ $ho->special_notes ?: '' }}"
+                                                                data-so="{{ $resolvedContractNum }}"
+                                                                data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
+                                                                data-pm="{{ is_object($ho->pm) ? ($ho->pm->name ?? 'Tim Managed Service') : ($ho->pm ?: 'Tim Managed Service') }}"
+                                                                data-lead-ms="{{ $resolvedLeadMs }}"
+                                                                data-is-accepted="{{ $isAccepted ? '1' : '0' }}"
+                                                                data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
+                                                                data-handover-data="{{ json_encode($ho->handover_data ?? []) }}"
+                                                                data-checklist="{{ json_encode($ho->documents_checklist ?? []) }}"
+                                                                onclick="window.triggerAcceptModal(this)"
+                                                                class="px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11.5px] font-bold rounded-lg shadow-2xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
+                                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                            </svg>
+                                                            <span>Terima &amp; Jadi PIC</span>
+                                                        </button>
+                                                        <span class="text-[10px] text-amber-700 font-semibold italic">Siapa cepat jadi PIC</span>
+                                                    </div>
                                                 @else
                                                     <button type="button" 
                                                             data-id="{{ $ho->id }}"
@@ -531,6 +544,7 @@
                                                             data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
                                                             data-pm="{{ is_object($ho->pm) ? ($ho->pm->name ?? 'Tim Managed Service') : ($ho->pm ?: 'Tim Managed Service') }}"
                                                             data-lead-ms="{{ $resolvedLeadMs }}"
+                                                            data-is-accepted="{{ $isAccepted ? '1' : '0' }}"
                                                             data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
                                                             data-handover-data="{{ json_encode($ho->handover_data ?? []) }}"
                                                             data-checklist="{{ json_encode($ho->documents_checklist ?? []) }}"
@@ -689,7 +703,7 @@
                                 </tr>
                                 <tr>
                                     <td class="py-2 px-3 font-bold bg-white border-r border-black">PIC Managed Service</td>
-                                    <td class="py-2 px-3 font-bold text-[#8F0A0D]" id="accept-modal-pm">{{ $leadMsName ?? 'Doris' }}</td>
+                                    <td class="py-2 px-3 font-bold text-[#8F0A0D]" id="accept-modal-pm">{{ auth()->user()->name }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -868,14 +882,14 @@
                                     {{-- 2. Managed Service --}}
                                     <td class="p-3 border-r border-black align-top flex-col justify-between">
                                         <div class="space-y-1">
-                                            <p><strong class="font-bold">Nama:</strong> <span id="accept-modal-pm-sign" class="font-bold text-[#8F0A0D]">{{ $leadMsName ?? 'Doris' }}</span></p>
+                                            <p><strong class="font-bold">Nama:</strong> <span id="accept-modal-pm-sign" class="font-bold text-[#8F0A0D]">{{ auth()->user()->name }}</span></p>
                                             <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
                                         </div>
                                         <div class="pt-6">
                                             <p class="font-bold">Tanda tangan:</p>
                                             <div class="mt-2 text-center">
                                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                                    <span>MS Verified</span>
+                                                    <span>Verified PIC MS</span>
                                                 </span>
                                             </div>
                                         </div>
@@ -974,6 +988,7 @@
             sales: btn.getAttribute('data-sales'),
             pm: btn.getAttribute('data-pm'),
             leadMs: btn.getAttribute('data-lead-ms') || '{{ $leadMsName ?? "Doris" }}',
+            isAccepted: btn.getAttribute('data-is-accepted') === '1',
             contract_value_formatted: btn.getAttribute('data-value'),
             sla_tier: btn.getAttribute('data-tier'),
             sla_coverage_hours: btn.getAttribute('data-coverage'),
@@ -1015,8 +1030,13 @@
         if (valEl) valEl.textContent = 'Nilai: ' + (p.contract_value_formatted || '—');
         var salesEl = document.getElementById('accept-modal-sales');
         if (salesEl) salesEl.textContent = p.sales || '—';
+
+        var currentLoggedInName = "{{ auth()->user()->name }}";
+        var isAlreadyAccepted = (p.isAccepted === true || p.isAccepted === '1');
+        var targetMsName = isAlreadyAccepted ? (p.leadMs || currentLoggedInName) : currentLoggedInName;
+
         var pmEl = document.getElementById('accept-modal-pm');
-        if (pmEl) pmEl.textContent = p.leadMs || '{{ $leadMsName ?? "Doris" }}';
+        if (pmEl) pmEl.textContent = targetMsName;
         
         // Tanggal Efektif & Masa Kontrak Rapi & Valid (Bahasa Indonesia & durasi 1 tahun penuh)
         var startFormatted = p.start_display || (p.service_start_date ? p.service_start_date.split('T')[0] : '');
@@ -1058,7 +1078,7 @@
         var salesSignEl = document.getElementById('accept-modal-sales-sign');
         if (salesSignEl) salesSignEl.textContent = p.sales || '—';
         var pmSignEl = document.getElementById('accept-modal-pm-sign');
-        if (pmSignEl) pmSignEl.textContent = p.leadMs || '{{ $leadMsName ?? "Doris" }}';
+        if (pmSignEl) pmSignEl.textContent = targetMsName;
 
         // SLA Inputs
         var slaTierEl = document.getElementById('accept-modal-sla-tier');
