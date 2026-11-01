@@ -835,6 +835,34 @@
                         </div>
                     </div>
 
+                    {{-- Kontrol Pilihan Format Tanda Tangan Digital Resmi (Persis Referensi) --}}
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 border border-black text-xs no-print">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                            <span class="font-bold text-slate-900 uppercase tracking-wide">PILIHAN FORMAT STEMPEL TANDA TANGAN:</span>
+                        </div>
+                        <div class="inline-flex rounded-lg bg-white p-1 border border-slate-300 shadow-2xs gap-1">
+                            <button type="button" 
+                                    id="btn-mode-sig-qr"
+                                    onclick="window.switchSignatureMode('signature_qr')" 
+                                    class="px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-[#8F0A0D] text-white shadow-2xs">
+                                <span>TTD + QR Code (Resmi)</span>
+                            </button>
+                            <button type="button" 
+                                    id="btn-mode-sig-only"
+                                    onclick="window.switchSignatureMode('signature_only')" 
+                                    class="px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                                <span>Tanda Tangan Saja</span>
+                            </button>
+                            <button type="button" 
+                                    id="btn-mode-qr-only"
+                                    onclick="window.switchSignatureMode('qr_only')" 
+                                    class="px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                                <span>QR Code Saja</span>
+                            </button>
+                        </div>
+                    </div>
+
                     {{-- Tabel Tanda Tangan / Persetujuan Persis 4 Kolom PDF --}}
                     <div class="border border-black overflow-hidden">
                         <table class="w-full border-collapse text-xs">
@@ -861,61 +889,98 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="h-40">
+                                <tr class="min-h-[160px]">
                                     {{-- 1. Sales / Commercial --}}
-                                    <td class="p-3 border-r border-black align-top flex-col justify-between">
+                                    <td class="p-2.5 border-r border-black align-top flex-col justify-between">
                                         <div class="space-y-1">
                                             <p><strong class="font-bold">Nama:</strong> <span id="accept-modal-sales-sign" class="font-bold text-slate-900">—</span></p>
                                             <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
                                         </div>
-                                        <div class="pt-6">
-                                            <p class="font-bold">Tanda tangan:</p>
-                                            <div class="mt-2 text-center">
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                    <span>Verified Digital</span>
-                                                </span>
+                                        <div class="py-2 flex items-center justify-center">
+                                            <div id="sales-signature-widget" class="inline-flex items-center gap-2 select-none text-left align-middle">
+                                                {{-- QR Code --}}
+                                                <div id="sales-sig-qr-box" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
+                                                    <svg class="w-10 h-10 text-slate-800" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M2 2h8v8H2zM4 4v4h4V4zm10-2h8v8h-8zm2 2v4h4V4zM2 14h8v8H2zm2 2v4h4v-4zm10 0h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2zm-2-2h2v2h-2zm4-2h2v2h-2z"/>
+                                                    </svg>
+                                                </div>
+                                                {{-- Digitally Signed Frame --}}
+                                                <div id="sales-sig-stroke-box" class="relative px-2.5 pt-2 pb-1 border border-slate-700 bg-white rounded min-w-[125px] max-w-[160px] min-h-[54px] flex flex-col justify-between shadow-2xs">
+                                                    <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7.5px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                        <span>digitally signed</span>
+                                                    </div>
+                                                    <div class="flex-1 flex items-center justify-center my-0.5 min-h-[28px]" id="sales-sig-stroke-inner">
+                                                        <div class="font-serif italic text-[11px] font-bold text-slate-800 text-center" id="accept-modal-sales-inner-name">Sales PIC</div>
+                                                    </div>
+                                                    <div class="text-[7px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate" id="sales-token-text">
+                                                        dsign.ipnet.id/COMMERCIAL
+                                                    </div>
+                                                </div>
                                             </div>
+                                        </div>
+                                        <div class="text-[9.5px] text-center font-mono text-emerald-700 font-bold">
+                                            &check; Commercial Verified
                                         </div>
                                     </td>
 
                                     {{-- 2. Managed Service --}}
-                                    <td class="p-3 border-r border-black align-top flex-col justify-between">
+                                    <td class="p-2.5 border-r border-black align-top flex-col justify-between">
                                         <div class="space-y-1">
                                             <p><strong class="font-bold">Nama:</strong> <span id="accept-modal-pm-sign" class="font-bold text-[#8F0A0D]">{{ auth()->user()->name }}</span></p>
                                             <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
                                         </div>
-                                        <div class="pt-6">
-                                            <p class="font-bold">Tanda tangan:</p>
-                                            <div class="mt-2 text-center">
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                                    <span>Verified PIC MS</span>
-                                                </span>
+                                        <div class="py-2 flex items-center justify-center">
+                                            <div id="ms-signature-widget" class="inline-flex items-center gap-2 select-none text-left align-middle">
+                                                {{-- QR Code --}}
+                                                <div id="ms-sig-qr-box" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
+                                                    {!! auth()->user()->signature_qr_svg !!}
+                                                </div>
+                                                {{-- Digitally Signed Frame --}}
+                                                <div id="ms-sig-stroke-box" class="relative px-2.5 pt-2 pb-1 border border-slate-700 bg-white rounded min-w-[125px] max-w-[160px] min-h-[54px] flex flex-col justify-between shadow-2xs">
+                                                    <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7.5px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                        <span>digitally signed</span>
+                                                    </div>
+                                                    <div class="flex-1 flex items-center justify-center my-0.5 min-h-[28px]">
+                                                        @if(!empty(auth()->user()->signature_data))
+                                                            <img src="{{ auth()->user()->signature_data }}" alt="TTD" class="max-h-7 max-w-[100px] object-contain">
+                                                        @else
+                                                            <div class="font-serif italic text-[11px] font-bold text-slate-800 text-center">{{ auth()->user()->name }}</div>
+                                                        @endif
+                                                    </div>
+                                                    <div class="text-[7px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
+                                                        dsign.ipnet.id/{{ auth()->user()->signature_qr_token }}
+                                                    </div>
+                                                </div>
                                             </div>
+                                        </div>
+                                        <div class="text-[9.5px] text-center font-mono text-emerald-700 font-bold">
+                                            &check; Verified PIC MS
                                         </div>
                                     </td>
 
                                     {{-- 3. TL / Solution --}}
-                                    <td class="p-3 border-r border-black align-top flex-col justify-between">
+                                    <td class="p-2.5 border-r border-black align-top flex-col justify-between">
                                         <div class="space-y-1">
                                             <p><strong class="font-bold">Nama:</strong> Solution Lead</p>
                                             <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
                                         </div>
-                                        <div class="pt-6">
-                                            <p class="font-bold">Tanda tangan:</p>
-                                            <div class="mt-4 border-b border-dashed border-slate-300 w-3/4 mx-auto"></div>
+                                        <div class="py-4 text-center">
+                                            <div class="border-b border-dashed border-slate-400 w-3/4 mx-auto my-3"></div>
+                                            <span class="text-[9px] text-slate-400 font-mono">(Paraf bila diperlukan)</span>
                                         </div>
                                     </td>
 
                                     {{-- 4. Persetujuan Pihak Berwenang --}}
-                                    <td class="p-3 align-top flex-col justify-between">
+                                    <td class="p-2.5 align-top flex-col justify-between">
                                         <div class="space-y-1">
                                             <p><strong class="font-bold">Nama:</strong> Operations Head</p>
                                             <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
                                         </div>
-                                        <div class="pt-6">
-                                            <p class="font-bold">Tanda tangan:</p>
-                                            <div class="mt-4 border-b border-dashed border-slate-300 w-3/4 mx-auto"></div>
+                                        <div class="py-4 text-center">
+                                            <div class="border-b border-dashed border-slate-400 w-3/4 mx-auto my-3"></div>
+                                            <span class="text-[9px] text-slate-400 font-mono">(Paraf bila diperlukan)</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -938,6 +1003,7 @@
                 <input type="hidden" id="accept-modal-maint-freq" name="maintenance_frequency" value="Monthly">
                 <input type="hidden" id="accept-modal-start-date" name="service_start_date" value="">
                 <input type="hidden" id="accept-modal-end-date" name="service_end_date" value="">
+                <input type="hidden" id="accept-modal-sig-mode" name="signature_mode" value="signature_qr">
 
             </div>
 {{-- Footer Action Bar Sesuai Template Lebar --}}
@@ -1211,7 +1277,80 @@
             });
         }
 
+        // Sinkronisasi data tanda tangan Sales PIC
+        var sSig = hData.sales_signature || {};
+        var salesInner = document.getElementById('sales-sig-stroke-inner');
+        if (salesInner) {
+            if (sSig.signature) {
+                salesInner.innerHTML = '<img src="' + sSig.signature + '" alt="TTD Sales" class="max-h-7 max-w-[100px] object-contain">';
+            } else {
+                salesInner.innerHTML = '<div class="font-serif italic text-[11px] font-bold text-slate-800 text-center">' + (sSig.user_name || p.sales || 'Sales PIC') + '</div>';
+            }
+        }
+        var salesTokenEl = document.getElementById('sales-token-text');
+        if (salesTokenEl) {
+            salesTokenEl.textContent = 'dsign.ipnet.id/' + (sSig.qr_token || 'COMMERCIAL');
+        }
+
+        // Set mode tanda tangan awal
+        var defaultSigMode = (hData.ms_signature && hData.ms_signature.type) ? hData.ms_signature.type : 'signature_qr';
+        window.switchSignatureMode(defaultSigMode);
+
         modal.style.display = 'flex';
+    };
+
+    window.switchSignatureMode = function(mode) {
+        var modeInput = document.getElementById('accept-modal-sig-mode');
+        if (modeInput) modeInput.value = mode;
+
+        var btnQr = document.getElementById('btn-mode-sig-qr');
+        var btnSig = document.getElementById('btn-mode-sig-only');
+        var btnQrOnly = document.getElementById('btn-mode-qr-only');
+
+        var activeCls = ['bg-[#8F0A0D]', 'text-white', 'shadow-2xs'];
+        var idleCls = ['text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100'];
+
+        [btnQr, btnSig, btnQrOnly].forEach(function(b) {
+            if (!b) return;
+            activeCls.forEach(function(c) { b.classList.remove(c); });
+            idleCls.forEach(function(c) { b.classList.remove(c); });
+        });
+
+        if (mode === 'signature_qr' && btnQr) {
+            activeCls.forEach(function(c) { btnQr.classList.add(c); });
+            if (btnSig) idleCls.forEach(function(c) { btnSig.classList.add(c); });
+            if (btnQrOnly) idleCls.forEach(function(c) { btnQrOnly.classList.add(c); });
+        } else if (mode === 'signature_only' && btnSig) {
+            activeCls.forEach(function(c) { btnSig.classList.add(c); });
+            if (btnQr) idleCls.forEach(function(c) { btnQr.classList.add(c); });
+            if (btnQrOnly) idleCls.forEach(function(c) { btnQrOnly.classList.add(c); });
+        } else if (mode === 'qr_only' && btnQrOnly) {
+            activeCls.forEach(function(c) { btnQrOnly.classList.add(c); });
+            if (btnQr) idleCls.forEach(function(c) { btnQr.classList.add(c); });
+            if (btnSig) idleCls.forEach(function(c) { btnSig.classList.add(c); });
+        }
+
+        var msQr = document.getElementById('ms-sig-qr-box');
+        var msStroke = document.getElementById('ms-sig-stroke-box');
+        var salesQr = document.getElementById('sales-sig-qr-box');
+        var salesStroke = document.getElementById('sales-sig-stroke-box');
+
+        if (mode === 'signature_qr') {
+            if (msQr) msQr.style.display = 'flex';
+            if (msStroke) msStroke.style.display = 'flex';
+            if (salesQr) salesQr.style.display = 'flex';
+            if (salesStroke) salesStroke.style.display = 'flex';
+        } else if (mode === 'signature_only') {
+            if (msQr) msQr.style.display = 'none';
+            if (msStroke) msStroke.style.display = 'flex';
+            if (salesQr) salesQr.style.display = 'none';
+            if (salesStroke) salesStroke.style.display = 'flex';
+        } else if (mode === 'qr_only') {
+            if (msQr) msQr.style.display = 'flex';
+            if (msStroke) msStroke.style.display = 'none';
+            if (salesQr) salesQr.style.display = 'flex';
+            if (salesStroke) salesStroke.style.display = 'none';
+        }
     };
 
     window.closeAcceptModal = function() {

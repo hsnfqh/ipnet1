@@ -1035,59 +1035,112 @@
                             </div>
                         </div>
 
+                        {{-- Kontrol Pilihan Format Tanda Tangan Digital Resmi (Persis Referensi) --}}
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 border border-black text-xs no-print">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                                <span class="font-bold text-slate-900 uppercase tracking-wide">PILIHAN FORMAT STEMPEL TANDA TANGAN:</span>
+                            </div>
+                            <div class="inline-flex rounded-lg bg-white p-1 border border-slate-300 shadow-2xs gap-1">
+                                <button type="button" 
+                                        @click="signatureMode = 'signature_qr'" 
+                                        :class="signatureMode === 'signature_qr' ? 'bg-[#8F0A0D] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                                        class="px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                    <span>TTD + QR Code (Resmi)</span>
+                                </button>
+                                <button type="button" 
+                                        @click="signatureMode = 'signature_only'" 
+                                        :class="signatureMode === 'signature_only' ? 'bg-[#8F0A0D] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                                        class="px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                    <span>Tanda Tangan Saja</span>
+                                </button>
+                                <button type="button" 
+                                        @click="signatureMode = 'qr_only'" 
+                                        :class="signatureMode === 'qr_only' ? 'bg-[#8F0A0D] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                                        class="px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                    <span>QR Code Saja</span>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="hidden" name="signature_mode" :value="signatureMode">
+
                         {{-- 8. TANDA TANGAN / PENGESAHAN (4 Kolom Sesuai PDF Halaman 2) --}}
                         <div class="border border-black overflow-hidden text-xs">
                             <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-black">
                                 
                                 {{-- 1. Sales / Commercial --}}
-                                <div class="p-2.5 bg-white flex flex-col justify-between h-40">
+                                <div class="p-2.5 bg-white flex flex-col justify-between min-h-[160px]">
                                     <div class="text-center">
                                         <div class="font-bold text-[11px] text-black">Diserahkan oleh</div>
                                         <div class="text-[10px] text-slate-600 font-medium">Sales / Commercial</div>
                                     </div>
-                                    <div class="my-auto py-1 text-center flex flex-col items-center justify-center">
-                                        <template x-if="activeProject?.handover_data?.sales_signature?.signature">
-                                            <div class="h-14 flex items-center justify-center">
-                                                <img :src="activeProject.handover_data.sales_signature.signature" alt="TTD Sales" class="max-h-12 max-w-full object-contain filter drop-shadow-2xs">
+                                    <div class="my-auto py-2 text-center flex items-center justify-center">
+                                        <div class="inline-flex items-center gap-2 select-none text-left align-middle">
+                                            {{-- QR Code Box --}}
+                                            <div x-show="signatureMode === 'signature_qr' || signatureMode === 'qr_only'" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
+                                                <svg class="w-10 h-10 text-slate-800" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M2 2h8v8H2zM4 4v4h4V4zm10-2h8v8h-8zm2 2v4h4V4zM2 14h8v8H2zm2 2v4h4v-4zm10 0h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2zm-2-2h2v2h-2zm4-2h2v2h-2z"/>
+                                                </svg>
                                             </div>
-                                        </template>
-                                        <template x-if="!activeProject?.handover_data?.sales_signature?.signature">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                <span>Verified Digital</span>
-                                            </span>
-                                        </template>
+                                            {{-- Framed Stroke Box --}}
+                                            <div x-show="signatureMode === 'signature_qr' || signatureMode === 'signature_only'" class="relative px-2.5 pt-2 pb-1 border border-slate-700 bg-white rounded min-w-[125px] max-w-[160px] min-h-[54px] flex flex-col justify-between shadow-2xs">
+                                                <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7.5px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                    <span>digitally signed</span>
+                                                </div>
+                                                <div class="flex-1 flex items-center justify-center my-0.5 min-h-[28px]">
+                                                    <template x-if="activeProject?.handover_data?.sales_signature?.signature">
+                                                        <img :src="activeProject.handover_data.sales_signature.signature" alt="TTD Sales" class="max-h-7 max-w-[100px] object-contain">
+                                                    </template>
+                                                    <template x-if="!activeProject?.handover_data?.sales_signature?.signature">
+                                                        <div class="font-serif italic text-[11px] font-bold text-slate-800 text-center" x-text="activeProject?.handover_data?.sales_signature?.user_name || activeProject?.sales_name || 'Sales PIC'"></div>
+                                                    </template>
+                                                </div>
+                                                <div class="text-[7px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate" x-text="'dsign.ipnet.id/' + (activeProject?.handover_data?.sales_signature?.qr_token || 'COMMERCIAL')">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="text-[10px] border-t border-slate-300 pt-1 text-slate-700 space-y-0.5">
                                         <p class="truncate">Nama: <strong class="text-black" x-text="activeProject?.handover_data?.sales_signature?.user_name || activeProject?.sales_name || '—'"></strong></p>
                                         <p>Tanggal: <span x-text="activeProject?.handover_data?.sales_signature?.signed_at ? activeProject.handover_data.sales_signature.signed_at.substring(0, 10) : (activeProject?.handover_submitted_at ? activeProject.handover_submitted_at.substring(0, 10) : '{{ date('d/m/Y') }}')"></span></p>
-                                        <p class="truncate font-mono text-[9px] text-[#8F0A0D] font-bold" x-show="activeProject?.handover_data?.sales_signature?.qr_token" x-text="'Token: ' + activeProject.handover_data.sales_signature.qr_token"></p>
                                     </div>
                                 </div>
 
                                 {{-- 2. PMO / Project Manager --}}
-                                <div class="p-2.5 bg-white flex flex-col justify-between h-40">
+                                <div class="p-2.5 bg-white flex flex-col justify-between min-h-[160px]">
                                     <div class="text-center">
                                         <div class="font-bold text-[11px] text-black">Diterima oleh</div>
                                         <div class="text-[10px] text-slate-600 font-medium">PMO / Project Manager</div>
                                     </div>
-                                    <div class="my-auto py-1 text-center flex flex-col items-center justify-center">
-                                        <template x-if="activeProject?.handover_data?.pm_signature?.signature">
-                                            <div class="h-14 flex items-center justify-center">
-                                                <img :src="activeProject.handover_data.pm_signature.signature" alt="TTD PM" class="max-h-12 max-w-full object-contain filter drop-shadow-2xs">
+                                    <div class="my-auto py-2 text-center flex items-center justify-center">
+                                        <div class="inline-flex items-center gap-2 select-none text-left align-middle">
+                                            {{-- QR Code Box --}}
+                                            <div x-show="signatureMode === 'signature_qr' || signatureMode === 'qr_only'" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
+                                                {!! auth()->user()->signature_qr_svg !!}
                                             </div>
-                                        </template>
-                                        <template x-if="!activeProject?.handover_data?.pm_signature?.signature">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                <span>Siap Tanda Tangan</span>
-                                            </span>
-                                        </template>
+                                            {{-- Framed Stroke Box --}}
+                                            <div x-show="signatureMode === 'signature_qr' || signatureMode === 'signature_only'" class="relative px-2.5 pt-2 pb-1 border border-slate-700 bg-white rounded min-w-[125px] max-w-[160px] min-h-[54px] flex flex-col justify-between shadow-2xs">
+                                                <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7.5px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                    <span>digitally signed</span>
+                                                </div>
+                                                <div class="flex-1 flex items-center justify-center my-0.5 min-h-[28px]">
+                                                    @if(!empty(auth()->user()->signature_data))
+                                                        <img src="{{ auth()->user()->signature_data }}" alt="TTD PM" class="max-h-7 max-w-[100px] object-contain">
+                                                    @else
+                                                        <div class="font-serif italic text-[11px] font-bold text-slate-800 text-center">{{ auth()->user()->name }}</div>
+                                                    @endif
+                                                </div>
+                                                <div class="text-[7px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
+                                                    dsign.ipnet.id/{{ auth()->user()->signature_qr_token }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="text-[10px] border-t border-slate-300 pt-1 text-slate-700 space-y-0.5">
-                                        <p class="truncate">Nama: <strong class="text-black" x-text="activeProject?.handover_data?.pm_signature?.user_name || activeProject?.pm || '{{ auth()->user()->name }}'"></strong></p>
+                                        <p class="truncate">Nama: <strong class="text-[#8F0A0D]" x-text="activeProject?.handover_data?.pm_signature?.user_name || activeProject?.pm || '{{ auth()->user()->name }}'"></strong></p>
                                         <p>Tanggal: <span x-text="activeProject?.handover_data?.pm_signature?.signed_at ? activeProject.handover_data.pm_signature.signed_at.substring(0, 10) : '{{ date('d/m/Y') }}'"></span></p>
-                                        <p class="truncate font-mono text-[9px] text-[#8F0A0D] font-bold" x-show="activeProject?.handover_data?.pm_signature?.qr_token" x-text="'Token: ' + activeProject.handover_data.pm_signature.qr_token"></p>
                                     </div>
                                 </div>
 
@@ -1309,6 +1362,7 @@
             docsModalOpen: false,
             handoverReviewModalOpen: false,
             handoverToMsModalOpen: false,
+            signatureMode: '{{ auth()->user()->signature_type ?: "signature_qr" }}',
             showConditionalInput: false,
             conditionalNotes: '',
             handoverStatusSelected: 'approved',

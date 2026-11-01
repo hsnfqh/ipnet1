@@ -985,6 +985,7 @@ class ManagedServiceController extends Controller
             $msUser->ensureSignatureQrToken();
         }
 
+        $chosenSigType = $request->input('signature_mode', $request->input('signature_type', $msUser?->signature_type ?: 'signature_qr'));
         $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $existingHandoverData['ms_signature'] = [
             'signed'     => true,
@@ -994,7 +995,7 @@ class ManagedServiceController extends Controller
             'signed_at'  => now()->format('Y-m-d H:i:s'),
             'qr_token'   => $msUser?->signature_qr_token,
             'signature'  => $msUser?->signature_data,
-            'type'       => $msUser?->signature_type ?: 'signature_qr',
+            'type'       => $chosenSigType,
         ];
 
         $freqMap = [

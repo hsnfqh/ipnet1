@@ -147,25 +147,17 @@
                         <span class="text-[10px] text-slate-500 font-medium">Divisi Sales &amp; Commercial</span>
                     </div>
 
-                    {{-- Stempel Tanda Tangan & QR --}}
-                    <div class="my-auto py-2 flex items-center justify-center gap-3">
-                        @if(!empty($salesSignature['signature']))
-                            <div class="h-16 flex items-center justify-center">
-                                <img src="{{ $salesSignature['signature'] }}" alt="TTD Sales" class="max-h-16 max-w-full object-contain filter drop-shadow-2xs">
-                            </div>
-                        @else
-                            <div class="py-2">
-                                <span class="px-2.5 py-1 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    ✓ Diserahkan Secara Digital
-                                </span>
-                            </div>
-                        @endif
-
-                        @if(!empty($salesQrSvg))
-                            <div class="w-14 h-14 p-1 bg-white border border-slate-200 rounded shadow-2xs shrink-0 flex items-center justify-center">
-                                {!! $salesQrSvg !!}
-                            </div>
-                        @endif
+                    {{-- Stempel Tanda Tangan & QR Resmi (Persis Format Standar IPNet) --}}
+                    <div class="my-auto py-2 flex items-center justify-center">
+                        <x-digital-signature-box 
+                            :mode="$salesSignature['type'] ?? 'signature_qr'"
+                            :signature="$salesSignature['signature'] ?? null"
+                            :token="$salesSignature['qr_token'] ?? ($project->commercial_handover_token ?? 'COMMERCIAL')"
+                            :name="$salesSignature['user_name'] ?? ($project->commercialHandoverBy?->name ?? ($project->sales_name ?: 'Sales PIC'))"
+                            :role="$salesSignature['user_role'] ?? 'Sales PIC & Account Manager'"
+                            :date="$salesSignature['signed_at'] ?? null"
+                            :qrSvg="$salesQrSvg"
+                        />
                     </div>
 
                     <div class="border-t border-slate-200 pt-2 text-[10.5px] text-slate-700 space-y-0.5">
@@ -193,35 +185,29 @@
                         </span>
                     </div>
 
-                    {{-- Stempel Tanda Tangan & QR --}}
-                    <div class="my-auto py-2 flex items-center justify-center gap-3">
+                    {{-- Stempel Tanda Tangan & QR Resmi (Persis Format Standar IPNet) --}}
+                    <div class="my-auto py-2 flex items-center justify-center">
                         @php
                             $recipientSig = $pmSignature ?: $msSignature;
                             $recipientQr = $pmQrSvg ?: $msQrSvg;
                             $isAccepted = ($project->handover_status === 'Approved' || $project->ms_handover_status === 'Accepted');
                         @endphp
 
-                        @if(!empty($recipientSig['signature']))
-                            <div class="h-16 flex items-center justify-center">
-                                <img src="{{ $recipientSig['signature'] }}" alt="TTD Penerima" class="max-h-16 max-w-full object-contain filter drop-shadow-2xs">
-                            </div>
-                        @elseif($isAccepted)
-                            <div class="py-2">
-                                <span class="px-2.5 py-1 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                    ✓ Disahkan &amp; Diterima PMO
-                                </span>
-                            </div>
+                        @if($isAccepted)
+                            <x-digital-signature-box 
+                                :mode="$recipientSig['type'] ?? 'signature_qr'"
+                                :signature="$recipientSig['signature'] ?? null"
+                                :token="$recipientSig['qr_token'] ?? 'DELIVERY'"
+                                :name="$recipientSig['user_name'] ?? ($project->pm?->name ?? ($project->msAcceptedBy?->name ?? 'Project Manager / PMO'))"
+                                :role="$recipientSig['user_role'] ?? ($project->handover_target === 'managed_service' ? 'Lead Maintenance / MS' : 'Project Manager / PMO')"
+                                :date="$recipientSig['signed_at'] ?? null"
+                                :qrSvg="$recipientQr"
+                            />
                         @else
                             <div class="py-2">
                                 <span class="px-2.5 py-1 rounded text-[10px] font-medium italic text-slate-400 bg-slate-100 border border-slate-200">
                                     Menunggu Tanda Tangan Penerima
                                 </span>
-                            </div>
-                        @endif
-
-                        @if(!empty($recipientQr) && $isAccepted)
-                            <div class="w-14 h-14 p-1 bg-white border border-slate-200 rounded shadow-2xs shrink-0 flex items-center justify-center">
-                                {!! $recipientQr !!}
                             </div>
                         @endif
                     </div>

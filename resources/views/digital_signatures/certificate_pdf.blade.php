@@ -230,7 +230,16 @@
                         $firstInternal = ($document->internal_signers ?? [])[0] ?? null;
                     @endphp
                     @if($firstInternal && !empty($firstInternal['signature']))
-                        <img src="{{ $firstInternal['signature'] }}" class="sig-img" alt="Internal Signature">
+                        <div style="padding: 4px 0;">
+                            {!! \App\Helpers\SignatureHelper::render([
+                                'is_pdf'      => true,
+                                'mode'        => 'signature_qr',
+                                'signature'   => $firstInternal['signature'],
+                                'token'       => $document->document_number ?: 'CERT-IPNET',
+                                'name'        => $firstInternal['name'] ?? 'Tim IPNET',
+                                'qr_data_uri' => $qrCodeBase64 ?? null,
+                            ]) !!}
+                        </div>
                     @else
                         <div style="height: 65px; line-height: 65px; color: #94a3b8; font-style: italic; font-size: 10px;">
                             (Tanda Tangan Belum Dibubuhkan)
@@ -249,7 +258,16 @@
                 <div class="sig-box">
                     <div class="sig-box-title">PIHAK KEDUA (CUSTOMER / KLIEN)</div>
                     @if($document->client_signature)
-                        <img src="{{ $document->client_signature }}" class="sig-img" alt="Client Signature">
+                        <div style="padding: 4px 0;">
+                            {!! \App\Helpers\SignatureHelper::render([
+                                'is_pdf'      => true,
+                                'mode'        => 'signature_qr',
+                                'signature'   => $document->client_signature,
+                                'token'       => $document->document_number ?: 'CERT-CLIENT',
+                                'name'        => $document->client_name ?: 'PIC Klien',
+                                'qr_data_uri' => $qrCodeBase64 ?? null,
+                            ]) !!}
+                        </div>
                     @else
                         <div style="height: 65px; line-height: 65px; color: #94a3b8; font-style: italic; font-size: 10px;">
                             (Menunggu Tanda Tangan Klien)

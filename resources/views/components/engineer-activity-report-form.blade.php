@@ -573,11 +573,22 @@
                                     <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.pic?.signed ? sigInfo?.pic?.signed_at : '{{ date('d/m/Y') }}'"></td>
                                     <td class="py-3 px-3 text-center align-middle min-h-[56px]">
                                         <template x-if="sigInfo?.pic?.signed && sigInfo?.pic?.signature">
-                                            <div class="inline-flex items-center justify-center gap-2.5">
-                                                <img :src="sigInfo.pic.signature" alt="TTD Engineer" class="max-h-12 max-w-[90px] object-contain">
+                                            <div class="inline-flex items-center justify-center gap-2 select-none text-left align-middle">
                                                 <template x-if="sigInfo.pic.qr_svg">
-                                                    <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.pic.qr_svg"></div>
+                                                    <div class="w-12 h-12 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs" x-html="sigInfo.pic.qr_svg"></div>
                                                 </template>
+                                                <div class="relative px-2 pt-1.5 pb-0.5 border border-slate-700 bg-white rounded min-w-[110px] max-w-[140px] min-h-[46px] flex flex-col justify-between shadow-2xs">
+                                                    <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                        <span>digitally signed</span>
+                                                    </div>
+                                                    <div class="flex-1 flex items-center justify-center my-0.5 min-h-[22px]">
+                                                        <img :src="sigInfo.pic.signature" alt="TTD Engineer" class="max-h-7 max-w-[90px] object-contain">
+                                                    </div>
+                                                    <div class="text-[6.5px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
+                                                        dsign.ipnet.id/VERIFIED
+                                                    </div>
+                                                </div>
                                             </div>
                                         </template>
                                         <template x-if="!sigInfo?.pic?.signed">
@@ -604,11 +615,22 @@
                                     <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.lead?.signed ? sigInfo?.lead?.signed_at : '{{ date('d/m/Y') }}'"></td>
                                     <td class="py-3 px-3 text-center align-middle min-h-[56px]">
                                         <template x-if="sigInfo?.lead?.signed && sigInfo?.lead?.signature">
-                                            <div class="inline-flex items-center justify-center gap-2.5">
-                                                <img :src="sigInfo.lead.signature" alt="TTD Leader" class="max-h-12 max-w-[90px] object-contain">
+                                            <div class="inline-flex items-center justify-center gap-2 select-none text-left align-middle">
                                                 <template x-if="sigInfo.lead.qr_svg">
-                                                    <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.lead.qr_svg"></div>
+                                                    <div class="w-12 h-12 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs" x-html="sigInfo.lead.qr_svg"></div>
                                                 </template>
+                                                <div class="relative px-2 pt-1.5 pb-0.5 border border-slate-700 bg-white rounded min-w-[110px] max-w-[140px] min-h-[46px] flex flex-col justify-between shadow-2xs">
+                                                    <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                        <span>digitally signed</span>
+                                                    </div>
+                                                    <div class="flex-1 flex items-center justify-center my-0.5 min-h-[22px]">
+                                                        <img :src="sigInfo.lead.signature" alt="TTD Leader" class="max-h-7 max-w-[90px] object-contain">
+                                                    </div>
+                                                    <div class="text-[6.5px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
+                                                        dsign.ipnet.id/VERIFIED
+                                                    </div>
+                                                </div>
                                             </div>
                                         </template>
                                         <template x-if="!sigInfo?.lead?.signed">
@@ -1191,11 +1213,22 @@
                                             </td>
                                             <td class="py-3 px-3 text-center align-middle min-h-[56px]">
                                                 <template x-if="sigInfo?.pic?.signed && sigInfo?.pic?.signature">
-                                                    <div class="inline-flex items-center justify-center gap-2.5">
-                                                        <img :src="sigInfo.pic.signature" alt="TTD Engineer" class="max-h-12 max-w-[90px] object-contain">
+                                                    <div class="inline-flex items-center justify-center gap-2 select-none text-left align-middle">
                                                         <template x-if="sigInfo.pic.qr_svg">
-                                                            <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.pic.qr_svg"></div>
+                                                            <div class="w-12 h-12 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs" x-html="sigInfo.pic.qr_svg"></div>
                                                         </template>
+                                                        <div class="relative px-2 pt-1.5 pb-0.5 border border-slate-700 bg-white rounded min-w-[110px] max-w-[140px] min-h-[46px] flex flex-col justify-between shadow-2xs">
+                                                            <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                                <span>digitally signed</span>
+                                                            </div>
+                                                            <div class="flex-1 flex items-center justify-center my-0.5 min-h-[22px]">
+                                                                <img :src="sigInfo.pic.signature" alt="TTD Engineer" class="max-h-7 max-w-[90px] object-contain">
+                                                            </div>
+                                                            <div class="text-[6.5px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
+                                                                dsign.ipnet.id/VERIFIED
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </template>
                                                 <template x-if="!sigInfo?.pic?.signed">
@@ -1221,11 +1254,22 @@
                                             </td>
                                             <td class="py-3 px-3 text-center align-middle min-h-[56px]">
                                                 <template x-if="sigInfo?.lead?.signed && sigInfo?.lead?.signature">
-                                                    <div class="inline-flex items-center justify-center gap-2.5">
-                                                        <img :src="sigInfo.lead.signature" alt="TTD Leader" class="max-h-12 max-w-[90px] object-contain">
+                                                    <div class="inline-flex items-center justify-center gap-2 select-none text-left align-middle">
                                                         <template x-if="sigInfo.lead.qr_svg">
-                                                            <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.lead.qr_svg"></div>
+                                                            <div class="w-12 h-12 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs" x-html="sigInfo.lead.qr_svg"></div>
                                                         </template>
+                                                        <div class="relative px-2 pt-1.5 pb-0.5 border border-slate-700 bg-white rounded min-w-[110px] max-w-[140px] min-h-[46px] flex flex-col justify-between shadow-2xs">
+                                                            <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                                <span>digitally signed</span>
+                                                            </div>
+                                                            <div class="flex-1 flex items-center justify-center my-0.5 min-h-[22px]">
+                                                                <img :src="sigInfo.lead.signature" alt="TTD Leader" class="max-h-7 max-w-[90px] object-contain">
+                                                            </div>
+                                                            <div class="text-[6.5px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
+                                                                dsign.ipnet.id/VERIFIED
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </template>
                                                 <template x-if="!sigInfo?.lead?.signed">
@@ -1580,11 +1624,22 @@
                                             <td class="p-1 border-r border-[#1E293B] align-middle"><input type="text" x-model="reportFormData.hd_identitas.nama_engineer" class="w-full p-1 text-xs font-bold bg-transparent border-0"></td>
                                             <td class="py-3 px-3 text-center align-middle min-h-[56px]">
                                                 <template x-if="sigInfo?.pic?.signed && sigInfo?.pic?.signature">
-                                                    <div class="inline-flex items-center justify-center gap-2.5">
-                                                        <img :src="sigInfo.pic.signature" alt="TTD Engineer" class="max-h-12 max-w-[90px] object-contain">
+                                                    <div class="inline-flex items-center justify-center gap-2 select-none text-left align-middle">
                                                         <template x-if="sigInfo.pic.qr_svg">
-                                                            <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.pic.qr_svg"></div>
+                                                            <div class="w-12 h-12 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs" x-html="sigInfo.pic.qr_svg"></div>
                                                         </template>
+                                                        <div class="relative px-2 pt-1.5 pb-0.5 border border-slate-700 bg-white rounded min-w-[110px] max-w-[140px] min-h-[46px] flex flex-col justify-between shadow-2xs">
+                                                            <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                                <span>digitally signed</span>
+                                                            </div>
+                                                            <div class="flex-1 flex items-center justify-center my-0.5 min-h-[22px]">
+                                                                <img :src="sigInfo.pic.signature" alt="TTD Engineer" class="max-h-7 max-w-[90px] object-contain">
+                                                            </div>
+                                                            <div class="text-[6.5px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
+                                                                dsign.ipnet.id/VERIFIED
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </template>
                                                 <template x-if="!sigInfo?.pic?.signed">
@@ -1608,11 +1663,22 @@
                                             <td class="p-1 border-r border-[#1E293B] align-middle"><input type="text" x-model="reportFormData.hd_identitas.team_leader" class="w-full p-1 text-xs font-bold bg-transparent border-0"></td>
                                             <td class="py-3 px-3 text-center align-middle min-h-[56px]">
                                                 <template x-if="sigInfo?.lead?.signed && sigInfo?.lead?.signature">
-                                                    <div class="inline-flex items-center justify-center gap-2.5">
-                                                        <img :src="sigInfo.lead.signature" alt="TTD Leader" class="max-h-12 max-w-[90px] object-contain">
+                                                    <div class="inline-flex items-center justify-center gap-2 select-none text-left align-middle">
                                                         <template x-if="sigInfo.lead.qr_svg">
-                                                            <div class="w-9 h-9 p-0.5 bg-white border border-slate-300 rounded shadow-2xs flex items-center justify-center" x-html="sigInfo.lead.qr_svg"></div>
+                                                            <div class="w-12 h-12 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs" x-html="sigInfo.lead.qr_svg"></div>
                                                         </template>
+                                                        <div class="relative px-2 pt-1.5 pb-0.5 border border-slate-700 bg-white rounded min-w-[110px] max-w-[140px] min-h-[46px] flex flex-col justify-between shadow-2xs">
+                                                            <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                                <span>digitally signed</span>
+                                                            </div>
+                                                            <div class="flex-1 flex items-center justify-center my-0.5 min-h-[22px]">
+                                                                <img :src="sigInfo.lead.signature" alt="TTD Leader" class="max-h-7 max-w-[90px] object-contain">
+                                                            </div>
+                                                            <div class="text-[6.5px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
+                                                                dsign.ipnet.id/VERIFIED
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </template>
                                                 <template x-if="!sigInfo?.lead?.signed">

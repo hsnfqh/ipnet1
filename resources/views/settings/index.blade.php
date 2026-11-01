@@ -589,39 +589,50 @@
                                     <span class="text-[11px] text-[#64748B] font-semibold">Tampilan di BA &amp; SPK</span>
                                 </div>
 
-                                {{-- Kartu Stempel Dokumen --}}
-                                <div class="bg-white rounded-xl border border-slate-300 p-5 shadow-xs">
-                                    <div class="flex items-center justify-center gap-4">
+                                {{-- Kartu Stempel Dokumen (Persis Referensi TTD Resmi IPNet) --}}
+                                <div class="bg-white rounded-xl border border-slate-300 p-5 shadow-xs flex flex-col items-center justify-center">
+                                    <div class="inline-flex items-center gap-3 p-1.5 select-none text-left">
                                         
-                                        {{-- Goresan TTD --}}
-                                        <div class="flex-1 flex flex-col items-center justify-center text-center min-h-[95px] border-r border-dashed border-slate-200 pr-3"
-                                             x-show="signatureType !== 'qr_only'">
-                                            <template x-if="previewSignatureData">
-                                                <img :src="previewSignatureData" alt="Tanda Tangan" class="max-h-20 max-w-full object-contain filter drop-shadow-xs">
-                                            </template>
-                                            <template x-if="!previewSignatureData">
-                                                <div class="text-[11.5px] text-slate-400 font-medium italic py-5">
-                                                    Belum ada goresan tanda tangan
-                                                </div>
-                                            </template>
-                                            <div class="text-[11px] font-bold text-[#0F172A] mt-1 uppercase">{{ $user->name }}</div>
-                                            <div class="text-[9.5px] text-slate-500 font-medium">{{ $user->position ?? $user->role_label }}</div>
-                                        </div>
-
-                                        {{-- QR Barcode --}}
-                                        <div class="flex flex-col items-center justify-center text-center shrink-0 pl-1"
-                                             x-show="signatureType !== 'signature_only'">
-                                            <div class="w-18 h-18 p-1.5 bg-white border border-slate-200 rounded-lg shadow-2xs flex items-center justify-center">
+                                        {{-- 1. QR Code Box (Muncul jika signatureType === 'signature_qr' atau 'qr_only') --}}
+                                        <div class="w-16 h-16 shrink-0 p-1 bg-white border border-slate-300 rounded-md flex items-center justify-center shadow-2xs"
+                                             x-show="signatureType === 'signature_qr' || signatureType === 'qr_only'">
+                                            <div class="w-full h-full flex items-center justify-center">
                                                 {!! $qrSvg !!}
                                             </div>
-                                            <span class="text-[9px] font-extrabold text-[#8F0A0D] tracking-wider mt-1 uppercase">VERIFIED</span>
-                                            <span class="text-[8px] text-slate-400 font-mono">{{ $user->signature_qr_token }}</span>
                                         </div>
+
+                                        {{-- 2. Framed Digital Signed Box (Persis Gambar Referensi User) --}}
+                                        <div class="relative px-3 pt-2 pb-1.5 border border-slate-700 bg-white rounded-md min-w-[150px] min-h-[64px] flex flex-col justify-between shadow-2xs"
+                                             x-show="signatureType === 'signature_qr' || signatureType === 'signature_only'">
+                                            {{-- Top Label: digitally signed --}}
+                                            <div class="absolute -top-2 left-2 px-1 bg-white text-[8.5px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                <span>digitally signed</span>
+                                            </div>
+
+                                            {{-- Signature Stroke in Center --}}
+                                            <div class="flex-1 flex items-center justify-center my-0.5 min-h-[36px]">
+                                                <template x-if="previewSignatureData">
+                                                    <img :src="previewSignatureData" alt="Tanda Tangan" class="max-h-10 max-w-[130px] object-contain filter drop-shadow-2xs">
+                                                </template>
+                                                <template x-if="!previewSignatureData">
+                                                    <div class="text-[11px] text-slate-400 font-medium italic py-1 text-center">
+                                                        Belum ada tanda tangan
+                                                    </div>
+                                                </template>
+                                            </div>
+
+                                            {{-- Bottom Verification Token / Link --}}
+                                            <div class="text-[8px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5">
+                                                dsign.ipnet.id/{{ $user->signature_qr_token }}
+                                            </div>
+                                        </div>
+
                                     </div>
 
-                                    <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
-                                        <span>PT IP Network Solusindo</span>
-                                        <span>Token: <strong class="text-slate-600 font-mono">{{ $user->signature_qr_token }}</strong></span>
+                                    <div class="w-full mt-4 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                                        <span>Penandatangan: <strong class="text-slate-700">{{ $user->name }}</strong></span>
+                                        <span>Format: <strong class="text-[#8F0A0D]" x-text="signatureType === 'signature_qr' ? 'TTD + QR' : (signatureType === 'signature_only' ? 'TTD Saja' : 'QR Saja')"></strong></span>
                                     </div>
                                 </div>
 

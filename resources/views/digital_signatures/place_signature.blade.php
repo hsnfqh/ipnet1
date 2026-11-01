@@ -119,6 +119,19 @@
                 <span>Tanda Tangan</span>
             </button>
 
+            <!-- Pilihan Format Stempel TTD (Persis Referensi IPNet) -->
+            <div class="flex items-center bg-white rounded-lg p-0.5 border border-slate-200 text-xs shadow-2xs gap-0.5">
+                <button type="button" id="btnSigModeQr" onclick="window.setStampMode('signature_qr')" class="px-2 py-1 rounded text-[11px] font-bold bg-[#8F0A0D] text-white shadow-2xs transition cursor-pointer">
+                    TTD + QR
+                </button>
+                <button type="button" id="btnSigModeSigOnly" onclick="window.setStampMode('signature_only')" class="px-2 py-1 rounded text-[11px] font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                    TTD Saja
+                </button>
+                <button type="button" id="btnSigModeQrOnly" onclick="window.setStampMode('qr_only')" class="px-2 py-1 rounded text-[11px] font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                    QR Saja
+                </button>
+            </div>
+
             <!-- Tombol Hapus (Rose Border) -->
             <button type="button" id="btnDeleteSignature" 
                     class="px-3 py-1.5 rounded-lg bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
@@ -283,8 +296,10 @@
         let baseViewportHeight = 0;
 
         // State Tanda Tangan
-        let userSignatureDataUrl = null; // Base64 transparent PNG
-        let userSignatureAspectRatio = 2.2; // Rasio aspek goresan tanda tangan
+        let rawSignatureStroke = @json($user->signature_data);
+        let currentStampMode = @json($user->signature_type ?: 'signature_qr');
+        let userSignatureDataUrl = null; // Base64 transparent PNG stempel (persis referensi resmi IPNet)
+        let userSignatureAspectRatio = (currentStampMode === 'signature_qr') ? 2.6 : ((currentStampMode === 'qr_only') ? 1.0 : 1.6);
         let placedSignature = null; // { page, xPercent, yPercent, widthPercent, heightPercent }
         let isDragging = false;
         let isResizing = false;
@@ -294,6 +309,154 @@
         let initialBoxTop = 0;
         let initialBoxWidth = 0;
         let initialBoxHeight = 0;
+
+        // Fungsi membuat stempel digital resmi persis layout referensi IPNet
+        async function createStampImage(strokeDataUrl, mode = 'signature_qr') {
+            const stampCanvas = document.createElement('canvas');
+            const qrDataUri = @json($user->signature_qr_data_uri);
+            const token = @json($user->signature_qr_token ?: 'IPNET-VERIFIED');
+            const signerName = @json($user->name);
+
+            let cWidth = 340;
+            let cHeight = 130;
+            if (mode === 'signature_only') {
+                cWidth = 200;
+            } else if (mode === 'qr_only') {
+                cWidth = 130;
+            }
+
+            stampCanvas.width = cWidth * 2;
+            stampCanvas.height = cHeight * 2;
+            const sCtx = stampCanvas.getContext('2d');
+            sCtx.scale(2, 2);
+
+            function loadImg(src) {
+                return new Promise((resolve) => {
+                    if (!src) return resolve(null);
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => resolve(img);
+                    img.onerror = () => resolve(null);
+                    img.src = src;
+                });
+            }
+
+            const [qrImg, sigImg] = await Promise.all([
+                loadImg(qrDataUri),
+                loadImg(strokeDataUrl)
+            ]);
+
+            let boxLeft = 10;
+            if (mode === 'signature_qr' || mode === 'qr_only') {
+                if (qrImg) {
+                    sCtx.drawImage(qrImg, 10, 15, 100, 100);
+                } else {
+                    sCtx.strokeStyle = '#64748B';
+                    sCtx.strokeRect(10, 15, 100, 100);
+                    sCtx.font = '10px monospace';
+                    sCtx.fillStyle = '#64748B';
+                    sCtx.fillText('QR CODE', 35, 70);
+                }
+                boxLeft = 125;
+            }
+
+            if (mode === 'signature_qr' || mode === 'signature_only') {
+                const boxX = (mode === 'signature_only') ? 10 : boxLeft;
+                const boxY = 15;
+                const boxW = (mode === 'signature_only') ? 180 : 200;
+                const boxH = 100;
+
+                // Border kotak
+                sCtx.strokeStyle = '#1E293B';
+                sCtx.lineWidth = 1.5;
+                sCtx.strokeRect(boxX, boxY, boxW, boxH);
+
+                // Top badge "digitally signed"
+                sCtx.fillStyle = '#FFFFFF';
+                sCtx.fillRect(boxX + 12, boxY - 7, 85, 14);
+                sCtx.fillStyle = '#8F0A0D';
+                sCtx.beginPath();
+                sCtx.arc(boxX + 18, boxY, 3, 0, Math.PI * 2);
+                sCtx.fill();
+                sCtx.fillStyle = '#1E293B';
+                sCtx.font = 'bold 9px monospace';
+                sCtx.fillText('digitally signed', boxX + 25, boxY + 3);
+
+                // Goresan TTD
+                if (sigImg) {
+                    const maxSigW = boxW - 24;
+                    const maxSigH = 55;
+                    const ratio = Math.min(maxSigW / sigImg.width, maxSigH / sigImg.height);
+                    const drawW = sigImg.width * ratio;
+                    const drawH = sigImg.height * ratio;
+                    const drawX = boxX + (boxW - drawW) / 2;
+                    const drawY = boxY + 22 + (maxSigH - drawH) / 2;
+                    sCtx.drawImage(sigImg, drawX, drawY, drawW, drawH);
+                } else {
+                    sCtx.font = 'italic bold 15px serif';
+                    sCtx.fillStyle = '#1E293B';
+                    sCtx.textAlign = 'center';
+                    sCtx.fillText(signerName, boxX + boxW / 2, boxY + 55);
+                    sCtx.textAlign = 'start';
+                }
+
+                // Bottom link token
+                sCtx.fillStyle = '#FFFFFF';
+                sCtx.fillRect(boxX + 15, boxY + boxH - 7, boxW - 30, 14);
+                sCtx.font = '8px monospace';
+                sCtx.fillStyle = '#64748B';
+                sCtx.textAlign = 'center';
+                sCtx.fillText('dsign.ipnet.id/' + token, boxX + boxW / 2, boxY + boxH + 3);
+                sCtx.textAlign = 'start';
+            }
+
+            return stampCanvas.toDataURL('image/png');
+        }
+
+        window.setStampMode = async function(mode) {
+            currentStampMode = mode;
+            const btnQr = document.getElementById('btnSigModeQr');
+            const btnSig = document.getElementById('btnSigModeSigOnly');
+            const btnQrOnly = document.getElementById('btnSigModeQrOnly');
+
+            const activeCls = ['bg-[#8F0A0D]', 'text-white', 'shadow-2xs'];
+            const idleCls = ['text-slate-600', 'hover:text-slate-900'];
+
+            [btnQr, btnSig, btnQrOnly].forEach(b => {
+                if (!b) return;
+                activeCls.forEach(c => b.classList.remove(c));
+                idleCls.forEach(c => b.classList.remove(c));
+            });
+
+            if (mode === 'signature_qr' && btnQr) {
+                activeCls.forEach(c => btnQr.classList.add(c));
+                if (btnSig) idleCls.forEach(c => btnSig.classList.add(c));
+                if (btnQrOnly) idleCls.forEach(c => btnQrOnly.classList.add(c));
+            } else if (mode === 'signature_only' && btnSig) {
+                activeCls.forEach(c => btnSig.classList.add(c));
+                if (btnQr) idleCls.forEach(c => btnQr.classList.add(c));
+                if (btnQrOnly) idleCls.forEach(c => btnQrOnly.classList.add(c));
+            } else if (mode === 'qr_only' && btnQrOnly) {
+                activeCls.forEach(c => btnQrOnly.classList.add(c));
+                if (btnQr) idleCls.forEach(c => btnQr.classList.add(c));
+                if (btnSig) idleCls.forEach(c => btnSig.classList.add(c));
+            }
+
+            userSignatureAspectRatio = (mode === 'signature_qr') ? 2.6 : ((mode === 'qr_only') ? 1.0 : 1.6);
+            if (rawSignatureStroke || mode === 'qr_only') {
+                userSignatureDataUrl = await createStampImage(rawSignatureStroke, mode);
+                if (placedSignature) {
+                    placedImg.src = userSignatureDataUrl;
+                    const currentWidth = parseFloat(pdfCanvas.style.width);
+                    const currentHeight = parseFloat(pdfCanvas.style.height);
+                    const targetPixelWidth = Math.min(180, currentWidth * 0.28);
+                    const targetPixelHeight = targetPixelWidth / userSignatureAspectRatio;
+                    placedSignature.widthPercent = (targetPixelWidth / currentWidth) * 100;
+                    placedSignature.heightPercent = (targetPixelHeight / currentHeight) * 100;
+                    updateSignatureBoxVisibility();
+                }
+            }
+        };
 
         // Auto-Crop White Space transparan agar batas kotak 100% presisi dengan tinta tanda tangan
         function cropSignatureCanvas(sourceCanvas) {
@@ -490,9 +653,12 @@
         document.getElementById('btnZoomOut').addEventListener('click', () => setZoom(currentScale - 0.15));
         document.getElementById('btnZoomReset').addEventListener('click', () => setZoom(1.0));
 
-        // Buka Modal Pembuatan Tanda Tangan
-        btnPlaceSignature.addEventListener('click', () => {
-            if (userSignatureDataUrl) {
+        // Buka Modal Pembuatan Tanda Tangan atau langsung tempatkan stempel tersimpan
+        btnPlaceSignature.addEventListener('click', async () => {
+            if (rawSignatureStroke || currentStampMode === 'qr_only') {
+                if (!userSignatureDataUrl) {
+                    userSignatureDataUrl = await createStampImage(rawSignatureStroke, currentStampMode);
+                }
                 placeSignatureOnCurrentPage();
             } else {
                 openSignatureModal();
@@ -565,7 +731,7 @@
         window.addEventListener('touchend', stopDrawing);
 
         // Terapkan tanda tangan dari modal
-        document.getElementById('btnApplyModalSignature').addEventListener('click', () => {
+        document.getElementById('btnApplyModalSignature').addEventListener('click', async () => {
             if (!hasDrawnStroke) {
                 showNotification('warning', 'Tanda Tangan Belum Ada', 'Silakan goreskan tanda tangan Anda pada kanvas terlebih dahulu.');
                 return;
@@ -577,8 +743,8 @@
                 return;
             }
 
-            userSignatureDataUrl = cropped.dataUrl;
-            userSignatureAspectRatio = cropped.ratio;
+            rawSignatureStroke = cropped.dataUrl;
+            userSignatureDataUrl = await createStampImage(rawSignatureStroke, currentStampMode);
             closeSignatureModal();
             placeSignatureOnCurrentPage();
         });

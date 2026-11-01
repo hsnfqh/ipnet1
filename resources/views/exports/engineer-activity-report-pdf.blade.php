@@ -902,20 +902,16 @@
                 <tr>
                     <td class="label-cell" style="padding: 10px 6px;">Engineer / PIC</td>
                     <td style="padding: 10px 6px;"><strong>{{ !empty($msVerifikasi['engineer_name']) ? $msVerifikasi['engineer_name'] : $msEngineer }}</strong></td>
-                    <td class="sig-container" style="padding: 6px; text-align: center;">
+                    <td class="sig-container" style="padding: 4px; text-align: center;">
                         @if(!empty($docSig?->pic_signature))
-                            <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
-                                <tr>
-                                    <td style="border: none; padding: 0 4px; vertical-align: middle;">
-                                        <img src="{{ $docSig->pic_signature }}" alt="TTD Engineer" class="sig-img" style="max-height: 40px; max-width: 90px;">
-                                    </td>
-                                    @if(!empty($docSig->picUser?->signature_qr_data_uri))
-                                    <td style="border: none; padding: 0 2px; vertical-align: middle;">
-                                        <img src="{{ $docSig->picUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
-                                    </td>
-                                    @endif
-                                </tr>
-                            </table>
+                            {!! \App\Helpers\SignatureHelper::render([
+                                'is_pdf'      => true,
+                                'mode'        => $docSig->picUser?->signature_type ?: 'signature_qr',
+                                'signature'   => $docSig->pic_signature,
+                                'token'       => $docSig->picUser?->signature_qr_token ?: ('SIG-' . $activity->id . '-PIC'),
+                                'name'        => !empty($msVerifikasi['engineer_name']) ? $msVerifikasi['engineer_name'] : $msEngineer,
+                                'qr_data_uri' => $docSig->picUser?->signature_qr_data_uri,
+                            ]) !!}
                         @else
                             <div style="font-size: 6.8pt; color: #64748B;">Digital Verified</div>
                         @endif
@@ -924,20 +920,16 @@
                 <tr>
                     <td class="label-cell" style="padding: 10px 6px;">Team Leader / Service Manager</td>
                     <td style="padding: 10px 6px;"><strong>{{ !empty($msVerifikasi['lead_name']) ? $msVerifikasi['lead_name'] : (!empty($rData['ms_identitas']['team_leader']) ? $rData['ms_identitas']['team_leader'] : ($docSig?->lead_name ?? ($docSig?->leadUser?->name ?? '-'))) }}</strong></td>
-                    <td class="sig-container" style="padding: 6px; text-align: center;">
+                    <td class="sig-container" style="padding: 4px; text-align: center;">
                         @if(!empty($docSig?->lead_signature))
-                            <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
-                                <tr>
-                                    <td style="border: none; padding: 0 4px; vertical-align: middle;">
-                                        <img src="{{ $docSig->lead_signature }}" alt="TTD Leader" class="sig-img" style="max-height: 40px; max-width: 90px;">
-                                    </td>
-                                    @if(!empty($docSig->leadUser?->signature_qr_data_uri))
-                                    <td style="border: none; padding: 0 2px; vertical-align: middle;">
-                                        <img src="{{ $docSig->leadUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
-                                    </td>
-                                    @endif
-                                </tr>
-                            </table>
+                            {!! \App\Helpers\SignatureHelper::render([
+                                'is_pdf'      => true,
+                                'mode'        => $docSig->leadUser?->signature_type ?: 'signature_qr',
+                                'signature'   => $docSig->lead_signature,
+                                'token'       => $docSig->leadUser?->signature_qr_token ?: ('SIG-' . $activity->id . '-LEAD'),
+                                'name'        => !empty($msVerifikasi['lead_name']) ? $msVerifikasi['lead_name'] : (!empty($rData['ms_identitas']['team_leader']) ? $rData['ms_identitas']['team_leader'] : ($docSig?->lead_name ?? ($docSig?->leadUser?->name ?? 'Team Leader'))),
+                                'qr_data_uri' => $docSig->leadUser?->signature_qr_data_uri,
+                            ]) !!}
                         @else
                             <div style="font-size: 6.8pt; color: #64748B;">Digital Verified</div>
                         @endif
@@ -1262,20 +1254,16 @@
                 <tr>
                     <td class="label-cell" style="padding: 10px 6px;">Engineer / Shift PIC</td>
                     <td style="padding: 10px 6px;"><strong>{{ $hdEngineer }}</strong></td>
-                    <td class="sig-container" style="padding: 6px; text-align: center;">
+                    <td class="sig-container" style="padding: 4px; text-align: center;">
                         @if(!empty($docSig?->pic_signature))
-                            <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
-                                <tr>
-                                    <td style="border: none; padding: 0 4px; vertical-align: middle;">
-                                        <img src="{{ $docSig->pic_signature }}" alt="TTD PIC" class="sig-img" style="max-height: 40px; max-width: 90px;">
-                                    </td>
-                                    @if(!empty($docSig->picUser?->signature_qr_data_uri))
-                                    <td style="border: none; padding: 0 2px; vertical-align: middle;">
-                                        <img src="{{ $docSig->picUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
-                                    </td>
-                                    @endif
-                                </tr>
-                            </table>
+                            {!! \App\Helpers\SignatureHelper::render([
+                                'is_pdf'      => true,
+                                'mode'        => $docSig->picUser?->signature_type ?: 'signature_qr',
+                                'signature'   => $docSig->pic_signature,
+                                'token'       => $docSig->picUser?->signature_qr_token ?: ('SIG-' . $activity->id . '-HD-PIC'),
+                                'name'        => $hdEngineer,
+                                'qr_data_uri' => $docSig->picUser?->signature_qr_data_uri,
+                            ]) !!}
                         @else
                             <div style="font-size: 6.8pt; color: #64748B;">Digital Verified</div>
                         @endif
@@ -1284,20 +1272,16 @@
                 <tr>
                     <td class="label-cell" style="padding: 10px 6px;">Team Leader</td>
                     <td style="padding: 10px 6px;"><strong>{{ $hdLeader }}</strong></td>
-                    <td class="sig-container" style="padding: 6px; text-align: center;">
+                    <td class="sig-container" style="padding: 4px; text-align: center;">
                         @if(!empty($docSig?->lead_signature))
-                            <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
-                                <tr>
-                                    <td style="border: none; padding: 0 4px; vertical-align: middle;">
-                                        <img src="{{ $docSig->lead_signature }}" alt="TTD Leader" class="sig-img" style="max-height: 40px; max-width: 90px;">
-                                    </td>
-                                    @if(!empty($docSig->leadUser?->signature_qr_data_uri))
-                                    <td style="border: none; padding: 0 2px; vertical-align: middle;">
-                                        <img src="{{ $docSig->leadUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
-                                    </td>
-                                    @endif
-                                </tr>
-                            </table>
+                            {!! \App\Helpers\SignatureHelper::render([
+                                'is_pdf'      => true,
+                                'mode'        => $docSig->leadUser?->signature_type ?: 'signature_qr',
+                                'signature'   => $docSig->lead_signature,
+                                'token'       => $docSig->leadUser?->signature_qr_token ?: ('SIG-' . $activity->id . '-HD-LEAD'),
+                                'name'        => $hdLeader,
+                                'qr_data_uri' => $docSig->leadUser?->signature_qr_data_uri,
+                            ]) !!}
                         @else
                             <div style="font-size: 6.8pt; color: #64748B;">Digital Verified</div>
                         @endif
@@ -1817,24 +1801,16 @@
                 <td class="label-cell">Engineer</td>
                 <td><strong>{{ $picSignerName }}</strong></td>
                 <td class="text-center">{{ $picSignedAt }}</td>
-                <td class="sig-container">
+                <td class="sig-container" style="padding: 4px; text-align: center;">
                     @if(!empty($docSig?->pic_signature))
-                        <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
-                            <tr>
-                                <td style="border: none; padding: 0 4px; vertical-align: middle;">
-                                    <img src="{{ $docSig->pic_signature }}" alt="TTD PIC" class="sig-img" style="max-height: 40px; max-width: 90px;">
-                                </td>
-                                @if(!empty($docSig->picUser?->signature_qr_data_uri))
-                                <td style="border: none; padding: 0 2px; vertical-align: middle;">
-                                    <img src="{{ $docSig->picUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
-                                </td>
-                                @elseif(!empty($qrCodeBase64))
-                                <td style="border: none; padding: 0 2px; vertical-align: middle;">
-                                    <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 32px; width: 32px; display: block;">
-                                </td>
-                                @endif
-                            </tr>
-                        </table>
+                        {!! \App\Helpers\SignatureHelper::render([
+                            'is_pdf'      => true,
+                            'mode'        => $docSig->picUser?->signature_type ?: 'signature_qr',
+                            'signature'   => $docSig->pic_signature,
+                            'token'       => $docSig->picUser?->signature_qr_token ?: ('SIG-' . $activity->id . '-PIC'),
+                            'name'        => $picSignerName,
+                            'qr_data_uri' => $docSig->picUser?->signature_qr_data_uri ?: (!empty($qrCodeBase64) ? $qrCodeBase64 : null),
+                        ]) !!}
                     @elseif(!empty($docSig?->pic_signed_at) && !empty($qrCodeBase64))
                         <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 38px; width: 38px; display: block; margin: 0 auto;">
                     @else
@@ -1847,24 +1823,16 @@
                 <td class="label-cell">Project Manager / Team Leader</td>
                 <td><strong>{{ $leadSignerName }}</strong></td>
                 <td class="text-center">{{ $leadSignedAt }}</td>
-                <td class="sig-container">
+                <td class="sig-container" style="padding: 4px; text-align: center;">
                     @if(!empty($docSig?->lead_signature))
-                        <table style="width: auto; margin: 0 auto; border: none; border-collapse: collapse;">
-                            <tr>
-                                <td style="border: none; padding: 0 4px; vertical-align: middle;">
-                                    <img src="{{ $docSig->lead_signature }}" alt="TTD Lead" class="sig-img" style="max-height: 40px; max-width: 90px;">
-                                </td>
-                                @if(!empty($docSig->leadUser?->signature_qr_data_uri))
-                                <td style="border: none; padding: 0 2px; vertical-align: middle;">
-                                    <img src="{{ $docSig->leadUser->signature_qr_data_uri }}" alt="QR" style="height: 32px; width: 32px; display: block;">
-                                </td>
-                                @elseif(!empty($qrCodeBase64))
-                                <td style="border: none; padding: 0 2px; vertical-align: middle;">
-                                    <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 32px; width: 32px; display: block;">
-                                </td>
-                                @endif
-                            </tr>
-                        </table>
+                        {!! \App\Helpers\SignatureHelper::render([
+                            'is_pdf'      => true,
+                            'mode'        => $docSig->leadUser?->signature_type ?: 'signature_qr',
+                            'signature'   => $docSig->lead_signature,
+                            'token'       => $docSig->leadUser?->signature_qr_token ?: ('SIG-' . $activity->id . '-LEAD'),
+                            'name'        => $leadSignerName,
+                            'qr_data_uri' => $docSig->leadUser?->signature_qr_data_uri ?: (!empty($qrCodeBase64) ? $qrCodeBase64 : null),
+                        ]) !!}
                     @elseif(!empty($qrCodeBase64) && !empty($docSig?->lead_signed_at))
                         <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 38px; width: 38px; display: block; margin: 0 auto;">
                     @else
@@ -1877,9 +1845,15 @@
                 <td class="label-cell">Customer / Site Representative</td>
                 <td><strong>{{ $custSignerName }}</strong></td>
                 <td class="text-center">{{ $custSignedAt }}</td>
-                <td class="sig-container">
+                <td class="sig-container" style="padding: 4px; text-align: center;">
                     @if(!empty($docSig?->head_signature))
-                        <img src="{{ $docSig->head_signature }}" alt="TTD Head/Customer" class="sig-img">
+                        {!! \App\Helpers\SignatureHelper::render([
+                            'is_pdf'      => true,
+                            'mode'        => 'signature_only',
+                            'signature'   => $docSig->head_signature,
+                            'token'       => 'SIG-' . $activity->id . '-CUST',
+                            'name'        => $custSignerName,
+                        ]) !!}
                     @else
                         &nbsp;
                     @endif

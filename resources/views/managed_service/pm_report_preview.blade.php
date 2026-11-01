@@ -209,21 +209,26 @@
                 </p>
             </div>
 
-            {{-- Lembar Tanda Tangan Pengesahan (3 Kolom Proporsional) --}}
+            {{-- Lembar Tanda Tangan Pengesahan (3 Kolom Proporsional - Format Resmi IPNet) --}}
             <div class="pt-3 border-t border-[#CBD5E1]">
                 <p class="text-[10px] font-bold text-[#0F172A] uppercase tracking-wider mb-2.5">Tanda Tangan &amp; Pengesahan Berita Acara Kunjungan:</p>
-                <div class="grid grid-cols-3 gap-3 text-center text-[10.5px]">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-center text-[10.5px]">
                     
                     {{-- 1. Teknisi Pelaksana --}}
-                    <div class="border border-[#CBD5E1] p-2.5 rounded-lg bg-white flex flex-col justify-between">
+                    <div class="border border-[#CBD5E1] p-2.5 rounded-lg bg-white flex flex-col justify-between shadow-2xs">
                         <div>
                             <div class="text-[9.5px] font-bold text-[#64748B] uppercase">Dikerjakan Oleh:</div>
                             <div class="font-bold text-[#0F172A] text-[10.5px] mt-0.5">PIC Managed Service (IPNET)</div>
                         </div>
-                        <div class="py-3">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                &check; Field Verified
-                            </span>
+                        <div class="py-2 flex items-center justify-center">
+                            <x-digital-signature-box 
+                                :mode="$cycle->assignedEngineer?->signature_type ?: 'signature_qr'"
+                                :signature="$cycle->assignedEngineer?->signature_data"
+                                :token="$cycle->assignedEngineer?->signature_qr_token ?: ('PM-ENG-' . $cycle->id)"
+                                :name="$cycle->assignedEngineer?->name ?: 'Eris'"
+                                role="Field Support Engineer"
+                                :date="$cycle->performed_at ? \Carbon\Carbon::parse($cycle->performed_at)->format('d/m/Y') : date('d/m/Y')"
+                            />
                         </div>
                         <div class="border-t border-[#E2E8F0] pt-1.5">
                             <strong class="text-[#8F0A0D] block">{{ $cycle->assignedEngineer?->name ?: 'Eris' }}</strong>
@@ -232,15 +237,19 @@
                     </div>
 
                     {{-- 2. Klien --}}
-                    <div class="border border-[#CBD5E1] p-2.5 rounded-lg bg-white flex flex-col justify-between">
+                    <div class="border border-[#CBD5E1] p-2.5 rounded-lg bg-white flex flex-col justify-between shadow-2xs">
                         <div>
                             <div class="text-[9.5px] font-bold text-[#64748B] uppercase">Disetujui Oleh:</div>
                             <div class="font-bold text-[#0F172A] text-[10.5px] mt-0.5">PIC / Perwakilan Klien</div>
                         </div>
-                        <div class="py-3">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                &check; Client Signed
-                            </span>
+                        <div class="py-2 flex items-center justify-center">
+                            <x-digital-signature-box 
+                                mode="signature_qr"
+                                :token="'PM-CLI-' . $cycle->id"
+                                :name="$project->customer_pic_technical ?: 'Bpk. PIC Lapangan Klien'"
+                                :role="$project->client"
+                                :date="date('d/m/Y')"
+                            />
                         </div>
                         <div class="border-t border-[#E2E8F0] pt-1.5">
                             <strong class="text-[#0F172A] block">{{ $project->customer_pic_technical ?: 'Bpk. PIC Lapangan Klien' }}</strong>
@@ -249,15 +258,19 @@
                     </div>
 
                     {{-- 3. Lead Managed Service --}}
-                    <div class="border border-[#CBD5E1] p-2.5 rounded-lg bg-white flex flex-col justify-between">
+                    <div class="border border-[#CBD5E1] p-2.5 rounded-lg bg-white flex flex-col justify-between shadow-2xs">
                         <div>
                             <div class="text-[9.5px] font-bold text-[#64748B] uppercase">Diketahui Oleh:</div>
                             <div class="font-bold text-[#0F172A] text-[10.5px] mt-0.5">Managed Service Lead</div>
                         </div>
-                        <div class="py-3">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                &check; MS Approved
-                            </span>
+                        <div class="py-2 flex items-center justify-center">
+                            <x-digital-signature-box 
+                                mode="signature_qr"
+                                :token="'MS-LEAD-' . $cycle->id"
+                                name="Doris"
+                                role="Managed Service Coordinator"
+                                :date="date('d/m/Y')"
+                            />
                         </div>
                         <div class="border-t border-[#E2E8F0] pt-1.5">
                             <strong class="text-[#8F0A0D] block">Doris</strong>

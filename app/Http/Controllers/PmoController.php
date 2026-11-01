@@ -1065,6 +1065,7 @@ class PmoController extends Controller
             $pmUser->ensureSignatureQrToken();
         }
 
+        $chosenSigType = $request->input('signature_mode', $request->input('signature_type', $pmUser?->signature_type ?: 'signature_qr'));
         $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $existingHandoverData['pm_signature'] = [
             'signed'     => true,
@@ -1074,7 +1075,7 @@ class PmoController extends Controller
             'signed_at'  => now()->format('Y-m-d H:i:s'),
             'qr_token'   => $pmUser?->signature_qr_token,
             'signature'  => $pmUser?->signature_data,
-            'type'       => $pmUser?->signature_type ?: 'signature_qr',
+            'type'       => $chosenSigType,
         ];
 
         $updateData = [

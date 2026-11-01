@@ -1309,6 +1309,7 @@ class SalesCrmController extends Controller
             $salesUser->ensureSignatureQrToken();
         }
 
+        $chosenSigType = $request->input('signature_mode', $request->input('signature_type', $salesUser?->signature_type ?: 'signature_qr'));
         $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
         $existingHandoverData['sales_signature'] = [
             'signed'     => true,
@@ -1318,7 +1319,7 @@ class SalesCrmController extends Controller
             'signed_at'  => now()->format('Y-m-d H:i:s'),
             'qr_token'   => $salesUser?->signature_qr_token,
             'signature'  => $salesUser?->signature_data,
-            'type'       => $salesUser?->signature_type ?: 'signature_qr',
+            'type'       => $chosenSigType,
         ];
 
         $updateData = [

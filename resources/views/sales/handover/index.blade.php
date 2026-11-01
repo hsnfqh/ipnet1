@@ -705,23 +705,70 @@
                                     </div>
                                 </div>
 
-                                {{-- Pratinjau Tanda Tangan Sales --}}
+                                {{-- Pilihan Format Stempel Tanda Tangan Digital --}}
+                                <input type="hidden" name="signature_type" :value="formSignatureType">
+                                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                    <div class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                                        <span>FORMAT PENGESAHAN DOKUMEN:</span>
+                                    </div>
+                                    <div class="inline-flex rounded-lg bg-white p-0.5 border border-slate-300 shadow-2xs gap-1">
+                                        <button type="button" 
+                                                @click="formSignatureType = 'signature_qr'"
+                                                :class="formSignatureType === 'signature_qr' ? 'bg-[#8F0A0D] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                                                class="px-2.5 py-1 rounded text-[11px] font-bold transition cursor-pointer">
+                                            TTD + QR Code
+                                        </button>
+                                        <button type="button" 
+                                                @click="formSignatureType = 'signature_only'"
+                                                :class="formSignatureType === 'signature_only' ? 'bg-[#8F0A0D] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                                                class="px-2.5 py-1 rounded text-[11px] font-bold transition cursor-pointer">
+                                            Tanda Tangan Saja
+                                        </button>
+                                        <button type="button" 
+                                                @click="formSignatureType = 'qr_only'"
+                                                :class="formSignatureType === 'qr_only' ? 'bg-[#8F0A0D] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                                                class="px-2.5 py-1 rounded text-[11px] font-bold transition cursor-pointer">
+                                            QR Code Saja
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Pratinjau Tanda Tangan Sales Sesuai Layout Referensi --}}
                                 @if(auth()->user()->has_signature)
-                                <div class="flex items-center justify-between p-3 rounded-lg bg-[#F8FAFC] border border-slate-200">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-lg bg-[#F8FAFC] border border-slate-200 gap-3">
                                     <div class="flex items-center gap-3">
-                                        <div class="h-12 w-28 bg-white border border-slate-200 rounded p-1 flex items-center justify-center">
-                                            <img src="{{ auth()->user()->signature_data }}" alt="Tanda Tangan" class="max-h-10 max-w-full object-contain filter drop-shadow-2xs">
+                                        {{-- Widget Stampel Dinamis --}}
+                                        <div class="inline-flex items-center gap-2 select-none text-left align-middle bg-white p-1 rounded-md border border-slate-200 shadow-2xs">
+                                            {{-- QR Code Box --}}
+                                            <div x-show="formSignatureType === 'signature_qr' || formSignatureType === 'qr_only'" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
+                                                {!! auth()->user()->signature_qr_svg !!}
+                                            </div>
+                                            {{-- Framed Stroke Box --}}
+                                            <div x-show="formSignatureType === 'signature_qr' || formSignatureType === 'signature_only'" class="relative px-2.5 pt-2 pb-1 border border-slate-700 bg-white rounded min-w-[130px] max-w-[160px] min-h-[54px] flex flex-col justify-between shadow-2xs">
+                                                <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7.5px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                    <span>digitally signed</span>
+                                                </div>
+                                                <div class="flex-1 flex items-center justify-center my-0.5 min-h-[28px]">
+                                                    <img src="{{ auth()->user()->signature_data }}" alt="Tanda Tangan" class="max-h-7 max-w-[105px] object-contain filter drop-shadow-2xs">
+                                                </div>
+                                                <div class="text-[7px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
+                                                    dsign.ipnet.id/{{ auth()->user()->signature_qr_token }}
+                                                </div>
+                                            </div>
                                         </div>
+
                                         <div>
                                             <div class="flex items-center gap-1.5">
                                                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                                <span class="text-[11.5px] font-bold text-emerald-700">Tanda Tangan Tersimpan Siap Digunakan</span>
+                                                <span class="text-[11.5px] font-bold text-emerald-700">Tanda Tangan Terverifikasi &amp; Siap Dibubuhkan</span>
                                             </div>
-                                            <p class="text-[10.5px] text-slate-500 font-mono mt-0.5">Token: {{ auth()->user()->signature_qr_token }}</p>
+                                            <p class="text-[10px] text-slate-500 font-mono mt-0.5">Token Audit: <span class="text-[#8F0A0D] font-bold">{{ auth()->user()->signature_qr_token }}</span></p>
                                         </div>
                                     </div>
                                     <a href="{{ route('settings.index') }}#signature" target="_blank" class="text-[11px] font-bold text-[#8F0A0D] hover:underline shrink-0">
-                                        Ubah di Settings &rarr;
+                                        Atur di Settings &rarr;
                                     </a>
                                 </div>
                                 @else
@@ -805,6 +852,7 @@
             formMaintFreq: 'Monthly',
             formServiceStart: '',
             formServiceEnd: '',
+            formSignatureType: '{{ auth()->user()->signature_type ?: "signature_qr" }}',
 
             toggleFormTarget(val) {
                 if (this.formTargets.includes(val)) {
