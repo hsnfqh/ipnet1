@@ -160,7 +160,7 @@
             </div>
             @endif
 
-            {{-- ══ SECTION 2: 3 SUMMARY CARDS RAPI & SEIMBANG (FULL WIDTH) ══ --}}
+            {{-- ══ SECTION 2: 3 SUMMARY CARDS RAPI & SEIMBANG (WARNA SERAGAM MERAH IPNET) ══ --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 anim-fade-up anim-delay-1">
                 {{-- Card 1: Profil Pengguna --}}
                 <div class="ipnet-card p-5 flex items-center justify-between">
@@ -180,10 +180,10 @@
                 <div class="ipnet-card p-5 flex items-center justify-between">
                     <div class="min-w-0 pr-3">
                         <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Keamanan &amp; Akses</p>
-                        <h3 class="text-[17px] font-bold text-[#2563EB] mt-1">Terproteksi</h3>
+                        <h3 class="text-[17px] font-bold text-[#1E293B] mt-1">Terproteksi</h3>
                         <p class="text-[12px] text-[#94A3B8] mt-0.5">Enkripsi Kata Sandi Bcrypt Aktif</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#2563EB] shadow-xs shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#8F0A0D] shadow-xs shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                         </svg>
@@ -194,14 +194,14 @@
                 <div class="ipnet-card p-5 flex items-center justify-between">
                     <div class="min-w-0 pr-3">
                         <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Tanda Tangan Digital</p>
-                        <h3 class="text-[17px] font-bold mt-1 {{ $user->has_signature ? 'text-[#16A34A]' : 'text-[#D97706]' }}">
+                        <h3 class="text-[17px] font-bold text-[#1E293B] mt-1">
                             {{ $user->has_signature ? 'Tersimpan' : 'Belum Diatur' }}
                         </h3>
                         <p class="text-[12px] text-[#94A3B8] mt-0.5 truncate">
                             {{ $user->has_signature ? 'Siap digunakan pada BA / SPK' : 'Diperlukan untuk stempel otomatis' }}
                         </p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl {{ $user->has_signature ? 'bg-[#F0FDF4] border-[#BBF7D0] text-[#16A34A]' : 'bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]' }} border flex items-center justify-center shadow-xs shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#8F0A0D] shadow-xs shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                         </svg>
@@ -422,7 +422,7 @@
                         <div class="lg:col-span-5 space-y-4">
                             <div class="p-6 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-4">
                                 <div class="flex items-center gap-2.5 pb-3 border-b border-[#E2E8F0]">
-                                    <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                    <div class="w-8 h-8 rounded-xl bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                                     </div>
                                     <h4 class="text-[13.5px] font-bold text-[#1E293B]">Standar Keamanan Kata Sandi</h4>
