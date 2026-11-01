@@ -207,6 +207,16 @@
                                 !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $userRoles))
                             );
                         @endphp
+                        {{-- Quick Link to Commercial Handover --}}
+                        <a href="{{ route('sales.handover.index') }}"
+                           class="px-3.5 py-2.5 rounded-xl font-bold text-[12.5px] bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 flex items-center gap-2 cursor-pointer shadow-xs hover:border-[#8F0A0D] hover:text-[#8F0A0D] transition-all no-underline"
+                           title="Serah Terima Proyek ke PMO / Managed Service">
+                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            <span>Handover Proyek</span>
+                        </a>
+
                         @if($canCreateProject)
                         {{-- Add New Project (Red) --}}
                         <a href="{{ route('sales.pipeline.create') }}"
