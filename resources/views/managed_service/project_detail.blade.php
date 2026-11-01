@@ -224,6 +224,58 @@
                         <p class="text-[11.5px] text-[#64748B]">Support Standby {{ $project->sla_coverage_hours ?: '24x7' }}</p>
                     </div>
                 </div>
+
+                <!-- TEAM & ENGINEER DELEGATION INFO BANNER -->
+                @php
+                    $assignedEngs = $project->handover_data['assigned_engineers'] ?? [];
+                    $delegatedBy = $project->handover_data['team_delegated_by_name'] ?? 'Lead Engineer';
+                    $delegatedAt = $project->handover_data['team_delegated_at'] ?? null;
+                    $delegationNotes = $project->handover_data['team_delegation_notes'] ?? null;
+                @endphp
+                @if(!empty($assignedEngs))
+                    <div class="p-3.5 rounded-xl bg-gradient-to-r from-emerald-50/80 to-slate-50 border border-emerald-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Personil Tim Lapangan</span>
+                                    <span class="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300/60">Ditugaskan oleh {{ $delegatedBy }}</span>
+                                    @if($delegatedAt)
+                                        <span class="text-[10.5px] text-slate-500 font-normal">({{ $delegatedAt }})</span>
+                                    @endif
+                                </div>
+                                <div class="flex items-center gap-2.5 mt-1 flex-wrap">
+                                    @foreach($assignedEngs as $idx => $eng)
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200/90 shadow-2xs">
+                                            <span class="w-2 h-2 rounded-full {{ $idx === 0 ? 'bg-emerald-500' : 'bg-blue-500' }}"></span>
+                                            <span class="font-bold text-slate-800 text-xs">{{ $eng['name'] }}</span>
+                                            <span class="text-[10.5px] text-slate-500 font-medium">({{ $eng['role'] ?? ($idx === 0 ? 'PIC Utama' : 'Pendamping') }})</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @if($delegationNotes)
+                                    <p class="text-[11px] text-slate-600 mt-1 italic font-normal">
+                                        <span class="font-semibold text-slate-700">Catatan Lead:</span> "{{ $delegationNotes }}"
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+                        <a href="{{ route('schedules.index') }}" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-800 bg-white hover:bg-emerald-100 border border-emerald-300 transition shadow-2xs flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>Lihat di Jadwal Kerja</span>
+                        </a>
+                    </div>
+                @else
+                    <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200 flex items-center justify-between gap-3 mt-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                            <span class="text-xs font-semibold text-amber-900">Menunggu Delegasi Personil Lapangan dari Lead Engineer</span>
+                        </div>
+                        <span class="text-[11px] text-amber-800 font-medium">Lead Engineer dapat menugaskan teknisi via Dashboard Lead</span>
+                    </div>
+                @endif
             </div>
 
             <!-- ========================================================== -->

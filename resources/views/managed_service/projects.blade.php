@@ -228,13 +228,24 @@
                                             </div>
                                         </td>
 
-                                        {{-- Client & Sales --}}
+                                        {{-- Client & Sales / Teknisi --}}
                                         <td class="py-3 px-4">
                                             <div class="font-medium text-[#334155] text-[13px]">{{ $p->client }}</div>
-                                            <div class="text-[11.5px] text-[#64748B] flex items-center gap-1.5 mt-0.5">
+                                            <div class="text-[11px] text-[#64748B] flex items-center gap-1.5 mt-0.5">
                                                 <span class="text-[#94A3B8]">Sales:</span>
                                                 <span class="text-[#475569]">{{ $p->sales_name ?: ($p->creator?->name ?: '-') }}</span>
                                             </div>
+                                            @php
+                                                $assignedEngs = $p->handover_data['assigned_engineers'] ?? [];
+                                            @endphp
+                                            @if(!empty($assignedEngs))
+                                                <div class="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 mt-1">
+                                                    <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                    <span class="truncate max-w-[150px]" title="{{ implode(', ', array_column($assignedEngs, 'name')) }}">
+                                                        Teknisi: {{ $assignedEngs[0]['name'] }}{{ count($assignedEngs) > 1 ? ' +' . (count($assignedEngs)-1) : '' }}
+                                                    </span>
+                                                </div>
+                                            @endif
                                         </td>
 
                                         {{-- Lokasi --}}
