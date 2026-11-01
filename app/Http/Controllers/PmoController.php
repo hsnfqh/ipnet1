@@ -114,6 +114,7 @@ class PmoController extends Controller
      */
     public function projectDashboard(Project $project)
     {
+        $authUser = auth()->user();
         $project->load([
             'pm:id,name,email',
             'division:id,name',

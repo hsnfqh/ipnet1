@@ -1474,6 +1474,8 @@ class ManagedServiceController extends Controller
                         'sla_coverage_hours'    => '24x7',
                         'service_start_date'    => now()->startOfMonth()->toDateString(),
                         'service_end_date'      => now()->addYear()->endOfMonth()->toDateString(),
+                        'start_date'            => now()->startOfMonth()->toDateString(),
+                        'deadline'              => now()->addYear()->endOfMonth()->toDateString(),
                         'location'              => 'Menara BCA Lt. 18, Jl. MH Thamrin No. 1, Jakarta Pusat',
                         'created_by'            => $salesUser?->id ?: 1,
                         'commercial_handover_by'=> $salesUser?->id ?: 1,

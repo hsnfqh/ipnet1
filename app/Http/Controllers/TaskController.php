@@ -372,14 +372,12 @@ class TaskController extends Controller
         $isLead = ScopeHelper::canManageTasks($user);
 
         // Hak kendali skala persentase progres (hanya PM untuk PM projects, Tim Maintenance untuk MS projects, dan Admin)
-        $isPM = ScopeHelper::isPmo($user) 
-            || $user->hasRole(['Project Manager', 'PMO', 'Admin', 'Super Admin'])
+        $isPM = $user->hasRole(['Project Manager', 'PMO', 'Admin', 'Super Admin', 'Director', 'Direktur'])
             || in_array(strtolower($user->position ?? ''), ['pm', 'project manager', 'pmo', 'admin'])
             || ($task->project && (int)$task->project->pm_id === (int)$user->id);
 
-        $isMS = ScopeHelper::isMaintenance($user)
-            || $user->hasRole(['Managed Service', 'Lead Maintenance', 'Maintenance', 'Admin', 'Super Admin', 'Team Leader'])
-            || in_array(strtolower($user->position ?? ''), ['managed service', 'lead maintenance', 'maintenance', 'admin', 'helpdesk'])
+        $isMS = $user->hasRole(['Managed Service', 'Lead Maintenance', 'Admin', 'Super Admin', 'Director', 'Direktur'])
+            || in_array(strtolower($user->position ?? ''), ['managed service', 'lead maintenance', 'helpdesk', 'coordinator maintenance'])
             || ($task->project && (int)$task->project->ms_accepted_by === (int)$user->id);
 
         $canUpdateProgressScale = $isPM || $isMS;
@@ -524,8 +522,8 @@ class TaskController extends Controller
         $fieldsToFill = array_filter($validated, fn($v, $k) => $k !== 'doc_file' && $v !== null, ARRAY_FILTER_USE_BOTH);
         $task->fill($fieldsToFill);
 
-        // Auto progress defaults if status changed without explicit progress slider update
-        if (isset($validated['status'])) {
+        // Auto progress defaults if status changed without explicit progress slider update (hanya jika diubah oleh PM / Tim Maintenance)
+        if ($canUpdateProgressScale && isset($validated['status'])) {
             if ($validated['status'] === 'Completed') {
                 $task->progress = 100;
             } elseif ($validated['status'] === 'In Progress' && (!isset($validated['progress']) || $validated['progress'] === 0)) {
