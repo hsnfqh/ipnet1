@@ -747,33 +747,38 @@ class PmoController extends Controller
         ->where('name', 'not like', '%Meeting%')
         ->where('name', 'not like', '%- On Going Project%')
         ->where('name', 'not like', '%- Closed Project%')
-        // Kecualikan proyek yang murni Managed Service / Pemeliharaan SLA (karena itu ranah modul Managed Service)
+        // Kecualikan proyek yang murni Managed Service / Pemeliharaan SLA (tetap pertahankan arsip proyek PMO yang diserahterimakan ke MS)
         ->where(function($q) {
             $q->whereNull('handover_target')
               ->orWhere('handover_target', '!=', 'managed_service')
-              ->orWhere('handover_target', 'both');
+              ->orWhere('handover_target', 'both')
+              ->orWhereNotNull('ms_handover_status');
         })
         ->where(function($q) {
             $q->where('project_type', 'not like', '%Managed Service%')
               ->orWhere('handover_target', 'both')
+              ->orWhereNotNull('ms_handover_status')
               ->orWhereNull('project_type');
         })
         ->where(function($q) {
             $q->where('name', 'not like', '%Managed Service%')
-              ->orWhere('handover_target', 'both');
+              ->orWhere('handover_target', 'both')
+              ->orWhereNotNull('ms_handover_status');
         })
         ->where(function($q) {
             $q->where('sales_name', 'like', '%Nabylla%')
               ->orWhere('sales_name', 'like', '%Raiza%')
               ->orWhereNotNull('sales_name')
               ->orWhere('sales_stage', 'Closed Won')
-              ->orWhere('status', 'In Progress');
+              ->orWhere('status', 'In Progress')
+              ->orWhereNotNull('ms_handover_status');
         })
         ->where(function($q) {
-            $q->whereIn('stage', ['Deliver'])
+            $q->whereIn('stage', ['Deliver', 'Operate', 'Completed'])
               ->orWhereIn('handover_status', ['Submitted', 'Conditional', 'Approved'])
+              ->orWhereNotNull('ms_handover_status')
               ->orWhere('sales_stage', 'Closed Won')
-              ->orWhereIn('status', ['In Progress', 'On Progress']);
+              ->orWhereIn('status', ['In Progress', 'On Progress', 'Active']);
         });
 
         // Filter divisi jika dipilih
@@ -1380,7 +1385,7 @@ class PmoController extends Controller
         $project->update([
             'stage'                 => 'Operate',
             'status'                => 'Active',
-            'handover_target'       => 'managed_service',
+            'handover_target'       => 'both',
             'sla_tier'              => $slaTier,
             'maintenance_frequency' => $maintFreq,
             'sla_coverage_hours'    => $coverage,
