@@ -1,33 +1,3 @@
-<!-- ========================================================== -->
-<!-- 1. OFFICIAL IPNET SECTION HEADER: HANDOVER                  -->
-<!-- ========================================================== -->
-<div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
-        <div>
-            <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                <span class="ipnet-badge-dot"></span> SERAH TERIMA &amp; HANDOVER PROYEK
-            </p>
-            <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Commercial Handover to Technical Teams</h2>
-            <p class="text-[13px] text-[#64748B] mt-0.5">Penyerahan kontrak deal Closed Won dari Sales ke tim PMO / Implementasi dan Managed Service</p>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-3 shrink-0">
-            <div class="px-3.5 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[12.5px] font-bold text-[#1E293B] flex items-center gap-2 shadow-2xs">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>
-                <span>{{ $totalHandoverCount ?? 0 }} Kontrak Closed Deal</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick info bar -->
-    <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748B] bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0]">
-        <div class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-[#8F0A0D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>Setiap proyek <strong>Closed Won</strong> dapat langsung diproses serah terima dengan melampirkan berkas PO/SPK, menentukan SLA, serta Berita Acara (BAST).</span>
-        </div>
-    </div>
-</div>
-
 {{-- 3 SUMMARY METRIC CARDS --}}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 anim-fade-up anim-delay-1">
     {{-- Card 1 --}}

@@ -169,39 +169,6 @@
                 </div>
             @endif
 
-            {{-- PRIMARY TAB SWITCHER: PIPELINE & PORTOFOLIO vs SERAH TERIMA / HANDOVER --}}
-            <div class="bg-white rounded-2xl p-1.5 border border-[#E2E8F0] shadow-2xs flex items-center gap-1.5 w-fit anim-fade-up">
-                <button type="button" 
-                        @click="activeSection = 'pipeline'" 
-                        :class="activeSection === 'pipeline' ? 'bg-gradient-to-r from-[#8F0A0D] to-[#B81525] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-50'"
-                        class="px-4 py-2 rounded-xl text-xs sm:text-[13px] transition-all flex items-center gap-2 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                    </svg>
-                    <span>Pipeline &amp; Portofolio Proyek</span>
-                    <span :class="activeSection === 'pipeline' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'" class="px-2 py-0.5 rounded-full text-[10.5px] font-black">
-                        {{ $allProjects->count() }}
-                    </span>
-                </button>
-
-                <button type="button" 
-                        @click="activeSection = 'handover'" 
-                        :class="activeSection === 'handover' ? 'bg-gradient-to-r from-[#8F0A0D] to-[#B81525] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-50'"
-                        class="px-4 py-2 rounded-xl text-xs sm:text-[13px] transition-all flex items-center gap-2 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                    </svg>
-                    <span>Serah Terima / Handover Proyek</span>
-                    @if(($totalHandoverCount ?? 0) > 0)
-                        <span :class="activeSection === 'handover' ? 'bg-white/20 text-white' : 'bg-red-100 text-[#8F0A0D] border border-red-200'" class="px-2 py-0.5 rounded-full text-[10.5px] font-black">
-                            {{ $totalHandoverCount }}
-                        </span>
-                    @endif
-                </button>
-            </div>
-
-            {{-- 1. SECTION PIPELINE (KANBAN & TABLE VIEW) --}}
-            <div x-show="activeSection === 'pipeline'" class="space-y-5">
             <!-- ========================================================== -->
             <!-- 1. OFFICIAL IPNET SECTION HEADER & ACTION CONTROLS          -->
             <!-- ========================================================== -->
@@ -209,18 +176,23 @@
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> MANAJEMEN PIPELINE &amp; PORTOFOLIO
+                            <span class="ipnet-badge-dot"></span>
+                            <span x-text="activeSection === 'pipeline' ? 'MANAJEMEN PIPELINE & PORTOFOLIO' : 'SERAH TERIMA & HANDOVER PROYEK'">MANAJEMEN PIPELINE &amp; PORTOFOLIO</span>
                         </p>
-                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Project Management &amp; Pipeline Sales</h2>
-                        <p class="text-[13px] text-[#64748B] mt-0.5">Monitoring pergerakan peluang, tahapan persetujuan, dan status pengerjaan proyek integrasi</p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight" x-text="activeSection === 'pipeline' ? 'Project Management & Pipeline Sales' : 'Commercial Handover to Technical Teams'">Project Management &amp; Pipeline Sales</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5" x-text="activeSection === 'pipeline' ? 'Monitoring pergerakan peluang, tahapan persetujuan, dan status pengerjaan proyek integrasi' : 'Penyerahan kontrak deal Closed Won dari Sales ke tim PMO / Implementasi dan Managed Service'">Monitoring pergerakan peluang, tahapan persetujuan, dan status pengerjaan proyek integrasi</p>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3 shrink-0">
-                        {{-- Total Projects Badge --}}
-                        <div class="px-3.5 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[12.5px] font-bold text-[#1E293B] flex items-center gap-2 shadow-2xs">
+                        {{-- Total Projects Badge / Click to return to Pipeline --}}
+                        <button type="button" 
+                                @click="activeSection = 'pipeline'"
+                                :class="activeSection === 'pipeline' ? 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1E293B]' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'"
+                                class="px-3.5 py-2.5 rounded-xl border text-[12.5px] font-bold flex items-center gap-2 shadow-2xs transition-all cursor-pointer"
+                                title="Lihat Pipeline Proyek">
                             <span class="text-[#64748B]">Total Proyek:</span>
                             <span class="text-[#8F0A0D] font-extrabold text-sm">{{ $allProjects->count() }}</span>
-                        </div>
+                        </button>
 
                         @php
                             $authUser = auth()->user();
@@ -240,12 +212,13 @@
                                 !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $userRoles))
                             );
                         @endphp
-                        {{-- Quick Link to Commercial Handover --}}
+                        {{-- Serah Terima Tab / Switcher Button --}}
                         <button type="button"
-                           @click="activeSection = 'handover'"
-                           class="px-3.5 py-2.5 rounded-xl font-bold text-[12.5px] bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 flex items-center gap-2 cursor-pointer shadow-xs hover:border-[#8F0A0D] hover:text-[#8F0A0D] transition-all"
+                           @click="activeSection = (activeSection === 'pipeline' ? 'handover' : 'pipeline')"
+                           :class="activeSection === 'handover' ? 'bg-[#8F0A0D] text-white border-[#8F0A0D] shadow-xs' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 hover:border-[#8F0A0D] hover:text-[#8F0A0D] shadow-2xs'"
+                           class="px-3.5 py-2.5 rounded-xl font-bold text-[12.5px] border flex items-center gap-2 cursor-pointer transition-all"
                            title="Serah Terima Proyek ke PMO / Managed Service">
-                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <svg class="w-4 h-4" :class="activeSection === 'handover' ? 'text-white' : 'text-[#8F0A0D]'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                             </svg>
                             <span>Serah Terima ({{ $totalHandoverCount ?? 0 }})</span>
@@ -265,6 +238,7 @@
                 </div>
 
                 <!-- Filter Controls Toolbar -->
+                <div x-show="activeSection === 'pipeline'">
                 <form method="GET" action="{{ route('sales.pipeline.index') }}" class="flex flex-col sm:flex-row flex-wrap items-center gap-3">
                     {{-- Search Input --}}
                     <div class="relative flex-1 min-w-[240px] w-full sm:w-auto">
@@ -323,7 +297,11 @@
                         </a>
                     @endif
                 </form>
+                </div>
             </div>
+
+            {{-- 1. SECTION PIPELINE (KANBAN & TABLE VIEW) --}}
+            <div x-show="activeSection === 'pipeline'" class="space-y-5">
 
             {{-- 3 SUMMARY METRIC CARDS (TOTAL KONTRAK CLOSED DEAL, PMO DELIVERY, MANAGED SERVICE) --}}
             @php
