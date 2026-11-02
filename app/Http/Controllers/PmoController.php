@@ -637,6 +637,28 @@ class PmoController extends Controller
     }
 
     /**
+     * PM Memperbarui Periode Tanggal Proyek (Start Date & Deadline)
+     */
+    public function updateTimeline(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'deadline'   => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $startDate = Carbon::parse($validated['start_date']);
+        $deadline = Carbon::parse($validated['deadline']);
+
+        $project->start_date = $startDate->format('Y-m-d');
+        $project->deadline = $deadline->format('Y-m-d');
+        $project->save();
+
+        $days = max(1, (int) round($startDate->diffInDays($deadline)) + 1);
+
+        return back()->with('success', "Periode tanggal proyek berhasil diperbarui menjadi {$startDate->format('d M Y')} s/d {$deadline->format('d M Y')} ({$days} Hari)!");
+    }
+
+    /**
      * Penetapan / Perubahan Divisi Pelaksana Proyek oleh PM
      */
     public function assignDivision(Request $request, Project $project)

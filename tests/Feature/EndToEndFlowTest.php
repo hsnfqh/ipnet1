@@ -525,4 +525,37 @@ class EndToEndFlowTest extends TestCase
         $deleteRes->assertSessionHas('success');
         $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
     }
+
+    public function test_pm_can_update_project_timeline(): void
+    {
+        $project = Project::create([
+            'name'           => 'Implementasi Network Test Project Timeline',
+            'client'         => 'PT Test Client',
+            'location'       => 'Bandara IGNR Denpasar, Bali',
+            'sales_name'     => $this->salesUser->name,
+            'created_by'     => $this->salesUser->id,
+            'pm_id'          => $this->pmoUser->id,
+            'division_id'    => $this->techDivision->id,
+            'stage'          => 'Deliver',
+            'status'         => 'In Progress',
+            'process_status' => 'In Progress',
+            'sales_stage'    => 'Closed Won',
+            'start_date'     => '2026-09-21',
+            'deadline'       => '2026-11-16',
+            'progress'       => 19,
+        ]);
+
+        $newStart = '2026-10-01';
+        $newDeadline = '2026-12-15';
+
+        $res = $this->actingAs($this->pmoUser)->post(route('pmo.projects.update_timeline', $project->id), [
+            'start_date' => $newStart,
+            'deadline'   => $newDeadline,
+        ]);
+        $res->assertSessionHas('success');
+
+        $project->refresh();
+        $this->assertEquals($newStart, $project->start_date ? $project->start_date->format('Y-m-d') : null);
+        $this->assertEquals($newDeadline, $project->deadline ? $project->deadline->format('Y-m-d') : null);
+    }
 }
