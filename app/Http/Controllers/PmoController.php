@@ -1343,11 +1343,12 @@ class PmoController extends Controller
             'service_start_date'    => 'nullable|date',
             'service_end_date'      => 'nullable|date',
             'special_notes'         => 'nullable|string',
+            'signature_type'        => 'nullable|string|max:50',
         ]);
 
         $slaTier   = $validated['sla_tier'] ?? ($project->sla_tier ?: 'Gold');
-        $maintFreq = $validated['maintenance_frequency'] ?? ($project->maintenance_frequency ?: 'Monthly');
-        $coverage  = $validated['sla_coverage_hours'] ?? ($project->sla_coverage_hours ?: '24x7');
+        $maintFreq = $validated['maintenance_frequency'] ?? ($project->maintenance_frequency ?: 'Bulanan (Monthly)');
+        $coverage  = $validated['sla_coverage_hours'] ?? ($project->sla_coverage_hours ?: '24x7 Non-Stop');
         $startDate = $validated['service_start_date'] ?? ($project->service_start_date ?: now()->toDateString());
         $endDate   = $validated['service_end_date'] ?? $project->service_end_date;
         $notes     = $validated['special_notes'] ?? ($project->special_notes ?: 'Pekerjaan implementasi telah selesai dan diserahkan ke Managed Service.');
@@ -1365,6 +1366,15 @@ class PmoController extends Controller
             'special_notes'            => $notes,
             'submitted_at'             => now()->toDateTimeString(),
             'submitted_by'             => auth()->id(),
+            'pm_signature'             => [
+                'user_id'              => auth()->id(),
+                'user_name'            => auth()->user() ? auth()->user()->name : 'Project Manager',
+                'user_role'            => 'Project Manager',
+                'signed_at'            => now()->toDateTimeString(),
+                'signature_type'       => $request->input('signature_type', 'signature_qr'),
+                'qr_token'             => auth()->user() ? auth()->user()->signature_qr_token : null,
+                'signature'            => auth()->user() ? auth()->user()->signature_data : null,
+            ],
         ];
 
         $project->update([
