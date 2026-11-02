@@ -1605,14 +1605,14 @@
                 <div class="px-6 py-4 border-t border-[#E2E8F0] bg-white flex items-center justify-between shrink-0 no-print gap-3">
                     <button type="button" 
                             @click="handoverToMsModalOpen = false" 
-                            class="h-9.5 px-4 text-xs font-bold text-slate-600 hover:bg-slate-50 border border-[#CBD5E1] rounded-xl transition cursor-pointer whitespace-nowrap shrink-0">
+                            class="px-4 py-2.5 min-h-[38px] text-xs font-bold text-slate-600 hover:bg-slate-50 border border-[#CBD5E1] rounded-xl transition cursor-pointer whitespace-nowrap shrink-0 inline-flex items-center justify-center">
                         Batal
                     </button>
 
                     <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
                         <template x-if="activeProject">
                             <a :href="'/sales/handover/' + activeProject.id + '/document?type=pm_to_ms'" target="_blank"
-                               class="h-9.5 px-3.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer inline-flex items-center gap-1.5 shadow-2xs whitespace-nowrap shrink-0">
+                               class="px-3.5 py-2.5 min-h-[38px] border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer inline-flex items-center gap-1.5 shadow-2xs whitespace-nowrap shrink-0">
                                 <svg class="w-4 h-4 text-[#8F0A0D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                 <span class="whitespace-nowrap">Lihat BA Resmi (Template 3)</span>
                             </a>
@@ -1620,14 +1620,14 @@
 
                         <button type="button" 
                                 onclick="window.print()" 
-                                class="h-9.5 px-3.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer inline-flex items-center gap-1.5 shadow-2xs whitespace-nowrap shrink-0">
+                                class="px-3.5 py-2.5 min-h-[38px] border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer inline-flex items-center gap-1.5 shadow-2xs whitespace-nowrap shrink-0">
                             <svg class="w-4 h-4 text-slate-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                             <span class="whitespace-nowrap">Cetak Dokumen</span>
                         </button>
 
                         <button type="button" 
                                 @click="submitHandoverToMs()" 
-                                class="h-9.5 px-4.5 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-xs transition cursor-pointer inline-flex items-center gap-1.5 active:scale-95 whitespace-nowrap shrink-0">
+                                class="px-5 py-2.5 min-h-[38px] text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-xs transition cursor-pointer inline-flex items-center gap-2 active:scale-95 whitespace-nowrap shrink-0 leading-normal justify-center">
                             <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             <span class="whitespace-nowrap">Tanda Tangani &amp; Serahkan ke Managed Service</span>
                         </button>
