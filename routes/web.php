@@ -66,12 +66,99 @@ Route::get('/fix-cpanel-deploy', function () {
         $output[] = "=== MIGRATED AND CACHE CLEARED ===";
     } catch (\Throwable $e) {}
     try {
-        app(\App\Http\Controllers\ManagedServiceController::class)->ensureSampleProjectExists();
-        \App\Models\Project::where('name', 'like', 'Managed Service%')->update(['handover_target' => 'managed_service']);
-        \App\Models\Project::where('name', 'not like', 'Managed Service%')->whereNotNull('ms_handover_status')->update(['handover_target' => 'both']);
-        $output[] = "=== MANAGED SERVICE PROJECTS SEED & HEAL SUCCESSFUL ===";
+        // 1. Pastikan Proyek Resmi Angkasa Pura Support Ada & Lengkap
+        $seeder = new \Database\Seeders\AngkasaPuraProjectSeeder();
+        $seeder->run();
+        $output[] = "=== ANGKASA PURA SEEDER SUCCESSFUL ===";
+
+        $apProject = \App\Models\Project::where('name', 'like', '%Angkasa Pura%')
+            ->orWhere('client', 'like', '%Angkasa Pura%')
+            ->first();
+
+        if ($apProject) {
+            $apProject->update([
+                'handover_target'       => 'both',
+                'so_code'               => 'SO-IPNET-0008',
+                'so_number'             => 'SO-IPNET-0008',
+                'sla_tier'              => 'Gold',
+                'sla_coverage_hours'    => '24x7',
+                'maintenance_frequency' => 'Bulanan (Monthly)',
+            ]);
+        }
+
+        // 2. Bersihkan SELURUH data proyek lain selain Angkasa Pura
+        $apId = $apProject ? $apProject->id : 0;
+        
+        $otherProjects = \App\Models\Project::withTrashed()
+            ->where('id', '!=', $apId)
+            ->where('client', 'not like', '%Angkasa Pura%')
+            ->where('name', 'not like', '%Angkasa Pura%')
+            ->get();
+
+        $deletedProjectsCount = 0;
+        foreach ($otherProjects as $other) {
+            $oid = $other->id;
+            \App\Models\Task::where('project_id', $oid)->delete();
+            \App\Models\ProjectDocument::where('project_id', $oid)->delete();
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_expenses')) {
+                \Illuminate\Support\Facades\DB::table('project_expenses')->where('project_id', $oid)->delete();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('timeline_milestones')) {
+                \Illuminate\Support\Facades\DB::table('timeline_milestones')->where('project_id', $oid)->delete();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('sales_activities')) {
+                \Illuminate\Support\Facades\DB::table('sales_activities')->where('project_id', $oid)->delete();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_tickets')) {
+                \Illuminate\Support\Facades\DB::table('managed_service_tickets')->where('project_id', $oid)->delete();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_pm_cycles')) {
+                \Illuminate\Support\Facades\DB::table('managed_service_pm_cycles')->where('project_id', $oid)->delete();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_assets')) {
+                \Illuminate\Support\Facades\DB::table('managed_service_assets')->where('project_id', $oid)->delete();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_document_signatures')) {
+                \Illuminate\Support\Facades\DB::table('activity_document_signatures')->where('project_id', $oid)->delete();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('digital_signature_documents')) {
+                \Illuminate\Support\Facades\DB::table('digital_signature_documents')->where('project_id', $oid)->delete();
+            }
+            $other->forceDelete();
+            $deletedProjectsCount++;
+        }
+
+        // 3. Bersihkan data orphan yang tidak terkait proyek Angkasa Pura
+        \App\Models\Task::where('project_id', '!=', $apId)->delete();
+        \App\Models\ProjectDocument::where('project_id', '!=', $apId)->delete();
+        if (\Illuminate\Support\Facades\Schema::hasTable('project_expenses')) {
+            \Illuminate\Support\Facades\DB::table('project_expenses')->where('project_id', '!=', $apId)->delete();
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('sales_activities')) {
+            \Illuminate\Support\Facades\DB::table('sales_activities')->where('project_id', '!=', $apId)->delete();
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_tickets')) {
+            \Illuminate\Support\Facades\DB::table('managed_service_tickets')->where('project_id', '!=', $apId)->delete();
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_pm_cycles')) {
+            \Illuminate\Support\Facades\DB::table('managed_service_pm_cycles')->where('project_id', '!=', $apId)->delete();
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_assets')) {
+            \Illuminate\Support\Facades\DB::table('managed_service_assets')->where('project_id', '!=', $apId)->delete();
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('clients')) {
+            \Illuminate\Support\Facades\DB::table('clients')->where('name', 'not like', '%Angkasa Pura%')->delete();
+        }
+
+        $output[] = "=== CLEANUP SUCCESSFUL: DELETED $deletedProjectsCount OTHER PROJECTS ===";
+
+        $remainingProjects = \App\Models\Project::all();
+        $output[] = "=== REMAINING ACTIVE PROJECTS ({$remainingProjects->count()}): ===";
+        foreach ($remainingProjects as $rp) {
+            $output[] = "- [ID {$rp->id}] {$rp->name} (Client: {$rp->client}) | Target: {$rp->handover_target} | Stage: {$rp->stage}";
+        }
     } catch (\Throwable $e) {
-        $output[] = "=== MS HEAL ERROR: " . $e->getMessage() . " ===";
+        $output[] = "=== CLEANUP ERROR: " . $e->getMessage() . " on line " . $e->getLine() . " ===";
     }
     return '<pre>' . implode("\n", $output) . '</pre>';
 });

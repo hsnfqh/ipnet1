@@ -12,8 +12,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             DummyUserSeeder::class,
-            PmoDummyProjectsSeeder::class,
-            TechnicalWorkflowScenarioSeeder::class,
             AngkasaPuraProjectSeeder::class,
         ]);
     }
