@@ -1,93 +1,125 @@
+<!-- ========================================================== -->
+<!-- 1. OFFICIAL IPNET SECTION HEADER: HANDOVER                  -->
+<!-- ========================================================== -->
+<div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
+        <div>
+            <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                <span class="ipnet-badge-dot"></span> SERAH TERIMA &amp; HANDOVER PROYEK
+            </p>
+            <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Commercial Handover to Technical Teams</h2>
+            <p class="text-[13px] text-[#64748B] mt-0.5">Penyerahan kontrak deal Closed Won dari Sales ke tim PMO / Implementasi dan Managed Service</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 shrink-0">
+            <div class="px-3.5 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[12.5px] font-bold text-[#1E293B] flex items-center gap-2 shadow-2xs">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>
+                <span>{{ $totalHandoverCount ?? 0 }} Kontrak Closed Deal</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick info bar -->
+    <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748B] bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0]">
+        <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[#8F0A0D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Setiap proyek <strong>Closed Won</strong> dapat langsung diproses serah terima dengan melampirkan berkas PO/SPK, menentukan SLA, serta Berita Acara (BAST).</span>
+        </div>
+    </div>
+</div>
+
 {{-- 3 SUMMARY METRIC CARDS --}}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 anim-fade-up anim-delay-1">
     {{-- Card 1 --}}
     <div class="ipnet-card p-5 flex flex-col justify-between space-y-3">
         <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Total Kontrak Closed Deal</span>
-            <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-100 text-[#8F0A0D] flex items-center justify-center shrink-0">
+            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Total Kontrak Closed Deal</span>
+            <div class="w-9 h-9 rounded-xl bg-red-50 border border-red-100 text-[#8F0A0D] flex items-center justify-center shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
             </div>
         </div>
         <div>
-            <div class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-                {{ $totalHandoverCount ?? $handoverProjects->total() }} <span class="text-xs font-semibold text-gray-400">Kontrak PO</span>
+            <div class="text-2xl sm:text-3xl font-black text-[#1E293B] tracking-tight">
+                {{ $totalHandoverCount ?? $handoverProjects->total() }} <span class="text-xs font-semibold text-[#94A3B8]">Kontrak PO</span>
             </div>
-            <p class="text-[11.5px] text-gray-500 font-medium mt-1">Siap diserahterimakan ke tim teknis</p>
+            <p class="text-[11.5px] text-[#64748B] font-medium mt-1">Siap diserahterimakan ke tim teknis</p>
         </div>
     </div>
 
     {{-- Card 2 --}}
     <div class="ipnet-card p-5 flex flex-col justify-between space-y-3">
         <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">PMO Delivery (Tipe 1)</span>
-            <div class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">PMO Delivery (Tipe 1)</span>
+            <div class="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 flex items-center justify-center shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
             </div>
         </div>
         <div>
-            <div class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-                {{ $pmoTargetCount ?? 0 }} <span class="text-xs font-semibold text-gray-400">Proyek Implementasi</span>
+            <div class="text-2xl sm:text-3xl font-black text-[#1E293B] tracking-tight">
+                {{ $pmoTargetCount ?? 0 }} <span class="text-xs font-semibold text-[#94A3B8]">Proyek Implementasi</span>
             </div>
-            <p class="text-[11.5px] text-gray-500 font-medium mt-1">Tahap Deliver &bull; Instalasi &amp; UAT</p>
+            <p class="text-[11.5px] text-[#64748B] font-medium mt-1">Tahap Deliver &bull; Instalasi &amp; UAT</p>
         </div>
     </div>
 
     {{-- Card 3 --}}
     <div class="ipnet-card p-5 flex flex-col justify-between space-y-3">
         <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Managed Service (Tipe 2)</span>
-            <div class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Managed Service (Tipe 2)</span>
+            <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
             </div>
         </div>
         <div>
-            <div class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-                {{ $msTargetCount ?? 0 }} <span class="text-xs font-semibold text-gray-400">Kontrak Layanan</span>
+            <div class="text-2xl sm:text-3xl font-black text-[#1E293B] tracking-tight">
+                {{ $msTargetCount ?? 0 }} <span class="text-xs font-semibold text-[#94A3B8]">Kontrak Layanan</span>
             </div>
-            <p class="text-[11.5px] text-gray-500 font-medium mt-1">Tahap Operate &bull; Monitoring &amp; SLA</p>
+            <p class="text-[11.5px] text-[#64748B] font-medium mt-1">Tahap Operate &bull; Monitoring &amp; SLA</p>
         </div>
     </div>
 </div>
 
 <!-- Filter & Action Bar -->
-<div class="flex flex-col sm:flex-row sm:flex-wrap sm:justify-between sm:items-center gap-3 anim-fade-up anim-delay-2">
-    <form method="GET" action="{{ route('sales.pipeline.index') }}" class="flex flex-col sm:flex-row flex-wrap gap-2.5 w-full sm:w-auto">
+<div class="ipnet-card p-4 anim-fade-up anim-delay-2">
+    <form method="GET" action="{{ route('sales.pipeline.index') }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <input type="hidden" name="tab" value="handover">
-        <div class="relative">
-            <svg class="w-4 h-4 absolute left-3.5 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <input type="text" 
-                   name="search" 
-                   value="{{ $search ?? '' }}"
-                   placeholder="Cari proyek, klien, nomor PO/SPK..." 
-                   class="w-full sm:w-72 px-3.5 py-2 pl-9 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all shadow-xs">
+        <div class="flex flex-col sm:flex-row flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <div class="relative w-full sm:w-72">
+                <svg class="w-4 h-4 absolute left-3.5 top-3 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" 
+                       name="search" 
+                       value="{{ $search ?? '' }}"
+                       placeholder="Cari proyek, klien, nomor PO/SPK..." 
+                       class="w-full px-3.5 py-2 pl-9 rounded-xl border border-[#CBD5E1] text-xs font-semibold text-[#1E293B] bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all shadow-2xs">
+            </div>
+
+            <select name="target" onchange="this.form.submit()" 
+                    class="w-full sm:w-56 px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs font-semibold text-[#1E293B] bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all cursor-pointer shadow-2xs">
+                <option value="">Semua Tipe Serah Terima</option>
+                <option value="pmo" {{ ($filterHandoverTarget ?? request('target')) === 'pmo' ? 'selected' : '' }}>Tipe 1: Proyek Implementasi (PMO)</option>
+                <option value="managed_service" {{ ($filterHandoverTarget ?? request('target')) === 'managed_service' ? 'selected' : '' }}>Tipe 2: Managed Service (Operate)</option>
+            </select>
+
+            <select name="handover_status" onchange="this.form.submit()" 
+                    class="w-full sm:w-52 px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs font-semibold text-[#1E293B] bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all cursor-pointer shadow-2xs">
+                <option value="">Semua Status Serah Terima</option>
+                <option value="Draft" {{ ($filterHandoverStatus ?? request('handover_status')) == 'Draft' ? 'selected' : '' }}>Draft Handover</option>
+                <option value="Submitted" {{ ($filterHandoverStatus ?? request('handover_status')) == 'Submitted' ? 'selected' : '' }}>Submitted ke Tim Teknis</option>
+                <option value="Approved" {{ ($filterHandoverStatus ?? request('handover_status')) == 'Approved' ? 'selected' : '' }}>Approved / Active</option>
+            </select>
         </div>
-
-        <select name="target" onchange="this.form.submit()" 
-                class="w-full sm:w-56 px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all cursor-pointer shadow-xs">
-            <option value="">Semua Tipe Serah Terima</option>
-            <option value="pmo" {{ ($filterHandoverTarget ?? request('target')) === 'pmo' ? 'selected' : '' }}>Tipe 1: Proyek Implementasi (PMO)</option>
-            <option value="managed_service" {{ ($filterHandoverTarget ?? request('target')) === 'managed_service' ? 'selected' : '' }}>Tipe 2: Managed Service (Operate)</option>
-        </select>
-
-        <select name="handover_status" onchange="this.form.submit()" 
-                class="w-full sm:w-52 px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all cursor-pointer shadow-xs">
-            <option value="">Semua Status Serah Terima</option>
-            <option value="Draft" {{ ($filterHandoverStatus ?? request('handover_status')) == 'Draft' ? 'selected' : '' }}>Draft Handover</option>
-            <option value="Submitted" {{ ($filterHandoverStatus ?? request('handover_status')) == 'Submitted' ? 'selected' : '' }}>Submitted ke Tim Teknis</option>
-            <option value="Approved" {{ ($filterHandoverStatus ?? request('handover_status')) == 'Approved' ? 'selected' : '' }}>Approved / Active</option>
-        </select>
 
         @if(($search ?? '') || ($filterHandoverStatus ?? request('handover_status')) || ($filterHandoverTarget ?? request('target')))
             <a href="{{ route('sales.pipeline.index', ['tab' => 'handover']) }}" 
-               class="px-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-800 self-center">
+               class="px-3 py-2 text-xs font-bold text-[#8F0A0D] hover:underline self-center shrink-0">
                 Reset Filter
             </a>
         @endif
@@ -97,19 +129,19 @@
 {{-- Table Deals Handover --}}
 <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-            <thead class="bg-gray-50 text-gray-500 uppercase text-[10.5px] font-bold">
+        <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] uppercase text-[11px] font-bold">
                 <tr>
-                    <th class="py-3 px-4 rounded-l-lg">Proyek &amp; Klien</th>
-                    <th class="py-3 px-4">Tipe &amp; Target Handover</th>
-                    <th class="py-3 px-4">Nomor &amp; Tanggal PO/SPK</th>
-                    <th class="py-3 px-4 text-right">Nilai Kontrak</th>
-                    <th class="py-3 px-4">Ketentuan SLA / Termin</th>
-                    <th class="py-3 px-4 text-center">Status Handover</th>
-                    <th class="py-3 px-4 rounded-r-lg text-right">Aksi</th>
+                    <th class="py-3.5 px-5">Proyek &amp; Klien</th>
+                    <th class="py-3.5 px-5">Tipe &amp; Target Handover</th>
+                    <th class="py-3.5 px-5">Nomor &amp; Tanggal PO/SPK</th>
+                    <th class="py-3.5 px-5 text-right">Nilai Kontrak</th>
+                    <th class="py-3.5 px-5">Ketentuan SLA / Termin</th>
+                    <th class="py-3.5 px-5 text-center">Status Handover</th>
+                    <th class="py-3.5 px-5 text-right">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100 font-medium text-gray-700">
+            <tbody class="divide-y divide-[#F1F5F9] font-medium text-[#1E293B]">
                 @forelse($handoverProjects as $hp)
                     @php
                         $isMs = ($hp->handover_target === 'managed_service' 
@@ -120,114 +152,118 @@
                         
                         if ($isMs) {
                             $badge = match($hp->ms_handover_status) {
-                                'Accepted'  => ['bg' => '#F0FDF4', 'color' => '#16A34A', 'label' => 'Active di Managed Service'],
-                                'Submitted' => ['bg' => '#F8FAFC', 'color' => '#475569', 'label' => 'Submitted ke MS Lead'],
-                                default     => ['bg' => '#FEFCE8', 'color' => '#CA8A04', 'label' => 'Draft MS Handover'],
+                                'Accepted'  => ['bg' => 'bg-emerald-50 text-emerald-700 border border-emerald-200', 'label' => 'Active di Managed Service'],
+                                'Submitted' => ['bg' => 'bg-slate-100 text-slate-700 border border-slate-200', 'label' => 'Submitted ke MS Lead'],
+                                default     => ['bg' => 'bg-amber-50 text-amber-800 border border-amber-200', 'label' => 'Draft MS Handover'],
                             };
                         } else {
                             $badge = match($hp->commercial_handover_status) {
-                                'Approved'  => ['bg' => '#F0FDF4', 'color' => '#16A34A', 'label' => 'Approved by PMO'],
-                                'Submitted' => ['bg' => '#EFF6FF', 'color' => '#2563EB', 'label' => 'Submitted to Delivery'],
-                                default     => ['bg' => '#FEFCE8', 'color' => '#CA8A04', 'label' => 'Draft Handover'],
+                                'Approved'  => ['bg' => 'bg-emerald-50 text-emerald-700 border border-emerald-200', 'label' => 'Approved by PMO'],
+                                'Submitted' => ['bg' => 'bg-blue-50 text-blue-700 border border-blue-200', 'label' => 'Submitted to Delivery'],
+                                default     => ['bg' => 'bg-amber-50 text-amber-800 border border-amber-200', 'label' => 'Draft Handover'],
                             };
                         }
                     @endphp
-                    <tr class="hover:bg-gray-50/80 transition-colors">
+                    <tr class="hover:bg-[#F8FAFC] transition">
                         {{-- Proyek & Klien --}}
-                        <td class="py-3.5 px-4">
-                            <div class="font-bold text-gray-900 max-w-sm">{{ $hp->name }}</div>
-                            <div class="text-[11px] text-gray-400 font-medium mt-0.5">{{ $hp->client }} &bull; Sales: {{ $hp->sales_name ?: 'Sales' }}</div>
+                        <td class="py-3.5 px-5">
+                            <a href="{{ route('projects.show', $hp->id) }}" class="font-bold text-[#1E293B] hover:text-[#8F0A0D] text-[13px] block">
+                                {{ $hp->name }}
+                            </a>
+                            <div class="text-[11.5px] text-[#64748B] font-medium mt-0.5">
+                                {{ $hp->client }} &bull; Sales: {{ $hp->sales_name ?: 'Sales Team' }}
+                            </div>
                         </td>
 
                         {{-- Tipe & Target Handover --}}
-                        <td class="py-3.5 px-4 whitespace-nowrap">
+                        <td class="py-3.5 px-5 whitespace-nowrap">
                             @if($isMs)
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
                                     <span>Managed Service</span>
                                 </span>
-                                <div class="text-[10.5px] text-gray-500 font-medium mt-0.5">
+                                <div class="text-[11px] text-[#64748B] font-medium mt-0.5">
                                     Tier: {{ $hp->sla_tier ?: 'Gold' }} ({{ $hp->sla_coverage_hours ?: '24x7' }})
                                 </div>
                             @else
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
                                     <span>Proyek Implementasi</span>
                                 </span>
-                                <div class="text-[10.5px] text-gray-500 font-medium mt-0.5">
+                                <div class="text-[11px] text-[#64748B] font-medium mt-0.5">
                                     Target: PMO &amp; Delivery Team
                                 </div>
                             @endif
                         </td>
 
                         {{-- Nomor PO / SPK --}}
-                        <td class="py-3.5 px-4 whitespace-nowrap">
+                        <td class="py-3.5 px-5 whitespace-nowrap">
                             @if($hp->po_spk_number)
-                                <div class="font-mono font-bold text-gray-900">{{ $hp->po_spk_number }}</div>
-                                <div class="text-[11px] text-gray-400">{{ $hp->po_spk_date ? \Carbon\Carbon::parse($hp->po_spk_date)->format('d M Y') : '—' }}</div>
+                                <div class="font-mono font-bold text-[#1E293B] text-[12px]">{{ $hp->po_spk_number }}</div>
+                                <div class="text-[11px] text-[#64748B]">{{ $hp->po_spk_date ? \Carbon\Carbon::parse($hp->po_spk_date)->format('d M Y') : '—' }}</div>
                             @else
-                                <span class="text-gray-400 italic">Belum Input PO/SPK</span>
+                                <span class="text-[#94A3B8] italic text-[11px]">Belum Input PO/SPK</span>
                             @endif
                         </td>
 
                         {{-- Nilai Kontrak --}}
-                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                            <div class="font-black text-gray-900">
+                        <td class="py-3.5 px-5 text-right whitespace-nowrap">
+                            <div class="font-extrabold text-[#8F0A0D] text-[13px]">
                                 {{ $hp->contract_value > 0 ? 'Rp ' . number_format($hp->contract_value, 0, ',', '.') : '—' }}
                             </div>
-                            <div class="text-[10.5px] text-gray-400">
+                            <div class="text-[10.5px] text-[#64748B]">
                                 Stage: {{ $hp->sales_stage }}
                             </div>
                         </td>
 
                         {{-- Billing & SLA --}}
-                        <td class="py-3.5 px-4 max-w-xs">
+                        <td class="py-3.5 px-5 max-w-xs">
                             @if($isMs)
-                                <div class="text-[11.5px] font-semibold text-gray-900 truncate" title="{{ $hp->sla_commitment }}">
+                                <div class="text-[11.5px] font-semibold text-[#1E293B] truncate" title="{{ $hp->sla_commitment }}">
                                     SLA: {{ $hp->sla_commitment ?: 'SLA 99.5% Uptime & Response 15-30m' }}
                                 </div>
-                                <div class="text-[10.5px] text-gray-400">
-                                    Jadwal Maint: {{ $hp->maintenance_frequency ?: 'Bulanan (Monthly)' }}
+                                <div class="text-[10.5px] text-[#64748B]">
+                                    Jadwal: {{ $hp->maintenance_frequency ?: 'Bulanan (Monthly)' }}
                                 </div>
                             @else
-                                <div class="text-[11.5px] font-semibold text-gray-900 truncate" title="{{ $hp->billing_terms }}">
+                                <div class="text-[11.5px] font-semibold text-[#1E293B] truncate" title="{{ $hp->billing_terms }}">
                                     {{ $hp->billing_terms ?: 'Termin belum diset' }}
                                 </div>
-                                <div class="text-[10.5px] text-gray-400 truncate" title="{{ $hp->sla_commitment }}">
+                                <div class="text-[10.5px] text-[#64748B] truncate" title="{{ $hp->sla_commitment }}">
                                     Garansi: {{ $hp->sla_commitment ?: 'Standar 8x5' }}
                                 </div>
                             @endif
                         </td>
 
                         {{-- Status Handover --}}
-                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold" 
-                                  style="background-color: {{ $badge['bg'] }}; color: {{ $badge['color'] }};">
+                        <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold {{ $badge['bg'] }}">
                                 <span>{{ $badge['label'] }}</span>
                             </span>
                             @if($hp->commercial_handover_at)
-                                <div class="text-[10px] text-gray-400 mt-0.5">
+                                <div class="text-[10px] text-[#94A3B8] mt-0.5">
                                     {{ \Carbon\Carbon::parse($hp->commercial_handover_at)->format('d/m/Y H:i') }}
                                 </div>
                             @endif
                         </td>
 
                         {{-- Aksi --}}
-                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                        <td class="py-3.5 px-5 text-right whitespace-nowrap">
                             <div class="flex items-center justify-end gap-1.5">
                                 @if($hp->commercial_handover_status === 'Submitted' || $hp->commercial_handover_status === 'Approved' || $hp->ms_handover_status === 'Accepted' || !empty($hp->handover_data))
                                     <a href="{{ route('sales.handover.document', $hp->id) }}" target="_blank"
-                                       class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 text-[11px] font-semibold rounded-lg border border-slate-300 shadow-xs transition cursor-pointer flex items-center gap-1"
+                                       class="px-2.5 py-1.5 bg-white hover:bg-[#F8FAFC] text-[#1E293B] text-[11px] font-bold rounded-lg border border-[#CBD5E1] hover:border-[#8F0A0D] hover:text-[#8F0A0D] shadow-2xs transition cursor-pointer inline-flex items-center gap-1"
                                        title="Lihat Berita Acara Serah Terima">
-                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        <span>BA Serah Terima</span>
+                                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        <span>BAST</span>
                                     </a>
                                 @endif
                                 <button type="button" 
                                         @click="openHandoverModal({{ json_encode($hp) }})"
-                                        class="px-2.5 py-1 bg-white hover:bg-red-50 text-[#8F0A0D] text-[11px] font-bold rounded-lg border border-red-200 shadow-xs hover:border-[#8F0A0D] transition cursor-pointer">
-                                    {{ ($hp->commercial_handover_status === 'Submitted' || $hp->commercial_handover_status === 'Approved' || $hp->ms_handover_status === 'Accepted') ? 'Edit Handover' : 'Serah Terima' }}
+                                        class="px-2.5 py-1.5 bg-gradient-to-r from-[#8F0A0D] to-[#B81525] hover:from-[#7A080A] hover:to-[#A0121F] text-white text-[11px] font-bold rounded-lg shadow-2xs transition cursor-pointer inline-flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    <span>{{ ($hp->commercial_handover_status === 'Submitted' || $hp->commercial_handover_status === 'Approved' || $hp->ms_handover_status === 'Accepted') ? 'Edit' : 'Serah Terima' }}</span>
                                 </button>
                                 <a href="{{ route('projects.show', $hp->id) }}" 
-                                   class="px-2.5 py-1 bg-white hover:bg-gray-50 text-gray-700 text-[11px] font-semibold rounded-lg border border-gray-200 shadow-xs transition cursor-pointer">
+                                   class="px-2.5 py-1.5 bg-white hover:bg-[#F8FAFC] text-[#64748B] hover:text-[#1E293B] text-[11px] font-bold rounded-lg border border-[#CBD5E1] shadow-2xs transition cursor-pointer">
                                     Detail
                                 </a>
                             </div>
@@ -235,7 +271,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="py-12 text-center text-gray-400 text-xs">
+                        <td colspan="7" class="py-12 text-center text-[#94A3B8] text-xs">
                             Belum ada kontrak yang siap diserahterimakan.
                         </td>
                     </tr>
@@ -246,7 +282,7 @@
 
     {{-- Pagination --}}
     @if($handoverProjects->hasPages())
-        <div class="p-4 border-t border-gray-100 bg-[#F8FAFC]">
+        <div class="p-4 border-t border-[#F1F5F9] bg-[#F8FAFC]">
             {{ $handoverProjects->links() }}
         </div>
     @endif

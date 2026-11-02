@@ -1172,7 +1172,7 @@
                                             @click="showUploadTimeline = !showUploadTimeline" 
                                             class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition cursor-pointer border border-slate-200 shadow-2xs">
                                         <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                        <span x-text="showUploadTimeline ? 'Tutup Upload' : '+ Upload Berkas Timeline'"></span>
+                                        <span x-text="showUploadTimeline ? 'Tutup Upload' : 'Upload Berkas Timeline'"></span>
                                     </button>
                                 @endif
                             </div>
