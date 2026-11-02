@@ -1197,13 +1197,13 @@
             <div class="bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-[#CBD5E1] max-h-[94vh] flex flex-col overflow-hidden my-auto" 
                  @click.away="handoverToMsModalOpen = false">
                 
-                {{-- Header Bar Persis Template Managed Service & Activity Log --}}
+                {{-- Header Bar Persis Template Dokumen Resmi IPNET --}}
                 <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
                     <div class="flex items-center gap-2.5">
                         <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
                         <div>
-                            <h3 class="text-[16px] font-bold text-[#0F172A]">Serah Terima ke Managed Service</h3>
-                            <p class="text-[11px] text-[#64748B]">Verifikasi checklist serah terima resmi di bawah ini sesuai acuan template PT IP Network Solusindo.</p>
+                            <h3 class="text-[16px] font-bold text-[#0F172A]">Serah Terima Project Manager ke Managed Service</h3>
+                            <p class="text-[11px] text-[#64748B]">Verifikasi checklist serah terima resmi operasional &amp; pemeliharaan dari Project Manager ke Divisi Managed Service.</p>
                         </div>
                     </div>
                     <button type="button" @click="handoverToMsModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
@@ -1221,7 +1221,7 @@
                         <div class="flex items-center gap-2.5">
                             <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">KATEGORI LAPORAN:</span>
                             <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold tracking-wide uppercase shadow-2xs">
-                                Serah Terima Managed Service
+                                SERAH TERIMA PROJECT MANAGER KE MANAGED SERVICE
                             </span>
                         </div>
 
@@ -1230,7 +1230,7 @@
                         </div>
                     </div>
 
-                    {{-- DOKUMEN RESMI SERAH TERIMA KONTRAK MAINTENANCE SESUAI PDF --}}
+                    {{-- DOKUMEN RESMI SERAH TERIMA PROJECT MANAGER KE MANAGED SERVICE --}}
                     <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-6 sm:p-10 shadow-sm space-y-5 text-[#0F172A] font-sans relative">
                         
                         {{-- Kop Dokumen Persis PDF --}}
@@ -1254,49 +1254,73 @@
                         {{-- Judul Utama Dokumen Persis PDF --}}
                         <div class="text-center my-3 sm:my-4">
                             <h1 class="text-sm sm:text-base font-black text-black uppercase tracking-wide leading-snug">
-                                SERAH TERIMA SALES / COMMERCIAL KE MANAGED SERVICE<br>
-                                UNTUK KONTRAK MAINTENANCE
+                                SERAH TERIMA PROJECT MANAGER KE MANAGED SERVICE<br>
+                                UNTUK OPERASIONAL &amp; PEMELIHARAAN SISTEM
                             </h1>
                             <p class="text-xs italic text-slate-600 mt-1 font-serif">
-                                Commercial-to-Project Handover Checklist
+                                Project Manager-to-Managed Service Handover Checklist
                             </p>
+                        </div>
+
+                        {{-- Grid Metadata Form (Kode Form, Versi, Tanggal Efektif, No. Berita Acara) --}}
+                        <div class="border border-black overflow-hidden text-xs">
+                            <table class="w-full border-collapse border border-black">
+                                <tbody>
+                                    <tr class="border-b border-black">
+                                        <td class="w-1/4 py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Kode Form</td>
+                                        <td class="w-1/4 py-1.5 px-3 border-r border-black font-mono font-bold text-slate-900">IPN-FRM-MS-02</td>
+                                        <td class="w-1/4 py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Versi</td>
+                                        <td class="w-1/4 py-1.5 px-3 font-bold text-slate-900">1.0</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Tanggal Efektif</td>
+                                        <td class="py-1.5 px-3 border-r border-black font-mono text-slate-900">01/10/2026</td>
+                                        <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">No. Berita Acara</td>
+                                        <td class="py-1.5 px-3 font-mono font-bold text-[#8F0A0D]" x-text="'BA-MS/' + new Date().getFullYear() + '/' + (activeProject ? String(activeProject.id).padStart(4, '0') : '0001')"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
                         {{-- Petunjuk Pengisian Persis PDF --}}
                         <div class="text-[11.5px] text-slate-800 leading-relaxed border border-slate-300 bg-slate-50/70 p-3 rounded-lg">
-                            <strong class="font-bold text-black">Petunjuk:</strong> Isi kolom yang relevan. Jika suatu butir tidak berlaku, tulis <span class="font-semibold">“Tidak Berlaku”</span> dan berikan catatan bila diperlukan. Simpan formulir beserta bukti pendukung pada lokasi dokumen yang ditetapkan.
+                            <strong class="font-bold text-black">Petunjuk:</strong> Formulir checklist serah terima operasional hasil implementasi proyek dari Project Manager (PMO) kepada Divisi Managed Service. Isi kolom yang relevan. Jika suatu butir tidak berlaku, tulis <span class="font-semibold">“Tidak Berlaku”</span> dan berikan catatan bila diperlukan. Simpan formulir beserta bukti pendukung pada lokasi dokumen yang ditetapkan.
                         </div>
 
-                        {{-- 1. REFERENSI KONTRAK (Banner Hitam & Border Hitam Persis PDF) --}}
+                        {{-- 1. REFERENSI KONTRAK & PROYEK IMPLEMENTASI (Banner Hitam & Border Hitam Persis PDF) --}}
                         <div class="border border-black overflow-hidden">
                             <div class="bg-black text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider">
-                                REFERENSI KONTRAK
+                                1. REFERENSI KONTRAK &amp; PROYEK IMPLEMENTASI
                             </div>
                             <table class="w-full border-collapse text-xs">
                                 <tbody>
                                     <tr class="border-b border-black">
-                                        <td class="w-1/3 sm:w-1/4 py-2 px-3 font-bold bg-white border-r border-black">Pelanggan</td>
+                                        <td class="w-1/3 sm:w-1/4 py-2 px-3 font-bold bg-white border-r border-black">Pelanggan / Klien</td>
                                         <td class="py-2 px-3 font-black text-slate-900" x-text="activeProject?.client || '-'"></td>
                                     </tr>
                                     <tr class="border-b border-black">
-                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">Nomor kontrak / PO</td>
+                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">Nama Proyek Implementasi</td>
+                                        <td class="py-2 px-3 font-black text-[#8F0A0D]" x-text="activeProject?.name || '-'"></td>
+                                    </tr>
+                                    <tr class="border-b border-black">
+                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">Nomor Kontrak / PO / SPK</td>
                                         <td class="py-2 px-3 font-mono font-bold text-slate-900" x-text="activeProject?.po_number || activeProject?.so_code || '-'"></td>
                                     </tr>
                                     <tr class="border-b border-black">
-                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">Tanggal efektif dan masa kontrak</td>
-                                        <td class="py-2 px-3 font-medium text-slate-800" x-text="(msHandoverForm.service_start_date ? msHandoverForm.service_start_date + ' s/d ' + (msHandoverForm.service_end_date || '') + ' (1 Tahun Kontrak)' : '1 Tahun Masa Kontrak')"></td>
+                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">Nomor Sales Order (SO)</td>
+                                        <td class="py-2 px-3 font-mono font-bold text-[#8F0A0D]" x-text="activeProject?.so_code || '-'"></td>
                                     </tr>
                                     <tr class="border-b border-black">
-                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">Tanggal berakhir</td>
-                                        <td class="py-2 px-3 font-semibold text-slate-800" x-text="msHandoverForm.service_end_date || '-'"></td>
+                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">Tanggal Efektif &amp; Masa Operasional</td>
+                                        <td class="py-2 px-3 font-medium text-slate-800" x-text="(msHandoverForm.service_start_date ? msHandoverForm.service_start_date + ' s/d ' + (msHandoverForm.service_end_date || '') + ' (Masa Pemeliharaan Operasional)' : 'Masa Pemeliharaan Sistem')"></td>
                                     </tr>
                                     <tr class="border-b border-black">
-                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">PIC Commercial</td>
-                                        <td class="py-2 px-3 font-bold text-slate-900" x-text="activeProject?.sales_name || '-'"></td>
+                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">Diserahkan oleh (Project Manager)</td>
+                                        <td class="py-2 px-3 font-bold text-[#8F0A0D]" x-text="(activeProject?.pm || '{{ auth()->user()->name }}') + ' (Project Manager)'"></td>
                                     </tr>
                                     <tr>
-                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">PIC Managed Service / PM</td>
-                                        <td class="py-2 px-3 font-bold text-[#8F0A0D]" x-text="(activeProject?.pm || '{{ auth()->user()->name }}') + ' (Project Manager)'"></td>
+                                        <td class="py-2 px-3 font-bold bg-white border-r border-black">Diterima oleh (Managed Service)</td>
+                                        <td class="py-2 px-3 font-bold text-slate-900">Tim Managed Service &amp; Maintenance Support</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1467,45 +1491,32 @@
                             </div>
                         </div>
 
-                        {{-- Tabel Tanda Tangan / Persetujuan Persis 4 Kolom PDF --}}
+                        {{-- Tabel Tanda Tangan / Persetujuan Persis 4 Kolom PDF (PM ke Managed Service) --}}
                         <div class="border border-black overflow-hidden">
                             <table class="w-full border-collapse text-xs">
                                 <thead>
                                     <tr class="bg-white border-b border-black text-center font-bold">
                                         <th class="py-2.5 px-3 border-r border-black w-1/4 align-top">
                                             <div class="text-[11px] text-slate-600 font-medium">Diserahkan oleh</div>
-                                            <div class="font-black text-slate-900 mt-0.5">Sales / Commercial</div>
-                                        </th>
-                                        <th class="py-2.5 px-3 border-r border-black w-1/4 align-top">
-                                            <div class="text-[11px] text-slate-600 font-medium">Disahkan oleh</div>
-                                            <div class="font-black text-slate-900 mt-0.5">PMO / Project Manager</div>
+                                            <div class="font-black text-slate-900 mt-0.5">Project Manager / PMO</div>
                                         </th>
                                         <th class="py-2.5 px-3 border-r border-black w-1/4 align-top">
                                             <div class="text-[11px] text-slate-600 font-medium">Diterima oleh</div>
                                             <div class="font-black text-slate-900 mt-0.5">Managed Service Lead</div>
                                         </th>
+                                        <th class="py-2.5 px-3 border-r border-black w-1/4 align-top">
+                                            <div class="text-[11px] text-slate-600 font-medium">Validasi Teknis</div>
+                                            <div class="font-black text-slate-900 mt-0.5">Technical / Solution Lead</div>
+                                        </th>
                                         <th class="py-2.5 px-3 w-1/4 align-top">
                                             <div class="text-[11px] text-slate-600 font-medium">Mengetahui</div>
-                                            <div class="font-black text-slate-900 mt-0.5">Head of Operations</div>
+                                            <div class="font-black text-slate-900 mt-0.5">Head of Operations / PMO</div>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr class="min-h-[160px]">
-                                        {{-- 1. Sales / Commercial --}}
-                                        <td class="p-2.5 border-r border-black align-top flex-col justify-between">
-                                            <div class="space-y-1">
-                                                <p><strong class="font-bold">Nama:</strong> <span class="font-bold text-slate-900" x-text="activeProject?.sales_name || '-'"></span></p>
-                                                <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
-                                            </div>
-                                            <div class="py-4 text-center">
-                                                <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-mono text-[10.5px]">
-                                                    &check; Closed Won Handover
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        {{-- 2. Project Manager (Tinggal TTD disini: Preview TTD & QR) --}}
+                                        {{-- 1. Project Manager / PMO (Tinggal TTD disini: Preview TTD & QR) --}}
                                         <td class="p-2.5 border-r border-black align-top flex-col justify-between">
                                             <div class="space-y-1">
                                                 <p><strong class="font-bold">Nama:</strong> <span class="font-bold text-[#8F0A0D]">{{ auth()->user()->name }}</span></p>
@@ -1541,7 +1552,7 @@
                                             </div>
                                         </td>
 
-                                        {{-- 3. Managed Service Lead --}}
+                                        {{-- 2. Managed Service Lead (Penerima) --}}
                                         <td class="p-2.5 border-r border-black align-top flex-col justify-between">
                                             <div class="space-y-1">
                                                 <p><strong class="font-bold">Nama:</strong> Tim Managed Service</p>
@@ -1554,7 +1565,19 @@
                                             </div>
                                         </td>
 
-                                        {{-- 4. Operations Head --}}
+                                        {{-- 3. Technical / Solution Lead --}}
+                                        <td class="p-2.5 border-r border-black align-top flex-col justify-between">
+                                            <div class="space-y-1">
+                                                <p><strong class="font-bold">Nama:</strong> Solution Lead</p>
+                                                <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
+                                            </div>
+                                            <div class="py-4 text-center">
+                                                <div class="border-b border-dashed border-slate-400 w-3/4 mx-auto my-3"></div>
+                                                <span class="text-[9px] text-slate-400 font-mono">(Solution Architect)</span>
+                                            </div>
+                                        </td>
+
+                                        {{-- 4. Operations Head / PMO Head --}}
                                         <td class="p-2.5 align-top flex-col justify-between">
                                             <div class="space-y-1">
                                                 <p><strong class="font-bold">Nama:</strong> Susanto</p>
