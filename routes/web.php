@@ -63,6 +63,10 @@ Route::get('/fix-cpanel-deploy', function () {
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         \Illuminate\Support\Facades\Artisan::call('view:clear');
         \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
         $output[] = "=== MIGRATED AND CACHE CLEARED ===";
     } catch (\Throwable $e) {}
     try {
@@ -132,6 +136,10 @@ Route::get('/fix-cpanel-deploy', function () {
         }
 
         \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
 
         $output[] = "=== CLEANUP SUCCESSFUL: DELETED $deletedProjectsCount OTHER PROJECTS ===";
 
@@ -785,6 +793,10 @@ Route::get('/clean-maintenance-data', function () {
         $cleared[] = "Jadwal Kalender (Schedules) Maintenance: <strong>{$schedCount}</strong> agenda dibersihkan.";
 
         \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
 
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
 
