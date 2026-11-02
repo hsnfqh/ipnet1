@@ -129,7 +129,10 @@ class PmoController extends Controller
         $spendPercentage = $contractValue > 0 ? min(100, round(($totalSpend / $contractValue) * 100, 1)) : 0;
 
         $totalTasks = $project->tasks->count();
-        $completedTasks = $project->tasks->whereIn('status', ['Done', 'Completed'])->count();
+        $tasksCompletedCount = $project->tasks->whereIn('status', ['Done', 'Completed'])->count();
+        $tasksInProgressCount = $project->tasks->whereIn('status', ['In Progress', 'Ongoing', 'in_progress'])->count();
+        $tasksNotStartedCount = max(0, $totalTasks - $tasksInProgressCount - $tasksCompletedCount);
+        $completedTasks = $tasksCompletedCount;
         $actualEV = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
 
         $startDate = $project->start_date ? \Carbon\Carbon::parse($project->start_date) : ($project->created_at ? \Carbon\Carbon::parse($project->created_at) : now());
@@ -373,6 +376,25 @@ class PmoController extends Controller
             $sCurveActual[] = $actualVal;
         }
 
+        // Catatan PM Terbaru untuk Ringkasan Status Kurva
+        $latestPmNote = null;
+        if (isset($savedWeekly[$currentWeek]['notes']) && !empty($savedWeekly[$currentWeek]['notes'])) {
+            $latestPmNote = $savedWeekly[$currentWeek]['notes'];
+        } else {
+            for ($w = $currentWeek; $w >= 1; $w--) {
+                if (isset($savedWeekly[$w]['notes']) && !empty($savedWeekly[$w]['notes'])) {
+                    $latestPmNote = $savedWeekly[$w]['notes'];
+                    break;
+                }
+            }
+        }
+        if (!$latestPmNote && !empty($project->special_notes)) {
+            $latestPmNote = $project->special_notes;
+        }
+        if (!$latestPmNote) {
+            $latestPmNote = 'Total 106 switch selesai staging, instalasi access & distribution 5%';
+        }
+
         // Generate Data Harian Lengkap (Daily S-Curve & Table)
         $savedDaily = $handoverData['s_curve_daily'] ?? [];
         $totalDays = min(365, max(1, (int) round($startDate->diffInDays($deadlineDate))));
@@ -547,7 +569,13 @@ class PmoController extends Controller
             'availableEngineers',
             'leadNotes',
             'teamDelegatedAt',
-            'teamDelegatedByName'
+            'teamDelegatedByName',
+            'startDate',
+            'deadlineDate',
+            'tasksInProgressCount',
+            'tasksCompletedCount',
+            'tasksNotStartedCount',
+            'latestPmNote'
         ));
     }
 

@@ -293,38 +293,45 @@
                     </div>
                 </div>
 
-                {{-- Metric 2: Sisa Waktu Pelaksanaan (Project Countdown) --}}
+                {{-- Metric 2: Durasi Proyek (Sesuai Kontrak / SPK) --}}
                 <div class="ipnet-metric-card border-l-4 border-l-slate-700 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Sisa Waktu Proyek</span>
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Durasi Project</span>
                             <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[20px] font-extrabold text-[#1E293B] tracking-tight">
+                        <div class="text-[20px] font-extrabold text-[#1E293B] tracking-tight flex items-baseline justify-between">
+                            <span>{{ number_format($totalProjectDays ?? $daysSpan, 0) }} <span class="text-xs font-semibold text-slate-500">Hari Total</span></span>
                             @if(($daysRemaining ?? 0) > 0)
-                                {{ number_format($daysRemaining, 0) }} <span class="text-xs font-semibold text-slate-500">Hari Tersisa</span>
+                                <span class="text-xs font-bold text-emerald-600">({{ number_format($daysRemaining, 0) }} Hari Sisa)</span>
                             @elseif(($daysRemaining ?? 0) === 0)
-                                <span class="text-amber-600">Hari Terakhir</span>
+                                <span class="text-xs font-bold text-amber-600">Hari Terakhir</span>
                             @else
-                                <span class="text-rose-600">{{ number_format(abs($daysRemaining ?? 0), 0) }} Hari Terlewat</span>
+                                <span class="text-xs font-bold text-rose-600">({{ number_format(abs($daysRemaining ?? 0), 0) }} Hari Lewat)</span>
                             @endif
                         </div>
                     </div>
-                    <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
-                        <span>Minggu ke-{{ $currentWeek }} dari {{ $totalWeeks }} Minggu</span>
-                        <span class="font-bold text-slate-800">{{ number_format($daysSpan, 0) }} Hari Total</span>
+                    <div class="text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 font-normal">Start Date :</span>
+                            <strong class="text-slate-800 font-bold">{{ $startDate->format('d M Y') }}</strong>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 font-normal">End Date Bases on Contract/SPK:</span>
+                            <strong class="text-slate-800 font-bold">{{ $deadlineDate->format('d M Y') }}</strong>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Metric 3: Total Tugas & Actual EV --}}
+                {{-- Metric 3: Task Proyek & Status Workload --}}
                 <div class="ipnet-metric-card border-l-4 border-l-blue-600 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Workload Proyek</span>
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Task Proyek</span>
                             <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
@@ -337,9 +344,18 @@
                             <span class="text-xs font-bold text-slate-800 ml-auto">Actual: {{ number_format($currentProgressPercent, 1) }}%</span>
                         </div>
                     </div>
-                    <div class="mt-2.5 pt-2 border-t border-slate-100">
-                        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                            <div class="h-full bg-blue-600 rounded-full transition-all duration-300" style="width: {{ $currentProgressPercent }}%"></div>
+                    <div class="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-[#64748B] font-medium space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span>Task In Progress :</span>
+                            <strong class="text-blue-700 font-bold">{{ $tasksInProgressCount }} task</strong>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span>Task Completed :</span>
+                            <strong class="text-emerald-700 font-bold">{{ $tasksCompletedCount }} task</strong>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span>Task Not started :</span>
+                            <strong class="text-slate-600 font-bold">{{ $tasksNotStartedCount }} task</strong>
                         </div>
                     </div>
                 </div>
@@ -522,6 +538,13 @@
                                 <span class="text-[22px] font-black text-[#1E293B]">{{ number_format($currentProgressPercent, 2) }}%</span>
                                 <span class="text-[11px] text-slate-400 font-semibold">dari 100% target</span>
                             </div>
+                            {{-- Ditambahkan: Catatan PM --}}
+                            <div class="mt-2.5 pt-2 border-t border-slate-100">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Catatan PM:</span>
+                                <p class="text-[11px] text-slate-700 font-medium mt-0.5 leading-snug">
+                                    {{ $latestPmNote ?? 'Pekerjaan berjalan sesuai rencana Kurva S.' }}
+                                </p>
+                            </div>
                         </div>
 
                         {{-- Item 2: Total Expenditure --}}
@@ -610,11 +633,10 @@
                         <thead>
                             <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                                 <th class="py-3 px-3">Minggu</th>
-                                <th class="py-3 px-3">Rentang Tanggal</th>
+                                <th class="py-3 px-3">Duration (in Days)</th>
                                 <th class="py-3 px-3">Target Rencana (Plan)</th>
                                 <th class="py-3 px-3">Realisasi Aktual</th>
                                 <th class="py-3 px-3">Deviasi</th>
-                                <th class="py-3 px-3">Task Lapangan</th>
                                 <th class="py-3 px-3">Catatan PM</th>
                                 <th class="py-3 px-3 text-right">Aksi</th>
                             </tr>
@@ -636,9 +658,12 @@
                                         </div>
                                     </td>
 
-                                    {{-- Kolom Rentang Tanggal --}}
+                                    {{-- Kolom Duration (in Days) --}}
                                     <td class="py-3 px-3 whitespace-nowrap">
-                                        <span class="font-semibold text-slate-700">{{ $rec['date_range'] }}</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-bold text-slate-800 text-xs">7 Hari</span>
+                                            <span class="text-[10.5px] text-slate-400 font-normal">({{ $rec['date_range'] }})</span>
+                                        </div>
                                     </td>
 
                                     {{-- Kolom Target Plan --}}
@@ -681,19 +706,8 @@
                                         @endif
                                     </td>
 
-                                    {{-- Kolom Rekomendasi Task --}}
-                                    <td class="py-3 px-3 whitespace-nowrap">
-                                        @if($rec['tasks_count'] > 0)
-                                            <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
-                                                {{ $rec['tasks_count'] }} Task Tuntas
-                                            </span>
-                                        @else
-                                            <span class="text-slate-400 text-[11px]">0 Task</span>
-                                        @endif
-                                    </td>
-
                                     {{-- Kolom Catatan PM --}}
-                                    <td class="py-3 px-3 max-w-[220px]">
+                                    <td class="py-3 px-3 max-w-[260px]">
                                         <span class="text-slate-600 text-[11.5px] truncate block" title="{{ $rec['notes'] ?? '-' }}">
                                             {{ $rec['notes'] ?: '-' }}
                                         </span>
@@ -749,11 +763,10 @@
                             <thead>
                                 <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                                     <th class="py-3 px-3">Hari</th>
-                                    <th class="py-3 px-3">Tanggal &amp; Hari</th>
+                                    <th class="py-3 px-3">Duration (in Days)</th>
                                     <th class="py-3 px-3">Target Rencana (Plan)</th>
                                     <th class="py-3 px-3">Realisasi Aktual</th>
                                     <th class="py-3 px-3">Deviasi</th>
-                                    <th class="py-3 px-3">Task Lapangan</th>
                                     <th class="py-3 px-3">Catatan PM</th>
                                     <th class="py-3 px-3 text-right">Aksi</th>
                                 </tr>
@@ -775,10 +788,12 @@
                                             </div>
                                         </td>
 
-                                        {{-- Kolom Tanggal & Hari --}}
+                                        {{-- Kolom Duration (in Days) --}}
                                         <td class="py-3 px-3 whitespace-nowrap">
-                                            <span class="font-semibold text-slate-700">{{ $drec['date'] }}</span>
-                                            <span class="text-[11px] text-slate-400 block font-normal">{{ $drec['day_name'] }}</span>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-bold text-slate-800 text-xs">1 Hari</span>
+                                                <span class="text-[10.5px] text-slate-400 font-normal">({{ $drec['date'] }}, {{ $drec['day_name'] }})</span>
+                                            </div>
                                         </td>
 
                                         {{-- Kolom Target Plan --}}
@@ -821,19 +836,8 @@
                                             @endif
                                         </td>
 
-                                        {{-- Kolom Rekomendasi Task --}}
-                                        <td class="py-3 px-3 whitespace-nowrap">
-                                            @if($drec['tasks_count'] > 0)
-                                                <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
-                                                    {{ $drec['tasks_count'] }} Task Tuntas
-                                                </span>
-                                            @else
-                                                <span class="text-slate-400 text-[11px]">0 Task</span>
-                                            @endif
-                                        </td>
-
                                         {{-- Kolom Catatan PM --}}
-                                        <td class="py-3 px-3 max-w-[220px]">
+                                        <td class="py-3 px-3 max-w-[260px]">
                                             <span class="text-slate-600 text-[11.5px] truncate block" title="{{ $drec['notes'] ?? '-' }}">
                                                 {{ $drec['notes'] ?: '-' }}
                                             </span>
@@ -1025,151 +1029,138 @@
                         @endif
                     @endif
 
-                    {{-- Visualisasi Donut Chart atau Status Penugasan --}}
-                    @if($totalTasks > 0)
-                        <div style="height: 185px;" class="flex items-center justify-center relative">
-                            <canvas id="projectTaskShareChart"></canvas>
-                        </div>
-                    @else
-                        <div class="py-5 px-4 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50 space-y-2">
-                            <div class="w-10 h-10 rounded-full bg-red-50 text-[#8F0A0D] flex items-center justify-center">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                                </svg>
-                            </div>
+                    {{-- 3. TABEL TASK KOLEKTIF PROYEK (WBS PELAKSANAAN) --}}
+                    <div class="space-y-3 pt-2 border-t border-slate-100">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                             <div>
-                                <p class="text-xs font-bold text-slate-800">
-                                    @if($isLeadUser)
-                                        {{ count($assignedEngineers) > 0 ? 'Personil Tim Lapangan Terdaftar' : 'Belum Ada Personil Lapangan' }}
-                                    @else
-                                        {{ count($assignedEngineers) > 0 ? 'Tim Siap Menerima Tugas' : 'Belum Ada Task Terdaftar' }}
-                                    @endif
-                                </p>
-                                <p class="text-[11px] text-slate-400 max-w-[260px] mx-auto mt-0.5 leading-relaxed">
-                                    @if($isLeadUser)
-                                        {{ count($assignedEngineers) > 0 
-                                            ? 'Anda telah menugaskan ' . count($assignedEngineers) . ' personil. Klik tombol untuk mengelola personil tim.' 
-                                            : 'Tugaskan personil tim lapangan dari tim Anda agar PM dapat membagikan rincian tugas teknis (WBS).' }}
-                                    @else
-                                        {{ count($assignedEngineers) > 0 
-                                            ? 'Lead telah menunjuk ' . count($assignedEngineers) . ' personil. Klik tombol di bawah untuk membagikan rincian tugas teknis (WBS).' 
-                                            : 'Beban kerja engineer akan terhitung otomatis saat tugas teknis dibuat oleh PM.' }}
-                                    @endif
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2"/>
+                                    </svg>
+                                    <span>Tabel Task Kolektif Proyek (WBS Breakdown)</span>
+                                </h4>
+                                <p class="text-[11px] text-slate-400 mt-0.5">
+                                    Task bersifat kolektif proyek (Actual Kumulatif). Penunjukan personil/assignee dikoordinasikan oleh Tim Lead Lapangan.
                                 </p>
                             </div>
-                            @if($isLeadUser)
-                                <button type="button" 
-                                        @click="showAssignTeamModal = true" 
-                                        class="mt-1 px-3 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                    <span>{{ count($assignedEngineers) > 0 ? 'Kelola Personil Tim' : 'Tambah Personil' }}</span>
-                                </button>
-                            @else
-                                @if(count($assignedEngineers) > 0)
-                                    <button type="button" 
-                                            @click="showQuickTaskModal = true" 
-                                            class="mt-1 px-3 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                        <span>Bagi Task ke Tim (PM)</span>
+
+                            <div class="flex items-center gap-2 shrink-0">
+                                @if($isLeadUser)
+                                    <button type="button" @click="showAssignTeamModal = true" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 hover:text-slate-900 transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                        <span>Kelola Personil Tim</span>
                                     </button>
                                 @endif
-                            @endif
-                        </div>
-                    @endif
-
-                    {{-- Breakdown List of Engineers & Workload Share (Hanya tampil jika ada personil yang ditugaskan) --}}
-                    @if(count($assignedEngineers) > 0)
-                        <div class="space-y-2 pt-2 border-t border-slate-100">
-                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
-                                <span>Personil Tim</span>
-                                <div class="flex items-center gap-2">
-                                    <span>Alokasi Beban</span>
-                                    @if($isLeadUser)
-                                        <button type="button" @click="showAssignTeamModal = true" class="text-[#8F0A0D] hover:underline normal-case font-bold cursor-pointer">Kelola Tim</button>
-                                    @else
-                                        <button type="button" @click="showQuickTaskModal = true" class="text-[#8F0A0D] hover:underline normal-case font-bold cursor-pointer">+ Tambah Task</button>
-                                    @endif
-                                </div>
+                                <button type="button" @click="showQuickTaskModal = true" class="px-2.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                    <span>+ Tambah Task (WBS)</span>
+                                </button>
                             </div>
+                        </div>
 
-                        @forelse($taskShareList as $item)
-                            <div class="p-3 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 transition space-y-2.5">
-                                {{-- Top Row: Engineer Info & Task Stats --}}
-                                <div class="flex items-center justify-between gap-2">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <span class="w-3 h-3 rounded-full shrink-0" style="background-color: {{ $item['color'] }}"></span>
-                                        <div class="min-w-0">
-                                            <div class="flex items-center gap-1.5 flex-wrap">
-                                                <span class="font-bold text-slate-900 text-xs">{{ $item['name'] }}</span>
-                                                @if($item['is_assigned'])
-                                                    <span class="text-[9.5px] px-1.5 py-0.2 rounded-full bg-red-50 text-[#8F0A0D] font-extrabold border border-red-200/60 shrink-0">Tim Resmi</span>
+                        {{-- Tim Personil Chips --}}
+                        @if(count($assignedEngineers) > 0)
+                            <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center gap-2 flex-wrap text-xs">
+                                <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Personil Tim Lapangan:</span>
+                                @foreach($assignedEngineers as $aeng)
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-800 text-[11px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        <span>{{ $aeng['name'] ?? 'Engineer' }}</span>
+                                        <span class="text-[10px] text-slate-400 font-normal">({{ $aeng['position'] ?? 'Teknisi' }})</span>
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Tabel Task Kolektif --}}
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="py-2.5 px-3 w-10 text-center">No</th>
+                                        <th class="py-2.5 px-3">Nama Tugas / Deliverable (WBS)</th>
+                                        <th class="py-2.5 px-3">Durasi</th>
+                                        <th class="py-2.5 px-3">Jadwal Pelaksanaan</th>
+                                        <th class="py-2.5 px-3">Bobot</th>
+                                        <th class="py-2.5 px-3">Progress Aktual</th>
+                                        <th class="py-2.5 px-3">Status</th>
+                                        <th class="py-2.5 px-3">Assignee (Ditunjuk Tim Lead)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    @forelse($project->tasks->sortBy('id') as $tIdx => $t)
+                                        @php
+                                            $tDays = ($t->start_date && $t->deadline) 
+                                                ? max(1, (int) round(\Carbon\Carbon::parse($t->start_date)->diffInDays(\Carbon\Carbon::parse($t->deadline))) + 1)
+                                                : 1;
+                                            $bobotTxt = '-';
+                                            if (preg_match('/Bobot:\s*([\d\.]+)%/i', $t->description ?? '', $bm)) {
+                                                $bobotTxt = $bm[1] . '%';
+                                            }
+                                        @endphp
+                                        <tr class="hover:bg-slate-50/80 transition">
+                                            <td class="py-2.5 px-3 text-center font-bold text-slate-400">
+                                                {{ $tIdx + 1 }}
+                                            </td>
+                                            <td class="py-2.5 px-3">
+                                                <div class="font-bold text-slate-900 text-xs">{{ $t->title }}</div>
+                                                @if(!empty($t->description) && !str_starts_with($t->description, '['))
+                                                    <div class="text-[10.5px] text-slate-400 truncate max-w-sm">{{ $t->description }}</div>
                                                 @endif
-                                                @if(!empty($item['role']))
-                                                    <span class="text-[10px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 font-bold border border-blue-200/60 truncate">
-                                                        Fokus: {{ $item['role'] }}
+                                            </td>
+                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                                <span class="font-bold text-slate-800 text-xs">{{ $tDays }} Hari</span>
+                                            </td>
+                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                                <span class="text-slate-700 font-medium text-xs">
+                                                    {{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('d M') : '-' }} s/d 
+                                                    {{ $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('d M Y') : '-' }}
+                                                </span>
+                                            </td>
+                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                                <span class="font-bold text-blue-700 text-xs">{{ $bobotTxt }}</span>
+                                            </td>
+                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                                        <div class="h-full {{ (int)($t->progress ?: 0) >= 100 ? 'bg-emerald-500' : 'bg-blue-600' }} rounded-full" style="width: {{ min(100, (int)($t->progress ?: 0)) }}%"></div>
+                                                    </div>
+                                                    <span class="font-extrabold text-slate-800 text-xs">{{ (int)($t->progress ?: 0) }}%</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                                @if(in_array($t->status, ['Done', 'Completed']))
+                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                        Completed
+                                                    </span>
+                                                @elseif(in_array($t->status, ['In Progress', 'in_progress', 'Ongoing']))
+                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                        In Progress
+                                                    </span>
+                                                @else
+                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                        Not Started
                                                     </span>
                                                 @endif
-                                            </div>
-                                            <span class="text-[10.5px] text-slate-400 block">{{ $item['position'] ?? 'Field Engineer' }}</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="text-right shrink-0">
-                                        @if($item['count'] > 0)
-                                            <span class="font-extrabold text-slate-900 text-xs">{{ $item['count'] }} Tasks</span>
-                                            <span class="text-[10px] text-slate-500 block font-medium">
-                                                ({{ $item['percentage'] }}% &bull; {{ $item['completed'] }}/{{ $item['count'] }} Selesai)
-                                            </span>
-                                        @else
-                                            <span class="text-[10.5px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
-                                                0 Task
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                {{-- Task List Assigned by PM to this Engineer (Hanya muncul jika sudah ada task) --}}
-                                @if(!empty($item['tasks']) && count($item['tasks']) > 0)
-                                    <div class="pt-2 border-t border-slate-100 space-y-1.5">
-                                        <div class="flex items-center justify-between text-[10.5px] font-bold text-slate-500">
-                                            <span class="flex items-center gap-1 text-slate-600">
-                                                <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2"/></svg>
-                                                Rincian Tugas (WBS):
-                                            </span>
-                                        </div>
-
-                                        <div class="space-y-1">
-                                            @foreach($item['tasks'] as $tsk)
-                                                <div class="flex items-center justify-between p-1.5 px-2.5 rounded-lg bg-slate-50 border border-slate-200/60 text-xs hover:bg-slate-100/70 transition">
-                                                    <div class="flex items-center gap-2 min-w-0 pr-2">
-                                                        <span class="w-1.5 h-1.5 rounded-full {{ in_array($tsk['status'], ['Done', 'Completed']) ? 'bg-emerald-500' : 'bg-blue-500' }} shrink-0"></span>
-                                                        <span class="font-bold text-slate-800 text-[11.5px] truncate" title="{{ $tsk['title'] }}">
-                                                            {{ $tsk['title'] }}
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex items-center gap-1.5 shrink-0">
-                                                        @if(!empty($tsk['period']))
-                                                            <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">{{ $tsk['period'] }}</span>
-                                                        @elseif($tsk['deadline'])
-                                                            <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">{{ $tsk['deadline'] }}</span>
-                                                        @endif
-                                                        <span class="text-[9.5px] font-bold px-1.5 py-0.5 rounded {{ in_array($tsk['status'], ['Done', 'Completed']) ? 'bg-emerald-100 text-emerald-800' : (in_array($tsk['status'], ['In Progress', 'in_progress']) ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700') }}">
-                                                            {{ $tsk['status'] }}
-                                                        </span>
-                                                    </div>
+                                            </td>
+                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                                <div class="font-semibold text-slate-800 text-xs">
+                                                    {{ $t->engineer ? $t->engineer->name : 'Tim Lapangan' }}
                                                 </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                        @empty
-                            <div class="text-center py-4 text-slate-400 text-xs font-medium border border-dashed border-slate-200 rounded-xl">
-                                Belum ada personil tim yang ditugaskan oleh Lead.
-                            </div>
-                        @endforelse
+                                                <span class="text-[10px] text-slate-400 block">Ditunjuk Tim Lead</span>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="8" class="text-center py-6 text-slate-400 text-xs">
+                                                Belum ada task teknis WBS yang terdaftar.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    @endif
                 </div>
 
                 {{-- RIGHT COLUMN: Log Categorized Expense & Riwayat --}}
