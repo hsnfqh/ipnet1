@@ -1564,6 +1564,35 @@ class SalesCrmController extends Controller
         $pmQrSvg = !empty($pmSignature['qr_token']) ? $generateQr($pmSignature['qr_token']) : '';
         $msQrSvg = !empty($msSignature['qr_token']) ? $generateQr($msSignature['qr_token']) : '';
 
+        $handoverFormStructure = [
+            ['number' => 1, 'category' => 'Legal & komersial', 'key' => 'kontrak_spk_po_sla', 'name' => 'Kontrak / SPK / PO / SLA yang berlaku', 'doc_key' => 'contract', 'default_note' => 'Nomor, tanggal, status tanda tangan'],
+            ['number' => 2, 'category' => 'Legal & komersial', 'key' => 'proposal_final_komersial', 'name' => 'Proposal final dan rincian komersial yang relevan', 'doc_key' => 'proposal', 'default_note' => 'Versi final; nilai dan asumsi relevan'],
+            ['number' => 3, 'category' => 'Legal & komersial', 'key' => 'addendum_pengecualian_notulen', 'name' => 'Addendum, pengecualian, atau notulen negosiasi', 'doc_key' => 'addendum', 'default_note' => 'Jika ada'],
+            ['number' => 4, 'category' => 'Scope & deliverable', 'key' => 'sow_scope_work_batasan', 'name' => 'SoW / Scope of Work dan batasan pekerjaan', 'doc_key' => 'tor', 'default_note' => 'Termasuk exclusions dan tanggung jawab customer'],
+            ['number' => 5, 'category' => 'Scope & deliverable', 'key' => 'deliverable_acceptance_milestone', 'name' => 'Daftar deliverable, acceptance criteria, dan milestone', 'doc_key' => 'deliverable', 'default_note' => 'Apa yang harus diserahkan dan kapan'],
+            ['number' => 6, 'category' => 'Scope & deliverable', 'key' => 'requirement_customer_urs_brd', 'name' => 'Requirement customer / URS / BRD', 'doc_key' => 'urs_brd', 'default_note' => 'Versi disepakati; tandai yang masih draft'],
+            ['number' => 7, 'category' => 'Scope & deliverable', 'key' => 'desain_solusi_bom_boq', 'name' => 'Desain/solusi/BoM/BoQ atau referensi teknis', 'doc_key' => 'boq', 'default_note' => 'Termasuk part number/lisensi jika ada'],
+            ['number' => 8, 'category' => 'Operasional & pihak terkait', 'key' => 'struktur_tim_pic_customer', 'name' => 'Struktur tim dan PIC customer', 'doc_key' => 'pic_customer', 'default_note' => 'Nama, peran, kontak (bisnis & teknis)'],
+            ['number' => 9, 'category' => 'Operasional & pihak terkait', 'key' => 'jadwal_target_go_live', 'name' => 'Jadwal / target go-live dan ketergantungan', 'doc_key' => 'timeline', 'default_note' => 'Target customer, ketergantungan pihak ketiga/eksternal'],
+            ['number' => 10, 'category' => 'Operasional & pihak terkait', 'key' => 'matriks_eskalasi_jalur_komunikasi', 'name' => 'Matriks eskalasi dan jalur komunikasi formal', 'doc_key' => 'escalation_matrix', 'default_note' => 'Tingkat eskalasi, nomor kontak darurat'],
+            ['number' => 11, 'category' => 'Operasional & pihak terkait', 'key' => 'kebijakan_akses_lingkungan_kerja', 'name' => 'Kebijakan akses / NDA / lingkungan kerja customer', 'doc_key' => 'access_security', 'default_note' => 'Syarat badge, VPN, security briefing, NDA'],
+            ['number' => 12, 'category' => 'Finansial & procurement', 'key' => 'termin_pembayaran_syarat_penagihan', 'name' => 'Termin pembayaran dan syarat penagihan', 'doc_key' => 'payment_terms', 'default_note' => 'DP, milestone, syarat dokumen penagihan'],
+            ['number' => 13, 'category' => 'Finansial & procurement', 'key' => 'status_pengadaan_lead_time', 'name' => 'Status pengadaan barang / lisensi dan lead time', 'doc_key' => 'procurement_status', 'default_note' => 'PO ke vendor/distributor, estimasi tiba'],
+            ['number' => 14, 'category' => 'Finansial & procurement', 'key' => 'komitmen_khusus_garansi_sla', 'name' => 'Komitmen khusus / garansi / SLA awal', 'doc_key' => 'warranty_sla', 'default_note' => 'Masa garansi, komitmen di luar standar'],
+        ];
+
+        $msChecklistItems = [
+            ['number' => 1, 'key' => 'ruang_lingkup_layanan', 'name' => 'Ruang lingkup layanan dan batasan', 'doc_key' => 'tor', 'default_note' => 'Sesuai batasan implementasi & SLA'],
+            ['number' => 2, 'key' => 'dokumentasi_as_built', 'name' => 'Dokumentasi as-built / desain tersedia', 'doc_key' => 'project_doc', 'default_note' => 'As-built drawing & konfigurasi final'],
+            ['number' => 3, 'key' => 'daftar_perangkat_lokasi', 'name' => 'Daftar perangkat, lokasi, dan dependensi tersedia', 'doc_key' => 'boq', 'default_note' => 'Daftar serial number, rak & IP address'],
+            ['number' => 4, 'key' => 'hasil_testing_status', 'name' => 'Hasil testing dan status teknis terdokumentasi', 'doc_key' => 'bast', 'default_note' => 'Berita acara UAT / testing acceptance'],
+            ['number' => 5, 'key' => 'daftar_topologi', 'name' => 'Daftar Topologi (HLD/LLD, Denah, As build dll)', 'doc_key' => 'topology', 'default_note' => 'Diagram topologi L2/L3 & layout denah'],
+            ['number' => 6, 'key' => 'daftar_masalah_terbuka', 'name' => 'Daftar masalah / pekerjaan terbuka diserahkan', 'doc_key' => 'punchlist', 'default_note' => 'Daftar punchlist & catatan garansi'],
+            ['number' => 7, 'key' => 'kontak_pelanggan_eskalasi', 'name' => 'Kontak pelanggan dan jalur eskalasi tersedia', 'doc_key' => 'escalation_matrix', 'default_note' => 'PIC operasional, level 1-3 eskalasi'],
+            ['number' => 8, 'key' => 'sla_jam_layanan', 'name' => 'SLA / jam layanan sesuai kontrak dikomunikasikan', 'doc_key' => 'contract', 'default_note' => 'Target respons & MTTR penanganan insiden'],
+            ['number' => 9, 'key' => 'monitoring_akses_operasional', 'name' => 'Monitoring / akses operasional siap sesuai kebijakan', 'doc_key' => 'project_doc', 'default_note' => 'Kredensial NMS, SNMP / VPN access operasional'],
+        ];
+
         return view('sales.handover.document', compact(
             'project',
             'handoverData',
@@ -1572,7 +1601,9 @@ class SalesCrmController extends Controller
             'msSignature',
             'salesQrSvg',
             'pmQrSvg',
-            'msQrSvg'
+            'msQrSvg',
+            'handoverFormStructure',
+            'msChecklistItems'
         ));
     }
 }

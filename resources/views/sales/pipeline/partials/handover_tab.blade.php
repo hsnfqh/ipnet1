@@ -223,7 +223,7 @@
                                        class="px-2.5 py-1.5 bg-white hover:bg-[#F8FAFC] text-[#1E293B] text-[11px] font-bold rounded-lg border border-[#CBD5E1] hover:border-[#8F0A0D] hover:text-[#8F0A0D] shadow-2xs transition cursor-pointer inline-flex items-center gap-1"
                                        title="Lihat Berita Acara Serah Terima">
                                         <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        <span>BAST</span>
+                                        <span>BA Serah Terima</span>
                                     </a>
                                 @endif
                                 <button type="button" 
