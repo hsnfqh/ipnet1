@@ -67,7 +67,8 @@ Route::get('/fix-cpanel-deploy', function () {
     } catch (\Throwable $e) {}
     try {
         app(\App\Http\Controllers\ManagedServiceController::class)->ensureSampleProjectExists();
-        \App\Models\Project::whereNotNull('ms_handover_status')->update(['handover_target' => 'both']);
+        \App\Models\Project::where('name', 'like', 'Managed Service%')->update(['handover_target' => 'managed_service']);
+        \App\Models\Project::where('name', 'not like', 'Managed Service%')->whereNotNull('ms_handover_status')->update(['handover_target' => 'both']);
         $output[] = "=== MANAGED SERVICE PROJECTS SEED & HEAL SUCCESSFUL ===";
     } catch (\Throwable $e) {
         $output[] = "=== MS HEAL ERROR: " . $e->getMessage() . " ===";

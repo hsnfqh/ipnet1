@@ -747,23 +747,17 @@ class PmoController extends Controller
         ->where('name', 'not like', '%Meeting%')
         ->where('name', 'not like', '%- On Going Project%')
         ->where('name', 'not like', '%- Closed Project%')
-        // Kecualikan proyek yang murni Managed Service / Pemeliharaan SLA (tetap pertahankan arsip proyek PMO yang diserahterimakan ke MS)
+        // Kecualikan proyek yang murni Managed Service / Pemeliharaan SLA (karena itu ranah modul Managed Service)
+        ->where('name', 'not like', 'Managed Service%')
         ->where(function($q) {
             $q->whereNull('handover_target')
               ->orWhere('handover_target', '!=', 'managed_service')
-              ->orWhere('handover_target', 'both')
-              ->orWhereNotNull('ms_handover_status');
+              ->orWhere('handover_target', 'both');
         })
         ->where(function($q) {
-            $q->where('project_type', 'not like', '%Managed Service%')
-              ->orWhere('handover_target', 'both')
-              ->orWhereNotNull('ms_handover_status')
-              ->orWhereNull('project_type');
-        })
-        ->where(function($q) {
-            $q->where('name', 'not like', '%Managed Service%')
-              ->orWhere('handover_target', 'both')
-              ->orWhereNotNull('ms_handover_status');
+            $q->whereNull('project_type')
+              ->orWhere('project_type', 'not like', '%Managed Service%')
+              ->orWhere('handover_target', 'both');
         })
         ->where(function($q) {
             $q->where('sales_name', 'like', '%Nabylla%')
