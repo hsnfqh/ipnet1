@@ -1050,7 +1050,7 @@
                                 @endif
                                 <button type="button" @click="showQuickTaskModal = true" class="px-2.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                    <span>+ Tambah Task (WBS)</span>
+                                    <span>Tambah Task (WBS)</span>
                                 </button>
                             </div>
                         </div>
@@ -1867,7 +1867,7 @@
                         Batal
                     </button>
                     <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
-                        + Tambah Task
+                        Tambah Task
                     </button>
                 </div>
             </form>
