@@ -265,6 +265,52 @@ class SalesCrmController extends Controller
         $totalWeightedForecast = $allProjects->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])->sum(fn($p) => ($p->contract_value ?? 0) * (($p->win_probability ?? 10) / 100));
         $totalWonValue = $allProjects->where('sales_stage', 'Closed Won')->sum('contract_value');
 
+        // Handover Projects Data (Serah Terima Proyek Closed Won terintegrasi dalam tab Projects)
+        $filterHandoverTarget = $request->input('target');
+        $filterHandoverStatus = $request->input('handover_status', $request->input('status'));
+
+        $handoverQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where(function($q) {
+                $q->whereIn('sales_stage', ['Closed Won', 'Contract / PO / SPK'])
+                  ->orWhereNotNull('po_spk_number')
+                  ->orWhere(function($sub) {
+                      $sub->whereNotNull('commercial_handover_status')
+                          ->where('commercial_handover_status', '!=', 'Draft');
+                  });
+            })
+            ->with(['creator', 'pm', 'commercialHandoverBy', 'msAcceptedBy']);
+
+        if (!$isManagerial) {
+            $handoverQuery->where(function($q) use ($user) {
+                $q->where('sales_name', $user->name)
+                  ->orWhere('commercial_handover_by', $user->id)
+                  ->orWhere('created_by', $user->id);
+            });
+        }
+
+        if ($search) {
+            $handoverQuery->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('client', 'like', "%{$search}%")
+                  ->orWhere('po_spk_number', 'like', "%{$search}%");
+            });
+        }
+
+        if ($filterHandoverStatus && in_array($filterHandoverStatus, ['Draft', 'Submitted', 'Approved'])) {
+            $handoverQuery->where('commercial_handover_status', $filterHandoverStatus);
+        }
+
+        if ($filterHandoverTarget) {
+            $handoverQuery->where('handover_target', $filterHandoverTarget);
+        }
+
+        $handoverProjectsList = (clone $handoverQuery)->latest('updated_at')->get();
+        $totalHandoverCount = $handoverProjectsList->count();
+        $pmoTargetCount = $handoverProjectsList->where('handover_target', '!=', 'managed_service')->count();
+        $msTargetCount = $handoverProjectsList->where('handover_target', 'managed_service')->count();
+        $handoverProjects = $handoverQuery->latest('updated_at')->paginate(12, ['*'], 'handover_page')->withQueryString();
+        $activeTab = $request->input('tab', 'pipeline');
+
         return view('sales.pipeline.index', compact(
             'allProjects',
             'kanban',
@@ -279,7 +325,14 @@ class SalesCrmController extends Controller
             'isManagerial',
             'totalPipelineValue',
             'totalWeightedForecast',
-            'totalWonValue'
+            'totalWonValue',
+            'handoverProjects',
+            'totalHandoverCount',
+            'pmoTargetCount',
+            'msTargetCount',
+            'activeTab',
+            'filterHandoverTarget',
+            'filterHandoverStatus'
         ));
     }
 
@@ -1116,58 +1169,12 @@ class SalesCrmController extends Controller
 
     /**
      * 3. Halaman Dedicated: Commercial Handover to Project (Delivery/PMO or Managed Service)
+     * Sekarang terintegrasi menyatu dalam tab "Handover" di halaman Projects
      */
     public function commercialHandoverIndex(Request $request)
     {
-        $user = auth()->user();
-        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) 
-            || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager', 'Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'BDM', 'BusDev', 'Business Development', 'Lead Maintenance', 'Managed Service']) 
-            || str_contains(strtolower($user->name), 'susanto') 
-            || str_contains(strtolower($user->name), 'hariyadi');
-
-        $search = $request->input('search');
-        $filterStatus = $request->input('status');
-        $filterTarget = $request->input('target');
-
-        $query = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->where(function($q) {
-                // Hanya proyek yang sudah DEAL / Closed Won / Terbit Kontrak PO yang masuk ke Handover
-                $q->whereIn('sales_stage', ['Closed Won', 'Contract / PO / SPK'])
-                  ->orWhereNotNull('po_spk_number')
-                  ->orWhere(function($sub) {
-                      $sub->whereNotNull('commercial_handover_status')
-                          ->where('commercial_handover_status', '!=', 'Draft');
-                  });
-            })
-            ->with(['creator', 'pm', 'commercialHandoverBy', 'msAcceptedBy']);
-
-        if (!$isManagerial) {
-            $query->where(function($q) use ($user) {
-                $q->where('sales_name', $user->name)
-                  ->orWhere('commercial_handover_by', $user->id)
-                  ->orWhere('created_by', $user->id);
-            });
-        }
-
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('client', 'like', "%{$search}%")
-                  ->orWhere('po_spk_number', 'like', "%{$search}%");
-            });
-        }
-
-        if ($filterStatus) {
-            $query->where('commercial_handover_status', $filterStatus);
-        }
-
-        if ($filterTarget) {
-            $query->where('handover_target', $filterTarget);
-        }
-
-        $handoverProjects = $query->latest('updated_at')->paginate(10)->withQueryString();
-
-        return view('sales.handover.index', compact('handoverProjects', 'search', 'filterStatus', 'filterTarget', 'isManagerial'));
+        $request->merge(['tab' => 'handover']);
+        return $this->pipeline($request);
     }
 
     /**

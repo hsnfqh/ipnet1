@@ -28,7 +28,6 @@
         $navItems = [
             ['key' => 'dashboard',          'label' => 'Dashboard',         'route' => 'dashboard.lead'],
             ['key' => 'projects',           'label' => 'Projects',          'route' => 'sales.pipeline.index'],
-            ['key' => 'handover',           'label' => 'Handover Proyek',   'route' => 'sales.handover.index'],
             ['key' => 'activities',         'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',          'label' => 'Work Schedule',     'route' => 'schedules.index'],
             ['key' => 'clients',            'label' => 'Clients',           'route' => 'clients.index'],
@@ -104,7 +103,6 @@
         $navItems = [
             ['key' => 'dashboard',          'label' => 'Dashboard',     'route' => 'dashboard.bdm'],
             ['key' => 'projects',           'label' => 'Projects',      'route' => 'sales.pipeline.index'],
-            ['key' => 'handover',           'label' => 'Handover Proyek', 'route' => 'sales.handover.index'],
             ['key' => 'schedules',          'label' => 'Work Schedule', 'route' => 'schedules.index'],
             ['key' => 'clients',            'label' => 'Clients',       'route' => 'clients.index'],
             // ['key' => 'digital_signatures', 'label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
@@ -123,7 +121,6 @@
         $navItems = [
             ['key' => 'dashboard',          'label' => 'Dashboard',           'route' => 'dashboard.sales'],
             ['key' => 'projects',           'label' => 'Projects',            'route' => 'sales.pipeline.index'],
-            ['key' => 'handover',           'label' => 'Handover Proyek',     'route' => 'sales.handover.index'],
             ['key' => 'activities',         'label' => 'Activity Log',        'route' => 'sales.activities.index'],
             ['key' => 'schedules',          'label' => 'Work Schedule',       'route' => 'schedules.index'],
             ['key' => 'clients',            'label' => 'Clients',             'route' => 'clients.index'],
@@ -368,11 +365,10 @@
                     $isActive = ($currentRoute === $item['route']) && (request('status') === $itemParams['status']);
                 } else {
                     $isActive = (($currentRoute === $item['route']) || 
-                                 ($item['key'] === 'projects' && in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show', 'pmo.implementations.index'])) ||
+                                 ($item['key'] === 'projects' && (in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show', 'pmo.implementations.index']) || str_starts_with($currentRoute, 'sales.handover.'))) ||
                                  ($item['key'] === 'ms_projects' && in_array($currentRoute, ['ms.projects.index', 'ms.projects.show'])) ||
                                  ($item['key'] === 'ms_assets' && in_array($currentRoute, ['ms.assets.index', 'ms.assets.internal', 'ms.assets.external'])) ||
                                  ($item['key'] === 'ms_monitoring' && (in_array($currentRoute, ['ms.monitoring.index', 'ms.monitoring.pm', 'ms.monitoring.cm']) || $childActive)) ||
-                                 ($item['key'] === 'handover' && str_starts_with($currentRoute, 'sales.handover.')) ||
                                  ($item['key'] === 'settings' && str_starts_with($currentRoute, 'settings.')) ||
                                  ($item['key'] === 'digital_signatures' && str_starts_with($currentRoute, 'digital_signatures.'))) && (!request()->has('status') || request('status') === '');
                 }

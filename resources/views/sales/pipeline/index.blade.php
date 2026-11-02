@@ -169,6 +169,39 @@
                 </div>
             @endif
 
+            {{-- PRIMARY TAB SWITCHER: PIPELINE & PORTOFOLIO vs SERAH TERIMA / HANDOVER --}}
+            <div class="flex items-center gap-1.5 p-1.5 bg-slate-200/80 rounded-2xl w-fit shadow-2xs anim-fade-up">
+                <button type="button" 
+                        @click="activeSection = 'pipeline'" 
+                        :class="activeSection === 'pipeline' ? 'bg-white text-[#8F0A0D] font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-semibold'"
+                        class="px-4 py-2 rounded-xl text-xs sm:text-[13px] transition-all flex items-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    <span>Pipeline &amp; Portofolio Proyek</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10.5px] font-black bg-slate-100 text-slate-700">
+                        {{ $allProjects->count() }}
+                    </span>
+                </button>
+
+                <button type="button" 
+                        @click="activeSection = 'handover'" 
+                        :class="activeSection === 'handover' ? 'bg-white text-[#8F0A0D] font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-semibold'"
+                        class="px-4 py-2 rounded-xl text-xs sm:text-[13px] transition-all flex items-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                    <span>Serah Terima / Handover Proyek</span>
+                    @if(($totalHandoverCount ?? 0) > 0)
+                        <span class="px-2 py-0.5 rounded-full text-[10.5px] font-black bg-red-100 text-[#8F0A0D] border border-red-200">
+                            {{ $totalHandoverCount }}
+                        </span>
+                    @endif
+                </button>
+            </div>
+
+            {{-- 1. SECTION PIPELINE (KANBAN & TABLE VIEW) --}}
+            <div x-show="activeSection === 'pipeline'" class="space-y-5">
             <!-- ========================================================== -->
             <!-- 1. OFFICIAL IPNET SECTION HEADER & ACTION CONTROLS          -->
             <!-- ========================================================== -->
@@ -208,14 +241,15 @@
                             );
                         @endphp
                         {{-- Quick Link to Commercial Handover --}}
-                        <a href="{{ route('sales.handover.index') }}"
-                           class="px-3.5 py-2.5 rounded-xl font-bold text-[12.5px] bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 flex items-center gap-2 cursor-pointer shadow-xs hover:border-[#8F0A0D] hover:text-[#8F0A0D] transition-all no-underline"
+                        <button type="button"
+                           @click="activeSection = 'handover'"
+                           class="px-3.5 py-2.5 rounded-xl font-bold text-[12.5px] bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 flex items-center gap-2 cursor-pointer shadow-xs hover:border-[#8F0A0D] hover:text-[#8F0A0D] transition-all"
                            title="Serah Terima Proyek ke PMO / Managed Service">
                             <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                             </svg>
-                            <span>Handover Proyek</span>
-                        </a>
+                            <span>Serah Terima ({{ $totalHandoverCount ?? 0 }})</span>
+                        </button>
 
                         @if($canCreateProject)
                         {{-- Add New Project (Red) --}}
@@ -573,14 +607,17 @@
                                 </tr>
                             @endforelse
                         </tbody>
-                    </table>
-                </div>
-            </div>
+                    \1
+            </div> {{-- End Section Pipeline --}}
 
+            {{-- 2. SECTION SERAH TERIMA / HANDOVER (INTEGRATED FULL VIEW) --}}
+            <div x-show="activeSection === 'handover'" x-cloak class="space-y-5">
+                @include('sales.pipeline.partials.handover_tab')
+            </div>
         </div>
     </div>
 
-    {{-- MODAL: + ADD NEW PROJECT / + ADD COMPLETE PROJECT --}}
+    {{-- MODAL: + ADD NEW PROJECT{{-- MODAL: + ADD NEW PROJECT / + ADD COMPLETE PROJECT --}}
     <div x-show="isAddModalOpen" x-cloak
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 scale-95"
@@ -822,7 +859,82 @@
 <script>
     function projectKanbanPage() {
         return {
+            activeSection: '{{ $activeTab ?? "pipeline" }}',
             viewMode: 'kanban',
+            isHandoverModalOpen: false,
+            selectedProject: {},
+            formAction: '',
+            formTarget: 'pmo',
+            formTargets: ['pmo'],
+            formPoNum: '',
+            formPoDate: '',
+            formContractValue: 0,
+            formBilling: '',
+            formSla: '',
+            formCommercialTerms: '',
+            formSpecialCommitment: '',
+            formExclusions: '',
+            formSlaTier: 'Gold',
+            formSlaCoverage: '24x7',
+            formMaintFreq: 'Monthly',
+            formServiceStart: '',
+            formServiceEnd: '',
+            formSignatureType: '{{ auth()->user()->signature_type ?: "signature_qr" }}',
+
+            toggleFormTarget(val) {
+                if (this.formTargets.includes(val)) {
+                    if (this.formTargets.length > 1) {
+                        this.formTargets = this.formTargets.filter(t => t !== val);
+                    }
+                } else {
+                    this.formTargets.push(val);
+                }
+                if (this.formTargets.includes('pmo') && this.formTargets.includes('managed_service')) {
+                    this.formTarget = 'both';
+                } else if (this.formTargets.includes('managed_service')) {
+                    this.formTarget = 'managed_service';
+                } else {
+                    this.formTarget = 'pmo';
+                }
+            },
+
+            openHandoverModal(proj) {
+                this.selectedProject = proj;
+                this.formAction = '/sales/handover/' + proj.id + '/submit';
+                this.$nextTick(() => {
+                    const formEl = document.getElementById('commercialHandoverForm');
+                    if (formEl) formEl.action = '/sales/handover/' + proj.id + '/submit';
+                });
+                const pName = (proj.name || '').toLowerCase();
+                const pType = (proj.project_type || '').toLowerCase();
+                const isMsAuto = proj.handover_target === 'managed_service' 
+                    || proj.stage === 'Operate'
+                    || pName.includes('pemeliharaan') 
+                    || pName.includes('maintenance') 
+                    || pType.includes('managed service');
+                this.formTarget = proj.handover_target || (isMsAuto ? 'managed_service' : 'pmo');
+                if (this.formTarget === 'both') {
+                    this.formTargets = ['pmo', 'managed_service'];
+                } else if (this.formTarget === 'managed_service') {
+                    this.formTargets = ['managed_service'];
+                } else {
+                    this.formTargets = ['pmo'];
+                }
+                this.formPoNum = proj.po_spk_number || proj.po_number || proj.so_code || ('PO-' + new Date().getFullYear() + '-' + String(proj.id).padStart(4, '0'));
+                this.formPoDate = proj.po_spk_date ? proj.po_spk_date.split('T')[0] : '{{ date('Y-m-d') }}';
+                this.formContractValue = proj.contract_value || 0;
+                this.formBilling = proj.billing_terms || (this.formTarget === 'managed_service' ? 'Pembayaran tagihan rutin per bulan (Net 30 hari) setelah rekap SLA bulanan terbit.' : 'DP 30% setelah PO terbit, 50% setelah delivery barang on-site, 20% pelunasan setelah BAST selesai.');
+                this.formSla = proj.sla_commitment || (this.formTarget === 'managed_service' ? 'SLA Availability 99.5%, MTTR 4 Jam, Response Time 15-30 Menit.' : 'SLA Garansi Resmi Pabrik 1 Tahun, Layanan Support Jam Kerja (8x5) Response Time 4 Jam.');
+                this.formCommercialTerms = proj.commercial_terms || 'Harga Franco Jakarta, Pembayaran Net 30 Hari (TOP 30) setelah invoice diterima.';
+                this.formSpecialCommitment = proj.special_commitment || 'Termasuk pendampingan User Acceptance Testing (UAT) dan transfer knowledge.';
+                this.formExclusions = proj.exclusions || 'Pengadaan kabel, rack, atau penggantian suku cadang di luar BoQ dikenakan biaya terpisah.';
+                this.formSlaTier = proj.sla_tier || 'Gold';
+                this.formSlaCoverage = proj.sla_coverage_hours || '24x7';
+                this.formMaintFreq = proj.maintenance_frequency || 'Monthly';
+                this.formServiceStart = proj.service_start_date ? proj.service_start_date.split('T')[0] : (proj.po_spk_date ? proj.po_spk_date.split('T')[0] : '{{ date('Y-m-d') }}');
+                this.formServiceEnd = proj.service_end_date ? proj.service_end_date.split('T')[0] : '';
+                this.isHandoverModalOpen = true;
+            },
             isAddModalOpen: false,
             modalTitle: 'Tambah Project Baru',
             formStatus: 'Draft',
