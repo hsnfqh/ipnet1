@@ -264,7 +264,7 @@
          x-cloak 
          class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5"
          @click.self="isHandoverModalOpen = false">
-        <div class="bg-white rounded-2xl w-[820px] max-w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-[#E2E8F0] my-auto anim-fade-up">
+        <div class="bg-white rounded-2xl w-[900px] max-w-5xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-[#E2E8F0] my-auto anim-fade-up">
             
             {{-- Fixed Header --}}
             <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
@@ -687,28 +687,28 @@
 
                 </div>
 
-                {{-- Fixed Footer --}}
-                <div class="flex items-center justify-between p-4 px-6 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
-                    <div class="text-[11.5px] text-gray-500 font-medium">
+                {{-- Fixed Footer (Semua Tombol 1 Baris Sejajar & Rapi) --}}
+                <div class="flex items-center justify-between p-4 px-6 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0 gap-3">
+                    <div class="text-[11.5px] text-gray-500 font-medium shrink min-w-0 truncate">
                         Target Penyerahan: <strong class="text-gray-900" x-text="formTarget === 'managed_service' ? 'Tim Managed Service (Operate)' : 'Tim PMO & Delivery (Deliver)'"></strong>
                     </div>
-                    <div class="flex items-center gap-2.5">
+                    <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
                         <template x-if="selectedProject && (selectedProject.commercial_handover_status === 'Submitted' || selectedProject.commercial_handover_status === 'Approved' || selectedProject.ms_handover_status === 'Accepted')">
                             <a :href="'/sales/handover/' + selectedProject.id + '/document'" target="_blank"
-                               class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl transition flex items-center gap-1.5 shadow-xs">
-                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                <span>Lihat BA Serah Terima</span>
+                               class="h-9.5 px-3.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl transition inline-flex items-center gap-1.5 shadow-2xs whitespace-nowrap cursor-pointer shrink-0">
+                                <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <span class="whitespace-nowrap">Lihat BA Serah Terima</span>
                             </a>
                         </template>
                         <button type="button" 
                                 @click="isHandoverModalOpen = false" 
-                                class="px-4 py-2 text-[12.5px] font-bold text-[#475569] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl transition cursor-pointer">
+                                class="h-9.5 px-4 text-xs font-bold text-[#475569] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl transition cursor-pointer whitespace-nowrap shrink-0">
                             Batal
                         </button>
                         <button type="submit" 
-                                class="px-5 py-2 text-[12.5px] font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-md transition cursor-pointer flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                            <span x-text="formTarget === 'managed_service' ? 'Tanda Tangani & Serahkan ke Managed Service' : 'Tanda Tangani & Serahkan ke PMO'"></span>
+                                class="h-9.5 px-4.5 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-xs transition cursor-pointer inline-flex items-center gap-2 whitespace-nowrap shrink-0 active:scale-95">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            <span class="whitespace-nowrap" x-text="formTarget === 'managed_service' ? 'Tanda Tangani & Serahkan ke Managed Service' : 'Tanda Tangani & Serahkan ke PMO'"></span>
                         </button>
                     </div>
                 </div>
