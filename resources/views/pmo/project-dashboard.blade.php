@@ -97,6 +97,32 @@
          showAssignTeamModal: false,
          showQuickTaskModal: false,
          selectedEngineerId: '',
+         showEditTaskModal: false,
+         editTaskId: null,
+         editTaskTitle: '',
+         editTaskDuration: 1,
+         editTaskStartDate: '',
+         editTaskDeadline: '',
+         editTaskBobot: 0,
+         editTaskProgress: 0,
+         editTaskStatus: 'In Progress',
+         editTaskPriority: 'Medium',
+         editTaskEngineerId: '',
+         editTaskDescription: '',
+         openEditTaskModal(task) {
+             this.editTaskId = task.id;
+             this.editTaskTitle = task.title;
+             this.editTaskDuration = task.duration_days;
+             this.editTaskStartDate = task.start_date;
+             this.editTaskDeadline = task.deadline;
+             this.editTaskBobot = task.bobot;
+             this.editTaskProgress = task.progress;
+             this.editTaskStatus = task.status;
+             this.editTaskPriority = task.priority || 'Medium';
+             this.editTaskEngineerId = task.engineer_id || '';
+             this.editTaskDescription = task.description || '';
+             this.showEditTaskModal = true;
+         },
          openProgressModal(week, actual, plan, notes, range) {
              this.activeWeek = week;
              this.activeActual = actual !== null ? actual : 0;
@@ -643,8 +669,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @foreach($weeklyRecords as $widx => $rec)
-                                <tr x-show="Math.ceil(({{ $widx }} + 1) / weeklyPerPage) === weeklyPage"
-                                    class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
+                                <tr class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
                                     
                                     {{-- Kolom Minggu --}}
                                     <td class="py-3 px-3 whitespace-nowrap">
@@ -726,34 +751,6 @@
                             @endforeach
                         </tbody>
                     </table>
-
-                    {{-- Weekly Pagination Controls --}}
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
-                        <div class="text-slate-500 font-medium">
-                            Menampilkan <span class="font-bold text-slate-800" x-text="((weeklyPage - 1) * weeklyPerPage) + 1"></span> s/d 
-                            <span class="font-bold text-slate-800" x-text="Math.min(weeklyPage * weeklyPerPage, {{ count($weeklyRecords) }})"></span> 
-                            dari <span class="font-bold text-slate-800">{{ count($weeklyRecords) }} Minggu</span>
-                        </div>
-                        <div class="flex items-center gap-1.5 self-end sm:self-auto">
-                            <button type="button" 
-                                    @click="weeklyPage = Math.max(1, weeklyPage - 1)" 
-                                    :disabled="weeklyPage === 1"
-                                    :class="weeklyPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100 text-slate-700 cursor-pointer'"
-                                    class="px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs transition">
-                                &larr; Sebelumnya
-                            </button>
-                            <span class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 rounded-lg border border-slate-200">
-                                Halaman <span x-text="weeklyPage"></span> / <span x-text="totalWeeklyPages"></span>
-                            </span>
-                            <button type="button" 
-                                    @click="weeklyPage = Math.min(totalWeeklyPages, weeklyPage + 1)" 
-                                    :disabled="weeklyPage >= totalWeeklyPages"
-                                    :class="weeklyPage >= totalWeeklyPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100 text-slate-700 cursor-pointer'"
-                                    class="px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs transition">
-                                Berikutnya &rarr;
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 {{-- TABEL HARIAN --}}
@@ -1085,6 +1082,7 @@
                                         <th class="py-2.5 px-3">Progress Aktual</th>
                                         <th class="py-2.5 px-3">Status</th>
                                         <th class="py-2.5 px-3">Assignee (Ditunjuk Tim Lead)</th>
+                                        <th class="py-2.5 px-3 text-right">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -1093,10 +1091,16 @@
                                             $tDays = ($t->start_date && $t->deadline) 
                                                 ? max(1, (int) round(\Carbon\Carbon::parse($t->start_date)->diffInDays(\Carbon\Carbon::parse($t->deadline))) + 1)
                                                 : 1;
+                                            $bobotVal = 0;
                                             $bobotTxt = '-';
                                             if (preg_match('/Bobot:\s*([\d\.]+)%/i', $t->description ?? '', $bm)) {
+                                                $bobotVal = (float) $bm[1];
                                                 $bobotTxt = $bm[1] . '%';
                                             }
+                                            $cleanDesc = trim(preg_replace('/\[Bobot:[^\]]+\]/i', '', $t->description ?? ''));
+                                            $cleanDesc = trim(preg_replace('/\[Kontribusi:[^\]]+\]/i', '', $cleanDesc));
+                                            $tStartDate = $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '';
+                                            $tDeadline = $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '';
                                         @endphp
                                         <tr class="hover:bg-slate-50/80 transition">
                                             <td class="py-2.5 px-3 text-center font-bold text-slate-400">
@@ -1104,8 +1108,8 @@
                                             </td>
                                             <td class="py-2.5 px-3">
                                                 <div class="font-bold text-slate-900 text-xs">{{ $t->title }}</div>
-                                                @if(!empty($t->description) && !str_starts_with($t->description, '['))
-                                                    <div class="text-[10.5px] text-slate-400 truncate max-w-sm">{{ $t->description }}</div>
+                                                @if(!empty($cleanDesc) && !str_starts_with($cleanDesc, '['))
+                                                    <div class="text-[10.5px] text-slate-400 truncate max-w-sm" title="{{ $cleanDesc }}">{{ $cleanDesc }}</div>
                                                 @endif
                                             </td>
                                             <td class="py-2.5 px-3 whitespace-nowrap">
@@ -1149,10 +1153,38 @@
                                                 </div>
                                                 <span class="text-[10px] text-slate-400 block">Ditunjuk Tim Lead</span>
                                             </td>
+                                            <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                                                <div class="flex items-center justify-end gap-1.5">
+                                                    <button type="button" 
+                                                            @click="openEditTaskModal({
+                                                                id: {{ $t->id }},
+                                                                title: '{{ addslashes($t->title) }}',
+                                                                duration_days: {{ $tDays }},
+                                                                start_date: '{{ $tStartDate }}',
+                                                                deadline: '{{ $tDeadline }}',
+                                                                bobot: {{ $bobotVal }},
+                                                                progress: {{ (int)($t->progress ?: 0) }},
+                                                                status: '{{ $t->status }}',
+                                                                priority: '{{ $t->priority ?: 'Medium' }}',
+                                                                engineer_id: '{{ $t->engineer_id }}',
+                                                                description: '{{ addslashes($cleanDesc) }}'
+                                                            })"
+                                                            class="px-2.5 py-1 rounded-md text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer">
+                                                        Ubah
+                                                    </button>
+                                                    <form action="{{ route('pmo.tasks.destroy_post', $t->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus task {{ addslashes($t->title) }}?')">
+                                                        @csrf
+                                                        <button type="submit" 
+                                                                class="px-2.5 py-1 rounded-md text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer">
+                                                            Hapus
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="8" class="text-center py-6 text-slate-400 text-xs">
+                                            <td colspan="9" class="text-center py-6 text-slate-400 text-xs">
                                                 Belum ada task teknis WBS yang terdaftar.
                                             </td>
                                         </tr>
@@ -1607,7 +1639,7 @@
                 </button>
             </div>
 
-            <form action="{{ route('pmo.projects.quick_task', $project->id) }}" 
+            <form action="{{ route('pmo.projects.tasks.store', $project->id) }}" 
                   method="POST" 
                   x-data="{ 
                       wbsTitle: '', 
@@ -1771,6 +1803,38 @@
                     </div>
                 </div>
 
+                {{-- Durasi, Bobot & Status --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
+                        <input type="number" 
+                               name="duration_days" 
+                               value="1" 
+                               min="1" 
+                               max="365" 
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Bobot (%)</label>
+                        <input type="number" 
+                               name="bobot" 
+                               value="0" 
+                               step="0.01" 
+                               min="0" 
+                               max="100" 
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Status Awal</label>
+                        <select name="status" 
+                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                            <option value="Not Started" selected>Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Mulai Pengerjaan</label>
@@ -1807,6 +1871,147 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    {{-- MODAL UBAH / EDIT TASK TEKNIS WBS OLEH PM --}}
+    <div x-show="showEditTaskModal" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         style="display: none;"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        
+        <div @click.outside="showEditTaskModal = false"
+             class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Ubah Task Teknis (WBS)</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Perbarui rincian deliverable, bobot, durasi &amp; progres aktual oleh PM</p>
+                    </div>
+                </div>
+                <button type="button" @click="showEditTaskModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form :action="'{{ url('/pmo/tasks') }}/' + editTaskId + '/update'" 
+                  method="POST" 
+                  class="space-y-3.5">
+                @csrf
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Judul Tugas / Rincian Pekerjaan (WBS) <span class="text-[#8F0A0D]">*</span>
+                    </label>
+                    <input type="text" 
+                           name="title" 
+                           x-model="editTaskTitle" 
+                           required 
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-900 focus:border-[#8F0A0D] outline-none transition">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
+                        <input type="number" 
+                               name="duration_days" 
+                               x-model="editTaskDuration" 
+                               min="1" 
+                               max="365" 
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Bobot (%)</label>
+                        <input type="number" 
+                               name="bobot" 
+                               x-model="editTaskBobot" 
+                               step="0.01" 
+                               min="0" 
+                               max="100" 
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Progres Aktual (%)</label>
+                        <input type="number" 
+                               name="progress" 
+                               x-model="editTaskProgress" 
+                               min="0" 
+                               max="100" 
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-emerald-700 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Mulai</label>
+                        <input type="date" 
+                               name="start_date" 
+                               x-model="editTaskStartDate" 
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Target Selesai (Deadline)</label>
+                        <input type="date" 
+                               name="deadline" 
+                               x-model="editTaskDeadline" 
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Status Pengerjaan</label>
+                        <select name="status" 
+                                x-model="editTaskStatus" 
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                            <option value="Not Started">Not Started (Belum Berjalan)</option>
+                            <option value="In Progress">In Progress (Sedang Dikerjakan)</option>
+                            <option value="Completed">Completed (Selesai 100%)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Engineer Pelaksana</label>
+                        <select name="engineer_id" 
+                                x-model="editTaskEngineerId" 
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                            <option value="">-- Tetapkan Assignee --</option>
+                            @foreach($candidateList as $ce)
+                                <option value="{{ $ce['id'] }}">{{ $ce['name'] }} ({{ $ce['position'] }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi &amp; Instruksi Teknis PM</label>
+                    <textarea name="description" 
+                              x-model="editTaskDescription" 
+                              rows="2.5" 
+                              placeholder="Rincian instruksi pelaksanaan atau catatan teknis..." 
+                              class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showEditTaskModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
         </div>
     </div>
 

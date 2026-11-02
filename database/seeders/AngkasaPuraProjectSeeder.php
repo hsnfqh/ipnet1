@@ -394,8 +394,6 @@ class AngkasaPuraProjectSeeder extends Seeder
                 'billing_terms'                 => 'Termin 1 (DP 30% Terbayar), Termin 2 (Delivery & Staging 30%), Termin 3 (Migrasi & Cutover 20%), Termin 4 (BAST Final 20%)',
                 'commercial_terms'              => 'Termasuk pengadaan 108 switch modular, rack mounting, kabel optik patch cord, konfigurasi firewall Fortinet, TACACS AAA, serta pendampingan uji komisioning dan BAST.',
                 'sla_commitment'                => 'Dukungan On-site selama 56 hari kalender implementasi di Bandara IGNR Denpasar, koordinasi teknis bersama APS dan APINDO.',
-                'so_code'                       => 'SO-IPNET-0008',
-                'so_number'                     => 'SO-IPNET-0008',
                 'sla_tier'                      => 'Gold',
                 'sla_coverage_hours'            => '24x7',
                 'maintenance_frequency'         => 'Bulanan (Monthly)',

@@ -1539,6 +1539,195 @@ class PmoController extends Controller
     /**
      * PM Membuat & Mendelegasikan Task Teknis (WBS) Cepat ke Personil Proyek
      */
+    /**
+     * PM Membuat Task Teknis WBS Baru (Bukan dari Sales, PM buat & kelola sendiri)
+     */
+    public function storeTask(Request $request, Project $project)
+    {
+        $rawTitle = trim((string) $request->input('title', ''));
+        if ($rawTitle === '__custom__' || empty($rawTitle)) {
+            $rawTitle = trim((string) $request->input('title_custom', ''));
+        }
+        if (!empty($rawTitle)) {
+            $request->merge(['title' => $rawTitle]);
+        }
+
+        $validated = $request->validate([
+            'title'         => 'required|string|max:255',
+            'duration_days' => 'nullable|integer|min:1|max:365',
+            'start_date'    => 'nullable|date',
+            'deadline'      => 'nullable|date',
+            'bobot'         => 'nullable|numeric|min:0|max:100',
+            'progress'      => 'nullable|numeric|min:0|max:100',
+            'status'        => 'nullable|string|max:50',
+            'priority'      => 'nullable|in:Low,Medium,High',
+            'engineer_id'   => 'nullable|exists:users,id',
+            'description'   => 'nullable|string|max:2000',
+        ]);
+
+        $duration = (int) ($validated['duration_days'] ?? 1);
+        $startDate = !empty($validated['start_date']) ? Carbon::parse($validated['start_date']) : now();
+        if (!empty($validated['deadline'])) {
+            $deadline = Carbon::parse($validated['deadline']);
+        } else {
+            $deadline = $startDate->copy()->addDays(max(0, $duration - 1));
+        }
+
+        $progress = isset($validated['progress']) ? (int) $validated['progress'] : 0;
+        $status = $validated['status'] ?? ($progress >= 100 ? 'Completed' : ($progress > 0 ? 'In Progress' : 'Not Started'));
+
+        $desc = $validated['description'] ?? '';
+        if (isset($validated['bobot']) && is_numeric($validated['bobot'])) {
+            $bobotVal = number_format((float) $validated['bobot'], 2);
+            if (preg_match('/\[Bobot:\s*[\d\.]+%/i', $desc)) {
+                $desc = preg_replace('/\[Bobot:\s*[\d\.]+%/i', "[Bobot: {$bobotVal}%", $desc);
+            } else {
+                $desc = trim("[Bobot: {$bobotVal}%] " . $desc);
+            }
+        }
+
+        $engineerId = $validated['engineer_id'] ?? null;
+        if (!$engineerId) {
+            $assignedEngs = $project->handover_data['assigned_engineers'] ?? [];
+            if (!empty($assignedEngs)) {
+                $engineerId = $assignedEngs[0]['id'] ?? null;
+            }
+        }
+        if (!$engineerId) {
+            $engineerId = auth()->id();
+        }
+
+        $task = Task::create([
+            'title'       => $validated['title'],
+            'project_id'  => $project->id,
+            'engineer_id' => $engineerId,
+            'priority'    => $validated['priority'] ?? 'Medium',
+            'status'      => $status,
+            'start_date'  => $startDate->format('Y-m-d'),
+            'deadline'    => $deadline->format('Y-m-d 18:00:00'),
+            'description' => $desc ?: null,
+            'progress'    => $progress,
+            'created_by'  => auth()->id(),
+        ]);
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('task_user') && $engineerId) {
+            $task->engineers()->sync([$engineerId]);
+        }
+
+        $this->syncProjectProgressFromTasks($project);
+
+        return back()->with('success', "Task WBS '{$task->title}' berhasil ditambahkan ke proyek oleh PM!");
+    }
+
+    /**
+     * PM Mengubah Task Teknis WBS (Edit Task)
+     */
+    public function updateTask(Request $request, Task $task)
+    {
+        $validated = $request->validate([
+            'title'         => 'required|string|max:255',
+            'duration_days' => 'nullable|integer|min:1|max:365',
+            'start_date'    => 'nullable|date',
+            'deadline'      => 'nullable|date',
+            'bobot'         => 'nullable|numeric|min:0|max:100',
+            'progress'      => 'nullable|numeric|min:0|max:100',
+            'status'        => 'nullable|string|max:50',
+            'priority'      => 'nullable|in:Low,Medium,High',
+            'engineer_id'   => 'nullable|exists:users,id',
+            'description'   => 'nullable|string|max:2000',
+        ]);
+
+        $duration = (int) ($validated['duration_days'] ?? 1);
+        $startDate = !empty($validated['start_date']) ? Carbon::parse($validated['start_date']) : ($task->start_date ? Carbon::parse($task->start_date) : now());
+        if (!empty($validated['deadline'])) {
+            $deadline = Carbon::parse($validated['deadline']);
+        } else {
+            $deadline = $startDate->copy()->addDays(max(0, $duration - 1));
+        }
+
+        $progress = isset($validated['progress']) ? (int) $validated['progress'] : (int) $task->progress;
+        $status = $validated['status'] ?? ($progress >= 100 ? 'Completed' : ($progress > 0 ? 'In Progress' : 'Not Started'));
+
+        $desc = $validated['description'] ?? ($task->description ?? '');
+        if (isset($validated['bobot']) && is_numeric($validated['bobot'])) {
+            $bobotVal = number_format((float) $validated['bobot'], 2);
+            if (preg_match('/Bobot:\s*[\d\.]+/i', $desc)) {
+                $desc = preg_replace('/Bobot:\s*[\d\.]+/i', "Bobot: {$bobotVal}", $desc);
+            } else {
+                $desc = trim("[Bobot: {$bobotVal}%] " . $desc);
+            }
+        }
+
+        $updateData = [
+            'title'       => $validated['title'],
+            'priority'    => $validated['priority'] ?? ($task->priority ?: 'Medium'),
+            'status'      => $status,
+            'start_date'  => $startDate->format('Y-m-d'),
+            'deadline'    => $deadline->format('Y-m-d 18:00:00'),
+            'description' => $desc ?: null,
+            'progress'    => $progress,
+        ];
+
+        if (!empty($validated['engineer_id'])) {
+            $updateData['engineer_id'] = $validated['engineer_id'];
+            if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
+                $task->engineers()->sync([$validated['engineer_id']]);
+            }
+        }
+
+        $task->update($updateData);
+
+        if ($task->project) {
+            $this->syncProjectProgressFromTasks($task->project);
+        }
+
+        return back()->with('success', "Task WBS '{$task->title}' berhasil diperbarui oleh PM!");
+    }
+
+    /**
+     * PM Menghapus Task Teknis WBS
+     */
+    public function destroyTask(Request $request, Task $task)
+    {
+        $project = $task->project;
+        $title = $task->title;
+        if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
+            $task->engineers()->detach();
+        }
+        $task->forceDelete();
+
+        if ($project) {
+            $this->syncProjectProgressFromTasks($project);
+        }
+
+        return back()->with('success', "Task WBS '{$title}' berhasil dihapus dari proyek.");
+    }
+
+    private function syncProjectProgressFromTasks(Project $project)
+    {
+        $tasks = $project->tasks()->get();
+        if ($tasks->isEmpty()) {
+            return;
+        }
+
+        $totalCumulative = 0;
+        $hasBobot = false;
+
+        foreach ($tasks as $t) {
+            if (preg_match('/Bobot:\s*([\d\.]+)%/i', $t->description ?? '', $m)) {
+                $bobot = (float) $m[1];
+                $prog = (float) ($t->progress ?? 0);
+                $totalCumulative += ($bobot * ($prog / 100.0));
+                $hasBobot = true;
+            }
+        }
+
+        if ($hasBobot && $totalCumulative > 0) {
+            $project->progress = round($totalCumulative, 2);
+            $project->save();
+        }
+    }
+
     public function quickStoreTask(Request $request, Project $project)
     {
         $rawTitle = trim((string) $request->input('title', ''));

@@ -459,4 +459,70 @@ class EndToEndFlowTest extends TestCase
         $pmoDashRes->assertSee('Kesehatan Task Mingguan');
         $pmoDashRes->assertSee('DISTRIBUSI TIM');
     }
+
+    public function test_pm_can_create_update_and_delete_wbs_tasks(): void
+    {
+        $project = Project::create([
+            'name'           => 'Implementasi Network Test Project',
+            'client'         => 'PT Test Client',
+            'location'       => 'Bandara IGNR Denpasar, Bali',
+            'sales_name'     => $this->salesUser->name,
+            'created_by'     => $this->salesUser->id,
+            'pm_id'          => $this->pmoUser->id,
+            'division_id'    => $this->techDivision->id,
+            'stage'          => 'Deliver',
+            'status'         => 'In Progress',
+            'process_status' => 'In Progress',
+            'sales_stage'    => 'Closed Won',
+            'start_date'     => now()->toDateString(),
+            'deadline'       => now()->addDays(56)->toDateString(),
+            'progress'       => 0,
+        ]);
+
+        // 1. PM can store task
+        $storeRes = $this->actingAs($this->pmoUser)->post(route('pmo.projects.tasks.store', $project->id), [
+            'title'         => 'Stagging Switch Baru',
+            'duration_days' => 15,
+            'start_date'    => now()->toDateString(),
+            'deadline'      => now()->addDays(14)->toDateString(),
+            'bobot'         => 15.46,
+            'progress'      => 50,
+            'status'        => 'In Progress',
+            'priority'      => 'High',
+            'engineer_id'   => $this->engineer1->id,
+            'description'   => 'Staging rincian switch di posko',
+        ]);
+        $storeRes->assertSessionHas('success');
+
+        $task = Task::where('project_id', $project->id)->where('title', 'Stagging Switch Baru')->first();
+        $this->assertNotNull($task);
+        $this->assertEquals(50, $task->progress);
+        $this->assertEquals('In Progress', $task->status);
+
+        // 2. PM can update task
+        $updateRes = $this->actingAs($this->pmoUser)->post(route('pmo.tasks.update', $task->id), [
+            'title'         => 'Stagging Switch Selesai Diperbarui',
+            'duration_days' => 15,
+            'start_date'    => now()->toDateString(),
+            'deadline'      => now()->addDays(14)->toDateString(),
+            'bobot'         => 15.46,
+            'progress'      => 100,
+            'status'        => 'Completed',
+            'priority'      => 'High',
+            'engineer_id'   => $this->engineer2->id,
+            'description'   => 'Selesai 100%',
+        ]);
+        $updateRes->assertSessionHas('success');
+
+        $task->refresh();
+        $this->assertEquals('Stagging Switch Selesai Diperbarui', $task->title);
+        $this->assertEquals(100, $task->progress);
+        $this->assertEquals('Completed', $task->status);
+        $this->assertEquals($this->engineer2->id, $task->engineer_id);
+
+        // 3. PM can delete task
+        $deleteRes = $this->actingAs($this->pmoUser)->post(route('pmo.tasks.destroy_post', $task->id));
+        $deleteRes->assertSessionHas('success');
+        $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
+    }
 }

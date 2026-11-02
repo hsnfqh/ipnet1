@@ -1109,6 +1109,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects/{project}/assign-division', [PmoController::class, 'assignDivision'])->name('pmo.projects.assign_division');
         Route::post('/projects/{project}/assign-team', [PmoController::class, 'assignTeam'])->name('pmo.projects.assign_team');
         Route::post('/projects/{project}/quick-task', [PmoController::class, 'quickStoreTask'])->name('pmo.projects.quick_task');
+        Route::post('/projects/{project}/tasks', [PmoController::class, 'storeTask'])->name('pmo.projects.tasks.store');
+        Route::post('/tasks/{task}/update', [PmoController::class, 'updateTask'])->name('pmo.tasks.update');
+        Route::post('/tasks/{task}/delete', [PmoController::class, 'destroyTask'])->name('pmo.tasks.destroy_post');
+        Route::delete('/tasks/{task}', [PmoController::class, 'destroyTask'])->name('pmo.tasks.destroy');
     });
 
     // Lead & Executive Dashboard (Dashboard 2)
