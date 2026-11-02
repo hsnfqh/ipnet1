@@ -1165,21 +1165,29 @@ class PmoController extends Controller
             'division_id' => 'required|exists:divisions,id',
             'checklist'   => 'nullable',
         ]);
+        
+        $assignedPm = \App\Models\User::find($validated['pm_id']);
+        if ($assignedPm && method_exists($assignedPm, 'ensureSignatureQrToken')) {
+            $assignedPm->ensureSignatureQrToken();
+        }
+
         $pmUser = auth()->user();
-        if ($pmUser) {
+        if ($pmUser && method_exists($pmUser, 'ensureSignatureQrToken')) {
             $pmUser->ensureSignatureQrToken();
         }
 
-        $chosenSigType = $request->input('signature_mode', $request->input('signature_type', $pmUser?->signature_type ?: 'signature_qr'));
+        $chosenSigType = $request->input('signature_mode', $request->input('signature_type', ($assignedPm?->signature_type ?: ($pmUser?->signature_type ?: 'signature_qr'))));
         $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        
+        // Gunakan nama dan identitas PM yang dipilih/ditugaskan pada proyek
         $existingHandoverData['pm_signature'] = [
             'signed'     => true,
-            'user_id'    => $pmUser?->id,
-            'user_name'  => $pmUser?->name,
-            'user_role'  => $pmUser?->role_label ?: 'Project Manager / PMO',
+            'user_id'    => $assignedPm ? $assignedPm->id : $pmUser?->id,
+            'user_name'  => $assignedPm ? $assignedPm->name : ($pmUser?->name ?: 'Project Manager'),
+            'user_role'  => 'Project Manager',
             'signed_at'  => now()->format('Y-m-d H:i:s'),
-            'qr_token'   => $pmUser?->signature_qr_token,
-            'signature'  => $pmUser?->signature_data,
+            'qr_token'   => $assignedPm?->signature_qr_token ?: $pmUser?->signature_qr_token,
+            'signature'  => $assignedPm?->signature_data ?: $pmUser?->signature_data,
             'type'       => $chosenSigType,
         ];
 

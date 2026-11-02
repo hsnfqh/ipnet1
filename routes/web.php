@@ -80,13 +80,30 @@ Route::get('/fix-cpanel-deploy', function () {
             ->first();
 
         if ($apProject) {
+            $pmRizki = \App\Models\User::where('name', 'like', '%Rizki%')->first();
+            $salesRaiza = \App\Models\User::where('name', 'like', '%Raiza%')->first();
+            $hd = is_array($apProject->handover_data) ? $apProject->handover_data : [];
+            if ($pmRizki) {
+                if (isset($hd['pm_signature'])) {
+                    $hd['pm_signature']['user_name'] = $pmRizki->name;
+                    $hd['pm_signature']['user_id'] = $pmRizki->id;
+                }
+            }
+            if ($salesRaiza && isset($hd['sales_signature'])) {
+                $hd['sales_signature']['user_name'] = $salesRaiza->name;
+                $hd['sales_signature']['user_id'] = $salesRaiza->id;
+            }
             $apProject->update([
                 'handover_target'       => 'both',
+                'pm_id'                 => $pmRizki ? $pmRizki->id : $apProject->pm_id,
+                'sales_name'            => $salesRaiza ? $salesRaiza->name : 'Raiza',
+                'created_by'            => $salesRaiza ? $salesRaiza->id : $apProject->created_by,
                 'so_code'               => 'SO-IPNET-0008',
                 'so_number'             => 'SO-IPNET-0008',
                 'sla_tier'              => 'Gold',
                 'sla_coverage_hours'    => '24x7',
                 'maintenance_frequency' => 'Bulanan (Monthly)',
+                'handover_data'         => $hd,
             ]);
         }
 
