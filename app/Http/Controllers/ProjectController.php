@@ -1577,26 +1577,6 @@ class ProjectController extends Controller
 
         $stageLower = strtolower($validated['sales_stage']);
 
-        // Validasi: Seluruh Berkas Lampiran Pendukung harus diisi lengkap sebelum Closed Won
-        if (str_contains($stageLower, 'won') || $validated['sales_stage'] === 'Closed Won' || (int)$validated['win_probability'] === 100) {
-            $missingDocs = $project->getMissingLampiranPendukung();
-            if (!empty($missingDocs)) {
-                $countMissing = count($missingDocs);
-                $missingList = implode(', ', array_slice(array_values($missingDocs), 0, 4));
-                if ($countMissing > 4) {
-                    $missingList .= ' dan ' . ($countMissing - 4) . ' berkas lainnya';
-                }
-                $errorMsg = "Tidak dapat beralih ke Closed Won: Seluruh Berkas Lampiran Pendukung wajib diisi lengkap terlebih dahulu. Masih ada {$countMissing} berkas yang belum diisi ({$missingList}).";
-                if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => $errorMsg,
-                        'missing' => array_values($missingDocs),
-                    ], 422);
-                }
-                return back()->with('error', $errorMsg);
-            }
-        }
 
         $project->sales_stage = $validated['sales_stage'];
         $project->win_probability = $validated['win_probability'];
@@ -1708,16 +1688,6 @@ class ProjectController extends Controller
         } elseif ($newStatus === 'Pending') {
             // keep stage
         } elseif ($newStatus === 'Completed') {
-            // Validasi kelengkapan berkas lampiran pendukung sebelum Completed / Closed Won
-            $missingDocs = $project->getMissingLampiranPendukung();
-            if (!empty($missingDocs)) {
-                $countMissing = count($missingDocs);
-                $errorMsg = "Tidak dapat menyelesaikan proyek ke status Completed: Seluruh Berkas Lampiran Pendukung ({$countMissing} berkas belum diisi) wajib dilengkapi terlebih dahulu.";
-                if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json(['success' => false, 'message' => $errorMsg], 422);
-                }
-                return back()->with('error', $errorMsg);
-            }
 
             $updateData['stage'] = 'Deliver';
             $updateData['progress'] = 100;
