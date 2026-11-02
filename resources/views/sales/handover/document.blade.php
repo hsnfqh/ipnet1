@@ -19,13 +19,40 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 p-3 sm:p-8 antialiased">
 
+    @php
+        // Cek apakah mode eksplisit PM ke Managed Service (hanya via parameter query ?type=pm_to_ms)
+        $isPmToMs = (request('type') === 'pm_to_ms');
+        
+        // Cek apakah serah terima Commercial ke Managed Service (murni kontrak Managed Service)
+        $isManagedService = (!$isPmToMs && $project->handover_target === 'managed_service');
+        
+        $savedStatus = $handoverData['checklist_status'] ?? [];
+        $savedNa = $handoverData['checklist_na'] ?? [];
+        $savedNotes = $handoverData['checklist_notes'] ?? [];
+
+        $hoStatus = $handoverData['handover_status_selected'] ?? ($project->handover_status ?: ($project->commercial_handover_status === 'Approved' ? 'approved' : 'submitted'));
+    @endphp
+
     {{-- Toolbar Aksi (Hidden Saat Cetak) --}}
-    <div class="max-w-5xl mx-auto mb-4 no-print flex items-center justify-between gap-3">
+    <div class="max-w-5xl mx-auto mb-4 no-print flex flex-wrap items-center justify-between gap-3">
         <button type="button" onclick="window.history.back()"
                 class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-xs transition cursor-pointer flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             <span>Kembali</span>
         </button>
+
+        @if($project->handover_target === 'both')
+            <div class="inline-flex rounded-xl bg-slate-200/80 p-1 border border-slate-300 text-xs font-bold gap-1 shadow-inner">
+                <a href="{{ route('sales.handover.document', $project->id) }}" 
+                   class="px-3 py-1.5 rounded-lg transition {{ !$isPmToMs ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
+                    1. Serah Terima Sales ke PMO
+                </a>
+                <a href="{{ route('sales.handover.document', ['project' => $project->id, 'type' => 'pm_to_ms']) }}" 
+                   class="px-3 py-1.5 rounded-lg transition {{ $isPmToMs ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
+                    2. Serah Terima PM ke Managed Service
+                </a>
+            </div>
+        @endif
 
         <div class="flex items-center gap-2.5">
             <button type="button" onclick="window.print()"
@@ -35,17 +62,6 @@
             </button>
         </div>
     </div>
-
-    @php
-        $isManagedService = ($project->handover_target === 'managed_service');
-        $isPmToMs = (request('type') === 'pm_to_ms' || (!$isManagedService && $project->stage === 'Operate' && $project->handover_target === 'both'));
-        
-        $savedStatus = $handoverData['checklist_status'] ?? [];
-        $savedNa = $handoverData['checklist_na'] ?? [];
-        $savedNotes = $handoverData['checklist_notes'] ?? [];
-
-        $hoStatus = $handoverData['handover_status_selected'] ?? ($project->handover_status ?: ($project->commercial_handover_status === 'Approved' ? 'approved' : 'submitted'));
-    @endphp
 
     {{-- Kertas Dokumen Resmi Standar IPNET --}}
     <div class="max-w-5xl mx-auto bg-white border-2 border-[#CBD5E1] rounded-2xl shadow-xl p-6 sm:p-10 print-page space-y-5 text-[#0F172A] font-sans relative">
