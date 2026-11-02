@@ -20,12 +20,22 @@
 <body class="bg-slate-100 font-sans text-slate-900 p-3 sm:p-8 antialiased">
 
     @php
-        // Cek apakah mode eksplisit PM ke Managed Service (hanya via parameter query ?type=pm_to_ms)
-        $isPmToMs = (request('type') === 'pm_to_ms');
-        
-        // Cek apakah serah terima Commercial ke Managed Service (murni kontrak Managed Service)
-        $isManagedService = (!$isPmToMs && $project->handover_target === 'managed_service');
-        
+        // Resolusi tipe dokumen yang sedang ditampilkan (sales_to_pm, sales_to_ms, atau pm_to_ms)
+        $typeParam = request('type');
+        if ($typeParam === 'pm_to_ms') {
+            $activeDocType = 'pm_to_ms';
+        } elseif ($typeParam === 'sales_to_ms' || ($project->handover_target === 'managed_service' && empty($typeParam))) {
+            $activeDocType = 'sales_to_ms';
+        } else {
+            $activeDocType = 'sales_to_pm';
+        }
+
+        $isSalesToPm = ($activeDocType === 'sales_to_pm');
+        $isSalesToMs = ($activeDocType === 'sales_to_ms');
+        $isPmToMs    = ($activeDocType === 'pm_to_ms');
+
+        $isManagedService = $isSalesToMs;
+
         $savedStatus = $handoverData['checklist_status'] ?? [];
         $savedNa = $handoverData['checklist_na'] ?? [];
         $savedNotes = $handoverData['checklist_notes'] ?? [];
@@ -52,18 +62,21 @@
             <span>Kembali</span>
         </a>
 
-        @if($project->handover_target === 'both')
-            <div class="inline-flex rounded-xl bg-slate-200/80 p-1 border border-slate-300 text-xs font-bold gap-1 shadow-inner">
-                <a href="{{ route('sales.handover.document', $project->id) }}" 
-                   class="px-3 py-1.5 rounded-lg transition {{ !$isPmToMs ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-                    1. Serah Terima Sales ke PMO
-                </a>
-                <a href="{{ route('sales.handover.document', ['project' => $project->id, 'type' => 'pm_to_ms']) }}" 
-                   class="px-3 py-1.5 rounded-lg transition {{ $isPmToMs ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-                    2. Serah Terima PM ke Managed Service
-                </a>
-            </div>
-        @endif
+        {{-- Tab Switcher 3 Dokumen Resmi IPNET --}}
+        <div class="inline-flex rounded-xl bg-slate-200/80 p-1 border border-slate-300 text-xs font-bold gap-1 shadow-inner flex-wrap">
+            <a href="{{ route('sales.handover.document', ['project' => $project->id, 'type' => 'sales_to_pm']) }}" 
+               class="px-3 py-1.5 rounded-lg transition {{ $isSalesToPm ? 'bg-[#8F0A0D] text-white shadow-xs' : 'bg-white text-slate-700 hover:text-slate-900' }}">
+                1. Sales ke PM (IPN-FRM-PM-01)
+            </a>
+            <a href="{{ route('sales.handover.document', ['project' => $project->id, 'type' => 'sales_to_ms']) }}" 
+               class="px-3 py-1.5 rounded-lg transition {{ $isSalesToMs ? 'bg-[#8F0A0D] text-white shadow-xs' : 'bg-white text-slate-700 hover:text-slate-900' }}">
+                2. Sales ke MS (IPN-FRM-MS-01)
+            </a>
+            <a href="{{ route('sales.handover.document', ['project' => $project->id, 'type' => 'pm_to_ms']) }}" 
+               class="px-3 py-1.5 rounded-lg transition {{ $isPmToMs ? 'bg-[#8F0A0D] text-white shadow-xs' : 'bg-white text-slate-700 hover:text-slate-900' }}">
+                3. PM ke MS (IPN-FRM-DEL-01)
+            </a>
+        </div>
 
         <div class="flex items-center gap-2.5">
             <button type="button" onclick="window.print()"
@@ -98,7 +111,7 @@
         {{-- ========================================================================= --}}
         {{-- TEMPLATE 1: SERAH TERIMA SALES / COMMERCIAL KE PROJECT MANAGER (IPN-FRM-PM-01) --}}
         {{-- ========================================================================= --}}
-        @if(!$isManagedService && !$isPmToMs)
+        @if($isSalesToPm)
             {{-- Judul Utama Dokumen Persis PDF --}}
             <div class="text-center my-3 sm:my-4">
                 <div class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">
@@ -179,8 +192,15 @@
                             </td>
                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">Jenis proyek</td>
                             <td class="py-1.5 px-2.5">
-                                <span class="inline-flex items-center gap-1 font-mono font-bold">
-                                    [&check;] Implementasi &nbsp;&nbsp; [&nbsp;] Upgrade &nbsp;&nbsp; [&nbsp;] Relokasi &nbsp;&nbsp; [&nbsp;] Lainnya: ______
+                                @php
+                                    $selectedProjType = $handoverData['project_type_category'] ?? 'Implementasi';
+                                    $otherProjType = $handoverData['project_type_other'] ?? '';
+                                @endphp
+                                <span class="inline-flex items-center gap-1 font-mono font-bold text-[11px]">
+                                    [{{ $selectedProjType === 'Implementasi' ? '✓' : ' ' }}] Implementasi &nbsp;&nbsp; 
+                                    [{{ $selectedProjType === 'Upgrade' ? '✓' : ' ' }}] Upgrade &nbsp;&nbsp; 
+                                    [{{ $selectedProjType === 'Relokasi' ? '✓' : ' ' }}] Relokasi &nbsp;&nbsp; 
+                                    [{{ $selectedProjType === 'Lainnya' ? '✓' : ' ' }}] Lainnya{{ $selectedProjType === 'Lainnya' && $otherProjType ? ': ' . $otherProjType : ': ______' }}
                                 </span>
                             </td>
                         </tr>
@@ -213,13 +233,22 @@
                             @foreach($handoverFormStructure as $idx => $item)
                                 @php
                                     $itemKey = $item['key'] ?? ('item_' . $item['number']);
-                                    $itemStatus = $savedStatus[$itemKey] ?? ($savedStatus[$item['number']] ?? null);
-                                    $itemNa = !empty($savedNa[$itemKey]) || !empty($savedNa[$item['number']]);
-                                    $itemNote = $savedNotes[$itemKey] ?? ($savedNotes[$item['number']] ?? '');
-                                    
+                                    $altKey  = $item['alt_key'] ?? '';
+                                    $itemStatus = $savedStatus[$itemKey] 
+                                        ?? ($altKey ? ($savedStatus[$altKey] ?? null) : null) 
+                                        ?? ($savedStatus[$item['number']] ?? null);
+
+                                    $itemNa = !empty($savedNa[$itemKey]) 
+                                        || ($altKey && !empty($savedNa[$altKey])) 
+                                        || !empty($savedNa[$item['number']]);
+
+                                    $itemNote = $savedNotes[$itemKey] 
+                                        ?? ($altKey ? ($savedNotes[$altKey] ?? null) : null) 
+                                        ?? ($savedNotes[$item['number']] ?? ($item['default_note'] ?? ''));
+
                                     // Default checked ada / siap jika belum diisi eksplisit
-                                    $isAda = ($itemStatus === 'yes' || $itemStatus === 'ada' || $itemStatus === 'valid' || $itemStatus === true || !isset($itemStatus)) && !$itemNa;
-                                    $isTidak = ($itemStatus === 'no' || $itemStatus === 'tidak') && !$itemNa;
+                                    $isAda = ($itemStatus === 'yes' || $itemStatus === 'ada' || $itemStatus === 'Ada' || $itemStatus === 'valid' || $itemStatus === true || !isset($itemStatus)) && !$itemNa;
+                                    $isTidak = ($itemStatus === 'no' || $itemStatus === 'tidak' || $itemStatus === 'Tidak') && !$itemNa;
                                 @endphp
                                 <tr class="hover:bg-slate-50 transition border-b border-black">
                                     <td class="py-1.5 px-2 text-center font-bold border-r border-black align-top">{{ $item['number'] }}</td>
@@ -268,19 +297,19 @@
                     <tbody>
                         <tr class="border-b border-black">
                             <td class="w-1/3 py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Isu scope/komersial yang perlu klarifikasi</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['review_scope_clarification'] ?? '-' }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_clarification_issues'] ?? ($handoverData['review_scope_clarification'] ?? '-') }}</td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Asumsi yang harus dikonfirmasi</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['review_assumptions'] ?? '-' }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_assumptions'] ?? ($handoverData['review_assumptions'] ?? '-') }}</td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Kebutuhan validasi Solution/Technical</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['review_technical_validation'] ?? '-' }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_tech_validation'] ?? ($handoverData['review_technical_validation'] ?? '-') }}</td>
                         </tr>
                         <tr>
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Keputusan yang masih memerlukan persetujuan</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['review_decision_approval'] ?? '-' }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_pending_decisions'] ?? ($handoverData['review_decision_approval'] ?? '-') }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -296,38 +325,41 @@
                         <tr class="border-b border-black bg-white">
                             <td class="w-1/3 py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Status handover:</td>
                             <td class="py-2 px-3 font-mono font-bold">
-                                <span class="{{ in_array($hoStatus, ['Approved', 'approved', 'submitted', 'Submitted']) ? 'text-emerald-700' : 'text-slate-500' }}">
-                                    [{{ in_array($hoStatus, ['Approved', 'approved', 'submitted', 'Submitted']) ? '✓' : ' ' }}] Diterima
+                                @php
+                                    $selectedHoStatus = $handoverData['handover_status_selected'] ?? (strtolower($project->handover_status) === 'conditional' ? 'conditional' : (in_array(strtolower($project->handover_status), ['approved', 'submitted']) ? 'approved' : 'approved'));
+                                @endphp
+                                <span class="{{ $selectedHoStatus === 'approved' ? 'text-emerald-700' : 'text-slate-500' }}">
+                                    [{{ $selectedHoStatus === 'approved' ? '✓' : ' ' }}] Diterima
                                 </span>
                                 &nbsp;&nbsp;&nbsp;
-                                <span class="{{ in_array($hoStatus, ['Conditional', 'conditional']) ? 'text-amber-700' : 'text-slate-500' }}">
-                                    [{{ in_array($hoStatus, ['Conditional', 'conditional']) ? '✓' : ' ' }}] Diterima bersyarat
+                                <span class="{{ $selectedHoStatus === 'conditional' ? 'text-amber-700' : 'text-slate-500' }}">
+                                    [{{ $selectedHoStatus === 'conditional' ? '✓' : ' ' }}] Diterima bersyarat
                                 </span>
                                 &nbsp;&nbsp;&nbsp;
-                                <span class="{{ in_array($hoStatus, ['Rejected', 'rejected']) ? 'text-rose-700' : 'text-slate-500' }}">
-                                    [{{ in_array($hoStatus, ['Rejected', 'rejected']) ? '✓' : ' ' }}] Ditolak / dikembalikan
+                                <span class="{{ $selectedHoStatus === 'rejected' ? 'text-rose-700' : 'text-slate-500' }}">
+                                    [{{ $selectedHoStatus === 'rejected' ? '✓' : ' ' }}] Ditolak / dikembalikan
                                 </span>
                             </td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Kekurangan / risiko yang masih terbuka</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $project->handover_conditional_notes ?: ($handoverData['open_risks'] ?? '-') }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_risks'] ?? ($project->handover_conditional_notes ?: ($handoverData['open_risks'] ?? '-')) }}</td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">PIC tindak lanjut</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['followup_pic'] ?? $assignedPmName }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_pic_target'] ?? ($handoverData['followup_pic'] ?? $assignedPmName) }}</td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Target penyelesaian</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $project->handover_conditional_deadline ? $project->handover_conditional_deadline->format('d/m/Y') : ($handoverData['followup_target'] ?? '-') }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['followup_target'] ?? ($project->handover_conditional_deadline ? $project->handover_conditional_deadline->format('d/m/Y') : '-') }}</td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Batasan pekerjaan yang boleh berjalan</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['work_limitations'] ?? '-' }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_work_limitations'] ?? ($handoverData['work_limitations'] ?? '-') }}</td>
                         </tr>
                         <tr>
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Nomor tiket / WO / dokumen terkait</td>
-                            <td class="py-2 px-3 font-mono text-slate-800">{{ $handoverData['ticket_wo_number'] ?? ($project->so_code ?: '-') }}</td>
+                            <td class="py-2 px-3 font-mono text-slate-800">{{ $handoverData['handover_related_docs'] ?? ($handoverData['ticket_wo_number'] ?? ($project->so_code ?: ($project->so_number ?: '-'))) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -479,7 +511,7 @@
         {{-- ========================================================================= --}}
         {{-- TEMPLATE 2: SERAH TERIMA SALES / COMMERCIAL KE MANAGED SERVICE (IPN-FRM-MS-01) --}}
         {{-- ========================================================================= --}}
-        @elseif($isManagedService)
+        @elseif($isSalesToMs)
             {{-- Judul Utama Dokumen Persis Scan PDF --}}
             <div class="text-center my-3 sm:my-4">
                 <div class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">
@@ -577,11 +609,18 @@
                     </thead>
                     <tbody class="divide-y divide-black font-normal text-[11.5px]">
                         @foreach($msMaintenanceChecklist as $item)
+                            @php
+                                $msKey = $item['key'] ?? ('item_' . $item['number']);
+                                $itemStatus = $savedStatus[$msKey] ?? ($savedStatus[$item['number']] ?? $item['status']);
+                                $itemNa = !empty($savedNa[$msKey]) || !empty($savedNa[$item['number']]);
+                                $itemNote = $savedNotes[$msKey] ?? ($savedNotes[$item['number']] ?? $item['default_note']);
+                                if ($itemNa) $itemStatus = 'Tidak Berlaku';
+                            @endphp
                             <tr class="hover:bg-slate-50 transition border-b border-black">
                                 <td class="py-2 px-2 text-center font-bold border-r border-black align-top">{{ $item['number'] }}</td>
                                 <td class="py-2 px-3 font-semibold text-black border-r border-black align-top">{{ $item['name'] }}</td>
-                                <td class="py-2 px-3 border-r border-black align-top font-medium text-slate-800">{{ $item['status'] }}</td>
-                                <td class="py-2 px-3 align-top text-slate-600">{{ $item['default_note'] }}</td>
+                                <td class="py-2 px-3 border-r border-black align-top font-medium text-slate-800">{{ $itemStatus }}</td>
+                                <td class="py-2 px-3 align-top text-slate-600">{{ $itemNote }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -608,38 +647,41 @@
                         <tr class="border-b border-black bg-white">
                             <td class="w-1/3 sm:w-1/4 py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Status handover:</td>
                             <td class="py-2.5 px-3 font-mono font-bold">
-                                <span class="{{ $project->ms_handover_status === 'Accepted' || in_array($hoStatus, ['Approved', 'approved']) ? 'text-emerald-700' : 'text-slate-500' }}">
-                                    [{{ $project->ms_handover_status === 'Accepted' || in_array($hoStatus, ['Approved', 'approved']) ? '✓' : ' ' }}] Diterima
+                                @php
+                                    $selectedMsHoStatus = $handoverData['handover_status_selected'] ?? ($project->ms_handover_status === 'Accepted' || in_array($hoStatus, ['Approved', 'approved']) ? 'approved' : 'approved');
+                                @endphp
+                                <span class="{{ $selectedMsHoStatus === 'approved' ? 'text-emerald-700' : 'text-slate-500' }}">
+                                    [{{ $selectedMsHoStatus === 'approved' ? '✓' : ' ' }}] Diterima
                                 </span>
                                 &nbsp;&nbsp;&nbsp;
-                                <span class="{{ in_array($hoStatus, ['Conditional', 'conditional']) ? 'text-amber-700' : 'text-slate-500' }}">
-                                    [{{ in_array($hoStatus, ['Conditional', 'conditional']) ? '✓' : ' ' }}] Diterima bersyarat
+                                <span class="{{ $selectedMsHoStatus === 'conditional' ? 'text-amber-700' : 'text-slate-500' }}">
+                                    [{{ $selectedMsHoStatus === 'conditional' ? '✓' : ' ' }}] Diterima bersyarat
                                 </span>
                                 &nbsp;&nbsp;&nbsp;
-                                <span class="{{ in_array($hoStatus, ['Rejected', 'rejected']) ? 'text-rose-700' : 'text-slate-500' }}">
-                                    [{{ in_array($hoStatus, ['Rejected', 'rejected']) ? '✓' : ' ' }}] Ditolak / dikembalikan
+                                <span class="{{ $selectedMsHoStatus === 'rejected' ? 'text-rose-700' : 'text-slate-500' }}">
+                                    [{{ $selectedMsHoStatus === 'rejected' ? '✓' : ' ' }}] Ditolak / dikembalikan
                                 </span>
                             </td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Kekurangan / risiko yang masih terbuka</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['open_risks'] ?? '-' }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_risks'] ?? ($handoverData['open_risks'] ?? '-') }}</td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Informasi yang belum tersedia</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['missing_info'] ?? '-' }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_missing_info'] ?? ($handoverData['missing_info'] ?? '-') }}</td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">PIC dan target penyelesaian</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['resolution_pic_target'] ?? '-' }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_pic_target'] ?? ($handoverData['resolution_pic_target'] ?? '-') }}</td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Konfirmasi Commercial dan Managed Service</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['confirmation_notes'] ?? 'Telah dikonfirmasi dan diselaraskan antara Sales PIC dan Tim Managed Service.' }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_confirmation'] ?? ($handoverData['confirmation_notes'] ?? 'Telah dikonfirmasi dan diselaraskan antara Sales PIC dan Tim Managed Service.') }}</td>
                         </tr>
                         <tr>
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Batasan pekerjaan yang boleh berjalan</td>
-                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['work_limitations'] ?? '-' }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $handoverData['handover_work_limitations'] ?? ($handoverData['work_limitations'] ?? '-') }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -868,13 +910,26 @@
                             <th class="py-2 px-3">CATATAN</th>
                         </tr>
                     </thead>
+                    @php
+                        $delHandover = $handoverData['ms_handover'] ?? [];
+                        $delStatusMap = $delHandover['checklist_status'] ?? [];
+                        $delNaMap = $delHandover['checklist_na'] ?? [];
+                        $delNotesMap = $delHandover['checklist_notes'] ?? [];
+                    @endphp
                     <tbody class="divide-y divide-black font-normal text-[11.5px]">
                         @foreach($msChecklistItems as $item)
+                            @php
+                                $itemKey = $item['key'] ?? ('item_' . $item['number']);
+                                $itemStatus = $delStatusMap[$itemKey] ?? ($delStatusMap[$item['number']] ?? $item['status']);
+                                $itemNa = !empty($delNaMap[$itemKey]) || !empty($delNaMap[$item['number']]);
+                                $itemNote = $delNotesMap[$itemKey] ?? ($delNotesMap[$item['number']] ?? $item['default_note']);
+                                if ($itemNa) $itemStatus = 'Tidak Berlaku';
+                            @endphp
                             <tr class="hover:bg-slate-50 transition border-b border-black">
                                 <td class="py-2 px-2 text-center font-bold border-r border-black align-top">{{ $item['number'] }}</td>
                                 <td class="py-2 px-3 font-semibold text-black border-r border-black align-top">{{ $item['name'] }}</td>
-                                <td class="py-2 px-3 border-r border-black align-top font-medium text-slate-800">{{ $item['status'] }}</td>
-                                <td class="py-2 px-3 align-top text-slate-600">{{ $item['default_note'] }}</td>
+                                <td class="py-2 px-3 border-r border-black align-top font-medium text-slate-800">{{ $itemStatus }}</td>
+                                <td class="py-2 px-3 align-top text-slate-600">{{ $itemNote }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -897,28 +952,41 @@
                     STATUS HANDOVER
                 </div>
                 <table class="w-full border-collapse">
-                    <tbody>
+                                        <tbody>
                         <tr class="border-b border-black bg-white">
                             <td class="w-1/3 sm:w-1/4 py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Status handover:</td>
-                            <td class="py-2.5 px-3 font-mono font-bold text-emerald-700">
-                                [&check;] Diterima &nbsp;&nbsp;&nbsp; [&nbsp;] Diterima bersyarat &nbsp;&nbsp;&nbsp; [&nbsp;] Ditolak / dikembalikan
+                            <td class="py-2.5 px-3 font-mono font-bold">
+                                @php
+                                    $delSelectedStatus = $delHandover['handover_status_selected'] ?? ($project->ms_handover_status === 'Accepted' ? 'approved' : 'approved');
+                                @endphp
+                                <span class="{{ $delSelectedStatus === 'approved' ? 'text-emerald-700' : 'text-slate-500' }}">
+                                    [{{ $delSelectedStatus === 'approved' ? '✓' : ' ' }}] Diterima
+                                </span>
+                                &nbsp;&nbsp;&nbsp;
+                                <span class="{{ $delSelectedStatus === 'conditional' ? 'text-amber-700' : 'text-slate-500' }}">
+                                    [{{ $delSelectedStatus === 'conditional' ? '✓' : ' ' }}] Diterima bersyarat
+                                </span>
+                                &nbsp;&nbsp;&nbsp;
+                                <span class="{{ $delSelectedStatus === 'rejected' ? 'text-rose-700' : 'text-slate-500' }}">
+                                    [{{ $delSelectedStatus === 'rejected' ? '✓' : ' ' }}] Ditolak / dikembalikan
+                                </span>
                             </td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Penerimaan layanan</td>
-                            <td class="py-2 px-3 text-slate-800">Layanan implementasi fisik dan konfigurasi jaringan telah siap dialihkan ke tim Managed Service.</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $delHandover['service_acceptance'] ?? 'Layanan implementasi fisik dan konfigurasi jaringan telah siap dialihkan ke tim Managed Service.' }}</td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Kekurangan / risiko dan PIC</td>
-                            <td class="py-2 px-3 text-slate-800">Tidak ada isu kritis / residual risiko telah dipetakan ke PIC terkait.</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $delHandover['risks_and_pic'] ?? 'Tidak ada isu kritis / residual risiko telah dipetakan ke PIC terkait.' }}</td>
                         </tr>
                         <tr class="border-b border-black">
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Tanggal tindak lanjut</td>
-                            <td class="py-2 px-3 text-slate-800">{{ date('d/m/Y', strtotime('+7 days')) }}</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $delHandover['follow_up_date'] ?? date('d/m/Y', strtotime('+7 days')) }}</td>
                         </tr>
                         <tr>
                             <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-black">Konfirmasi penyerah dan penerima</td>
-                            <td class="py-2 px-3 text-slate-800">Dikonfirmasi oleh Project Manager ({{ $assignedPmName }}) dan diterima oleh Tim Managed Service.</td>
+                            <td class="py-2 px-3 text-slate-800">{{ $delHandover['confirmation_notes'] ?? 'Penyerahan tanggung jawab operasional dari Project Manager kepada Managed Service.' }}</td>
                         </tr>
                     </tbody>
                 </table>

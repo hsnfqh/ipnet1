@@ -150,10 +150,22 @@ class EndToEndFlowTest extends TestCase
         $this->assertEquals('managed_service', $project->handover_target);
         $this->assertEquals('Submitted', $project->ms_handover_status);
 
-        // 3. Akses Berita Acara Serah Terima (BAST Internal)
+        // 3. Akses Berita Acara Serah Terima (BAST Internal) - Template 2 (MS)
         $bastResponse = $this->actingAs($this->salesUser)->get(route('sales.handover.document', $project->id));
         $bastResponse->assertStatus(200);
         $bastResponse->assertSee('BERITA ACARA SERAH TERIMA PROYEK');
+        $bastResponse->assertSee('IPN-FRM-MS-01');
+
+        // Test Template 1 (Sales ke PM)
+        $t1Response = $this->actingAs($this->salesUser)->get(route('sales.handover.document', ['project' => $project->id, 'type' => 'sales_to_pm']));
+        $t1Response->assertStatus(200);
+        $t1Response->assertSee('IPN-FRM-PM-01');
+        $t1Response->assertSee('CHECKLIST KELENGKAPAN');
+
+        // Test Template 3 (PM ke MS)
+        $t3Response = $this->actingAs($this->salesUser)->get(route('sales.handover.document', ['project' => $project->id, 'type' => 'pm_to_ms']));
+        $t3Response->assertStatus(200);
+        $t3Response->assertSee('IPN-FRM-DEL-01');
     }
 
     /**

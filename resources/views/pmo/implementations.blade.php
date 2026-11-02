@@ -1253,12 +1253,14 @@
 
                         {{-- Judul Utama Dokumen Persis PDF --}}
                         <div class="text-center my-3 sm:my-4">
+                            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">
+                                BERITA ACARA SERAH TERIMA PROYEK
+                            </div>
                             <h1 class="text-sm sm:text-base font-black text-black uppercase tracking-wide leading-snug">
-                                SERAH TERIMA PROJECT MANAGER KE MANAGED SERVICE<br>
-                                UNTUK OPERASIONAL &amp; PEMELIHARAAN SISTEM
+                                SERAH TERIMA PROJECT MANAGER KE MANAGED SERVICE
                             </h1>
                             <p class="text-xs italic text-slate-600 mt-1 font-serif">
-                                Project Manager-to-Managed Service Handover Checklist
+                                Project Handover to Managed Service Checklist – Tahap proses: DELIVER
                             </p>
                         </div>
 
@@ -1268,7 +1270,7 @@
                                 <tbody>
                                     <tr class="border-b border-black">
                                         <td class="w-1/4 py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Kode Form</td>
-                                        <td class="w-1/4 py-1.5 px-3 border-r border-black font-mono font-bold text-slate-900">IPN-FRM-MS-02</td>
+                                        <td class="w-1/4 py-1.5 px-3 border-r border-black font-mono font-bold text-slate-900">IPN-FRM-DEL-01</td>
                                         <td class="w-1/4 py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Versi</td>
                                         <td class="w-1/4 py-1.5 px-3 font-bold text-slate-900">1.0</td>
                                     </tr>
