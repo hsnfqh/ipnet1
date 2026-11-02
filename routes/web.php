@@ -86,69 +86,52 @@ Route::get('/fix-cpanel-deploy', function () {
             ]);
         }
 
-        // 2. Bersihkan SELURUH data proyek lain selain Angkasa Pura
+        // 2. Bersihkan SELURUH data proyek lain selain Angkasa Pura (Nonaktifkan FK sementara)
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        
         $apId = $apProject ? $apProject->id : 0;
         
-        $otherProjects = \App\Models\Project::withTrashed()
+        $deletedProjectsCount = \Illuminate\Support\Facades\DB::table('projects')
             ->where('id', '!=', $apId)
             ->where('client', 'not like', '%Angkasa Pura%')
             ->where('name', 'not like', '%Angkasa Pura%')
-            ->get();
+            ->delete();
 
-        $deletedProjectsCount = 0;
-        foreach ($otherProjects as $other) {
-            $oid = $other->id;
-            \App\Models\Task::where('project_id', $oid)->delete();
-            \App\Models\ProjectDocument::where('project_id', $oid)->delete();
-            if (\Illuminate\Support\Facades\Schema::hasTable('project_expenses')) {
-                \Illuminate\Support\Facades\DB::table('project_expenses')->where('project_id', $oid)->delete();
+        // Bersihkan seluruh tabel turunan yang tidak terkait proyek Angkasa Pura
+        $childTables = [
+            'tasks',
+            'task_user',
+            'project_documents',
+            'project_expenses',
+            'timeline_milestones',
+            'sales_activities',
+            'managed_service_tickets',
+            'managed_service_pm_cycles',
+            'managed_service_assets',
+            'activity_document_signatures',
+            'digital_signature_documents',
+            'admin_project_handovers',
+            'engineer_activity_logs',
+        ];
+
+        foreach ($childTables as $t) {
+            if (\Illuminate\Support\Facades\Schema::hasTable($t)) {
+                if ($t === 'task_user') {
+                    \Illuminate\Support\Facades\DB::table('task_user')
+                        ->whereNotIn('task_id', function($q) use ($apId) {
+                            $q->select('id')->from('tasks')->where('project_id', $apId);
+                        })->delete();
+                } elseif (\Illuminate\Support\Facades\Schema::hasColumn($t, 'project_id')) {
+                    \Illuminate\Support\Facades\DB::table($t)->where('project_id', '!=', $apId)->delete();
+                }
             }
-            if (\Illuminate\Support\Facades\Schema::hasTable('timeline_milestones')) {
-                \Illuminate\Support\Facades\DB::table('timeline_milestones')->where('project_id', $oid)->delete();
-            }
-            if (\Illuminate\Support\Facades\Schema::hasTable('sales_activities')) {
-                \Illuminate\Support\Facades\DB::table('sales_activities')->where('project_id', $oid)->delete();
-            }
-            if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_tickets')) {
-                \Illuminate\Support\Facades\DB::table('managed_service_tickets')->where('project_id', $oid)->delete();
-            }
-            if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_pm_cycles')) {
-                \Illuminate\Support\Facades\DB::table('managed_service_pm_cycles')->where('project_id', $oid)->delete();
-            }
-            if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_assets')) {
-                \Illuminate\Support\Facades\DB::table('managed_service_assets')->where('project_id', $oid)->delete();
-            }
-            if (\Illuminate\Support\Facades\Schema::hasTable('activity_document_signatures')) {
-                \Illuminate\Support\Facades\DB::table('activity_document_signatures')->where('project_id', $oid)->delete();
-            }
-            if (\Illuminate\Support\Facades\Schema::hasTable('digital_signature_documents')) {
-                \Illuminate\Support\Facades\DB::table('digital_signature_documents')->where('project_id', $oid)->delete();
-            }
-            $other->forceDelete();
-            $deletedProjectsCount++;
         }
 
-        // 3. Bersihkan data orphan yang tidak terkait proyek Angkasa Pura
-        \App\Models\Task::where('project_id', '!=', $apId)->delete();
-        \App\Models\ProjectDocument::where('project_id', '!=', $apId)->delete();
-        if (\Illuminate\Support\Facades\Schema::hasTable('project_expenses')) {
-            \Illuminate\Support\Facades\DB::table('project_expenses')->where('project_id', '!=', $apId)->delete();
-        }
-        if (\Illuminate\Support\Facades\Schema::hasTable('sales_activities')) {
-            \Illuminate\Support\Facades\DB::table('sales_activities')->where('project_id', '!=', $apId)->delete();
-        }
-        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_tickets')) {
-            \Illuminate\Support\Facades\DB::table('managed_service_tickets')->where('project_id', '!=', $apId)->delete();
-        }
-        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_pm_cycles')) {
-            \Illuminate\Support\Facades\DB::table('managed_service_pm_cycles')->where('project_id', '!=', $apId)->delete();
-        }
-        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_assets')) {
-            \Illuminate\Support\Facades\DB::table('managed_service_assets')->where('project_id', '!=', $apId)->delete();
-        }
         if (\Illuminate\Support\Facades\Schema::hasTable('clients')) {
             \Illuminate\Support\Facades\DB::table('clients')->where('name', 'not like', '%Angkasa Pura%')->delete();
         }
+
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $output[] = "=== CLEANUP SUCCESSFUL: DELETED $deletedProjectsCount OTHER PROJECTS ===";
 
