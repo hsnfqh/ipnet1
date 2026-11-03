@@ -16,57 +16,57 @@
             <!-- ========================================================== -->
             <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-2xs">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
-                    <div>
+                    <div class="min-w-0 flex-1 pr-0 lg:pr-4">
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> MANAJEMEN PORTOFOLIO &amp; PROJECT DELIVERY
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Daftar Proyek &amp; Project Delivery</h2>
-                        <p class="text-[13px] text-[#64748B] mt-0.5">Kelola pelaksanaan proyek aktif, verifikasi serah terima (handover) dari Sales, dan kontrol implementasi lapangan</p>
+                        <p class="text-[13px] text-[#64748B] mt-0.5 leading-relaxed">Kelola pelaksanaan proyek aktif, verifikasi serah terima (handover) dari Sales, dan kontrol implementasi lapangan</p>
                     </div>
 
-                    {{-- Tab Switcher & Action Button --}}
-                    <div class="flex items-center gap-3 self-start lg:self-center flex-wrap">
-                        <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0">
-                        {{-- Tab 1: Projek Aktif (Deliver & Selesai) --}}
-                        <button type="button" 
-                                @click="activeTab = 'all'; currentPage = 1;" 
-                                :class="(activeTab !== 'pending_handover') 
-                                    ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
-                                    : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
-                                class="px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                            </svg>
-                            <span>Projek Aktif</span>
-                            <span :class="(activeTab !== 'pending_handover') ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
-                                  class="px-2 py-0.5 rounded-full text-[10.5px] font-bold"
-                                  x-text="(stageCounts.Deliver || 0) + (stageCounts.Operate || 0)">
-                            </span>
-                        </button>
+                    {{-- Tab Switcher & Action Button (Aligned in a Single Row, Pixel-Perfect Matching Heights) --}}
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 shrink-0 self-start lg:self-center">
+                        <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0 h-10 items-center">
+                            {{-- Tab 1: Projek Aktif (Deliver & Selesai) --}}
+                            <button type="button" 
+                                    @click="activeTab = 'all'; currentPage = 1;" 
+                                    :class="(activeTab !== 'pending_handover') 
+                                        ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
+                                        : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
+                                    class="h-8 px-3.5 sm:px-4 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                </svg>
+                                <span>Projek Aktif</span>
+                                <span :class="(activeTab !== 'pending_handover') ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
+                                      class="px-2 py-0.5 rounded-full text-[10.5px] font-bold"
+                                      x-text="(stageCounts.Deliver || 0) + (stageCounts.Operate || 0)">
+                                </span>
+                            </button>
 
-                        {{-- Tab 2: Serah Terima Masuk (Incoming Handover) --}}
-                        <button type="button" 
-                                @click="activeTab = 'pending_handover'; currentPage = 1;" 
-                                :class="(activeTab === 'pending_handover') 
-                                    ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
-                                    : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
-                                class="px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                            <span>Incoming Handover</span>
-                            <span :class="(activeTab === 'pending_handover') ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 font-bold'" 
-                                  class="px-2 py-0.5 rounded-full text-[10.5px] font-bold"
-                                  x-text="handoverPendingCount + handoverConditionalCount">
-                            </span>
-                        </button>
+                            {{-- Tab 2: Serah Terima Masuk (Incoming Handover) --}}
+                            <button type="button" 
+                                    @click="activeTab = 'pending_handover'; currentPage = 1;" 
+                                    :class="(activeTab === 'pending_handover') 
+                                        ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
+                                        : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
+                                    class="h-8 px-3.5 sm:px-4 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                                <span>Incoming Handover</span>
+                                <span :class="(activeTab === 'pending_handover') ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 font-bold'" 
+                                      class="px-2 py-0.5 rounded-full text-[10.5px] font-bold"
+                                      x-text="handoverPendingCount + handoverConditionalCount">
+                                </span>
+                            </button>
                         </div>
 
                         {{-- Tombol Buat Proyek Baru (PMO Direct / Canvas Kosong) --}}
                         <button type="button" 
                                 @click="showCreateProjectModal = true"
-                                class="px-4 py-2 rounded-xl btn-ipnet-primary text-xs font-bold shadow-xs transition flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                class="h-10 px-4 rounded-xl btn-ipnet-primary text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95 whitespace-nowrap shrink-0">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
                             <span>Buat Proyek Baru</span>
