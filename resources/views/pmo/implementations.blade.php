@@ -1680,27 +1680,26 @@
              x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
-             class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
-             @click.self="showCreateProjectModal = false">
+             class="fixed inset-0 z-50 bg-[#0F172A]/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+             @click.self="showCreateProjectModal = false"
+             @keydown.escape.window="showCreateProjectModal = false">
             
             <div @click.stop
-                 class="bg-white rounded-2xl shadow-2xl border border-slate-200/90 max-w-2xl sm:max-w-3xl w-full p-6 sm:p-7 space-y-4 my-auto max-h-[92vh] overflow-y-auto animate-fade-in-up">
+                 class="bg-white rounded-2xl max-w-2xl sm:max-w-3xl w-full shadow-2xl border border-[#CBD5E1] max-h-[92vh] flex flex-col overflow-hidden my-auto animate-fade-in-up">
                 
-                {{-- Header Modal --}}
-                <div class="flex items-center justify-between pb-3.5 border-b border-slate-100">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-red-50 text-[#8F0A0D] border border-red-100 flex items-center justify-center shrink-0 shadow-2xs">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                            </svg>
-                        </div>
+                {{-- Header Bar Konsisten Template Resmi IPNET --}}
+                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D] shrink-0"></span>
                         <div>
-                            <h3 class="text-base font-extrabold text-slate-900 tracking-tight">Buat Proyek Baru (Direct PMO Delivery)</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Inisialisasi proyek baru langsung berstatus aktif tanpa melalui alur pipeline sales.</p>
+                            <h3 class="text-[16px] font-bold text-[#0F172A]">Buat Proyek Baru (Direct PMO Delivery)</h3>
+                            <p class="text-[11px] text-[#64748B]">Inisialisasi proyek baru langsung berstatus aktif tanpa melalui alur pipeline sales.</p>
                         </div>
                     </div>
-                    <button type="button" @click="showCreateProjectModal = false" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button type="button" @click="showCreateProjectModal = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
                     </button>
                 </div>
 
@@ -1750,8 +1749,11 @@
                           }
                       }"
                       @submit="submitCheck($event)"
-                      class="space-y-4">
+                      class="flex flex-col flex-1 overflow-hidden m-0 p-0">
                     @csrf
+
+                    {{-- Scrollable Form Fields --}}
+                    <div class="flex-1 overflow-y-auto p-6 sm:p-7 space-y-4">
                     
                     {{-- Baris 1: Nama Proyek & Klien --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1951,12 +1953,14 @@
                                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition"></textarea>
                     </div>
 
-                    {{-- Footer Modal --}}
-                    <div class="flex items-center justify-end gap-2.5 pt-3.5 border-t border-slate-100">
-                        <button type="button" @click="showCreateProjectModal = false" class="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                    </div>
+
+                    {{-- Footer Bar Edge-to-Edge Konsisten Modal Lainnya --}}
+                    <div class="px-6 py-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-end gap-2.5 shrink-0">
+                        <button type="button" @click="showCreateProjectModal = false" class="px-4 py-2.5 min-h-[38px] text-xs font-bold text-slate-600 hover:bg-slate-100 border border-[#CBD5E1] rounded-xl transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95">
+                        <button type="submit" class="px-5 py-2.5 min-h-[38px] text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                             </svg>

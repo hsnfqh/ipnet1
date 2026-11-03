@@ -1547,23 +1547,20 @@
     <div x-show="showDivisionModal" 
          x-transition.opacity
          style="display: none;"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-5 sm:p-6 space-y-4"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/70 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl border border-[#CBD5E1] shadow-2xl max-w-lg w-full flex flex-col overflow-hidden"
              @click.away="showDivisionModal = false">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            {{-- Header Bar Konsisten Template Resmi IPNET --}}
+            <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                    </div>
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D] shrink-0"></span>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Tetapkan Tim Teknis Pelaksana</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Pilih tim teknis yang bertanggung jawab atas implementasi</p>
+                        <h3 class="text-[15px] font-bold text-[#0F172A]">Tetapkan Tim Teknis Pelaksana</h3>
+                        <p class="text-[11px] text-[#64748B]">Pilih tim teknis yang bertanggung jawab atas implementasi</p>
                     </div>
                 </div>
-                <button type="button" @click="showDivisionModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <button type="button" @click="showDivisionModal = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
@@ -1612,9 +1609,10 @@
                       }
                   }"
                   @submit="submitCheck($event)"
-                  class="space-y-4">
+                  class="flex flex-col m-0 p-0">
                 @csrf
-                <div class="space-y-2">
+                <div class="p-5 sm:p-6 space-y-3">
+                    <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="block text-xs font-bold text-slate-700">Pilihan Tim Teknis</label>
                         <span class="text-[11px] text-slate-400">Pilih satu atau lebih</span>
@@ -1689,11 +1687,14 @@
                     <p x-show="teamError" x-text="teamError" class="text-[11px] text-rose-600 font-semibold"></p>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button type="button" @click="showDivisionModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                </div>
+
+                {{-- Footer Bar Edge-to-Edge --}}
+                <div class="px-6 py-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-end gap-2.5 shrink-0">
+                    <button type="button" @click="showDivisionModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 border border-[#CBD5E1] rounded-xl transition cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
+                    <button type="submit" class="px-5 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer hover:scale-[1.02] active:scale-95">
                         Tetapkan Tim Teknis
                     </button>
                 </div>
