@@ -1902,7 +1902,7 @@
                                 <option value="One-Time Project">One-Time Project</option>
                                 <option value="Turnkey Deployment">Turnkey Deployment</option>
                                 <option value="Hardware Installation & Cabling">Hardware Installation & Cabling</option>
-                                <option value="Managed Service + Delivery">Managed Service + Delivery</option>
+                                <option value="Implementation + Managed Service">Implementation + Managed Service</option>
                             </select>
                         </div>
                     </div>

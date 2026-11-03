@@ -329,7 +329,7 @@ class PmoController extends Controller
         $sCurvePlan = [];
         $sCurveActual = [];
 
-        $currentProgressPercent = $project->progress > 0 ? (float) $project->progress : ($actualEV > 0 ? (float) $actualEV : 19.82);
+        $currentProgressPercent = (float) ($project->progress > 0 ? $project->progress : ($actualEV > 0 ? $actualEV : 0.0));
 
         // Minggu 0 (Baseline Start)
         $sCurveLabels[] = 0;
@@ -355,10 +355,6 @@ class PmoController extends Controller
                 $actualVal = (float) $savedWeekly[$w]['actual'];
                 $notes = $savedWeekly[$w]['notes'] ?? null;
                 $isRecorded = true;
-            } elseif ($w < $currentWeek) {
-                $actualVal = round(($w / $currentWeek) * $currentProgressPercent * 0.72, 2);
-            } elseif ($w === $currentWeek) {
-                $actualVal = $currentProgressPercent;
             } else {
                 $actualVal = null;
             }
@@ -400,7 +396,7 @@ class PmoController extends Controller
             $latestPmNote = $project->special_notes;
         }
         if (!$latestPmNote) {
-            $latestPmNote = 'Total 106 switch selesai staging, instalasi access & distribution 5%';
+            $latestPmNote = null;
         }
 
         // Generate Data Harian Lengkap (Daily S-Curve & Table)
@@ -445,10 +441,6 @@ class PmoController extends Controller
                 $actualDVal = (float) $savedDaily[$d]['actual'];
                 $notesD = $savedDaily[$d]['notes'] ?? null;
                 $isRecordedD = true;
-            } elseif ($d < $currentDay) {
-                $actualDVal = round(($d / $currentDay) * $currentProgressPercent * 0.85, 2);
-            } elseif ($d === $currentDay) {
-                $actualDVal = $currentProgressPercent;
             } else {
                 $actualDVal = null;
             }
@@ -486,7 +478,24 @@ class PmoController extends Controller
         $overdueTasksCount = $overdueTasks->count();
         $tasksOnTrackCount = max(0, $totalTasks - $overdueTasksCount);
 
-        if ($overdueTasksCount > 0 || $currentVariance < -10 || $healthStatus === 'Delayed') {
+        $isBrandNewProject = ($currentProgressPercent == 0 && empty($savedWeekly) && $totalTasks == 0);
+        if ($isBrandNewProject) {
+            $currentVariance = 0.0;
+            $summaryProgress = [
+                'status'         => 'neutral',
+                'color_name'     => 'Netral',
+                'badge_class'    => 'bg-slate-100 text-slate-700 border-slate-200/80',
+                'dot_class'      => 'bg-slate-400',
+                'gradient_class' => 'from-slate-400 to-slate-500',
+                'bg_card'        => 'bg-gradient-to-r from-slate-50/70 via-white to-slate-50 border-slate-200/80',
+                'label'          => 'Proyek Baru (Siap Dimulai)',
+                'headline'       => 'Proyek baru aktif, siap menyusun WBS dan timeline pelaksanaan',
+                'description'    => 'Belum ada task atau progres mingguan yang diinput PM. Gunakan fitur Tambah Task atau Import Excel untuk memulai.',
+                'variance'       => 0.0,
+                'overdue_count'  => 0,
+                'on_track_count' => 0,
+            ];
+        } elseif ($overdueTasksCount > 0 || $currentVariance < -10 || $healthStatus === 'Delayed') {
             $summaryProgress = [
                 'status'         => 'red',
                 'color_name'     => 'Merah',
@@ -664,6 +673,31 @@ class PmoController extends Controller
         $days = max(1, (int) round($startDate->diffInDays($deadline)) + 1);
 
         return back()->with('success', "Periode tanggal proyek berhasil diperbarui menjadi {$startDate->format('d M Y')} s/d {$deadline->format('d M Y')} ({$days} Hari)!");
+    }
+
+    /**
+     * PM Memperbarui Nama Klien & PIC Klien Proyek
+     */
+    public function updateClient(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'client'       => 'required|string|max:255',
+            'customer_pic' => 'nullable|string|max:255',
+        ]);
+
+        $project->client = trim($validated['client']);
+        $pic = !empty($validated['customer_pic']) ? trim($validated['customer_pic']) : null;
+        if ($pic !== null) {
+            $project->customer_pic_technical = $pic;
+            $project->customer_pic_business  = $pic;
+
+            $hd = is_array($project->handover_data) ? $project->handover_data : [];
+            $hd['customer_pic'] = $pic;
+            $project->handover_data = $hd;
+        }
+        $project->save();
+
+        return back()->with('success', 'Informasi Klien & PIC berhasil diperbarui!');
     }
 
     /**
@@ -1957,16 +1991,14 @@ class PmoController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Template WBS');
 
-        // Headers
+        // Headers (A-F, tanpa kolom Tgl Mulai dan Tgl Selesai)
         $headers = [
             'A1' => 'No',
             'B1' => 'Nama Tugas / Deliverable (WBS)',
             'C1' => 'Deskripsi Scope',
             'D1' => 'Durasi (Hari)',
-            'E1' => 'Tanggal Mulai (YYYY-MM-DD)',
-            'F1' => 'Tanggal Selesai (YYYY-MM-DD)',
-            'G1' => 'Bobot (%)',
-            'H1' => 'Progress (%)',
+            'E1' => 'Bobot (%)',
+            'F1' => 'Progress (%)',
         ];
 
         foreach ($headers as $cell => $text) {
@@ -1996,16 +2028,16 @@ class PmoController extends Controller
                 ],
             ],
         ];
-        $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:F1')->applyFromArray($headerStyle);
         $sheet->getRowDimension(1)->setRowHeight(28);
 
         // Sample Data Rows (Realistic networking project tasks)
         $sampleRows = [
-            [1, 'Staging & Inventarisasi Perangkat', 'Pengecekan fisik perangkat dan staging konfigurasi dasar', 5, '2026-11-05', '2026-11-09', 15.00, 0],
-            [2, 'Instalasi Rak & Penarikan Kabel (Cabling)', 'Penarikan kabel UTP Cat6 dan patching rack IDF', 7, '2026-11-10', '2026-11-16', 25.00, 0],
-            [3, 'Konfigurasi VLAN & Routing Protokol', 'Setup VLAN Trunking, OSPF/BGP, dan access list keamanan', 5, '2026-11-17', '2026-11-21', 20.00, 0],
-            [4, 'Pengujian Sistem & UAT Bersama Klien', 'User Acceptance Testing fungsionalitas failover & speed test', 4, '2026-11-22', '2026-11-25', 20.00, 0],
-            [5, 'Dokumentasi As-Built & BAST 1', 'Penyusunan laporan akhir, topologi as-built, dan serah terima', 5, '2026-11-26', '2026-11-30', 20.00, 0],
+            [1, 'Staging & Inventarisasi Perangkat', 'Pengecekan fisik perangkat dan staging konfigurasi dasar', 5, 15.00, 0],
+            [2, 'Instalasi Rak & Penarikan Kabel (Cabling)', 'Penarikan kabel UTP Cat6 dan patching rack IDF', 7, 25.00, 0],
+            [3, 'Konfigurasi VLAN & Routing Protokol', 'Setup VLAN Trunking, OSPF/BGP, dan access list keamanan', 5, 20.00, 0],
+            [4, 'Pengujian Sistem & UAT Bersama Klien', 'User Acceptance Testing fungsionalitas failover & speed test', 4, 20.00, 0],
+            [5, 'Dokumentasi As-Built & BAST 1', 'Penyusunan laporan akhir, topologi as-built, dan serah terima', 5, 20.00, 0],
         ];
 
         $r = 2;
@@ -2016,27 +2048,22 @@ class PmoController extends Controller
             $sheet->setCellValue('D' . $r, $row[3]);
             $sheet->setCellValue('E' . $r, $row[4]);
             $sheet->setCellValue('F' . $r, $row[5]);
-            $sheet->setCellValue('G' . $r, $row[6]);
-            $sheet->setCellValue('H' . $r, $row[7]);
 
-            $sheet->getStyle("A{$r}:H{$r}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('E2E8F0');
+            $sheet->getStyle("A{$r}:F{$r}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('E2E8F0');
             $sheet->getStyle("A{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("D{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("E{$r}:F{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("G{$r}:H{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("E{$r}:F{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
             $sheet->getRowDimension($r)->setRowHeight(22);
             $r++;
         }
 
         // Set column widths
         $sheet->getColumnDimension('A')->setWidth(8);
-        $sheet->getColumnDimension('B')->setWidth(38);
-        $sheet->getColumnDimension('C')->setWidth(48);
-        $sheet->getColumnDimension('D')->setWidth(14);
-        $sheet->getColumnDimension('E')->setWidth(20);
-        $sheet->getColumnDimension('F')->setWidth(20);
-        $sheet->getColumnDimension('G')->setWidth(14);
-        $sheet->getColumnDimension('H')->setWidth(14);
+        $sheet->getColumnDimension('B')->setWidth(40);
+        $sheet->getColumnDimension('C')->setWidth(50);
+        $sheet->getColumnDimension('D')->setWidth(15);
+        $sheet->getColumnDimension('E')->setWidth(15);
+        $sheet->getColumnDimension('F')->setWidth(15);
 
         $safeName = Str::slug($project->name ?: 'Proyek');
         $filename = 'Template_WBS_' . $safeName . '.xlsx';
@@ -2059,14 +2086,35 @@ class PmoController extends Controller
     public function importTasksExcel(Request $request, Project $project)
     {
         $request->validate([
-            'excel_file' => 'required|file|max:10240', // Maks 10MB
-            'mode'       => 'nullable|in:append,replace',
+            'excel_file'           => 'required|file|max:10240', // Maks 10MB
+            'mode'                 => 'nullable|in:append,replace',
+            'execution_start_date' => 'nullable|date',
+            'execution_end_date'   => 'nullable|date',
         ]);
 
         $file = $request->file('excel_file');
         $extension = strtolower($file->getClientOriginalExtension());
         if (!in_array($extension, ['xlsx', 'xls', 'csv'])) {
             return back()->with('error', 'Format file tidak didukung. Harap unggah file .xlsx, .xls, atau .csv');
+        }
+
+        // Validasi Periode Pelaksanaan Pekerjaan vs Kontrak
+        $contractDeadline = $project->deadline ? Carbon::parse($project->deadline)->endOfDay() : null;
+        $contractStart = $project->start_date ? Carbon::parse($project->start_date)->startOfDay() : null;
+
+        $executionStartDate = $request->input('execution_start_date');
+        $executionEndDate = $request->input('execution_end_date');
+
+        $execStart = $executionStartDate ? Carbon::parse($executionStartDate)->startOfDay() : ($contractStart ?: now()->startOfDay());
+        $execEnd = $executionEndDate ? Carbon::parse($executionEndDate)->endOfDay() : ($contractDeadline ?: $execStart->copy()->addMonths(1)->endOfDay());
+
+        // Aturan: Tanggal selesai pelaksanaan TIDAK BOLEH melebihi batas akhir kontrak proyek
+        if ($contractDeadline && $execEnd->gt($contractDeadline)) {
+            return back()->with('error', 'Target Selesai Pelaksanaan (' . $execEnd->format('d M Y') . ') tidak boleh melebihi tanggal batas akhir kontrak proyek (' . $contractDeadline->format('d M Y') . ')!');
+        }
+
+        if ($execEnd->lt($execStart)) {
+            return back()->with('error', 'Target Selesai Pelaksanaan tidak boleh lebih awal dari Tanggal Mulai Pelaksanaan.');
         }
 
         try {
@@ -2103,6 +2151,8 @@ class PmoController extends Controller
                 $defaultEngineerId = auth()->id();
             }
 
+            $currentTaskStart = $execStart->copy();
+
             // Iterasi baris data (setelah header)
             foreach ($rows as $idx => $row) {
                 if ($idx <= $headerRowIdx) {
@@ -2122,53 +2172,44 @@ class PmoController extends Controller
                 // Deskripsi Scope
                 $rawDesc = trim((string) ($row['C'] ?? ''));
 
-                // Durasi
+                // Durasi (Hari)
                 $duration = 1;
                 if (!empty($row['D']) && is_numeric($row['D'])) {
                     $duration = max(1, (int) $row['D']);
                 }
 
-                // Tanggal Mulai
-                $startDate = null;
-                $rawStartDate = $row['E'] ?? null;
-                if (!empty($rawStartDate)) {
-                    if (is_numeric($rawStartDate) && (float)$rawStartDate > 30000) {
-                        try {
-                            $startDate = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rawStartDate));
-                        } catch (\Throwable $e) {}
-                    }
-                    if (!$startDate) {
-                        try {
-                            $startDate = Carbon::parse($rawStartDate);
-                        } catch (\Throwable $e) {}
-                    }
-                }
-                if (!$startDate) {
-                    $startDate = $project->start_date ? Carbon::parse($project->start_date) : now();
+                // Cek format kolom: jika file lama 8 kolom (ada tanggal di E/F atau bobot di G/H)
+                $isLegacyFormat = (!empty($row['G']) || !empty($row['H'])) || (
+                    isset($row['E']) && (str_contains((string)$row['E'], '-') || (is_numeric($row['E']) && (float)$row['E'] > 30000))
+                );
+
+                if ($isLegacyFormat) {
+                    $rawBobot = $row['G'] ?? null;
+                    $rawProgress = $row['H'] ?? null;
+                } else {
+                    $rawBobot = $row['E'] ?? null;
+                    $rawProgress = $row['F'] ?? null;
                 }
 
-                // Tanggal Selesai (Deadline)
-                $deadline = null;
-                $rawDeadline = $row['F'] ?? null;
-                if (!empty($rawDeadline)) {
-                    if (is_numeric($rawDeadline) && (float)$rawDeadline > 30000) {
-                        try {
-                            $deadline = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rawDeadline));
-                        } catch (\Throwable $e) {}
-                    }
-                    if (!$deadline) {
-                        try {
-                            $deadline = Carbon::parse($rawDeadline);
-                        } catch (\Throwable $e) {}
-                    }
+                // Jadwal otomatis task dalam periode pelaksanaan
+                $taskStart = $currentTaskStart->copy();
+                $taskEnd = $taskStart->copy()->addDays(max(0, $duration - 1))->setTime(18, 0, 0);
+
+                if ($taskEnd->gt($execEnd)) {
+                    $taskEnd = $execEnd->copy();
                 }
-                if (!$deadline) {
-                    $deadline = $startDate->copy()->addDays(max(0, $duration - 1));
+                if ($contractDeadline && $taskEnd->gt($contractDeadline)) {
+                    $taskEnd = $contractDeadline->copy();
+                }
+
+                // Geser tanggal task berikutnya
+                $currentTaskStart = $taskEnd->copy()->startOfDay()->addDay();
+                if ($currentTaskStart->gt($execEnd)) {
+                    $currentTaskStart = $execEnd->copy()->startOfDay();
                 }
 
                 // Bobot (%)
                 $bobotVal = null;
-                $rawBobot = $row['G'] ?? null;
                 if (!empty($rawBobot)) {
                     $cleanBobot = str_replace(['%', ' '], '', (string) $rawBobot);
                     $cleanBobot = str_replace(',', '.', $cleanBobot);
@@ -2187,7 +2228,6 @@ class PmoController extends Controller
 
                 // Progress (%)
                 $progress = 0;
-                $rawProgress = $row['H'] ?? null;
                 if (!empty($rawProgress)) {
                     $cleanProg = str_replace(['%', ' '], '', (string) $rawProgress);
                     $cleanProg = str_replace(',', '.', $cleanProg);

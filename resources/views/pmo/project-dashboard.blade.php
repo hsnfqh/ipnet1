@@ -93,6 +93,7 @@
          activeDayPlan: 0,
          activeDayNotes: '',
          activeDayDate: '',
+         showClientModal: false,
          showTimelineModal: false,
          showDivisionModal: false,
          showAssignTeamModal: false,
@@ -214,16 +215,26 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 pt-2 text-xs">
                             
                             {{-- Chip 1: Klien & Lokasi --}}
-                            <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center shrink-0">
+                            <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center shrink-0">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Klien Proyek</span>
+                                        <span class="font-bold text-slate-800 truncate block" title="{{ $project->client ?: 'Client IPNET' }}">{{ $project->client ?: 'Client IPNET' }}</span>
+                                    </div>
+                                </div>
+                                <button type="button" 
+                                        @click="showClientModal = true" 
+                                        title="Ubah Klien & PIC"
+                                        class="w-7 h-7 rounded-lg text-slate-500 hover:text-[#8F0A0D] bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 transition shrink-0 flex items-center justify-center cursor-pointer shadow-xs">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                     </svg>
-                                </div>
-                                <div class="min-w-0">
-                                    <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Klien Proyek</span>
-                                    <span class="font-bold text-slate-800 truncate block">{{ $project->client ?: 'Client IPNET' }}</span>
-                                </div>
+                                </button>
                             </div>
 
                             {{-- Chip 2: Periode Tanggal Proyek (Dari Berapa s/d Berapa) --}}
@@ -243,8 +254,11 @@
                                 </div>
                                 <button type="button" 
                                         @click="showTimelineModal = true" 
-                                        class="px-2 py-1 rounded-md text-[10.5px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition shrink-0 cursor-pointer">
-                                    Ubah
+                                        title="Ubah Periode Tanggal"
+                                        class="w-7 h-7 rounded-lg text-slate-500 hover:text-[#8F0A0D] bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 transition shrink-0 flex items-center justify-center cursor-pointer shadow-xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
                                 </button>
                             </div>
 
@@ -269,8 +283,11 @@
                                 </div>
                                 <button type="button" 
                                         @click="showDivisionModal = true" 
-                                        class="px-2 py-1 rounded-lg text-[10.5px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shrink-0">
-                                    {{ $project->division ? 'Ubah' : '+ Tetapkan' }}
+                                        title="Ubah Tim Teknis"
+                                        class="w-7 h-7 rounded-lg text-slate-500 hover:text-[#8F0A0D] bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 transition shrink-0 flex items-center justify-center cursor-pointer shadow-xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
                                 </button>
                             </div>
 
@@ -721,7 +738,7 @@
                                                 @endif
                                             </div>
                                         @else
-                                            <span class="text-slate-400 font-medium italic">Belum Berjalan</span>
+                                            <span class="text-slate-400 font-medium">-</span>
                                         @endif
                                     </td>
 
@@ -823,7 +840,7 @@
                                                     @endif
                                                 </div>
                                             @else
-                                                <span class="text-slate-400 font-medium italic">Belum Berjalan</span>
+                                                <span class="text-slate-400 font-medium">-</span>
                                             @endif
                                         </td>
 
@@ -1474,6 +1491,67 @@
     </div>
 
         <!-- ========================================================== -->
+    <!-- MODAL 0: UBAH KLIEN & PIC KLIEN PROYEK                     -->
+    <!-- ========================================================== -->
+    <div x-show="showClientModal" 
+         x-transition.opacity
+         style="display: none;"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4"
+             @click.away="showClientModal = false">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Ubah Data Klien & PIC</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Informasi perusahaan dan PIC klien untuk diskusi PM</p>
+                    </div>
+                </div>
+                <button type="button" @click="showClientModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('pmo.projects.update_client', $project->id) }}" method="POST" class="space-y-4">
+                @csrf
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Klien / Perusahaan <span class="text-[#8F0A0D]">*</span></label>
+                        <input type="text" 
+                               name="client" 
+                               value="{{ $project->client }}" 
+                               required
+                               placeholder="Contoh: PT Angkasa Pura Support"
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">PIC Klien (Nama, Jabatan & No HP)</label>
+                        <input type="text" 
+                               name="customer_pic" 
+                               value="{{ $project->customer_pic_technical ?: ($project->customer_pic_business ?: ($project->handover_data['customer_pic'] ?? '')) }}" 
+                               placeholder="Contoh: Bpk. Wayan Koster (Head of ICT Bandara IGNR Denpasar - 081238991122)"
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
+                        <span class="text-[10.5px] text-slate-400 mt-1 block">PIC dari pihak klien yang mendampingi dan berdiskusi langsung dengan Project Manager.</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showClientModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================== -->
     <!-- MODAL PERIODE TANGGAL PROYEK (UBAH START DATE & DEADLINE)  -->
     <!-- ========================================================== -->
     <div x-show="showTimelineModal" 
@@ -2277,10 +2355,8 @@
                                 <th class="py-2 px-2.5 border-r border-slate-200">B (Wajib)</th>
                                 <th class="py-2 px-2.5 border-r border-slate-200">C</th>
                                 <th class="py-2 px-2.5 border-r border-slate-200 text-center">D</th>
-                                <th class="py-2 px-2.5 border-r border-slate-200 text-center">E</th>
-                                <th class="py-2 px-2.5 border-r border-slate-200 text-center">F</th>
-                                <th class="py-2 px-2.5 border-r border-slate-200 text-right">G</th>
-                                <th class="py-2 px-2.5 text-right">H</th>
+                                <th class="py-2 px-2.5 border-r border-slate-200 text-right">E</th>
+                                <th class="py-2 px-2.5 text-right">F</th>
                             </tr>
                             <tr class="bg-white border-b border-slate-200 text-[11px] font-bold text-slate-800">
                                 <td class="py-2 px-2.5 text-center text-slate-400 border-r border-slate-200 font-mono">No</td>
@@ -2290,8 +2366,6 @@
                                 </td>
                                 <td class="py-2 px-2.5 border-r border-slate-200 text-slate-700">Deskripsi Scope</td>
                                 <td class="py-2 px-2.5 border-r border-slate-200 text-center text-slate-700">Durasi (Hari)</td>
-                                <td class="py-2 px-2.5 border-r border-slate-200 text-center text-slate-700">Tgl Mulai</td>
-                                <td class="py-2 px-2.5 border-r border-slate-200 text-center text-slate-700">Tgl Selesai</td>
                                 <td class="py-2 px-2.5 border-r border-slate-200 text-right text-blue-700">Bobot (%)</td>
                                 <td class="py-2 px-2.5 text-right text-emerald-700">Progress (%)</td>
                             </tr>
@@ -2302,8 +2376,6 @@
                                 <td class="py-1.5 px-2.5 font-medium text-slate-800 border-r border-slate-100">Instalasi Switch & Router</td>
                                 <td class="py-1.5 px-2.5 truncate max-w-[140px] border-r border-slate-100">Pemasangan rak & patching IDF</td>
                                 <td class="py-1.5 px-2.5 text-center border-r border-slate-100">5</td>
-                                <td class="py-1.5 px-2.5 text-center border-r border-slate-100 font-mono">2026-11-05</td>
-                                <td class="py-1.5 px-2.5 text-center border-r border-slate-100 font-mono">2026-11-09</td>
                                 <td class="py-1.5 px-2.5 text-right font-bold text-blue-600 border-r border-slate-100">15.00</td>
                                 <td class="py-1.5 px-2.5 text-right font-bold text-emerald-600">0</td>
                             </tr>
@@ -2342,6 +2414,44 @@
                   class="space-y-4 pt-1">
                 @csrf
                 
+                {{-- Input Periode Pelaksanaan Proyek (Task WBS) --}}
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-2.5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                        <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Periode Pelaksanaan Pekerjaan (Task WBS)</span>
+                        </label>
+                        <span class="text-[10.5px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 self-start sm:self-auto">
+                            Maks Selesai Kontrak: {{ $deadlineDate ? $deadlineDate->format('d M Y') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('d M Y') : 'Sesuai Kontrak') }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <span class="text-[11px] font-bold text-slate-700">Tanggal Mulai Pelaksanaan <span class="text-[#8F0A0D]">*</span></span>
+                            <input type="date" 
+                                   name="execution_start_date" 
+                                   value="{{ $startDate ? $startDate->format('Y-m-d') : ($project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : date('Y-m-d')) }}" 
+                                   required
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[11px] font-bold text-slate-700">Target Selesai Pelaksanaan <span class="text-[#8F0A0D]">*</span></span>
+                            <input type="date" 
+                                   name="execution_end_date" 
+                                   value="{{ $deadlineDate ? $deadlineDate->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : '') }}" 
+                                   max="{{ $deadlineDate ? $deadlineDate->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : '') }}"
+                                   required
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
+                        </div>
+                    </div>
+                    <p class="text-[10.5px] text-slate-500">
+                        * Durasi pengerjaan task WBS berjalan di dalam rentang pelaksanaan ini dan <strong>tidak boleh melebihi batas akhir kontrak</strong> proyek.
+                    </p>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                     {{-- Opsi Tindakan Impor (5 cols) --}}
                     <div class="md:col-span-5 space-y-2">
@@ -2450,7 +2560,7 @@
         // 1. S-Curve Dual Line Chart (Plan Kumulatif vs Actual Kumulatif)
         const sCurveLabels = {!! json_encode($sCurveLabels ?? [0, 1, 2, 3, 4, 5, 6, 7, 8]) !!};
         const sCurvePlan = {!! json_encode($sCurvePlan ?? [0, 5.5, 14, 28.5, 51, 72.5, 86, 94.5, 100]) !!};
-        const sCurveActual = {!! json_encode($sCurveActual ?? [0, 5, 19.82, null, null, null, null, null, null]) !!};
+        const sCurveActual = {!! json_encode($sCurveActual ?? [0]) !!};
 
         const sCurveDailyLabels = {!! json_encode($sCurveDailyLabels ?? []) !!};
         const sCurveDailyPlan = {!! json_encode($sCurveDailyPlan ?? []) !!};
