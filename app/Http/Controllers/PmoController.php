@@ -839,28 +839,6 @@ class PmoController extends Controller
      */
     private function getPmoBaseData(Request $request)
     {
-        // Self-heal: Perbaiki jika ada proyek murni Managed Service yang salah terisi handover_status = 'Submitted'
-        try {
-            Project::where(function($q) {
-                $q->where('project_type', 'like', '%Managed Service%')
-                  ->orWhere('name', 'like', '%Managed Service%')
-                  ->orWhere('name', 'like', '%Pemeliharaan%');
-            })
-            ->where(function($q) {
-                $q->where('handover_status', 'Submitted')
-                  ->orWhere('handover_target', 'managed_service');
-            })
-            ->whereNull('pm_id')
-            ->update([
-                'handover_target'            => 'managed_service',
-                'handover_status'            => null,
-                'commercial_handover_status' => 'Approved',
-                'ms_handover_status'         => 'Accepted',
-                'stage'                      => 'Operate',
-                'status'                     => 'Active',
-            ]);
-        } catch (\Throwable $e) {}
-
         // 1. Ambil data proyek aktif PMO (Hanya proyek komersial resmi tahap Deliver atau berkas Handover Implementasi dari Sales)
         $query = Project::with([
             'pm:id,name,email',
