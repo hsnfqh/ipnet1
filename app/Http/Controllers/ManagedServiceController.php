@@ -320,20 +320,17 @@ class ManagedServiceController extends Controller
         // 8. Incoming Service Handovers (Dari Sales Tipe 2 & Pasca-Implementasi PMO) - Hanya yang Pending
         $incomingHandovers = Project::where(function($q) {
                 $q->where('handover_target', 'managed_service')
-                  ->orWhere('handover_target', 'both')
-                  ->orWhere('project_type', 'like', '%Managed Service%')
-                  ->orWhere('name', 'like', '%pemeliharaan%')
-                  ->orWhere('name', 'like', '%maintenance%');
+                  ->orWhere(function($sub) {
+                      $sub->where('handover_target', 'both')
+                          ->where('project_type', 'not like', '%One-Time%');
+                  });
             })
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
             ->where(function($q) {
                 $q->whereNull('project_type')
                   ->orWhere('project_type', 'not like', '%One-Time%');
             })
-            ->where(function($q) {
-                $q->whereNull('handover_target')
-                  ->orWhere('handover_target', '!=', 'pmo');
-            })
+            ->where('handover_target', '!=', 'pmo')
             ->where(function($q) {
                 $q->whereNull('ms_handover_status')
                   ->orWhere('ms_handover_status', '!=', 'Accepted');
@@ -1039,7 +1036,6 @@ class ManagedServiceController extends Controller
             $updateData['documents_checklist'] = $request->input('documents_checklist');
         }
 
-        $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $updateData['handover_data'] = array_merge($existingHandoverData, [
             'checklist'                => $request->input('documents_checklist', []),
             'checklist_status'         => $request->input('checklist_status', []),
@@ -1393,16 +1389,17 @@ class ManagedServiceController extends Controller
         // 2. Query Serah Terima Kontrak Layanan Masuk (Incoming Service Handovers) - Hanya yang Pending / Menunggu Aktivasi
         $incomingHandovers = Project::where(function($q) {
                 $q->where('handover_target', 'managed_service')
-                  ->orWhere('handover_target', 'both')
-                  ->orWhere('project_type', 'like', '%Managed Service%')
-                  ->orWhere('name', 'like', '%pemeliharaan%')
-                  ->orWhere('name', 'like', '%maintenance%');
+                  ->orWhere(function($sub) {
+                      $sub->where('handover_target', 'both')
+                          ->where('project_type', 'not like', '%One-Time%');
+                  });
             })
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
             ->where(function($q) {
-                $q->whereNull('handover_target')
-                  ->orWhere('handover_target', '!=', 'pmo');
+                $q->whereNull('project_type')
+                  ->orWhere('project_type', 'not like', '%One-Time%');
             })
+            ->where('handover_target', '!=', 'pmo')
             ->where(function($q) {
                 $q->whereNull('ms_handover_status')
                   ->orWhere('ms_handover_status', '!=', 'Accepted');
@@ -1413,6 +1410,29 @@ class ManagedServiceController extends Controller
 
         foreach ($incomingHandovers as $ho) {
             $ho->resolved_documents = self::getProjectDocuments($ho);
+            $hd = is_array($ho->handover_data) ? $ho->handover_data : [];
+            $sSig = $hd['sales_signature'] ?? [];
+            $salesUser = null;
+            if (!empty($sSig['user_id'])) {
+                $salesUser = User::find($sSig['user_id']);
+            } elseif ($ho->commercial_handover_by) {
+                $salesUser = $ho->commercialHandoverBy;
+            } elseif ($ho->creator) {
+                $salesUser = $ho->creator;
+            }
+            if ($salesUser) {
+                $sSig['qr_svg'] = $salesUser->signature_qr_svg;
+                $sSig['qr_token'] = $sSig['qr_token'] ?? $salesUser->ensureSignatureQrToken();
+                $sSig['user_name'] = $sSig['user_name'] ?? $salesUser->name;
+            } elseif (!empty($sSig['qr_token'])) {
+                try {
+                    $sSig['qr_svg'] = (string) \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+                        ->size(80)->margin(0)->errorCorrection('M')
+                        ->generate(route('public.signature.verify', $sSig['qr_token']));
+                } catch (\Throwable $e) {}
+            }
+            $hd['sales_signature'] = $sSig;
+            $ho->handover_data = $hd;
         }
 
         $pendingHandoversCount = $incomingHandovers->where('ms_handover_status', '!=', 'Accepted')->count();

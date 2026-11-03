@@ -411,7 +411,7 @@
                                             ?: ($ho->quotation_number 
                                             ?: 'KTR/IPNET/' . ($ho->created_at ? $ho->created_at->format('Y') : date('Y')) . '/' . str_pad($ho->id, 4, '0', STR_PAD_LEFT))));
                                     @endphp
-                                    <tr class="hover:bg-[#F8FAFC]/80 transition-colors {{ !$isAccepted ? 'bg-[#FFFDF7]' : '' }}">
+                                    <tr class="hover:bg-[#F8FAFC] transition-colors bg-white">
                                         {{-- 1. Proyek & Klien --}}
                                         <td class="py-3.5 px-4">
                                             <a href="{{ route('ms.projects.show', $ho->id) }}" class="font-semibold text-[#1E293B] text-[13px] hover:text-[#8F0A0D] transition block leading-snug">
@@ -495,37 +495,34 @@
                                                     $resolvedLeadMs = $ho->msAcceptedBy?->name ?? ($ho->handover_data['pic_ms_name'] ?? ($ho->handover_data['lead_ms_name'] ?? auth()->user()->name));
                                                 @endphp
                                                 @if(!$isAccepted)
-                                                    <div class="flex flex-col items-end gap-1">
-                                                        <button type="button" 
-                                                                data-id="{{ $ho->id }}"
-                                                                data-name="{{ $ho->name }}"
-                                                                data-client="{{ $ho->client ?: '-' }}"
-                                                                data-value="{{ $formattedValue ?: '—' }}"
-                                                                data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
-                                                                data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
-                                                                data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
-                                                                data-start="{{ $startDateVal }}"
-                                                                data-end="{{ $endDateVal }}"
-                                                                data-start-display="{{ $startDateDisplay }}"
-                                                                data-end-display="{{ $endDateDisplay }}"
-                                                                data-notes="{{ $ho->special_notes ?: '' }}"
-                                                                data-so="{{ $resolvedContractNum }}"
-                                                                data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
-                                                                data-pm="{{ is_object($ho->pm) ? ($ho->pm->name ?? 'Tim Managed Service') : ($ho->pm ?: 'Tim Managed Service') }}"
-                                                                data-lead-ms="{{ $resolvedLeadMs }}"
-                                                                data-is-accepted="{{ $isAccepted ? '1' : '0' }}"
-                                                                data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
-                                                                data-handover-data="{{ json_encode($ho->handover_data ?? []) }}"
-                                                                data-checklist="{{ json_encode($ho->documents_checklist ?? []) }}"
-                                                                onclick="window.triggerAcceptModal(this)"
-                                                                class="px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11.5px] font-bold rounded-lg shadow-2xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
-                                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                                            </svg>
-                                                            <span>Terima &amp; Jadi PIC</span>
-                                                        </button>
-                                                        <span class="text-[10px] text-amber-700 font-semibold italic">Siapa cepat jadi PIC</span>
-                                                    </div>
+                                                    <button type="button" 
+                                                            data-id="{{ $ho->id }}"
+                                                            data-name="{{ $ho->name }}"
+                                                            data-client="{{ $ho->client ?: '-' }}"
+                                                            data-value="{{ $formattedValue ?: '—' }}"
+                                                            data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
+                                                            data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
+                                                            data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
+                                                            data-start="{{ $startDateVal }}"
+                                                            data-end="{{ $endDateVal }}"
+                                                            data-start-display="{{ $startDateDisplay }}"
+                                                            data-end-display="{{ $endDateDisplay }}"
+                                                            data-notes="{{ $ho->special_notes ?: '' }}"
+                                                            data-so="{{ $resolvedContractNum }}"
+                                                            data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
+                                                            data-pm="{{ is_object($ho->pm) ? ($ho->pm->name ?? 'Tim Managed Service') : ($ho->pm ?: 'Tim Managed Service') }}"
+                                                            data-lead-ms="{{ $resolvedLeadMs }}"
+                                                            data-is-accepted="{{ $isAccepted ? '1' : '0' }}"
+                                                            data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
+                                                            data-handover-data="{{ json_encode($ho->handover_data ?? []) }}"
+                                                            data-checklist="{{ json_encode($ho->documents_checklist ?? []) }}"
+                                                            onclick="window.triggerAcceptModal(this)"
+                                                            class="px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11.5px] font-bold rounded-lg shadow-2xs transition cursor-pointer inline-flex items-center gap-1.5 active:scale-95">
+                                                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                        <span>Terima Handover</span>
+                                                    </button>
                                                 @else
                                                     <button type="button" 
                                                             data-id="{{ $ho->id }}"
@@ -634,6 +631,24 @@
                         Format resmi PT IP Network Solusindo
                     </div>
                 </div>
+
+                {{-- Banner Petunjuk Pengaturan Tanda Tangan jika belum diatur di Settings --}}
+                @if(empty(auth()->user()->signature_data))
+                    <div class="p-3.5 bg-amber-50 border border-amber-300 rounded-xl flex items-center justify-between text-xs text-amber-900 no-print shadow-xs">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0 text-amber-700">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            </div>
+                            <div>
+                                <span class="font-bold">Petunjuk Tanda Tangan:</span> Anda belum membuat/mengunggah coretan tanda tangan digital di menu Settings. Dokumen saat ini akan disahkan dengan nama resmi &amp; verifikasi QR Code. Anda dapat mengatur tanda tangan di menu Pengaturan.
+                            </div>
+                        </div>
+                        <a href="{{ route('settings.index') }}" target="_blank" class="px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold rounded-lg text-[11px] transition shrink-0 ml-3 inline-flex items-center gap-1.5 shadow-2xs">
+                            <span>Atur di Settings</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                    </div>
+                @endif
 
                 {{-- ============================================================== --}}
                 {{-- DOKUMEN RESMI SERAH TERIMA KONTRAK MAINTENANCE SESUAI PDF       --}}
@@ -840,6 +855,9 @@
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
                             <span class="font-bold text-slate-900 uppercase tracking-wide">PILIHAN FORMAT STEMPEL TANDA TANGAN:</span>
+                            <a href="{{ route('settings.index') }}" target="_blank" class="text-[11px] font-semibold text-[#8F0A0D] hover:underline ml-1 inline-flex items-center gap-1" title="Atur tanda tangan digital Anda di menu Settings">
+                                <span>(Atur TTD di Settings &rarr;)</span>
+                            </a>
                         </div>
                         <div class="inline-flex rounded-lg bg-white p-1 border border-slate-300 shadow-2xs gap-1">
                             <button type="button" 
@@ -899,10 +917,8 @@
                                         <div class="py-2 flex items-center justify-center">
                                             <div id="sales-signature-widget" class="inline-flex items-center gap-2 select-none text-left align-middle">
                                                 {{-- QR Code --}}
-                                                <div id="sales-sig-qr-box" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
-                                                    <svg class="w-10 h-10 text-slate-800" viewBox="0 0 24 24" fill="currentColor">
-                                                        <path d="M2 2h8v8H2zM4 4v4h4V4zm10-2h8v8h-8zm2 2v4h4V4zM2 14h8v8H2zm2 2v4h4v-4zm10 0h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2zm-2-2h2v2h-2zm4-2h2v2h-2z"/>
-                                                    </svg>
+                                                <div id="sales-sig-qr-box" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs overflow-hidden">
+                                                    <div class="text-[9px] text-slate-400 font-mono">QR</div>
                                                 </div>
                                                 {{-- Digitally Signed Frame --}}
                                                 <div id="sales-sig-stroke-box" class="relative px-2.5 pt-2 pb-1 border border-slate-700 bg-white rounded min-w-[125px] max-w-[160px] min-h-[54px] flex flex-col justify-between shadow-2xs">
@@ -942,11 +958,12 @@
                                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                                         <span>digitally signed</span>
                                                     </div>
-                                                    <div class="flex-1 flex items-center justify-center my-0.5 min-h-[28px]">
+                                                    <div class="flex-1 flex flex-col items-center justify-center my-0.5 min-h-[28px]">
                                                         @if(!empty(auth()->user()->signature_data))
                                                             <img src="{{ auth()->user()->signature_data }}" alt="TTD" class="max-h-7 max-w-[100px] object-contain">
                                                         @else
                                                             <div class="font-serif italic text-[11px] font-bold text-slate-800 text-center">{{ auth()->user()->name }}</div>
+                                                            <a href="{{ route('settings.index') }}" target="_blank" class="text-[8.5px] text-[#8F0A0D] underline hover:text-[#73080A] font-sans no-print mt-0.5">Atur TTD di Settings &rarr;</a>
                                                         @endif
                                                     </div>
                                                     <div class="text-[7px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
@@ -1290,6 +1307,20 @@
         var salesTokenEl = document.getElementById('sales-token-text');
         if (salesTokenEl) {
             salesTokenEl.textContent = 'dsign.ipnet.id/' + (sSig.qr_token || 'COMMERCIAL');
+        }
+        var salesQrBox = document.getElementById('sales-sig-qr-box');
+        if (salesQrBox) {
+            if (sSig.qr_svg) {
+                salesQrBox.innerHTML = sSig.qr_svg;
+                var svgEl = salesQrBox.querySelector('svg');
+                if (svgEl) {
+                    svgEl.setAttribute('class', 'w-full h-full object-contain');
+                    svgEl.removeAttribute('width');
+                    svgEl.removeAttribute('height');
+                }
+            } else if (sSig.qr_token) {
+                salesQrBox.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' + encodeURIComponent('https://dsign.ipnet.id/' + sSig.qr_token) + '" alt="QR Sales" class="w-full h-full object-contain">';
+            }
         }
 
         // Set mode tanda tangan awal
