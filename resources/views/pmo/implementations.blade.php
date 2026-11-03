@@ -1719,19 +1719,20 @@
                     {{-- Scrollable Form Fields --}}
                     <div class="flex-1 overflow-y-auto p-6 sm:p-7 space-y-4">
                     
-                    {{-- Baris 1: Nama Proyek & Klien --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-800">
-                                Nama Proyek <span class="text-rose-600">*</span>
-                            </label>
-                            <input type="text" 
-                                   name="name" 
-                                   required 
-                                   placeholder="Contoh: Pengadaan & Instalasi Router PE Sudirman"
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
-                        </div>
+                    {{-- Baris 1: Nama Proyek --}}
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-800">
+                            Nama Proyek <span class="text-rose-600">*</span>
+                        </label>
+                        <input type="text" 
+                               name="name" 
+                               required 
+                               placeholder="Contoh: Pengadaan & Instalasi Router PE Sudirman"
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                    </div>
 
+                    {{-- Baris 2: Klien & PIC Klien (Sesuai Kolom KLIEN & PIC KLIEN di Tabel) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1">
                             <label class="block text-xs font-bold text-slate-800">
                                 Klien / Pelanggan <span class="text-rose-600">*</span>
@@ -1739,7 +1740,20 @@
                             <input type="text" 
                                    name="client" 
                                    required 
-                                   placeholder="Contoh: PT Bank Mandiri (Persero) Tbk"
+                                   placeholder="Contoh: PT Angkasa Pura Support"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    PIC Klien (Pendamping Diskusi PM)
+                                </label>
+                                <span class="text-[10.5px] text-slate-400">Nama, Jabatan, & No HP</span>
+                            </div>
+                            <input type="text" 
+                                   name="customer_pic" 
+                                   placeholder="Contoh: Bpk. Wayan Koster (Head of ICT - 081238991122)"
                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                         </div>
                     </div>

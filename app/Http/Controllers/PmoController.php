@@ -2265,6 +2265,7 @@ class PmoController extends Controller
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
             'client'            => 'required|string|max:255',
+            'customer_pic'      => 'nullable|string|max:255',
             'division_id'       => 'nullable|string',
             'custom_team_name'  => 'nullable|string|max:100',
             'teams'             => 'nullable|array',
@@ -2371,15 +2372,23 @@ class PmoController extends Controller
             ? Carbon::parse($validated['deadline'])->format('Y-m-d 18:00:00') 
             : Carbon::parse($startDate)->addMonth()->format('Y-m-d 18:00:00');
 
+        $customerPic = !empty($validated['customer_pic']) ? trim($validated['customer_pic']) : null;
+
         // 4. Buat Proyek (Projek Aktif Bersih / Canvas Kosong)
         $handoverData = [
-            'assigned_teams' => $cleanTeams,
-            'checklist'      => [],
+            'assigned_teams'    => $cleanTeams,
+            'checklist'         => [],
+            'customer_contacts' => [
+                'name' => $customerPic,
+                'note' => $customerPic,
+            ],
         ];
 
         $project = Project::create([
             'name'                        => $validated['name'],
             'client'                      => $validated['client'],
+            'customer_pic_technical'      => $customerPic,
+            'customer_pic_business'       => $customerPic,
             'division_id'                 => $divisionId,
             'pm_id'                       => $validated['pm_id'],
             'contract_value'              => $contractValue,
