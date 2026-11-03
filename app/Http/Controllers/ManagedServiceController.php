@@ -1020,6 +1020,7 @@ class ManagedServiceController extends Controller
             'special_notes'         => $validated['special_notes'] ?? $project->special_notes,
             'stage'                 => 'Operate',
             'status'                => 'Active',
+            'project_type'          => 'Managed Service',
             'handover_target'       => 'managed_service',
             'handover_data'         => $existingHandoverData,
         ];
@@ -1353,15 +1354,12 @@ class ManagedServiceController extends Controller
                 $q->where('ms_handover_status', 'Accepted')
                   ->orWhere(function($sub) {
                       $sub->where('stage', 'Operate')
+                          ->where('status', 'Active')
                           ->where(function($s) {
-                              $s->whereNull('handover_target')
-                                ->orWhere('handover_target', '!=', 'pmo');
+                              $s->where('handover_target', 'managed_service')
+                                ->orWhere('project_type', 'like', '%Managed Service%');
                           });
                   });
-            })
-            ->where(function($q) {
-                $q->whereNull('project_type')
-                  ->orWhere('project_type', 'not like', '%One-Time%');
             })
             ->where(function($q) {
                 $q->whereNull('handover_target')
@@ -1401,10 +1399,6 @@ class ManagedServiceController extends Controller
                   ->orWhere('name', 'like', '%maintenance%');
             })
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->where(function($q) {
-                $q->whereNull('project_type')
-                  ->orWhere('project_type', 'not like', '%One-Time%');
-            })
             ->where(function($q) {
                 $q->whereNull('handover_target')
                   ->orWhere('handover_target', '!=', 'pmo');

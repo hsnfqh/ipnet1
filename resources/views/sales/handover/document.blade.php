@@ -595,16 +595,25 @@
                         @foreach($msMaintenanceChecklist as $item)
                             @php
                                 $msKey = $item['key'] ?? ('item_' . $item['number']);
-                                $itemStatus = $savedStatus[$msKey] ?? ($savedStatus[$item['number']] ?? $item['status']);
+                                $hasSaved = isset($savedStatus[$msKey]) || isset($savedStatus[$item['number']]);
+                                if ($hasSaved) {
+                                    $itemStatus = $savedStatus[$msKey] ?? $savedStatus[$item['number']];
+                                    $itemNote = $savedNotes[$msKey] ?? ($savedNotes[$item['number']] ?? '');
+                                } elseif ($project->ms_handover_status === 'Accepted') {
+                                    $itemStatus = $item['status'];
+                                    $itemNote = $item['default_note'];
+                                } else {
+                                    $itemStatus = 'Belum Diperiksa';
+                                    $itemNote = 'Menunggu verifikasi kesiapan oleh PIC Managed Service';
+                                }
                                 $itemNa = !empty($savedNa[$msKey]) || !empty($savedNa[$item['number']]);
-                                $itemNote = $savedNotes[$msKey] ?? ($savedNotes[$item['number']] ?? $item['default_note']);
                                 if ($itemNa) $itemStatus = 'Tidak Berlaku';
                             @endphp
                             <tr class="hover:bg-slate-50 transition border-b border-black">
                                 <td class="py-2 px-2 text-center font-bold border-r border-black align-top">{{ $item['number'] }}</td>
                                 <td class="py-2 px-3 font-semibold text-black border-r border-black align-top">{{ $item['name'] }}</td>
-                                <td class="py-2 px-3 border-r border-black align-top font-medium text-slate-800">{{ $itemStatus }}</td>
-                                <td class="py-2 px-3 align-top text-slate-600">{{ $itemNote }}</td>
+                                <td class="py-2 px-3 border-r border-black align-top font-medium {{ $itemStatus === 'Belum Diperiksa' ? 'text-amber-700 italic font-semibold' : 'text-slate-800' }}">{{ $itemStatus }}</td>
+                                <td class="py-2 px-3 align-top {{ $itemStatus === 'Belum Diperiksa' ? 'text-slate-400 italic' : 'text-slate-600' }}">{{ $itemNote }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -632,17 +641,17 @@
                             <td class="w-1/3 sm:w-1/4 py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Status handover:</td>
                             <td class="py-2.5 px-3 font-mono font-bold">
                                 @php
-                                    $selectedMsHoStatus = $handoverData['handover_status_selected'] ?? ($project->ms_handover_status === 'Accepted' || in_array($hoStatus, ['Approved', 'approved']) ? 'approved' : 'approved');
+                                    $selectedMsHoStatus = $handoverData['handover_status_selected'] ?? ($project->ms_handover_status === 'Accepted' ? 'approved' : null);
                                 @endphp
-                                <span class="{{ $selectedMsHoStatus === 'approved' ? 'text-emerald-700' : 'text-slate-500' }}">
+                                <span class="{{ $selectedMsHoStatus === 'approved' ? 'text-emerald-700 font-bold' : 'text-slate-500' }}">
                                     [{{ $selectedMsHoStatus === 'approved' ? '✓' : ' ' }}] Diterima
                                 </span>
                                 &nbsp;&nbsp;&nbsp;
-                                <span class="{{ $selectedMsHoStatus === 'conditional' ? 'text-amber-700' : 'text-slate-500' }}">
+                                <span class="{{ $selectedMsHoStatus === 'conditional' ? 'text-amber-700 font-bold' : 'text-slate-500' }}">
                                     [{{ $selectedMsHoStatus === 'conditional' ? '✓' : ' ' }}] Diterima bersyarat
                                 </span>
                                 &nbsp;&nbsp;&nbsp;
-                                <span class="{{ $selectedMsHoStatus === 'rejected' ? 'text-rose-700' : 'text-slate-500' }}">
+                                <span class="{{ $selectedMsHoStatus === 'rejected' ? 'text-rose-700 font-bold' : 'text-slate-500' }}">
                                     [{{ $selectedMsHoStatus === 'rejected' ? '✓' : ' ' }}] Ditolak / dikembalikan
                                 </span>
                             </td>
@@ -738,35 +747,45 @@
                             </td>
 
                             {{-- Col 2: Managed Service --}}
-                            <td class="p-2.5 border-r border-black align-top flex-col justify-between">
+                            <td class="p-2.5 border-r border-black align-top flex flex-col justify-between min-h-[160px]">
                                 <div class="space-y-0.5">
-                                    <p><strong class="font-bold">Nama:</strong> <span class="font-bold text-[#8F0A0D]">{{ $project->msAcceptedBy?->name ?: 'Tim Managed Service' }}</span></p>
-                                    <p><strong class="font-bold">Tanggal:</strong> {{ $project->ms_accepted_at ? $project->ms_accepted_at->format('d/m/Y') : date('d/m/Y') }}</p>
+                                    <p><strong class="font-bold">Nama:</strong> <span class="font-bold text-[#8F0A0D]">{{ $project->msAcceptedBy?->name ?: ($project->ms_handover_status === 'Accepted' ? 'Tim Managed Service' : '—') }}</span></p>
+                                    <p><strong class="font-bold">Tanggal:</strong> {{ $project->ms_accepted_at ? $project->ms_accepted_at->format('d/m/Y') : '—' }}</p>
                                 </div>
-                                <div class="py-3 flex items-center justify-center">
-                                    <div class="inline-flex items-center gap-2 select-none text-left align-middle">
-                                        @if(!empty($msQrSvg))
-                                            <div class="w-11 h-11 shrink-0 p-0.5 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
-                                                {!! $msQrSvg !!}
-                                            </div>
-                                        @endif
-                                        <div class="relative px-2 pt-1.5 pb-1 border border-slate-700 bg-white rounded min-w-[110px] max-w-[140px] min-h-[46px] flex flex-col justify-between shadow-2xs">
-                                            <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-0.5 border border-slate-300 rounded-xs">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                                <span>digitally signed</span>
-                                            </div>
-                                            <div class="flex-1 flex items-center justify-center my-0.5 min-h-[22px]">
-                                                <div class="font-serif italic text-[11px] font-bold text-slate-800 text-center">{{ $project->msAcceptedBy?->name ?: 'Managed Service Lead' }}</div>
-                                            </div>
-                                            <div class="text-[6.5px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
-                                                dsign.ipnet.id/{{ $msSignature['qr_token'] ?? 'MS-ACCEPTED' }}
+                                @if($project->ms_handover_status === 'Accepted' || !empty($msSignature['signed']))
+                                    <div class="py-3 flex items-center justify-center">
+                                        <div class="inline-flex items-center gap-2 select-none text-left align-middle">
+                                            @if(!empty($msQrSvg))
+                                                <div class="w-11 h-11 shrink-0 p-0.5 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
+                                                    {!! $msQrSvg !!}
+                                                </div>
+                                            @endif
+                                            <div class="relative px-2 pt-1.5 pb-1 border border-slate-700 bg-white rounded min-w-[110px] max-w-[140px] min-h-[46px] flex flex-col justify-between shadow-2xs">
+                                                <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-0.5 border border-slate-300 rounded-xs">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                    <span>digitally signed</span>
+                                                </div>
+                                                <div class="flex-1 flex items-center justify-center my-0.5 min-h-[22px]">
+                                                    <div class="font-serif italic text-[11px] font-bold text-slate-800 text-center">{{ $project->msAcceptedBy?->name ?: ($msSignature['user_name'] ?? 'Managed Service Lead') }}</div>
+                                                </div>
+                                                <div class="text-[6.5px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
+                                                    dsign.ipnet.id/{{ $msSignature['qr_token'] ?? 'MS-ACCEPTED' }}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="text-[9.5px] text-center font-mono text-emerald-700 font-bold">
-                                    &check; Accepted by MS
-                                </div>
+                                    <div class="text-[9.5px] text-center font-mono text-emerald-700 font-bold">
+                                        &check; Accepted by MS
+                                    </div>
+                                @else
+                                    <div class="py-3 my-2 flex flex-col items-center justify-center text-center p-2 border border-dashed border-amber-300 rounded-lg bg-amber-50/60">
+                                        <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Menunggu Pemeriksaan</span>
+                                        <span class="text-[9px] text-amber-600 mt-0.5">Belum diverifikasi oleh tim Managed Service</span>
+                                    </div>
+                                    <div class="text-[9px] text-center font-mono text-amber-700 font-semibold">
+                                        ⏳ Pending MS Acceptance
+                                    </div>
+                                @endif
                             </td>
 
                             {{-- Col 3: Validasi Teknis TL / Solution (Bila Perlu) -> STRIP --}}

@@ -1341,8 +1341,9 @@ class SalesCrmController extends Controller
         ];
 
         if ($isManagedService) {
+            $updateData['project_type']          = 'Managed Service';
             $updateData['stage']                 = 'Operate';
-            $updateData['status']                = 'Active';
+            $updateData['status']                = 'Pending';
             $slaTier                             = $validated['sla_tier'] ?? 'Gold';
             $defaultCoverage                     = match($slaTier) {
                 'Platinum' => '24x7',
