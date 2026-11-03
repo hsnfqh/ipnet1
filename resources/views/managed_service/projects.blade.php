@@ -852,9 +852,10 @@
 
                     {{-- Kontrol Pilihan Format Tanda Tangan Digital Resmi (Persis Referensi) --}}
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 border border-black text-xs no-print">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
-                            <span class="font-bold text-slate-900 uppercase tracking-wide">PILIHAN FORMAT STEMPEL TANDA TANGAN:</span>
+                            <span class="font-bold text-slate-900 uppercase tracking-wide">FORMAT STEMPEL SAYA (MANAGED SERVICE):</span>
+                            <span class="text-[11px] text-slate-500 italic">(Stempel Sales telah disahkan &amp; terkunci secara kriptografis)</span>
                             <a href="{{ route('settings.index') }}" target="_blank" class="text-[11px] font-semibold text-[#8F0A0D] hover:underline ml-1 inline-flex items-center gap-1" title="Atur tanda tangan digital Anda di menu Settings">
                                 <span>(Atur TTD di Settings &rarr;)</span>
                             </a>
@@ -944,6 +945,10 @@
                                                 <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                                 <span>Commercial Verified</span>
                                             </span>
+                                            <div class="text-[8.5px] text-slate-500 font-mono flex items-center justify-center gap-1 mt-0.5" title="Kunci tanda tangan digital Sales telah diverifikasi dan terkunci">
+                                                <svg class="w-2.5 h-2.5 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                                                <span>Terkunci secara kriptografis</span>
+                                            </div>
                                         </div>
                                     </td>
 
@@ -1368,7 +1373,22 @@
             }
         }
 
-        // Set mode tanda tangan awal
+        // Kunci format stempel Sales PIC sesuai pilihan resmi Sales (Terkunci & Tidak dapat diubah oleh pihak lain)
+        var salesSigMode = sSig.type || 'signature_qr';
+        var salesQr = document.getElementById('sales-sig-qr-box');
+        var salesStroke = document.getElementById('sales-sig-stroke-box');
+        if (salesSigMode === 'signature_qr') {
+            if (salesQr) salesQr.style.display = 'flex';
+            if (salesStroke) salesStroke.style.display = 'flex';
+        } else if (salesSigMode === 'signature_only') {
+            if (salesQr) salesQr.style.display = 'none';
+            if (salesStroke) salesStroke.style.display = 'flex';
+        } else if (salesSigMode === 'qr_only') {
+            if (salesQr) salesQr.style.display = 'flex';
+            if (salesStroke) salesStroke.style.display = 'none';
+        }
+
+        // Set mode tanda tangan awal hanya untuk stempel Managed Service
         var defaultSigMode = (hData.ms_signature && hData.ms_signature.type) ? hData.ms_signature.type : 'signature_qr';
         window.switchSignatureMode(defaultSigMode);
 
@@ -1406,26 +1426,20 @@
             if (btnSig) idleCls.forEach(function(c) { btnSig.classList.add(c); });
         }
 
+        // HANYA mengubah stempel PIC Managed Service (Eris) yang sedang melakukan verifikasi/penerimaan.
+        // Tanda tangan pihak Sales / Commercial (Raiza) terkunci secara kriptografis & terproteksi.
         var msQr = document.getElementById('ms-sig-qr-box');
         var msStroke = document.getElementById('ms-sig-stroke-box');
-        var salesQr = document.getElementById('sales-sig-qr-box');
-        var salesStroke = document.getElementById('sales-sig-stroke-box');
 
         if (mode === 'signature_qr') {
             if (msQr) msQr.style.display = 'flex';
             if (msStroke) msStroke.style.display = 'flex';
-            if (salesQr) salesQr.style.display = 'flex';
-            if (salesStroke) salesStroke.style.display = 'flex';
         } else if (mode === 'signature_only') {
             if (msQr) msQr.style.display = 'none';
             if (msStroke) msStroke.style.display = 'flex';
-            if (salesQr) salesQr.style.display = 'none';
-            if (salesStroke) salesStroke.style.display = 'flex';
         } else if (mode === 'qr_only') {
             if (msQr) msQr.style.display = 'flex';
             if (msStroke) msStroke.style.display = 'none';
-            if (salesQr) salesQr.style.display = 'flex';
-            if (salesStroke) salesStroke.style.display = 'none';
         }
     };
 

@@ -1038,7 +1038,24 @@ class PmoController extends Controller
                 'docs_completed_count'          => $completedDocsCount,
                 'total_docs_count'              => $totalDocsCount,
                 'handover_status'               => $handoverStatus,
-                'handover_data'                 => is_array($p->handover_data) ? $p->handover_data : [],
+                'handover_data'                 => (function() use ($p) {
+                    $hd = is_array($p->handover_data) ? $p->handover_data : [];
+                    $sSig = $hd['sales_signature'] ?? [];
+                    if (!empty($sSig['user_id'])) {
+                        $salesUser = \App\Models\User::find($sSig['user_id']);
+                        if ($salesUser) {
+                            $sSig['qr_svg'] = $salesUser->signature_qr_svg;
+                        }
+                    } elseif (!empty($sSig['qr_token'])) {
+                        try {
+                            $sSig['qr_svg'] = (string) \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+                                ->size(80)->margin(0)->errorCorrection('M')
+                                ->generate(route('public.signature.verify', $sSig['qr_token']));
+                        } catch (\Throwable $e) {}
+                    }
+                    $hd['sales_signature'] = $sSig;
+                    return $hd;
+                })(),
                 'handover_submitted_at'         => $p->handover_submitted_at ? $p->handover_submitted_at->format('d M Y') : ($p->created_at ? $p->created_at->format('d M Y') : '-'),
                 'special_notes'                 => $p->special_notes ?: '-',
                 'handover_conditional_notes'    => $p->handover_conditional_notes ?: null,

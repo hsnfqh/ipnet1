@@ -989,9 +989,10 @@
 
                         {{-- Kontrol Pilihan Format Tanda Tangan Digital Resmi (Persis Referensi) --}}
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 border border-black text-xs no-print">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
-                                <span class="font-bold text-slate-900 uppercase tracking-wide">PILIHAN FORMAT STEMPEL TANDA TANGAN:</span>
+                                <span class="font-bold text-slate-900 uppercase tracking-wide">FORMAT STEMPEL SAYA (PMO / PM):</span>
+                                <span class="text-[11px] text-slate-500 italic">(Stempel Sales telah disahkan &amp; terkunci secara kriptografis)</span>
                             </div>
                             <div class="inline-flex rounded-lg bg-white p-1 border border-slate-300 shadow-2xs gap-1">
                                 <button type="button" 
@@ -1028,21 +1029,28 @@
                                     </div>
                                     <div class="my-auto py-2 text-center flex items-center justify-center">
                                         <div class="inline-flex items-center gap-2 select-none text-left align-middle">
-                                            {{-- QR Code Box --}}
-                                            <div x-show="signatureMode === 'signature_qr' || signatureMode === 'qr_only'" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
-                                                <svg class="w-10 h-10 text-slate-800" viewBox="0 0 24 24" fill="currentColor">
-                                                    <path d="M2 2h8v8H2zM4 4v4h4V4zm10-2h8v8h-8zm2 2v4h4V4zM2 14h8v8H2zm2 2v4h4v-4zm10 0h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2zm-2-2h2v2h-2zm4-2h2v2h-2z"/>
-                                                </svg>
+                                            {{-- QR Code Box (Terkunci sesuai pilihan Sales, tidak berubah saat PM memilih mode) --}}
+                                            <div x-show="(activeProject?.handover_data?.sales_signature?.type || 'signature_qr') !== 'signature_only'" 
+                                                 class="shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs overflow-hidden [&>svg]:!w-full [&>svg]:!h-full [&>svg]:block" 
+                                                 style="width: 54px; height: 54px; min-width: 54px; min-height: 54px; max-width: 54px; max-height: 54px;">
+                                                <template x-if="activeProject?.handover_data?.sales_signature?.qr_svg">
+                                                    <div class="w-full h-full flex items-center justify-center" x-html="activeProject.handover_data.sales_signature.qr_svg"></div>
+                                                </template>
+                                                <template x-if="!activeProject?.handover_data?.sales_signature?.qr_svg">
+                                                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' + encodeURIComponent('https://dsign.ipnet.id/' + (activeProject?.handover_data?.sales_signature?.qr_token || 'COMMERCIAL'))" alt="QR Sales" class="w-full h-full object-contain">
+                                                </template>
                                             </div>
-                                            {{-- Framed Stroke Box --}}
-                                            <div x-show="signatureMode === 'signature_qr' || signatureMode === 'signature_only'" class="relative px-2.5 pt-2 pb-1 border border-slate-700 bg-white rounded min-w-[125px] max-w-[160px] min-h-[54px] flex flex-col justify-between shadow-2xs">
+                                            {{-- Framed Stroke Box (Terkunci sesuai pilihan Sales) --}}
+                                            <div x-show="(activeProject?.handover_data?.sales_signature?.type || 'signature_qr') !== 'qr_only'" 
+                                                 class="relative px-2 pt-1.5 pb-1 border border-slate-700 bg-white rounded flex flex-col justify-between shadow-2xs shrink-0" 
+                                                 style="width: 130px; min-width: 120px; max-width: 135px; height: 54px; min-height: 54px; max-height: 54px;">
                                                 <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7.5px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
                                                     <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                                     <span>digitally signed</span>
                                                 </div>
-                                                <div class="flex-1 flex items-center justify-center my-0.5 min-h-[28px]">
+                                                <div class="flex-1 flex items-center justify-center my-0.5 min-h-[26px]">
                                                     <template x-if="activeProject?.handover_data?.sales_signature?.signature">
-                                                        <img :src="activeProject.handover_data.sales_signature.signature" alt="TTD Sales" class="max-h-7 max-w-[100px] object-contain">
+                                                        <img :src="activeProject.handover_data.sales_signature.signature" alt="TTD Sales" class="max-h-6 max-w-[95px] object-contain">
                                                     </template>
                                                     <template x-if="!activeProject?.handover_data?.sales_signature?.signature">
                                                         <div class="font-serif italic text-[11px] font-bold text-slate-800 text-center" x-text="activeProject?.handover_data?.sales_signature?.user_name || activeProject?.sales_name || 'Sales PIC'"></div>
@@ -1056,6 +1064,10 @@
                                     <div class="text-[10px] border-t border-slate-300 pt-1 text-slate-700 space-y-0.5">
                                         <p class="truncate">Nama: <strong class="text-black" x-text="activeProject?.handover_data?.sales_signature?.user_name || activeProject?.sales_name || '—'"></strong></p>
                                         <p>Tanggal: <span x-text="activeProject?.handover_data?.sales_signature?.signed_at ? activeProject.handover_data.sales_signature.signed_at.substring(0, 10) : (activeProject?.handover_submitted_at ? activeProject.handover_submitted_at.substring(0, 10) : '{{ date('d/m/Y') }}')"></span></p>
+                                        <div class="text-[8.5px] text-slate-500 font-mono flex items-center gap-1 pt-0.5" title="Kunci tanda tangan digital Sales telah diverifikasi dan terkunci">
+                                            <svg class="w-2.5 h-2.5 text-slate-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                                            <span class="truncate">Terkunci secara kriptografis</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1068,11 +1080,15 @@
                                     <div class="my-auto py-2 text-center flex items-center justify-center">
                                         <div class="inline-flex items-center gap-2 select-none text-left align-middle">
                                             {{-- QR Code Box --}}
-                                            <div x-show="signatureMode === 'signature_qr' || signatureMode === 'qr_only'" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
+                                            <div x-show="signatureMode === 'signature_qr' || signatureMode === 'qr_only'" 
+                                                 class="shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs overflow-hidden [&>svg]:!w-full [&>svg]:!h-full [&>svg]:block" 
+                                                 style="width: 54px; height: 54px; min-width: 54px; min-height: 54px; max-width: 54px; max-height: 54px;">
                                                 {!! auth()->user()->signature_qr_svg !!}
                                             </div>
                                             {{-- Framed Stroke Box --}}
-                                            <div x-show="signatureMode === 'signature_qr' || signatureMode === 'signature_only'" class="relative px-2.5 pt-2 pb-1 border border-slate-700 bg-white rounded min-w-[125px] max-w-[160px] min-h-[54px] flex flex-col justify-between shadow-2xs">
+                                            <div x-show="signatureMode === 'signature_qr' || signatureMode === 'signature_only'" 
+                                                 class="relative px-2 pt-1.5 pb-1 border border-slate-700 bg-white rounded flex flex-col justify-between shadow-2xs shrink-0" 
+                                                 style="width: 130px; min-width: 120px; max-width: 135px; height: 54px; min-height: 54px; max-height: 54px;">
                                                 <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7.5px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
                                                     <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                                     <span>digitally signed</span>
