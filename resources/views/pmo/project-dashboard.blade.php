@@ -713,10 +713,7 @@
 
                                     {{-- Kolom Duration (in Days) --}}
                                     <td class="py-3 px-3 whitespace-nowrap">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="font-bold text-slate-800 text-xs">7 Hari</span>
-                                            <span class="text-[10.5px] text-slate-400 font-normal">({{ $rec['date_range'] }})</span>
-                                        </div>
+                                        <span class="font-bold text-slate-800 text-xs">7 Hari</span>
                                     </td>
 
                                     {{-- Kolom Target Plan --}}
@@ -815,10 +812,7 @@
 
                                         {{-- Kolom Duration (in Days) --}}
                                         <td class="py-3 px-3 whitespace-nowrap">
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="font-bold text-slate-800 text-xs">1 Hari</span>
-                                                <span class="text-[10.5px] text-slate-400 font-normal">({{ $drec['date'] }}, {{ $drec['day_name'] }})</span>
-                                            </div>
+                                            <span class="font-bold text-slate-800 text-xs">1 Hari</span>
                                         </td>
 
                                         {{-- Kolom Target Plan --}}
