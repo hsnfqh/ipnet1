@@ -1668,7 +1668,7 @@
         </div>
     </template>
 
-    {{-- ========================================================== --}}
+        {{-- ========================================================== --}}
     {{-- MODAL: BUAT PROYEK BARU SECARA MANUAL OLEH PMO (CANVAS KOSONG) --}}
     {{-- ========================================================== --}}
     <template x-teleport="body">
@@ -1707,7 +1707,49 @@
                 {{-- Formulir Tambah Proyek --}}
                 <form action="{{ route('pmo.projects.store_manual') }}" 
                       method="POST" 
-                      x-data="{ teamSelection: '', customTeamName: '' }"
+                      x-data="{ 
+                          selectedTeams: ['Tim Network'], 
+                          newCustomTeam: '', 
+                          teamError: '',
+                          toggleTeam(team) {
+                              const idx = this.selectedTeams.indexOf(team);
+                              if (idx > -1) {
+                                  this.selectedTeams.splice(idx, 1);
+                              } else {
+                                  this.selectedTeams.push(team);
+                              }
+                              this.teamError = '';
+                          },
+                          hasTeam(team) {
+                              return this.selectedTeams.includes(team);
+                          },
+                          addCustomTeam() {
+                              let val = this.newCustomTeam.trim();
+                              if (!val) return;
+                              if (!/^tim\s+/i.test(val)) {
+                                  val = 'Tim ' + val;
+                              }
+                              if (!this.selectedTeams.includes(val)) {
+                                  this.selectedTeams.push(val);
+                              }
+                              this.newCustomTeam = '';
+                              this.teamError = '';
+                          },
+                          removeTeam(team) {
+                              this.selectedTeams = this.selectedTeams.filter(t => t !== team);
+                          },
+                          submitCheck(e) {
+                              if (this.newCustomTeam.trim()) {
+                                  this.addCustomTeam();
+                              }
+                              if (this.selectedTeams.length === 0) {
+                                  e.preventDefault();
+                                  this.teamError = 'Pilih minimal satu tim teknis pelaksana.';
+                                  return false;
+                              }
+                          }
+                      }"
+                      @submit="submitCheck($event)"
                       class="space-y-4">
                     @csrf
                     
@@ -1721,7 +1763,7 @@
                                    name="name" 
                                    required 
                                    placeholder="Contoh: Pengadaan & Instalasi Router PE Sudirman"
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                         </div>
 
                         <div class="space-y-1">
@@ -1732,44 +1774,103 @@
                                    name="client" 
                                    required 
                                    placeholder="Contoh: PT Bank Mandiri (Persero) Tbk"
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                         </div>
                     </div>
 
                     {{-- Baris 2: Tim Teknis & Project Manager --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-800">
-                                Tim Teknis Pelaksana <span class="text-rose-600">*</span>
-                            </label>
-                            <select name="division_id" 
-                                    x-model="teamSelection"
-                                    required 
-                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
-                                <option value="">-- Pilih Tim Teknis Pelaksana --</option>
-                                @foreach($divisions as $div)
-                                    <option value="{{ $div->id }}">{{ preg_replace('/^Divisi\s+/i', 'Tim ', $div->name) }}</option>
-                                @endforeach
-                                <option value="__custom__" class="font-bold text-[#8F0A0D]">+ Ketik Manual / Tambah Tim Baru...</option>
-                            </select>
-
-                            {{-- Input Tim Teknis Baru Jika Ketik Manual Dipilih --}}
-                            <div x-show="teamSelection === '__custom__'" x-cloak class="mt-2 space-y-1 animate-fade-in">
-                                <label class="block text-[11px] font-bold text-[#8F0A0D]">Nama Tim Teknis Baru:</label>
-                                <input type="text" 
-                                       name="custom_team_name" 
-                                       placeholder="Contoh: Tim Cloud Infrastructure, Tim Fiber Optic, dll."
-                                       class="w-full px-3.5 py-2 rounded-xl border border-red-300 bg-red-50/20 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                        {{-- Kolom Tim Teknis (Hanya Tim Network & Tim Security + Multi-select + Ketik Manual) --}}
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Tim Teknis Pelaksana <span class="text-rose-600">*</span>
+                                </label>
+                                <span class="text-[11px] text-slate-400">Pilih satu atau lebih</span>
                             </div>
+
+                            {{-- Pilihan Tim (Tim Network & Tim Security) + Custom Chips --}}
+                            <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                                {{-- Tombol Tim Network --}}
+                                <button type="button" 
+                                        @click="toggleTeam('Tim Network')"
+                                        :class="hasTeam('Tim Network') 
+                                            ? 'bg-red-50 border-[#8F0A0D] text-[#8F0A0D] font-bold shadow-2xs ring-1 ring-[#8F0A0D]/20' 
+                                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
+                                        class="px-3 py-1.5 rounded-xl border text-xs flex items-center gap-1.5 transition cursor-pointer select-none">
+                                    <template x-if="hasTeam('Tim Network')">
+                                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    </template>
+                                    <template x-if="!hasTeam('Tim Network')">
+                                        <span class="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block"></span>
+                                    </template>
+                                    <span>Tim Network</span>
+                                </button>
+
+                                {{-- Tombol Tim Security --}}
+                                <button type="button" 
+                                        @click="toggleTeam('Tim Security')"
+                                        :class="hasTeam('Tim Security') 
+                                            ? 'bg-red-50 border-[#8F0A0D] text-[#8F0A0D] font-bold shadow-2xs ring-1 ring-[#8F0A0D]/20' 
+                                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
+                                        class="px-3 py-1.5 rounded-xl border text-xs flex items-center gap-1.5 transition cursor-pointer select-none">
+                                    <template x-if="hasTeam('Tim Security')">
+                                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    </template>
+                                    <template x-if="!hasTeam('Tim Security')">
+                                        <span class="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block"></span>
+                                    </template>
+                                    <span>Tim Security</span>
+                                </button>
+
+                                {{-- Tag Tim Kustom Hasil Ketik Manual --}}
+                                <template x-for="t in selectedTeams.filter(x => x !== 'Tim Network' && x !== 'Tim Security')" :key="t">
+                                    <span class="px-2.5 py-1.5 rounded-xl border border-red-200 bg-red-50 text-[#8F0A0D] text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+                                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        <span x-text="t"></span>
+                                        <button type="button" @click="removeTeam(t)" class="text-red-400 hover:text-red-700 ml-0.5 cursor-pointer" title="Hapus tim ini">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </span>
+                                </template>
+                            </div>
+
+                            {{-- Input Tambah Tim Baru (Ketik Manual) --}}
+                            <div class="flex items-center gap-1.5 pt-1">
+                                <div class="relative flex-1">
+                                    <input type="text" 
+                                           x-model="newCustomTeam"
+                                           @keydown.enter.prevent="addCustomTeam()"
+                                           placeholder="+ Ketik manual tim lain (misal: Tim Fiber Optic, Cloud)..."
+                                           class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 bg-slate-50/60 focus:bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                                </div>
+                                <button type="button" 
+                                        @click="addCustomTeam()"
+                                        :disabled="!newCustomTeam.trim()"
+                                        :class="newCustomTeam.trim() ? 'bg-slate-800 text-white hover:bg-slate-900 cursor-pointer shadow-2xs' : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
+                                        class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Tambah</span>
+                                </button>
+                            </div>
+
+                            {{-- Hidden inputs pengirim array tim ke backend --}}
+                            <template x-for="t in selectedTeams" :key="t">
+                                <input type="hidden" name="teams[]" :value="t">
+                            </template>
+
+                            {{-- Pesan Peringatan Jika Belum Memilih Tim --}}
+                            <p x-show="teamError" x-text="teamError" class="text-[11px] text-rose-600 font-semibold"></p>
                         </div>
 
+                        {{-- Kolom Project Manager --}}
                         <div class="space-y-1">
                             <label class="block text-xs font-bold text-slate-800">
                                 Project Manager (PM PIC) <span class="text-rose-600">*</span>
                             </label>
                             <select name="pm_id" 
                                     required 
-                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
                                 <option value="">-- Pilih Project Manager --</option>
                                 @foreach($pmList as $pm)
                                     <option value="{{ $pm->id }}" {{ (auth()->id() == $pm->id || str_contains(strtolower($pm->name), 'rizki')) ? 'selected' : '' }}>
@@ -1789,7 +1890,7 @@
                             <input type="text" 
                                    name="contract_value" 
                                    placeholder="Contoh: 250.000.000"
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                         </div>
 
                         <div class="space-y-1">
@@ -1799,7 +1900,7 @@
                             <input type="text" 
                                    name="po_spk_number" 
                                    placeholder="Contoh: PO-2026-DIR-001"
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                         </div>
 
                         <div class="space-y-1">
@@ -1807,7 +1908,7 @@
                                 Tipe Proyek
                             </label>
                             <select name="project_type" 
-                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
                                 <option value="One-Time Project">One-Time Project</option>
                                 <option value="Turnkey Deployment">Turnkey Deployment</option>
                                 <option value="Hardware Installation & Cabling">Hardware Installation & Cabling</option>
@@ -1825,7 +1926,7 @@
                             <input type="date" 
                                    name="start_date" 
                                    value="{{ date('Y-m-d') }}"
-                                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none cursor-pointer">
+                                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
                         </div>
 
                         <div class="space-y-1">
@@ -1835,7 +1936,7 @@
                             <input type="date" 
                                    name="deadline" 
                                    value="{{ date('Y-m-d', strtotime('+30 days')) }}"
-                                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none cursor-pointer">
+                                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
                         </div>
                     </div>
 
@@ -1847,23 +1948,15 @@
                         <textarea name="description" 
                                   rows="2" 
                                   placeholder="Ringkasan ruang lingkup pekerjaan atau catatan implementasi proyek..."
-                                  class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none"></textarea>
-                    </div>
-
-                    {{-- Info Callout: Canvas Kosong --}}
-                    <div class="p-3 bg-blue-50/80 rounded-xl border border-blue-200/90 text-xs text-blue-900 flex items-start gap-2.5">
-                        <svg class="w-4 h-4 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <div class="leading-relaxed text-[11.5px]">
-                            <strong>Proyek Canvas Bersih:</strong> Proyek akan langsung berstatus <strong>Aktif (Tahap Deliver)</strong> dengan progress 0%. Setelah dibuat, Anda akan langsung diarahkan ke Dashboard Proyek untuk menyusun WBS secara manual atau via fitur <strong>Import Excel (WBS)</strong>.
-                        </div>
+                                  class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition"></textarea>
                     </div>
 
                     {{-- Footer Modal --}}
-                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                    <div class="flex items-center justify-end gap-2.5 pt-3.5 border-t border-slate-100">
                         <button type="button" @click="showCreateProjectModal = false" class="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs flex items-center gap-2 cursor-pointer">
+                        <button type="submit" class="px-5 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                             </svg>
@@ -2074,7 +2167,7 @@
                                         (p.client || '').toLowerCase().includes(s) ||
                                         (p.sales_name || '').toLowerCase().includes(s) ||
                                         (p.pm || '').toLowerCase().includes(s);
-                    const matchDiv = this.selectedDivision === 'all' || String(p.division_id) === String(this.selectedDivision);
+                    const matchDiv = this.selectedDivision === 'all' || String(p.division_id) === String(this.selectedDivision) || (String(p.division_id) === '4' && (this.selectedDivision === '1' || this.selectedDivision === '2'));
                     const matchPm  = this.selectedPm === 'all' || String(p.pm_id) === String(this.selectedPm);
                     const matchStg = this.selectedStage === 'all' || p.stage === this.selectedStage;
                     const matchHandover = this.handoverFilter === 'all' || 

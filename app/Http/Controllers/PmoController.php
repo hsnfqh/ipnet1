@@ -671,34 +671,87 @@ class PmoController extends Controller
      */
     public function assignDivision(Request $request, Project $project)
     {
-        $divisionId = null;
-        $customTeamName = trim((string) $request->input('custom_team_name', ''));
-        
-        if ($request->input('division_id') === '__custom__' || !empty($customTeamName)) {
-            if (!empty($customTeamName)) {
-                $cleanName = $customTeamName;
-                $code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $cleanName), 0, 4)) ?: 'TIM';
-                $div = Division::firstOrCreate(
-                    ['name' => $cleanName],
-                    ['code' => $code]
-                );
-                $divisionId = $div->id;
+        $teams = (array) $request->input('teams', []);
+        if ($request->filled('custom_team_name')) {
+            $teams[] = $request->input('custom_team_name');
+        } elseif (empty($teams) && $request->filled('division_id') && $request->input('division_id') !== '__custom__') {
+            $divObj = Division::find($request->input('division_id'));
+            if ($divObj) {
+                $teams[] = preg_replace('/^Divisi\s+/i', 'Tim ', $divObj->name);
             }
-        } elseif ($request->filled('division_id') && is_numeric($request->input('division_id'))) {
-            $divisionId = (int) $request->input('division_id');
         }
 
-        if (!$divisionId) {
-            return back()->with('error', 'Silakan pilih atau ketik nama tim teknis pelaksana.');
+        $cleanTeams = [];
+        foreach ($teams as $t) {
+            $t = trim((string) $t);
+            if (!empty($t)) {
+                $formatted = preg_match('/^tim\s+/i', $t) ? $t : ('Tim ' . $t);
+                if (!in_array($formatted, $cleanTeams)) {
+                    $cleanTeams[] = $formatted;
+                }
+            }
+        }
+
+        if (empty($cleanTeams)) {
+            return back()->with('error', 'Silakan pilih minimal satu tim teknis pelaksana.');
+        }
+
+        $hasNetwork = false;
+        $hasSecurity = false;
+        $customTeams = [];
+
+        foreach ($cleanTeams as $teamName) {
+            $lower = strtolower($teamName);
+            if (str_contains($lower, 'net') && !str_contains($lower, 'sec')) {
+                $hasNetwork = true;
+            } elseif (str_contains($lower, 'sec') && !str_contains($lower, 'net')) {
+                $hasSecurity = true;
+            } elseif (str_contains($lower, 'net') && str_contains($lower, 'sec')) {
+                $hasNetwork = true;
+                $hasSecurity = true;
+            } else {
+                $customTeams[] = $teamName;
+            }
+        }
+
+        $divisionId = null;
+        if ($hasNetwork && $hasSecurity) {
+            $netSecDiv = Division::where('name', 'like', '%Network & Security%')->orWhere('code', 'NET-SEC')->first();
+            $divisionId = $netSecDiv ? $netSecDiv->id : 4;
+        } elseif ($hasNetwork) {
+            $netDiv = Division::where('code', 'NET')->orWhere('name', 'like', '%Network%')->first();
+            $divisionId = $netDiv ? $netDiv->id : 1;
+        } elseif ($hasSecurity) {
+            $secDiv = Division::where('code', 'SEC')->orWhere('name', 'like', '%Security%')->first();
+            $divisionId = $secDiv ? $secDiv->id : 2;
+        } elseif (!empty($customTeams)) {
+            $cName = $customTeams[0];
+            $code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $cName), 0, 4)) ?: 'TIM';
+            $cDiv = Division::firstOrCreate(
+                ['name' => $cName],
+                ['code' => $code]
+            );
+            $divisionId = $cDiv->id;
+        } else {
+            $divisionId = 1;
+        }
+
+        foreach ($customTeams as $cName) {
+            $code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $cName), 0, 4)) ?: 'TIM';
+            Division::firstOrCreate(
+                ['name' => $cName],
+                ['code' => $code]
+            );
         }
 
         $project->division_id = $divisionId;
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $handoverData['assigned_teams'] = $cleanTeams;
+        $project->handover_data = $handoverData;
         $project->save();
 
-        $divModel = Division::find($divisionId);
-        $divName = $divModel ? preg_replace('/^Divisi\s+/i', 'Tim ', $divModel->name) : 'Tim Teknis';
-
-        return redirect()->back()->with('success', "Tim teknis pelaksana proyek berhasil ditetapkan ke {$divName}!");
+        $teamsDisplay = implode(' & ', $cleanTeams);
+        return redirect()->back()->with('success', "Tim teknis pelaksana proyek berhasil ditetapkan: {$teamsDisplay}!");
     }
 
     /**
@@ -1015,7 +1068,10 @@ class PmoController extends Controller
             }
 
             $divisionName = 'Belum Didelegasikan';
-            if ($p->division && $p->division_id) {
+            $assignedTeams = is_array($p->handover_data) ? ($p->handover_data['assigned_teams'] ?? null) : null;
+            if (!empty($assignedTeams) && is_array($assignedTeams)) {
+                $divisionName = implode(' & ', $assignedTeams);
+            } elseif ($p->division && $p->division_id) {
                 $rawDiv = $p->division->name;
                 if (str_contains(strtolower($rawDiv), 'lintas') || (str_contains(strtolower($rawDiv), 'net') && str_contains(strtolower($rawDiv), 'sec'))) {
                     $divisionName = 'Tim Network & Security';
@@ -2182,6 +2238,7 @@ class PmoController extends Controller
             'client'            => 'required|string|max:255',
             'division_id'       => 'nullable|string',
             'custom_team_name'  => 'nullable|string|max:100',
+            'teams'             => 'nullable|array',
             'pm_id'             => 'required|exists:users,id',
             'contract_value'    => 'nullable|string',
             'po_spk_number'     => 'nullable|string|max:100',
@@ -2191,26 +2248,80 @@ class PmoController extends Controller
             'description'       => 'nullable|string|max:2000',
         ]);
 
-        // 1. Tentukan Tim Teknis Pelaksana (Bisa pilih dari database atau ketik manual tim baru)
-        $divisionId = null;
-        $customTeamName = trim((string) $request->input('custom_team_name', ''));
-        if ($request->input('division_id') === '__custom__' || !empty($customTeamName)) {
-            if (!empty($customTeamName)) {
-                $cleanName = $customTeamName;
-                $code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $cleanName), 0, 4)) ?: 'TIM';
-                $div = Division::firstOrCreate(
-                    ['name' => $cleanName],
-                    ['code' => $code]
-                );
-                $divisionId = $div->id;
+        // 1. Tentukan Tim Teknis Pelaksana (Dapat memilih lebih dari satu atau ketik manual)
+        $teams = (array) $request->input('teams', []);
+        if ($request->filled('custom_team_name')) {
+            $teams[] = $request->input('custom_team_name');
+        } elseif (empty($teams) && $request->filled('division_id') && $request->input('division_id') !== '__custom__') {
+            $divObj = Division::find($request->input('division_id'));
+            if ($divObj) {
+                $teams[] = preg_replace('/^Divisi\s+/i', 'Tim ', $divObj->name);
             }
-        } elseif (!empty($validated['division_id']) && is_numeric($validated['division_id'])) {
-            $divisionId = (int) $validated['division_id'];
         }
 
-        if (!$divisionId) {
+        $cleanTeams = [];
+        foreach ($teams as $t) {
+            $t = trim((string) $t);
+            if (!empty($t)) {
+                $formatted = preg_match('/^tim\s+/i', $t) ? $t : ('Tim ' . $t);
+                if (!in_array($formatted, $cleanTeams)) {
+                    $cleanTeams[] = $formatted;
+                }
+            }
+        }
+
+        if (empty($cleanTeams)) {
+            $cleanTeams = ['Tim Network'];
+        }
+
+        $hasNetwork = false;
+        $hasSecurity = false;
+        $customTeams = [];
+
+        foreach ($cleanTeams as $teamName) {
+            $lower = strtolower($teamName);
+            if (str_contains($lower, 'net') && !str_contains($lower, 'sec')) {
+                $hasNetwork = true;
+            } elseif (str_contains($lower, 'sec') && !str_contains($lower, 'net')) {
+                $hasSecurity = true;
+            } elseif (str_contains($lower, 'net') && str_contains($lower, 'sec')) {
+                $hasNetwork = true;
+                $hasSecurity = true;
+            } else {
+                $customTeams[] = $teamName;
+            }
+        }
+
+        $divisionId = null;
+        if ($hasNetwork && $hasSecurity) {
+            $netSecDiv = Division::where('name', 'like', '%Network & Security%')->orWhere('code', 'NET-SEC')->first();
+            $divisionId = $netSecDiv ? $netSecDiv->id : 4;
+        } elseif ($hasNetwork) {
+            $netDiv = Division::where('code', 'NET')->orWhere('name', 'like', '%Network%')->first();
+            $divisionId = $netDiv ? $netDiv->id : 1;
+        } elseif ($hasSecurity) {
+            $secDiv = Division::where('code', 'SEC')->orWhere('name', 'like', '%Security%')->first();
+            $divisionId = $secDiv ? $secDiv->id : 2;
+        } elseif (!empty($customTeams)) {
+            $cName = $customTeams[0];
+            $code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $cName), 0, 4)) ?: 'TIM';
+            $cDiv = Division::firstOrCreate(
+                ['name' => $cName],
+                ['code' => $code]
+            );
+            $divisionId = $cDiv->id;
+        } else {
             $firstDiv = Division::first();
             $divisionId = $firstDiv ? $firstDiv->id : 1;
+        }
+
+        // Catat custom teams ke tabel divisions jika belum ada
+        foreach ($customTeams as $cName) {
+            $code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $cName), 0, 4)) ?: 'TIM';
+            Division::firstOrCreate(
+                ['name' => $cName],
+                ['code' => $code]
+            );
         }
 
         // 2. Format Nilai Kontrak (bersihkan format Rupiah)
@@ -2232,6 +2343,11 @@ class PmoController extends Controller
             : Carbon::parse($startDate)->addMonth()->format('Y-m-d 18:00:00');
 
         // 4. Buat Proyek (Projek Aktif Bersih / Canvas Kosong)
+        $handoverData = [
+            'assigned_teams' => $cleanTeams,
+            'checklist'      => [],
+        ];
+
         $project = Project::create([
             'name'                        => $validated['name'],
             'client'                      => $validated['client'],
@@ -2251,6 +2367,7 @@ class PmoController extends Controller
             'handover_target'             => 'pmo',
             'handover_status'             => 'Approved',
             'commercial_handover_status'  => 'Approved',
+            'handover_data'               => $handoverData,
             'created_by'                  => auth()->id() ?: $validated['pm_id'],
         ]);
 

@@ -258,7 +258,9 @@
                                     </div>
                                     <div class="min-w-0">
                                         <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Tim Teknis Pelaksana</span>
-                                        @if($project->division)
+                                        @if(!empty($project->handover_data['assigned_teams']) && is_array($project->handover_data['assigned_teams']))
+                                            <span class="font-bold text-slate-800 truncate block">{{ implode(' & ', $project->handover_data['assigned_teams']) }}</span>
+                                        @elseif($project->division)
                                             <span class="font-bold text-slate-800 truncate block">{{ preg_replace('/^Divisi\s+/i', 'Tim ', $project->division->name) }}</span>
                                         @else
                                             <span class="font-bold text-amber-700 truncate block">Belum Ditetapkan</span>
@@ -1544,55 +1546,154 @@
     <!-- ========================================================== -->
     <div x-show="showDivisionModal" 
          x-transition.opacity
+         style="display: none;"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4"
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-5 sm:p-6 space-y-4"
              @click.away="showDivisionModal = false">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div>
-                    <h3 class="text-sm font-bold text-slate-900">Tetapkan Tim Teknis Pelaksana</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Pilih tim teknis yang bertanggung jawab atas implementasi</p>
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Tetapkan Tim Teknis Pelaksana</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Pilih tim teknis yang bertanggung jawab atas implementasi</p>
+                    </div>
                 </div>
-                <button type="button" @click="showDivisionModal = false" class="text-slate-400 hover:text-slate-600">
+                <button type="button" @click="showDivisionModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
             <form action="{{ route('pmo.projects.assign_division', $project->id) }}" 
                   method="POST" 
-                  x-data="{ selectedDiv: '{{ $project->division_id ?? '' }}' }"
-                  class="space-y-3.5">
+                  x-data="{ 
+                      selectedTeams: {{ json_encode(!empty($project->handover_data['assigned_teams']) ? $project->handover_data['assigned_teams'] : ($project->division_id == 4 ? ['Tim Network', 'Tim Security'] : ($project->division_id == 2 ? ['Tim Security'] : ['Tim Network']))) }},
+                      newCustomTeam: '',
+                      teamError: '',
+                      toggleTeam(team) {
+                          const idx = this.selectedTeams.indexOf(team);
+                          if (idx > -1) {
+                              this.selectedTeams.splice(idx, 1);
+                          } else {
+                              this.selectedTeams.push(team);
+                          }
+                          this.teamError = '';
+                      },
+                      hasTeam(team) {
+                          return this.selectedTeams.includes(team);
+                      },
+                      addCustomTeam() {
+                          let val = this.newCustomTeam.trim();
+                          if (!val) return;
+                          if (!/^tim\s+/i.test(val)) {
+                              val = 'Tim ' + val;
+                          }
+                          if (!this.selectedTeams.includes(val)) {
+                              this.selectedTeams.push(val);
+                          }
+                          this.newCustomTeam = '';
+                          this.teamError = '';
+                      },
+                      removeTeam(team) {
+                          this.selectedTeams = this.selectedTeams.filter(t => t !== team);
+                      },
+                      submitCheck(e) {
+                          if (this.newCustomTeam.trim()) {
+                              this.addCustomTeam();
+                          }
+                          if (this.selectedTeams.length === 0) {
+                              e.preventDefault();
+                              this.teamError = 'Pilih minimal satu tim teknis pelaksana.';
+                              return false;
+                          }
+                      }
+                  }"
+                  @submit="submitCheck($event)"
+                  class="space-y-4">
                 @csrf
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Tim Teknis</label>
-                    <select name="division_id" 
-                            x-model="selectedDiv"
-                            required 
-                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
-                        <option value="">-- Pilih Tim Teknis Pelaksana --</option>
-                        @foreach($divisions as $div)
-                            <option value="{{ $div->id }}" {{ $project->division_id == $div->id ? 'selected' : '' }}>
-                                {{ preg_replace('/^Divisi\s+/i', 'Tim ', $div->name) }}
-                            </option>
-                        @endforeach
-                        <option value="__custom__" class="font-bold text-[#8F0A0D]">
-                            + Ketik Manual / Tambah Tim Baru...
-                        </option>
-                    </select>
-                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-700">Pilihan Tim Teknis</label>
+                        <span class="text-[11px] text-slate-400">Pilih satu atau lebih</span>
+                    </div>
 
-                <div x-show="selectedDiv === '__custom__'" x-cloak class="space-y-1">
-                    <label class="block text-[11px] font-bold text-[#8F0A0D]">Nama Tim Teknis Baru:</label>
-                    <input type="text" 
-                           name="custom_team_name" 
-                           placeholder="Contoh: Tim Cloud Infrastructure, Tim Fiber Optic, dll."
-                           class="w-full px-3.5 py-2 rounded-xl border border-red-300 bg-red-50/20 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    {{-- Default Team Buttons: Tim Network & Tim Security --}}
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" 
+                                @click="toggleTeam('Tim Network')"
+                                :class="hasTeam('Tim Network') 
+                                    ? 'bg-red-50 border-[#8F0A0D] text-[#8F0A0D] font-bold shadow-2xs ring-1 ring-[#8F0A0D]/20' 
+                                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
+                                class="px-3.5 py-2 rounded-xl border text-xs flex items-center gap-1.5 transition cursor-pointer select-none">
+                            <template x-if="hasTeam('Tim Network')">
+                                <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                            <template x-if="!hasTeam('Tim Network')">
+                                <span class="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block"></span>
+                            </template>
+                            <span>Tim Network</span>
+                        </button>
+
+                        <button type="button" 
+                                @click="toggleTeam('Tim Security')"
+                                :class="hasTeam('Tim Security') 
+                                    ? 'bg-red-50 border-[#8F0A0D] text-[#8F0A0D] font-bold shadow-2xs ring-1 ring-[#8F0A0D]/20' 
+                                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
+                                class="px-3.5 py-2 rounded-xl border text-xs flex items-center gap-1.5 transition cursor-pointer select-none">
+                            <template x-if="hasTeam('Tim Security')">
+                                <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                            <template x-if="!hasTeam('Tim Security')">
+                                <span class="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block"></span>
+                            </template>
+                            <span>Tim Security</span>
+                        </button>
+
+                        {{-- Custom Team Tags --}}
+                        <template x-for="t in selectedTeams.filter(x => x !== 'Tim Network' && x !== 'Tim Security')" :key="t">
+                            <span class="px-3 py-2 rounded-xl border border-red-200 bg-red-50 text-[#8F0A0D] text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+                                <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <span x-text="t"></span>
+                                <button type="button" @click="removeTeam(t)" class="text-red-400 hover:text-red-700 ml-1 cursor-pointer">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </span>
+                        </template>
+                    </div>
+
+                    {{-- Input Ketik Manual Tim Baru --}}
+                    <div class="flex items-center gap-1.5 pt-1">
+                        <input type="text" 
+                               x-model="newCustomTeam"
+                               @keydown.enter.prevent="addCustomTeam()"
+                               placeholder="+ Ketik nama tim lain lalu tekan Tambah..."
+                               class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 bg-slate-50/60 focus:bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                        <button type="button" 
+                                @click="addCustomTeam()"
+                                :disabled="!newCustomTeam.trim()"
+                                :class="newCustomTeam.trim() ? 'bg-slate-800 text-white hover:bg-slate-900 cursor-pointer shadow-2xs' : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
+                                class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <span>Tambah</span>
+                        </button>
+                    </div>
+
+                    {{-- Hidden inputs --}}
+                    <template x-for="t in selectedTeams" :key="t">
+                        <input type="hidden" name="teams[]" :value="t">
+                    </template>
+
+                    <p x-show="teamError" x-text="teamError" class="text-[11px] text-rose-600 font-semibold"></p>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button type="button" @click="showDivisionModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition">
+                    <button type="button" @click="showDivisionModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs">
+                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
                         Tetapkan Tim Teknis
                     </button>
                 </div>
