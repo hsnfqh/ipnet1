@@ -484,7 +484,7 @@
                                     <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
                                         Nilai Final Kontrak (Rp) <span class="text-[#8F0A0D]">*</span>
                                     </label>
-                                    <input type="number" name="contract_value" x-model="formContractValue" min="0" step="1000" required
+                                    <input type="number" name="contract_value" x-model="formContractValue" min="0" step="any" required
                                            class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
                                 </div>
 
@@ -896,7 +896,7 @@
                 }
                 this.formPoNum = proj.po_spk_number || proj.po_number || proj.so_code || ('PO-' + new Date().getFullYear() + '-' + String(proj.id).padStart(4, '0'));
                 this.formPoDate = proj.po_spk_date ? proj.po_spk_date.split('T')[0] : '{{ date('Y-m-d') }}';
-                this.formContractValue = proj.contract_value || 0;
+                this.formContractValue = proj.contract_value ? (Number(proj.contract_value) % 1 === 0 ? parseInt(proj.contract_value, 10) : parseFloat(proj.contract_value)) : 0;
                 this.formBilling = proj.billing_terms || (this.formTarget === 'managed_service' ? 'Pembayaran tagihan rutin per bulan (Net 30 hari) setelah rekap SLA bulanan terbit.' : 'DP 30% setelah PO terbit, 50% setelah delivery barang on-site, 20% pelunasan setelah BAST selesai.');
                 this.formSla = proj.sla_commitment || (this.formTarget === 'managed_service' ? 'SLA Availability 99.5%, MTTR 4 Jam, Response Time 15-30 Menit.' : 'SLA Garansi Resmi Pabrik 1 Tahun, Layanan Support Jam Kerja (8x5) Response Time 4 Jam.');
                 this.formCommercialTerms = proj.commercial_terms || 'Harga Franco Jakarta, Pembayaran Net 30 Hari (TOP 30) setelah invoice diterima.';

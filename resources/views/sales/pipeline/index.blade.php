@@ -903,7 +903,7 @@
                 }
                 this.formPoNum = proj.po_spk_number || proj.po_number || proj.so_code || ('PO-' + new Date().getFullYear() + '-' + String(proj.id).padStart(4, '0'));
                 this.formPoDate = proj.po_spk_date ? proj.po_spk_date.split('T')[0] : '{{ date('Y-m-d') }}';
-                this.formContractValue = proj.contract_value || 0;
+                this.formContractValue = proj.contract_value ? (Number(proj.contract_value) % 1 === 0 ? parseInt(proj.contract_value, 10) : parseFloat(proj.contract_value)) : 0;
                 this.formBilling = proj.billing_terms || (this.formTarget === 'managed_service' ? 'Pembayaran tagihan rutin per bulan (Net 30 hari) setelah rekap SLA bulanan terbit.' : 'DP 30% setelah PO terbit, 50% setelah delivery barang on-site, 20% pelunasan setelah BAST selesai.');
                 this.formSla = proj.sla_commitment || (this.formTarget === 'managed_service' ? 'SLA Availability 99.5%, MTTR 4 Jam, Response Time 15-30 Menit.' : 'SLA Garansi Resmi Pabrik 1 Tahun, Layanan Support Jam Kerja (8x5) Response Time 4 Jam.');
                 this.formCommercialTerms = proj.commercial_terms || 'Harga Franco Jakarta, Pembayaran Net 30 Hari (TOP 30) setelah invoice diterima.';
