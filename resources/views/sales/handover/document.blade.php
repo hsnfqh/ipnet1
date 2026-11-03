@@ -55,28 +55,12 @@
     @endphp
 
     {{-- Toolbar Aksi (Hidden Saat Cetak) --}}
-    <div class="max-w-5xl mx-auto mb-4 no-print flex flex-wrap items-center justify-between gap-3">
+    <div class="max-w-5xl mx-auto mb-4 no-print flex items-center justify-between gap-3">
         <a href="{{ route('sales.handover.index') }}" onclick="event.preventDefault(); handleGoBack();"
            class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-xs transition cursor-pointer flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             <span>Kembali</span>
         </a>
-
-        {{-- Tab Switcher 3 Dokumen Resmi IPNET --}}
-        <div class="inline-flex rounded-xl bg-slate-200/80 p-1 border border-slate-300 text-xs font-bold gap-1 shadow-inner flex-wrap">
-            <a href="{{ route('sales.handover.document', ['project' => $project->id, 'type' => 'sales_to_pm']) }}" 
-               class="px-3 py-1.5 rounded-lg transition {{ $isSalesToPm ? 'bg-[#8F0A0D] text-white shadow-xs' : 'bg-white text-slate-700 hover:text-slate-900' }}">
-                1. Sales ke PM (IPN-FRM-PM-01)
-            </a>
-            <a href="{{ route('sales.handover.document', ['project' => $project->id, 'type' => 'sales_to_ms']) }}" 
-               class="px-3 py-1.5 rounded-lg transition {{ $isSalesToMs ? 'bg-[#8F0A0D] text-white shadow-xs' : 'bg-white text-slate-700 hover:text-slate-900' }}">
-                2. Sales ke MS (IPN-FRM-MS-01)
-            </a>
-            <a href="{{ route('sales.handover.document', ['project' => $project->id, 'type' => 'pm_to_ms']) }}" 
-               class="px-3 py-1.5 rounded-lg transition {{ $isPmToMs ? 'bg-[#8F0A0D] text-white shadow-xs' : 'bg-white text-slate-700 hover:text-slate-900' }}">
-                3. PM ke MS (IPN-FRM-DEL-01)
-            </a>
-        </div>
 
         <div class="flex items-center gap-2.5">
             <button type="button" onclick="window.print()"

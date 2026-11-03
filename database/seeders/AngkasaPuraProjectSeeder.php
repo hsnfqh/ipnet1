@@ -397,7 +397,7 @@ class AngkasaPuraProjectSeeder extends Seeder
                 'sla_tier'                      => 'Gold',
                 'sla_coverage_hours'            => '24x7',
                 'maintenance_frequency'         => 'Bulanan (Monthly)',
-                'handover_target'               => 'both',
+                'handover_target'               => 'pmo',
                 'handover_status'               => 'Approved',
                 'handover_submitted_at'         => Carbon::create(2026, 9, 19, 10, 0, 0),
                 'handover_approved_at'          => Carbon::create(2026, 9, 20, 14, 30, 0),

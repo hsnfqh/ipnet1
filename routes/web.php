@@ -94,7 +94,7 @@ Route::get('/fix-cpanel-deploy', function () {
                 $hd['sales_signature']['user_id'] = $salesRaiza->id;
             }
             $apProject->update([
-                'handover_target'       => 'both',
+                'handover_target'       => 'pmo',
                 'pm_id'                 => $pmRizki ? $pmRizki->id : $apProject->pm_id,
                 'sales_name'            => $salesRaiza ? $salesRaiza->name : 'Raiza',
                 'created_by'            => $salesRaiza ? $salesRaiza->id : $apProject->created_by,
