@@ -1128,6 +1128,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects/{project}/assign-team', [PmoController::class, 'assignTeam'])->name('pmo.projects.assign_team');
         Route::post('/projects/{project}/quick-task', [PmoController::class, 'quickStoreTask'])->name('pmo.projects.quick_task');
         Route::post('/projects/{project}/tasks', [PmoController::class, 'storeTask'])->name('pmo.projects.tasks.store');
+        Route::get('/projects/{project}/tasks/template-excel', [PmoController::class, 'downloadTaskTemplateExcel'])->name('pmo.projects.tasks.template_excel');
+        Route::post('/projects/{project}/tasks/import-excel', [PmoController::class, 'importTasksExcel'])->name('pmo.projects.tasks.import_excel');
         Route::post('/tasks/{task}/update', [PmoController::class, 'updateTask'])->name('pmo.tasks.update');
         Route::post('/tasks/{task}/delete', [PmoController::class, 'destroyTask'])->name('pmo.tasks.destroy_post');
         Route::delete('/tasks/{task}', [PmoController::class, 'destroyTask'])->name('pmo.tasks.destroy');

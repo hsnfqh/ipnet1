@@ -8,6 +8,14 @@ use App\Models\User;
 use App\Models\Division;
 use App\Models\Task;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class PmoController extends Controller
 {
@@ -1654,7 +1662,7 @@ class PmoController extends Controller
             'deadline'    => $deadline->format('Y-m-d 18:00:00'),
             'description' => $desc ?: null,
             'progress'    => $progress,
-            'created_by'  => auth()->id(),
+            'created_by'  => auth()->id() ?: ($defaultEngineerId ?: 1),
         ]);
 
         if (\Illuminate\Support\Facades\Schema::hasTable('task_user') && $engineerId) {
@@ -1822,7 +1830,7 @@ class PmoController extends Controller
             'description' => $validated['description'] ?? null,
             'progress'    => 0,
             'attachments' => 0,
-            'created_by'  => auth()->id(),
+            'created_by'  => auth()->id() ?: ($defaultEngineerId ?: 1),
         ]);
 
         if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
@@ -1859,5 +1867,291 @@ class PmoController extends Controller
 
         return back()->with('success', 'Task "' . $task->title . '" berhasil dibuat dan didelegasikan ke ' . $engText . '!');
     }
-}
 
+    /**
+     * Unduh Template Excel Resmi untuk Import Task WBS Proyek
+     */
+    public function downloadTaskTemplateExcel(Project $project)
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template WBS');
+
+        // Headers
+        $headers = [
+            'A1' => 'No',
+            'B1' => 'Nama Tugas / Deliverable (WBS)',
+            'C1' => 'Deskripsi Scope',
+            'D1' => 'Durasi (Hari)',
+            'E1' => 'Tanggal Mulai (YYYY-MM-DD)',
+            'F1' => 'Tanggal Selesai (YYYY-MM-DD)',
+            'G1' => 'Bobot (%)',
+            'H1' => 'Progress (%)',
+        ];
+
+        foreach ($headers as $cell => $text) {
+            $sheet->setCellValue($cell, $text);
+        }
+
+        // Header Styling
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+                'size' => 11,
+                'name' => 'Calibri',
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '8F0A0D'], // Brand Red
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => 'CCCCCC'],
+                ],
+            ],
+        ];
+        $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
+        $sheet->getRowDimension(1)->setRowHeight(28);
+
+        // Sample Data Rows (Realistic networking project tasks)
+        $sampleRows = [
+            [1, 'Staging & Inventarisasi Perangkat', 'Pengecekan fisik perangkat dan staging konfigurasi dasar', 5, '2026-11-05', '2026-11-09', 15.00, 0],
+            [2, 'Instalasi Rak & Penarikan Kabel (Cabling)', 'Penarikan kabel UTP Cat6 dan patching rack IDF', 7, '2026-11-10', '2026-11-16', 25.00, 0],
+            [3, 'Konfigurasi VLAN & Routing Protokol', 'Setup VLAN Trunking, OSPF/BGP, dan access list keamanan', 5, '2026-11-17', '2026-11-21', 20.00, 0],
+            [4, 'Pengujian Sistem & UAT Bersama Klien', 'User Acceptance Testing fungsionalitas failover & speed test', 4, '2026-11-22', '2026-11-25', 20.00, 0],
+            [5, 'Dokumentasi As-Built & BAST 1', 'Penyusunan laporan akhir, topologi as-built, dan serah terima', 5, '2026-11-26', '2026-11-30', 20.00, 0],
+        ];
+
+        $r = 2;
+        foreach ($sampleRows as $row) {
+            $sheet->setCellValue('A' . $r, $row[0]);
+            $sheet->setCellValue('B' . $r, $row[1]);
+            $sheet->setCellValue('C' . $r, $row[2]);
+            $sheet->setCellValue('D' . $r, $row[3]);
+            $sheet->setCellValue('E' . $r, $row[4]);
+            $sheet->setCellValue('F' . $r, $row[5]);
+            $sheet->setCellValue('G' . $r, $row[6]);
+            $sheet->setCellValue('H' . $r, $row[7]);
+
+            $sheet->getStyle("A{$r}:H{$r}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('E2E8F0');
+            $sheet->getStyle("A{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("D{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("E{$r}:F{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("G{$r}:H{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getRowDimension($r)->setRowHeight(22);
+            $r++;
+        }
+
+        // Set column widths
+        $sheet->getColumnDimension('A')->setWidth(8);
+        $sheet->getColumnDimension('B')->setWidth(38);
+        $sheet->getColumnDimension('C')->setWidth(48);
+        $sheet->getColumnDimension('D')->setWidth(14);
+        $sheet->getColumnDimension('E')->setWidth(20);
+        $sheet->getColumnDimension('F')->setWidth(20);
+        $sheet->getColumnDimension('G')->setWidth(14);
+        $sheet->getColumnDimension('H')->setWidth(14);
+
+        $safeName = Str::slug($project->name ?: 'Proyek');
+        $filename = 'Template_WBS_' . $safeName . '.xlsx';
+
+        $response = new StreamedResponse(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        });
+
+        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->headers->set('Content-Disposition', 'attachment;filename="' . $filename . '"');
+        $response->headers->set('Cache-Control', 'max-age=0');
+
+        return $response;
+    }
+
+    /**
+     * Import File Excel Spreadsheet Menjadi Task WBS Proyek
+     */
+    public function importTasksExcel(Request $request, Project $project)
+    {
+        $request->validate([
+            'excel_file' => 'required|file|max:10240', // Maks 10MB
+            'mode'       => 'nullable|in:append,replace',
+        ]);
+
+        $file = $request->file('excel_file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        if (!in_array($extension, ['xlsx', 'xls', 'csv'])) {
+            return back()->with('error', 'Format file tidak didukung. Harap unggah file .xlsx, .xls, atau .csv');
+        }
+
+        try {
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray(null, true, true, true);
+
+            if (empty($rows) || count($rows) < 2) {
+                return back()->with('error', 'File Excel kosong atau tidak memiliki data baris.');
+            }
+
+            // Cari baris header (biasanya baris 1)
+            $headerRowIdx = 1;
+            foreach ($rows as $idx => $rData) {
+                $joined = strtolower(implode(' ', array_filter($rData)));
+                if (str_contains($joined, 'nama') || str_contains($joined, 'wbs') || str_contains($joined, 'tugas') || str_contains($joined, 'task')) {
+                    $headerRowIdx = $idx;
+                    break;
+                }
+            }
+
+            // Mode replace: Hapus task lama jika PM memilih opsi reset / timpa
+            if ($request->input('mode') === 'replace') {
+                $project->tasks()->delete();
+            }
+
+            $importedCount = 0;
+            $defaultEngineerId = null;
+            $assignedEngs = $project->handover_data['assigned_engineers'] ?? [];
+            if (!empty($assignedEngs)) {
+                $defaultEngineerId = $assignedEngs[0]['id'] ?? null;
+            }
+            if (!$defaultEngineerId) {
+                $defaultEngineerId = auth()->id();
+            }
+
+            // Iterasi baris data (setelah header)
+            foreach ($rows as $idx => $row) {
+                if ($idx <= $headerRowIdx) {
+                    continue;
+                }
+
+                // Kolom B atau Kolom A: Nama Tugas / WBS
+                $title = trim((string) ($row['B'] ?? ''));
+                if (empty($title) && !empty($row['A']) && !is_numeric($row['A'])) {
+                    $title = trim((string) $row['A']);
+                }
+
+                if (empty($title)) {
+                    continue; // Lewati baris kosong
+                }
+
+                // Deskripsi Scope
+                $rawDesc = trim((string) ($row['C'] ?? ''));
+
+                // Durasi
+                $duration = 1;
+                if (!empty($row['D']) && is_numeric($row['D'])) {
+                    $duration = max(1, (int) $row['D']);
+                }
+
+                // Tanggal Mulai
+                $startDate = null;
+                $rawStartDate = $row['E'] ?? null;
+                if (!empty($rawStartDate)) {
+                    if (is_numeric($rawStartDate) && (float)$rawStartDate > 30000) {
+                        try {
+                            $startDate = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rawStartDate));
+                        } catch (\Throwable $e) {}
+                    }
+                    if (!$startDate) {
+                        try {
+                            $startDate = Carbon::parse($rawStartDate);
+                        } catch (\Throwable $e) {}
+                    }
+                }
+                if (!$startDate) {
+                    $startDate = $project->start_date ? Carbon::parse($project->start_date) : now();
+                }
+
+                // Tanggal Selesai (Deadline)
+                $deadline = null;
+                $rawDeadline = $row['F'] ?? null;
+                if (!empty($rawDeadline)) {
+                    if (is_numeric($rawDeadline) && (float)$rawDeadline > 30000) {
+                        try {
+                            $deadline = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rawDeadline));
+                        } catch (\Throwable $e) {}
+                    }
+                    if (!$deadline) {
+                        try {
+                            $deadline = Carbon::parse($rawDeadline);
+                        } catch (\Throwable $e) {}
+                    }
+                }
+                if (!$deadline) {
+                    $deadline = $startDate->copy()->addDays(max(0, $duration - 1));
+                }
+
+                // Bobot (%)
+                $bobotVal = null;
+                $rawBobot = $row['G'] ?? null;
+                if (!empty($rawBobot)) {
+                    $cleanBobot = str_replace(['%', ' '], '', (string) $rawBobot);
+                    $cleanBobot = str_replace(',', '.', $cleanBobot);
+                    if (is_numeric($cleanBobot)) {
+                        $bobotVal = (float) $cleanBobot;
+                    }
+                }
+
+                // Sisipkan tag [Bobot: XX%] ke deskripsi
+                if ($bobotVal !== null) {
+                    $formattedBobot = number_format($bobotVal, 2, '.', '');
+                    $descWithBobot = trim("[Bobot: {$formattedBobot}%] " . $rawDesc);
+                } else {
+                    $descWithBobot = $rawDesc ?: null;
+                }
+
+                // Progress (%)
+                $progress = 0;
+                $rawProgress = $row['H'] ?? null;
+                if (!empty($rawProgress)) {
+                    $cleanProg = str_replace(['%', ' '], '', (string) $rawProgress);
+                    $cleanProg = str_replace(',', '.', $cleanProg);
+                    if (is_numeric($cleanProg)) {
+                        $progress = max(0, min(100, (int) round((float) $cleanProg)));
+                    }
+                }
+
+                // Status
+                $status = 'Not Started';
+                if ($progress >= 100) {
+                    $status = 'Completed';
+                } elseif ($progress > 0) {
+                    $status = 'In Progress';
+                }
+
+                // Buat Task WBS di database
+                Task::create([
+                    'title'       => $title,
+                    'project_id'  => $project->id,
+                    'engineer_id' => $defaultEngineerId,
+                    'priority'    => 'Medium',
+                    'status'      => $status,
+                    'start_date'  => $startDate->format('Y-m-d'),
+                    'deadline'    => $deadline->format('Y-m-d 18:00:00'),
+                    'description' => $descWithBobot,
+                    'progress'    => $progress,
+                    'attachments' => 0,
+                    'created_by'  => auth()->id() ?: ($defaultEngineerId ?: 1),
+                ]);
+
+                $importedCount++;
+            }
+
+            if ($importedCount === 0) {
+                return back()->with('error', 'Tidak ada data task yang valid berhasil diimpor. Pastikan kolom Nama Tugas terisi.');
+            }
+
+            $project->syncStatusWithTasks();
+
+            return back()->with('success', "Berhasil mengimpor {$importedCount} task WBS dari file Excel ke proyek!");
+
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal memproses file Excel: ' . $e->getMessage());
+        }
+    }
+}

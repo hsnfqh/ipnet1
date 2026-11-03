@@ -97,6 +97,7 @@
          showDivisionModal: false,
          showAssignTeamModal: false,
          showQuickTaskModal: false,
+         showImportExcelModal: false,
          selectedEngineerId: '',
          showEditTaskModal: false,
          editTaskId: null,
@@ -1056,6 +1057,10 @@
                                         <span>Kelola Personil Tim</span>
                                     </button>
                                 @endif
+                                                                <button type="button" @click="showImportExcelModal = true" class="px-2.5 py-1.5 rounded-lg border border-emerald-600 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>Import Excel (WBS)</span>
+                                </button>
                                 <button type="button" @click="showQuickTaskModal = true" class="px-2.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                                     <span>Tambah Task (WBS)</span>
@@ -1085,11 +1090,9 @@
                                         <th class="py-2.5 px-3 w-10 text-center">No</th>
                                         <th class="py-2.5 px-3">Nama Tugas / Deliverable (WBS)</th>
                                         <th class="py-2.5 px-3">Durasi</th>
-                                        <th class="py-2.5 px-3">Jadwal Pelaksanaan</th>
                                         <th class="py-2.5 px-3">Bobot</th>
                                         <th class="py-2.5 px-3">Progress Aktual</th>
                                         <th class="py-2.5 px-3">Status</th>
-                                        <th class="py-2.5 px-3">Assignee (Ditunjuk Tim Lead)</th>
                                         <th class="py-2.5 px-3 text-right">Aksi</th>
                                     </tr>
                                 </thead>
@@ -1123,12 +1126,7 @@
                                             <td class="py-2.5 px-3 whitespace-nowrap">
                                                 <span class="font-bold text-slate-800 text-xs">{{ $tDays }} Hari</span>
                                             </td>
-                                            <td class="py-2.5 px-3 whitespace-nowrap">
-                                                <span class="text-slate-700 font-medium text-xs">
-                                                    {{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('d M') : '-' }} s/d 
-                                                    {{ $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('d M Y') : '-' }}
-                                                </span>
-                                            </td>
+                                            
                                             <td class="py-2.5 px-3 whitespace-nowrap">
                                                 <span class="font-bold text-blue-700 text-xs">{{ $bobotTxt }}</span>
                                             </td>
@@ -1155,12 +1153,7 @@
                                                     </span>
                                                 @endif
                                             </td>
-                                            <td class="py-2.5 px-3 whitespace-nowrap">
-                                                <div class="font-semibold text-slate-800 text-xs">
-                                                    {{ $t->engineer ? $t->engineer->name : 'Tim Lapangan' }}
-                                                </div>
-                                                <span class="text-[10px] text-slate-400 block">Ditunjuk Tim Lead</span>
-                                            </td>
+                                            
                                             <td class="py-2.5 px-3 text-right whitespace-nowrap">
                                                 <div class="flex items-center justify-end gap-1.5">
                                                     <button type="button" 
@@ -1192,7 +1185,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="9" class="text-center py-6 text-slate-400 text-xs">
+                                            <td colspan="7" class="text-center py-6 text-slate-400 text-xs">
                                                 Belum ada task teknis WBS yang terdaftar.
                                             </td>
                                         </tr>
@@ -2088,6 +2081,137 @@
             </form>
         </div>
     </div>
+
+    {{-- MODAL IMPORT TASK WBS DARI EXCEL SPREADSHEET --}}
+    <div x-show="showImportExcelModal" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         style="display: none;"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        
+        <div @click.outside="showImportExcelModal = false"
+             class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Import Task WBS dari Excel</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Unggah spreadsheet rencana proyek (.xlsx, .xls, .csv)</p>
+                    </div>
+                </div>
+                <button type="button" @click="showImportExcelModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Template Download Card --}}
+            <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 flex items-center justify-between gap-3">
+                <div class="space-y-0.5">
+                    <div class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>Template Excel Standar WBS</span>
+                    </div>
+                    <p class="text-[11px] text-emerald-800">
+                        Gunakan template resmi agar susunan kolom terbaca sempurna oleh sistem.
+                    </p>
+                </div>
+                <a href="{{ route('pmo.projects.tasks.template_excel', $project->id) }}" 
+                   class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <span>Unduh Template</span>
+                </a>
+            </div>
+
+            {{-- Panduan Kolom --}}
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                <div class="font-bold text-slate-700 text-[11px] uppercase tracking-wider">Format Kolom Spreadsheet:</div>
+                <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] text-slate-600">
+                    <div><span class="font-bold text-slate-800">Kolom A:</span> No Urut</div>
+                    <div><span class="font-bold text-slate-800">Kolom B:</span> Nama Tugas WBS <span class="text-rose-600 font-bold">*</span></div>
+                    <div><span class="font-bold text-slate-800">Kolom C:</span> Deskripsi Scope</div>
+                    <div><span class="font-bold text-slate-800">Kolom D:</span> Durasi (Hari)</div>
+                    <div><span class="font-bold text-slate-800">Kolom E:</span> Tanggal Mulai</div>
+                    <div><span class="font-bold text-slate-800">Kolom F:</span> Tanggal Selesai</div>
+                    <div><span class="font-bold text-slate-800">Kolom G:</span> Bobot (%)</div>
+                    <div><span class="font-bold text-slate-800">Kolom H:</span> Progress Awal (%)</div>
+                </div>
+                <div class="pt-1.5 border-t border-slate-200/80 text-[10.5px] text-slate-500 italic">
+                    * Catatan: Jadwal & penugasan personil (assignee) tidak perlu diisi pada spreadsheet, karena penugasan anggota tim dilakukan langsung oleh Lead Engineer di lapangan.
+                </div>
+            </div>
+
+            <form action="{{ route('pmo.projects.tasks.import_excel', $project->id) }}" 
+                  method="POST" 
+                  enctype="multipart/form-data" 
+                  x-data="{ fileName: '', mode: 'append' }"
+                  class="space-y-3.5">
+                @csrf
+                
+                {{-- Mode Pilihan: Append vs Replace --}}
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-700">Opsi Tindakan Impor:</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label class="flex items-start gap-2 p-2.5 rounded-xl border cursor-pointer transition"
+                               :class="mode === 'append' ? 'border-emerald-600 bg-emerald-50/50 text-emerald-950 font-semibold' : 'border-slate-200 bg-white text-slate-600'">
+                            <input type="radio" name="mode" value="append" x-model="mode" class="mt-0.5 text-emerald-700 focus:ring-emerald-600">
+                            <div class="text-xs">
+                                <div class="font-bold">Tambahkan (Append)</div>
+                                <div class="text-[10.5px] text-slate-400">Pertahankan task yang sudah ada</div>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-2 p-2.5 rounded-xl border cursor-pointer transition"
+                               :class="mode === 'replace' ? 'border-rose-600 bg-rose-50/50 text-rose-950 font-semibold' : 'border-slate-200 bg-white text-slate-600'">
+                            <input type="radio" name="mode" value="replace" x-model="mode" class="mt-0.5 text-rose-700 focus:ring-rose-600">
+                            <div class="text-xs">
+                                <div class="font-bold">Timpa / Reset (Replace)</div>
+                                <div class="text-[10.5px] text-slate-400">Gantikan semua task lama proyek</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- File Dropzone / Input --}}
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-700">Pilih File Spreadsheet (.xlsx, .xls, .csv) <span class="text-rose-600">*</span></label>
+                    <div class="relative border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-50/50 hover:bg-emerald-50/30">
+                        <input type="file" 
+                               name="excel_file" 
+                               required 
+                               accept=".xlsx,.xls,.csv" 
+                               @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''" 
+                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div class="space-y-1.5 pointer-events-none">
+                            <svg class="w-8 h-8 mx-auto text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            <div class="text-xs font-bold text-slate-700" x-text="fileName || 'Klik atau geser file Excel ke sini'"></div>
+                            <div class="text-[10.5px] text-slate-400">Format yang didukung: XLSX, XLS, CSV (Maksimal 10 MB)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showImportExcelModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12"/></svg>
+                        <span>Unggah & Buat Task Otomatis</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
         </div>
     </div>
 
