@@ -909,24 +909,28 @@
                             <tbody>
                                 <tr class="min-h-[160px]">
                                     {{-- 1. Sales / Commercial --}}
-                                    <td class="p-2.5 border-r border-black align-top flex-col justify-between">
-                                        <div class="space-y-1">
-                                            <p><strong class="font-bold">Nama:</strong> <span id="accept-modal-sales-sign" class="font-bold text-slate-900">—</span></p>
-                                            <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
+                                    <td class="p-3 border-r border-black align-top bg-white">
+                                        <div class="space-y-1 mb-2 text-xs">
+                                            <p><span class="font-bold text-slate-700">Nama:</span> <span id="accept-modal-sales-sign" class="font-bold text-slate-900">—</span></p>
+                                            <p><span class="font-bold text-slate-700">Tanggal:</span> <span class="font-medium text-slate-800">{{ date('d/m/Y') }}</span></p>
                                         </div>
-                                        <div class="py-2 flex items-center justify-center">
-                                            <div id="sales-signature-widget" class="inline-flex items-center gap-2 select-none text-left align-middle">
+                                        <div class="py-1 flex items-center justify-center">
+                                            <div id="sales-signature-widget" class="inline-flex items-center gap-2 select-none text-left">
                                                 {{-- QR Code --}}
-                                                <div id="sales-sig-qr-box" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs overflow-hidden">
+                                                <div id="sales-sig-qr-box" 
+                                                     class="shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs overflow-hidden [&>svg]:!w-full [&>svg]:!h-full [&>svg]:block" 
+                                                     style="width: 54px; height: 54px; min-width: 54px; min-height: 54px; max-width: 54px; max-height: 54px;">
                                                     <div class="text-[9px] text-slate-400 font-mono">QR</div>
                                                 </div>
                                                 {{-- Digitally Signed Frame --}}
-                                                <div id="sales-sig-stroke-box" class="relative px-2.5 pt-2 pb-1 border border-slate-700 bg-white rounded min-w-[125px] max-w-[160px] min-h-[54px] flex flex-col justify-between shadow-2xs">
+                                                <div id="sales-sig-stroke-box" 
+                                                     class="relative px-2 pt-1.5 pb-1 border border-slate-700 bg-white rounded flex flex-col justify-between shadow-2xs shrink-0" 
+                                                     style="width: 130px; min-width: 120px; max-width: 135px; height: 54px; min-height: 54px; max-height: 54px;">
                                                     <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7.5px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                                         <span>digitally signed</span>
                                                     </div>
-                                                    <div class="flex-1 flex items-center justify-center my-0.5 min-h-[28px]" id="sales-sig-stroke-inner">
+                                                    <div class="flex-1 flex items-center justify-center my-0.5 min-h-[26px]" id="sales-sig-stroke-inner">
                                                         <div class="font-serif italic text-[11px] font-bold text-slate-800 text-center" id="accept-modal-sales-inner-name">Sales PIC</div>
                                                     </div>
                                                     <div class="text-[7px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate" id="sales-token-text">
@@ -935,35 +939,42 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="text-[9.5px] text-center font-mono text-emerald-700 font-bold">
-                                            &check; Commercial Verified
+                                        <div class="mt-2 text-center">
+                                            <span class="inline-flex items-center gap-1 text-[9.5px] font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                                <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                <span>Commercial Verified</span>
+                                            </span>
                                         </div>
                                     </td>
 
                                     {{-- 2. Managed Service --}}
-                                    <td class="p-2.5 border-r border-black align-top flex-col justify-between">
-                                        <div class="space-y-1">
-                                            <p><strong class="font-bold">Nama:</strong> <span id="accept-modal-pm-sign" class="font-bold text-[#8F0A0D]">{{ auth()->user()->name }}</span></p>
-                                            <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
+                                    <td class="p-3 border-r border-black align-top bg-white">
+                                        <div class="space-y-1 mb-2 text-xs">
+                                            <p><span class="font-bold text-slate-700">Nama:</span> <span id="accept-modal-pm-sign" class="font-bold text-[#8F0A0D]">{{ auth()->user()->name }}</span></p>
+                                            <p><span class="font-bold text-slate-700">Tanggal:</span> <span class="font-medium text-slate-800">{{ date('d/m/Y') }}</span></p>
                                         </div>
-                                        <div class="py-2 flex items-center justify-center">
-                                            <div id="ms-signature-widget" class="inline-flex items-center gap-2 select-none text-left align-middle">
+                                        <div class="py-1 flex items-center justify-center">
+                                            <div id="ms-signature-widget" class="inline-flex items-center gap-2 select-none text-left">
                                                 {{-- QR Code --}}
-                                                <div id="ms-sig-qr-box" class="w-13 h-13 shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs">
+                                                <div id="ms-sig-qr-box" 
+                                                     class="shrink-0 p-1 bg-white border border-slate-300 rounded flex items-center justify-center shadow-2xs overflow-hidden [&>svg]:!w-full [&>svg]:!h-full [&>svg]:block" 
+                                                     style="width: 54px; height: 54px; min-width: 54px; min-height: 54px; max-width: 54px; max-height: 54px;">
                                                     {!! auth()->user()->signature_qr_svg !!}
                                                 </div>
                                                 {{-- Digitally Signed Frame --}}
-                                                <div id="ms-sig-stroke-box" class="relative px-2.5 pt-2 pb-1 border border-slate-700 bg-white rounded min-w-[125px] max-w-[160px] min-h-[54px] flex flex-col justify-between shadow-2xs">
+                                                <div id="ms-sig-stroke-box" 
+                                                     class="relative px-2 pt-1.5 pb-1 border border-slate-700 bg-white rounded flex flex-col justify-between shadow-2xs shrink-0" 
+                                                     style="width: 130px; min-width: 120px; max-width: 135px; height: 54px; min-height: 54px; max-height: 54px;">
                                                     <div class="absolute -top-2 left-1.5 px-1 bg-white text-[7.5px] font-mono font-bold text-slate-700 tracking-wide flex items-center gap-1 border border-slate-300 rounded-xs">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                                         <span>digitally signed</span>
                                                     </div>
-                                                    <div class="flex-1 flex flex-col items-center justify-center my-0.5 min-h-[28px]">
+                                                    <div class="flex-1 flex flex-col items-center justify-center my-0.5 min-h-[26px]" id="ms-sig-stroke-inner">
                                                         @if(!empty(auth()->user()->signature_data))
-                                                            <img src="{{ auth()->user()->signature_data }}" alt="TTD" class="max-h-7 max-w-[100px] object-contain">
+                                                            <img src="{{ auth()->user()->signature_data }}" alt="TTD" class="max-h-6 max-w-[95px] object-contain">
                                                         @else
                                                             <div class="font-serif italic text-[11px] font-bold text-slate-800 text-center">{{ auth()->user()->name }}</div>
-                                                            <a href="{{ route('settings.index') }}" target="_blank" class="text-[8.5px] text-[#8F0A0D] underline hover:text-[#73080A] font-sans no-print mt-0.5">Atur TTD di Settings &rarr;</a>
+                                                            <a href="{{ route('settings.index') }}" target="_blank" class="text-[8px] text-[#8F0A0D] underline hover:text-[#73080A] font-sans no-print leading-none mt-0.5">Atur TTD di Settings &rarr;</a>
                                                         @endif
                                                     </div>
                                                     <div class="text-[7px] font-mono text-slate-500 tracking-tight text-center border-t border-dashed border-slate-200 pt-0.5 truncate">
@@ -972,32 +983,35 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="text-[9.5px] text-center font-mono text-emerald-700 font-bold">
-                                            &check; Verified PIC MS
+                                        <div class="mt-2 text-center">
+                                            <span class="inline-flex items-center gap-1 text-[9.5px] font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                                <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                <span>Verified PIC MS</span>
+                                            </span>
                                         </div>
                                     </td>
 
                                     {{-- 3. TL / Solution --}}
-                                    <td class="p-2.5 border-r border-black align-top flex-col justify-between">
-                                        <div class="space-y-1">
-                                            <p><strong class="font-bold">Nama:</strong> Solution Lead</p>
-                                            <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
+                                    <td class="p-3 border-r border-black align-top bg-white">
+                                        <div class="space-y-1 mb-2 text-xs">
+                                            <p><span class="font-bold text-slate-700">Nama:</span> <span class="font-medium text-slate-800">Solution Lead</span></p>
+                                            <p><span class="font-bold text-slate-700">Tanggal:</span> <span class="font-medium text-slate-800">{{ date('d/m/Y') }}</span></p>
                                         </div>
-                                        <div class="py-4 text-center">
+                                        <div class="py-5 text-center">
                                             <div class="border-b border-dashed border-slate-400 w-3/4 mx-auto my-3"></div>
-                                            <span class="text-[9px] text-slate-400 font-mono">(Paraf bila diperlukan)</span>
+                                            <span class="text-[9.5px] text-slate-400 font-mono">(Paraf bila diperlukan)</span>
                                         </div>
                                     </td>
 
                                     {{-- 4. Persetujuan Pihak Berwenang --}}
-                                    <td class="p-2.5 align-top flex-col justify-between">
-                                        <div class="space-y-1">
-                                            <p><strong class="font-bold">Nama:</strong> Operations Head</p>
-                                            <p><strong class="font-bold">Tanggal:</strong> {{ date('d/m/Y') }}</p>
+                                    <td class="p-3 align-top bg-white">
+                                        <div class="space-y-1 mb-2 text-xs">
+                                            <p><span class="font-bold text-slate-700">Nama:</span> <span class="font-medium text-slate-800">Operations Head</span></p>
+                                            <p><span class="font-bold text-slate-700">Tanggal:</span> <span class="font-medium text-slate-800">{{ date('d/m/Y') }}</span></p>
                                         </div>
-                                        <div class="py-4 text-center">
+                                        <div class="py-5 text-center">
                                             <div class="border-b border-dashed border-slate-400 w-3/4 mx-auto my-3"></div>
-                                            <span class="text-[9px] text-slate-400 font-mono">(Paraf bila diperlukan)</span>
+                                            <span class="text-[9.5px] text-slate-400 font-mono">(Paraf bila diperlukan)</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -1310,16 +1324,47 @@
         }
         var salesQrBox = document.getElementById('sales-sig-qr-box');
         if (salesQrBox) {
+            salesQrBox.style.width = '54px';
+            salesQrBox.style.height = '54px';
+            salesQrBox.style.minWidth = '54px';
+            salesQrBox.style.minHeight = '54px';
+            salesQrBox.style.maxWidth = '54px';
+            salesQrBox.style.maxHeight = '54px';
+            salesQrBox.style.overflow = 'hidden';
             if (sSig.qr_svg) {
                 salesQrBox.innerHTML = sSig.qr_svg;
                 var svgEl = salesQrBox.querySelector('svg');
                 if (svgEl) {
-                    svgEl.setAttribute('class', 'w-full h-full object-contain');
+                    svgEl.style.width = '100%';
+                    svgEl.style.height = '100%';
+                    svgEl.style.maxWidth = '100%';
+                    svgEl.style.maxHeight = '100%';
+                    svgEl.style.display = 'block';
                     svgEl.removeAttribute('width');
                     svgEl.removeAttribute('height');
                 }
             } else if (sSig.qr_token) {
-                salesQrBox.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' + encodeURIComponent('https://dsign.ipnet.id/' + sSig.qr_token) + '" alt="QR Sales" class="w-full h-full object-contain">';
+                salesQrBox.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' + encodeURIComponent('https://dsign.ipnet.id/' + sSig.qr_token) + '" alt="QR Sales" style="width:100%; height:100%; object-fit:contain; display:block;">';
+            }
+        }
+        var msQrBox = document.getElementById('ms-sig-qr-box');
+        if (msQrBox) {
+            msQrBox.style.width = '54px';
+            msQrBox.style.height = '54px';
+            msQrBox.style.minWidth = '54px';
+            msQrBox.style.minHeight = '54px';
+            msQrBox.style.maxWidth = '54px';
+            msQrBox.style.maxHeight = '54px';
+            msQrBox.style.overflow = 'hidden';
+            var msSvg = msQrBox.querySelector('svg');
+            if (msSvg) {
+                msSvg.style.width = '100%';
+                msSvg.style.height = '100%';
+                msSvg.style.maxWidth = '100%';
+                msSvg.style.maxHeight = '100%';
+                msSvg.style.display = 'block';
+                msSvg.removeAttribute('width');
+                msSvg.removeAttribute('height');
             }
         }
 
