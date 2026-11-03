@@ -1263,6 +1263,9 @@ class SalesCrmController extends Controller
         foreach ($stage1DocInputs as $inputName => $docMeta) {
             if ($request->hasFile($inputName)) {
                 $file = $request->file($inputName);
+                $docOrigName = $file->getClientOriginalName();
+                $docSize = $file->getSize();
+                $docMime = $file->getClientMimeType();
                 $filePath = FileUploadHelper::storePublicly($file, 'project_documents/' . $docMeta['folder']);
                 
                 \App\Models\ProjectDocument::updateOrCreate(
@@ -1275,9 +1278,9 @@ class SalesCrmController extends Controller
                         'stage_name'     => 'Commercial',
                         'document_title' => $docMeta['title'],
                         'file_path'      => $filePath,
-                        'file_name'      => $file->getClientOriginalName(),
-                        'file_size'      => $file->getSize(),
-                        'file_mime'      => $file->getClientMimeType(),
+                        'file_name'      => $docOrigName,
+                        'file_size'      => $docSize,
+                        'file_mime'      => $docMime,
                         'status'         => 'Uploaded',
                         'uploaded_by'    => auth()->id(),
                         'version'        => 1,
