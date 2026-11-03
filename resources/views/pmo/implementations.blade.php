@@ -242,10 +242,7 @@
                                     {{-- Kolom 2: Klien & PIC Klien (Pendamping Diskusi PM) --}}
                                     <td class="py-3.5 px-4 align-middle">
                                         <div class="space-y-1 max-w-xs">
-                                            <div class="font-bold text-[#1E293B] text-[12px] flex items-center gap-1.5" :title="project.client">
-                                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                                <span class="truncate font-semibold text-slate-800" x-text="project.client || '-'"></span>
-                                            </div>
+                                            <div class="font-bold text-[#1E293B] text-[12px] truncate" :title="project.client" x-text="project.client || '-'"></div>
                                             <div class="text-[11px] text-[#64748B] flex items-start gap-1.5">
                                                 <span class="text-slate-400 font-semibold shrink-0">PIC:</span>
                                                 <span class="text-slate-700 leading-snug line-clamp-2" 
@@ -393,7 +390,6 @@
                                     {{-- Client & Sales Chips --}}
                                     <div class="flex items-center gap-1.5 flex-wrap text-xs">
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
-                                            <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                             <span x-text="project.client"></span>
                                         </span>
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 text-[#8F0A0D] text-[11px] font-bold border border-red-100">
