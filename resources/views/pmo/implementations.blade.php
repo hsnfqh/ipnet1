@@ -24,8 +24,9 @@
                         <p class="text-[13px] text-[#64748B] mt-0.5">Kelola pelaksanaan proyek aktif, verifikasi serah terima (handover) dari Sales, dan kontrol implementasi lapangan</p>
                     </div>
 
-                    {{-- Tab Switcher: Segmented Toggle Styled Like Managed Service (Gambar 2 / Reference) --}}
-                    <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0 self-start lg:self-center">
+                    {{-- Tab Switcher & Action Button --}}
+                    <div class="flex items-center gap-3 self-start lg:self-center flex-wrap">
+                        <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0">
                         {{-- Tab 1: Projek Aktif (Deliver & Selesai) --}}
                         <button type="button" 
                                 @click="activeTab = 'all'; currentPage = 1;" 
@@ -58,6 +59,17 @@
                                   class="px-2 py-0.5 rounded-full text-[10.5px] font-bold"
                                   x-text="handoverPendingCount + handoverConditionalCount">
                             </span>
+                        </button>
+                        </div>
+
+                        {{-- Tombol Buat Proyek Baru (PMO Direct / Canvas Kosong) --}}
+                        <button type="button" 
+                                @click="showCreateProjectModal = true"
+                                class="px-4 py-2 rounded-xl btn-ipnet-primary text-xs font-bold shadow-xs transition flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Buat Proyek Baru</span>
                         </button>
                     </div>
                 </div>
@@ -1672,6 +1684,7 @@
             handoverPendingCount: {{ $handoverPendingCount ?? 0 }},
             handoverConditionalCount: {{ $handoverConditionalCount ?? 0 }},
             readyToOperateCount: {{ $readyToOperateCount ?? 0 }},
+            showCreateProjectModal: false,
 
             search: '',
             statusFilter: 'Semua',

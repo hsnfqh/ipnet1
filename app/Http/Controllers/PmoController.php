@@ -671,14 +671,34 @@ class PmoController extends Controller
      */
     public function assignDivision(Request $request, Project $project)
     {
-        $validated = $request->validate([
-            'division_id' => 'required|exists:divisions,id',
-        ]);
+        $divisionId = null;
+        $customTeamName = trim((string) $request->input('custom_team_name', ''));
+        
+        if ($request->input('division_id') === '__custom__' || !empty($customTeamName)) {
+            if (!empty($customTeamName)) {
+                $cleanName = $customTeamName;
+                $code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $cleanName), 0, 4)) ?: 'TIM';
+                $div = Division::firstOrCreate(
+                    ['name' => $cleanName],
+                    ['code' => $code]
+                );
+                $divisionId = $div->id;
+            }
+        } elseif ($request->filled('division_id') && is_numeric($request->input('division_id'))) {
+            $divisionId = (int) $request->input('division_id');
+        }
 
-        $project->division_id = $validated['division_id'];
+        if (!$divisionId) {
+            return back()->with('error', 'Silakan pilih atau ketik nama tim teknis pelaksana.');
+        }
+
+        $project->division_id = $divisionId;
         $project->save();
 
-        return redirect()->back()->with('success', 'Divisi pelaksana proyek berhasil ditetapkan!');
+        $divModel = Division::find($divisionId);
+        $divName = $divModel ? preg_replace('/^Divisi\s+/i', 'Tim ', $divModel->name) : 'Tim Teknis';
+
+        return redirect()->back()->with('success', "Tim teknis pelaksana proyek berhasil ditetapkan ke {$divName}!");
     }
 
     /**
@@ -1102,11 +1122,8 @@ class PmoController extends Controller
             'Operate' => $formattedProjects->where('stage', 'Operate')->whereNotIn('handover_status', ['Submitted'])->count(),
         ];
 
-        // 6. Data Master untuk Filter & Form (Hanya Tim Network & Tim Security)
-        $divisions = Division::where(function($q) {
-            $q->where('name', 'like', '%Network%')
-              ->orWhere('name', 'like', '%Security%');
-        })->orderBy('name')->get()->map(function($d) {
+        // 6. Data Master Tim Teknis untuk Filter & Form (Semua Tim Teknis)
+        $divisions = Division::orderBy('name')->get()->map(function($d) {
             $d->name = preg_replace('/^Divisi\s+/i', 'Tim ', $d->name);
             return $d;
         });
@@ -2153,5 +2170,91 @@ class PmoController extends Controller
         } catch (\Throwable $e) {
             return back()->with('error', 'Gagal memproses file Excel: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Buat Proyek Baru Secara Manual oleh PMO (Direct Delivery / Canvas Kosong)
+     */
+    public function storeManualProject(Request $request)
+    {
+        $validated = $request->validate([
+            'name'              => 'required|string|max:255',
+            'client'            => 'required|string|max:255',
+            'division_id'       => 'nullable|string',
+            'custom_team_name'  => 'nullable|string|max:100',
+            'pm_id'             => 'required|exists:users,id',
+            'contract_value'    => 'nullable|string',
+            'po_spk_number'     => 'nullable|string|max:100',
+            'project_type'      => 'nullable|string|max:100',
+            'start_date'        => 'nullable|date',
+            'deadline'          => 'nullable|date',
+            'description'       => 'nullable|string|max:2000',
+        ]);
+
+        // 1. Tentukan Tim Teknis Pelaksana (Bisa pilih dari database atau ketik manual tim baru)
+        $divisionId = null;
+        $customTeamName = trim((string) $request->input('custom_team_name', ''));
+        if ($request->input('division_id') === '__custom__' || !empty($customTeamName)) {
+            if (!empty($customTeamName)) {
+                $cleanName = $customTeamName;
+                $code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $cleanName), 0, 4)) ?: 'TIM';
+                $div = Division::firstOrCreate(
+                    ['name' => $cleanName],
+                    ['code' => $code]
+                );
+                $divisionId = $div->id;
+            }
+        } elseif (!empty($validated['division_id']) && is_numeric($validated['division_id'])) {
+            $divisionId = (int) $validated['division_id'];
+        }
+
+        if (!$divisionId) {
+            $firstDiv = Division::first();
+            $divisionId = $firstDiv ? $firstDiv->id : 1;
+        }
+
+        // 2. Format Nilai Kontrak (bersihkan format Rupiah)
+        $contractValue = null;
+        if (!empty($validated['contract_value'])) {
+            $cleanVal = preg_replace('/[^\d]/', '', (string) $validated['contract_value']);
+            if (is_numeric($cleanVal)) {
+                $contractValue = (float) $cleanVal;
+            }
+        }
+
+        // 3. Periode Proyek
+        $startDate = !empty($validated['start_date']) 
+            ? Carbon::parse($validated['start_date'])->toDateString() 
+            : now()->toDateString();
+
+        $deadline = !empty($validated['deadline']) 
+            ? Carbon::parse($validated['deadline'])->format('Y-m-d 18:00:00') 
+            : Carbon::parse($startDate)->addMonth()->format('Y-m-d 18:00:00');
+
+        // 4. Buat Proyek (Projek Aktif Bersih / Canvas Kosong)
+        $project = Project::create([
+            'name'                        => $validated['name'],
+            'client'                      => $validated['client'],
+            'division_id'                 => $divisionId,
+            'pm_id'                       => $validated['pm_id'],
+            'contract_value'              => $contractValue,
+            'po_spk_number'               => $validated['po_spk_number'] ?? null,
+            'project_type'                => $validated['project_type'] ?: 'One-Time Project',
+            'start_date'                  => $startDate,
+            'deadline'                    => $deadline,
+            'description'                 => $validated['description'] ?? null,
+            'stage'                       => 'Deliver',
+            'status'                      => 'In Progress',
+            'progress'                    => 0,
+            'sales_name'                  => 'Direct PMO',
+            'sales_stage'                 => 'Closed Won',
+            'handover_target'             => 'pmo',
+            'handover_status'             => 'Approved',
+            'commercial_handover_status'  => 'Approved',
+            'created_by'                  => auth()->id() ?: $validated['pm_id'],
+        ]);
+
+        return redirect()->route('pmo.projects.show', $project->id)
+            ->with('success', "Proyek '{$project->name}' berhasil dibuat! Canvas proyek siap diisi tugas WBS & jadwal kerja.");
     }
 }

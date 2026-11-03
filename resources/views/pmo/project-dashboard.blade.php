@@ -1557,11 +1557,16 @@
                 </button>
             </div>
 
-            <form action="{{ route('pmo.projects.assign_division', $project->id) }}" method="POST" class="space-y-3.5">
+            <form action="{{ route('pmo.projects.assign_division', $project->id) }}" 
+                  method="POST" 
+                  x-data="{ selectedDiv: '{{ $project->division_id ?? '' }}' }"
+                  class="space-y-3.5">
                 @csrf
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Tim Teknis</label>
-                    <select name="division_id" required 
+                    <select name="division_id" 
+                            x-model="selectedDiv"
+                            required 
                             class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
                         <option value="">-- Pilih Tim Teknis Pelaksana --</option>
                         @foreach($divisions as $div)
@@ -1569,7 +1574,18 @@
                                 {{ preg_replace('/^Divisi\s+/i', 'Tim ', $div->name) }}
                             </option>
                         @endforeach
+                        <option value="__custom__" class="font-bold text-[#8F0A0D]">
+                            + Ketik Manual / Tambah Tim Baru...
+                        </option>
                     </select>
+                </div>
+
+                <div x-show="selectedDiv === '__custom__'" x-cloak class="space-y-1">
+                    <label class="block text-[11px] font-bold text-[#8F0A0D]">Nama Tim Teknis Baru:</label>
+                    <input type="text" 
+                           name="custom_team_name" 
+                           placeholder="Contoh: Tim Cloud Infrastructure, Tim Fiber Optic, dll."
+                           class="w-full px-3.5 py-2 rounded-xl border border-red-300 bg-red-50/20 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">

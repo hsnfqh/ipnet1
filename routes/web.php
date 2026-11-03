@@ -1113,6 +1113,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [PmoController::class, 'dashboard'])->name('pmo.dashboard');
         Route::get('/implementations', [PmoController::class, 'implementations'])->name('pmo.implementations.index');
         Route::get('/projects/{project}', [PmoController::class, 'projectDashboard'])->name('pmo.projects.show');
+        Route::post('/projects/create-manual', [PmoController::class, 'storeManualProject'])->name('pmo.projects.store_manual');
         Route::post('/projects/{project}/expenses', [PmoController::class, 'storeExpense'])->name('pmo.projects.expenses.store');
         Route::delete('/projects/{project}/expenses/{expenseId}', [PmoController::class, 'destroyExpense'])->name('pmo.projects.expenses.destroy');
         Route::post('/projects/{project}/stage', [PmoController::class, 'updateStage'])->name('pmo.stage.update');
