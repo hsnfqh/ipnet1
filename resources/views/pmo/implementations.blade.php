@@ -210,10 +210,10 @@
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                <th class="py-3.5 px-4 sm:px-6 w-[34%]">PROYEK &amp; KLIEN</th>
+                                <th class="py-3.5 px-4 sm:px-6 w-[28%]">PROYEK</th>
+                                <th class="py-3.5 px-4 w-[26%]">KLIEN &amp; PIC KLIEN</th>
                                 <th class="py-3.5 px-4 w-[18%]">TIM TEKNIS</th>
-                                <th class="py-3.5 px-4 w-[18%]">STATUS TATA KELOLA</th>
-                                <th class="py-3.5 px-4 w-[18%]">TENGGAT &amp; PROGRES</th>
+                                <th class="py-3.5 px-4 w-[16%]">TENGGAT &amp; PROGRES</th>
                                 <th class="py-3.5 px-4 sm:px-6 text-right w-[12%]">TINDAKAN</th>
                             </tr>
                         </thead>
@@ -221,18 +221,16 @@
                             <template x-for="project in paginatedProjects" :key="project.id">
                                 <tr class="hover:bg-[#F8FAFC]/80 transition-colors" :class="project.handover_status === 'Submitted' ? 'bg-amber-50/20' : ''">
                                     
-                                    {{-- Kolom 1: Proyek & Klien --}}
+                                    {{-- Kolom 1: Proyek --}}
                                     <td class="py-3.5 px-4 sm:px-6 align-middle">
-                                        <div class="max-w-md space-y-1">
+                                        <div class="max-w-xs space-y-1">
                                             <a :href="'/pmo/projects/' + project.id" class="font-bold text-[#1E293B] hover:text-[#8F0A0D] text-[13px] leading-snug block transition" :title="project.name">
                                                 <span x-text="project.name"></span>
                                             </a>
-                                            <div class="flex items-center gap-2 text-[11.5px] text-[#64748B] flex-wrap">
-                                                <span class="font-medium text-slate-700" x-text="project.client || '-'"></span>
-                                                <span class="text-slate-300">&bull;</span>
+                                            <div class="flex items-center gap-2 text-[11px] text-[#64748B] flex-wrap">
                                                 <span class="font-bold text-[#8F0A0D]" x-text="'Sales: ' + (project.sales_name || 'Raiza')"></span>
                                                 <template x-if="project.so_code || project.po_number">
-                                                    <span class="flex items-center gap-2">
+                                                    <span class="flex items-center gap-1.5">
                                                         <span class="text-slate-300">&bull;</span>
                                                         <span class="font-mono text-[10.5px] text-slate-500" x-text="project.so_code || project.po_number"></span>
                                                     </span>
@@ -241,66 +239,29 @@
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 2: Tim Teknis & PM --}}
+                                    {{-- Kolom 2: Klien & PIC Klien (Pendamping Diskusi PM) --}}
+                                    <td class="py-3.5 px-4 align-middle">
+                                        <div class="space-y-1 max-w-xs">
+                                            <div class="font-bold text-[#1E293B] text-[12px] flex items-center gap-1.5" :title="project.client">
+                                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                                <span class="truncate font-semibold text-slate-800" x-text="project.client || '-'"></span>
+                                            </div>
+                                            <div class="text-[11px] text-[#64748B] flex items-start gap-1.5">
+                                                <span class="text-slate-400 font-semibold shrink-0">PIC:</span>
+                                                <span class="text-slate-700 leading-snug line-clamp-2" 
+                                                      x-text="project.customer_pic && project.customer_pic !== '-' ? project.customer_pic : 'Belum Ditentukan'">
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {{-- Kolom 3: Tim Teknis & PM --}}
                                     <td class="py-3.5 px-4 align-middle whitespace-nowrap">
                                         <div class="font-bold text-[#1E293B] text-[12px]" x-text="project.division_name || project.division || 'Tim Network & Security'"></div>
                                         <div class="text-[11px] text-[#64748B] flex items-center gap-1 mt-0.5">
                                             <span>PM:</span>
                                             <span class="font-semibold text-slate-700" x-text="project.pm || 'Rizki'"></span>
                                         </div>
-                                    </td>
-
-                                    {{-- Kolom 3: Status Tata Kelola (Satu Badge Otoritatif) --}}
-                                    <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                        <template x-if="project.ms_handover_status === 'Accepted'">
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
-                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                <span>Operasional MS (Aktif)</span>
-                                            </span>
-                                        </template>
-
-                                        <template x-if="project.ms_handover_status === 'Submitted'">
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-800 border border-purple-200 shadow-2xs">
-                                                <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                <span>Diserahkan ke MS (Operate)</span>
-                                            </span>
-                                        </template>
-
-                                        <template x-if="!project.ms_handover_status && project.handover_status === 'Submitted'">
-                                            <button type="button" 
-                                                    @click="openHandoverReviewModal(project)"
-                                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition cursor-pointer shadow-2xs">
-                                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                                <span>Menunggu Review PMO</span>
-                                            </button>
-                                        </template>
-
-                                        <template x-if="!project.ms_handover_status && project.handover_status === 'Conditional'">
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-50 text-orange-800 border border-orange-200 shadow-2xs" :title="project.handover_conditional_notes">
-                                                <svg class="w-3.5 h-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                <span>Revisi Bersyarat</span>
-                                            </span>
-                                        </template>
-
-                                        <template x-if="!project.ms_handover_status && project.stage === 'Deliver' && project.progress >= 100">
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 shadow-2xs">
-                                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                                <span>Siap Transisi MS</span>
-                                            </span>
-                                        </template>
-
-                                        <template x-if="!project.ms_handover_status && project.handover_status === 'Approved' && project.progress < 100">
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
-                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                <span>Dalam Pelaksanaan</span>
-                                            </span>
-                                        </template>
-
-                                        <template x-if="!project.ms_handover_status && project.handover_status !== 'Submitted' && project.handover_status !== 'Conditional' && project.handover_status !== 'Approved' && project.progress < 100">
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs">
-                                                <span>Dalam Pelaksanaan</span>
-                                            </span>
-                                        </template>
                                     </td>
 
                                     {{-- Kolom 4: Tenggat & Progres --}}
@@ -340,8 +301,8 @@
                                     {{-- Kolom 5: Tindakan --}}
                                     <td class="py-3.5 px-4 sm:px-6 align-middle text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-2">
-                                            {{-- Handover MS --}}
-                                            <template x-if="project.stage === 'Deliver' && (!project.ms_handover_status || project.ms_handover_status === 'Pending')">
+                                            {{-- Handover MS: Hanya muncul jika proyek memang memiliki alur Managed Service --}}
+                                            <template x-if="project.has_ms && project.stage === 'Deliver' && (!project.ms_handover_status || project.ms_handover_status === 'Pending')">
                                                 <button type="button"
                                                         @click="openHandoverToMsModal(project)"
                                                         class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-lg text-[11.5px] font-bold transition shadow-xs cursor-pointer flex items-center gap-1 active:scale-95">
@@ -513,7 +474,7 @@
                                                         <span>Diserahkan ke MS</span>
                                                     </span>
                                                 </template>
-                                                <template x-if="project.stage === 'Deliver' && (!project.ms_handover_status || project.ms_handover_status === 'Pending')">
+                                                <template x-if="project.has_ms && project.stage === 'Deliver' && (!project.ms_handover_status || project.ms_handover_status === 'Pending')">
                                                     <button type="button"
                                                             @click="openHandoverToMsModal(project)"
                                                             class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95">

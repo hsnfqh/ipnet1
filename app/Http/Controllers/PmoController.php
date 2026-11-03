@@ -1095,6 +1095,32 @@ class PmoController extends Controller
                 }
             }
 
+            // Deteksi apakah proyek memiliki lingkup Managed Service / Pemeliharaan / SLA
+            $rawType = strtolower($p->project_type ?? '');
+            $rawName = strtolower($p->name ?? '');
+            $hasMs = (
+                str_contains($rawType, 'managed service') ||
+                str_contains($rawType, 'pemeliharaan') ||
+                str_contains($rawType, 'sla') ||
+                str_contains($rawName, 'managed service') ||
+                str_contains($rawName, 'pemeliharaan') ||
+                str_contains($rawName, 'sla') ||
+                $p->handover_target === 'both' ||
+                $p->handover_target === 'managed_service'
+            );
+
+            // PIC Klien pendamping diskusi ke PM
+            $customerPic = $p->customer_pic_technical;
+            if (empty($customerPic) || $customerPic === '-') {
+                $customerPic = $p->customer_pic_business;
+            }
+            if (empty($customerPic) || $customerPic === '-') {
+                $customerPic = is_array($p->handover_data) ? ($p->handover_data['customer_contacts']['note'] ?? null) : null;
+            }
+            if (empty($customerPic)) {
+                $customerPic = '-';
+            }
+
             return [
                 'id'                            => $p->id,
                 'name'                          => $p->name,
@@ -1152,6 +1178,9 @@ class PmoController extends Controller
                 'days_span'                     => ($p->start_date && $p->deadline) ? max(0, (int) round($p->start_date->diffInDays($p->deadline))) : 0,
                 'days_remaining'                => $p->deadline ? (int) round(\Carbon\Carbon::now()->diffInDays($p->deadline, false)) : null,
                 'resolved_documents'            => \App\Http\Controllers\ManagedServiceController::getProjectDocuments($p),
+                'project_type'                  => $p->project_type ?: 'One-Time Project',
+                'has_ms'                        => $hasMs,
+                'customer_pic'                  => $customerPic,
             ];
         });
 
@@ -1168,7 +1197,7 @@ class PmoController extends Controller
         $handoverConditionalCount = $formattedProjects->where('handover_status', 'Conditional')->count();
 
         // 4. Hitung Proyek Siap Transisi ke Operasional / Managed Service
-        $readyToOperateCount = $formattedProjects->where('stage', 'Deliver')->where('progress', '>=', 100)->count();
+        $readyToOperateCount = $formattedProjects->where('has_ms', true)->where('stage', 'Deliver')->where('progress', '>=', 100)->count();
 
         // 5. Persebaran 4-Tahap Siklus Ver 2.0 (Projek Aktif Deliver/Operate hanya menghitung yang sudah sah serah terimanya)
         $stageCounts = [
