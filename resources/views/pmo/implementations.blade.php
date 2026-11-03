@@ -1667,6 +1667,214 @@
             </div>
         </div>
     </template>
+
+    {{-- ========================================================== --}}
+    {{-- MODAL: BUAT PROYEK BARU SECARA MANUAL OLEH PMO (CANVAS KOSONG) --}}
+    {{-- ========================================================== --}}
+    <template x-teleport="body">
+        <div x-show="showCreateProjectModal" 
+             x-cloak 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+             @click.self="showCreateProjectModal = false">
+            
+            <div @click.stop
+                 class="bg-white rounded-2xl shadow-2xl border border-slate-200/90 max-w-2xl sm:max-w-3xl w-full p-6 sm:p-7 space-y-4 my-auto max-h-[92vh] overflow-y-auto animate-fade-in-up">
+                
+                {{-- Header Modal --}}
+                <div class="flex items-center justify-between pb-3.5 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-red-50 text-[#8F0A0D] border border-red-100 flex items-center justify-center shrink-0 shadow-2xs">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 tracking-tight">Buat Proyek Baru (Direct PMO Delivery)</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Inisialisasi proyek baru langsung berstatus aktif tanpa melalui alur pipeline sales.</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="showCreateProjectModal = false" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                {{-- Formulir Tambah Proyek --}}
+                <form action="{{ route('pmo.projects.store_manual') }}" 
+                      method="POST" 
+                      x-data="{ teamSelection: '', customTeamName: '' }"
+                      class="space-y-4">
+                    @csrf
+                    
+                    {{-- Baris 1: Nama Proyek & Klien --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Nama Proyek <span class="text-rose-600">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="name" 
+                                   required 
+                                   placeholder="Contoh: Pengadaan & Instalasi Router PE Sudirman"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Klien / Pelanggan <span class="text-rose-600">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="client" 
+                                   required 
+                                   placeholder="Contoh: PT Bank Mandiri (Persero) Tbk"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                        </div>
+                    </div>
+
+                    {{-- Baris 2: Tim Teknis & Project Manager --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Tim Teknis Pelaksana <span class="text-rose-600">*</span>
+                            </label>
+                            <select name="division_id" 
+                                    x-model="teamSelection"
+                                    required 
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                                <option value="">-- Pilih Tim Teknis Pelaksana --</option>
+                                @foreach($divisions as $div)
+                                    <option value="{{ $div->id }}">{{ preg_replace('/^Divisi\s+/i', 'Tim ', $div->name) }}</option>
+                                @endforeach
+                                <option value="__custom__" class="font-bold text-[#8F0A0D]">+ Ketik Manual / Tambah Tim Baru...</option>
+                            </select>
+
+                            {{-- Input Tim Teknis Baru Jika Ketik Manual Dipilih --}}
+                            <div x-show="teamSelection === '__custom__'" x-cloak class="mt-2 space-y-1 animate-fade-in">
+                                <label class="block text-[11px] font-bold text-[#8F0A0D]">Nama Tim Teknis Baru:</label>
+                                <input type="text" 
+                                       name="custom_team_name" 
+                                       placeholder="Contoh: Tim Cloud Infrastructure, Tim Fiber Optic, dll."
+                                       class="w-full px-3.5 py-2 rounded-xl border border-red-300 bg-red-50/20 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Project Manager (PM PIC) <span class="text-rose-600">*</span>
+                            </label>
+                            <select name="pm_id" 
+                                    required 
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                                <option value="">-- Pilih Project Manager --</option>
+                                @foreach($pmList as $pm)
+                                    <option value="{{ $pm->id }}" {{ (auth()->id() == $pm->id || str_contains(strtolower($pm->name), 'rizki')) ? 'selected' : '' }}>
+                                        {{ $pm->name }} ({{ $pm->email }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Baris 3: Nilai Kontrak, No SPK/PO, Tipe Proyek --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Nilai Kontrak / Budget (Rp)
+                            </label>
+                            <input type="text" 
+                                   name="contract_value" 
+                                   placeholder="Contoh: 250.000.000"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                No. PO / SPK / Kontrak
+                            </label>
+                            <input type="text" 
+                                   name="po_spk_number" 
+                                   placeholder="Contoh: PO-2026-DIR-001"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Tipe Proyek
+                            </label>
+                            <select name="project_type" 
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                                <option value="One-Time Project">One-Time Project</option>
+                                <option value="Turnkey Deployment">Turnkey Deployment</option>
+                                <option value="Hardware Installation & Cabling">Hardware Installation & Cabling</option>
+                                <option value="Managed Service + Delivery">Managed Service + Delivery</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Baris 4: Tanggal Mulai & Deadline --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Tanggal Mulai Proyek
+                            </label>
+                            <input type="date" 
+                                   name="start_date" 
+                                   value="{{ date('Y-m-d') }}"
+                                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none cursor-pointer">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Target Selesai (Deadline)
+                            </label>
+                            <input type="date" 
+                                   name="deadline" 
+                                   value="{{ date('Y-m-d', strtotime('+30 days')) }}"
+                                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    {{-- Baris 5: Deskripsi Scope --}}
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-800">
+                            Deskripsi / Ruang Lingkup Singkat
+                        </label>
+                        <textarea name="description" 
+                                  rows="2" 
+                                  placeholder="Ringkasan ruang lingkup pekerjaan atau catatan implementasi proyek..."
+                                  class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none"></textarea>
+                    </div>
+
+                    {{-- Info Callout: Canvas Kosong --}}
+                    <div class="p-3 bg-blue-50/80 rounded-xl border border-blue-200/90 text-xs text-blue-900 flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="leading-relaxed text-[11.5px]">
+                            <strong>Proyek Canvas Bersih:</strong> Proyek akan langsung berstatus <strong>Aktif (Tahap Deliver)</strong> dengan progress 0%. Setelah dibuat, Anda akan langsung diarahkan ke Dashboard Proyek untuk menyusun WBS secara manual atau via fitur <strong>Import Excel (WBS)</strong>.
+                        </div>
+                    </div>
+
+                    {{-- Footer Modal --}}
+                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                        <button type="button" @click="showCreateProjectModal = false" class="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-5 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs flex items-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Simpan &amp; Buka Canvas Proyek</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
 </div>
 
 @push('scripts')
