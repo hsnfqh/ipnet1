@@ -1671,6 +1671,13 @@
                           selectedTeams: ['Tim Network'], 
                           newCustomTeam: '', 
                           teamError: '',
+                          rawContractValue: '',
+                          contractValueDisplay: '',
+                          formatContractValue(val) {
+                              let clean = (val || '').toString().replace(/\D/g, '');
+                              this.rawContractValue = clean;
+                              this.contractValueDisplay = clean ? new Intl.NumberFormat('id-ID').format(clean) : '';
+                          },
                           toggleTeam(team) {
                               const idx = this.selectedTeams.indexOf(team);
                               if (idx > -1) {
@@ -1850,10 +1857,20 @@
                             <label class="block text-xs font-bold text-slate-800">
                                 Nilai Kontrak / Budget (Rp)
                             </label>
-                            <input type="text" 
-                                   name="contract_value" 
-                                   placeholder="Contoh: 250.000.000"
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs font-bold text-slate-400 select-none">
+                                    Rp
+                                </span>
+                                <input type="text" 
+                                       inputmode="numeric"
+                                       x-model="contractValueDisplay"
+                                       @input="formatContractValue($event.target.value)"
+                                       @keydown="if (!/[0-9]/.test($event.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes($event.key) && !($event.ctrlKey || $event.metaKey)) $event.preventDefault();"
+                                       placeholder="0"
+                                       autocomplete="off"
+                                       class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                                <input type="hidden" name="contract_value" :value="rawContractValue">
+                            </div>
                         </div>
 
                         <div class="space-y-1">
