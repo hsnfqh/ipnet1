@@ -1165,6 +1165,11 @@ class SalesCrmController extends Controller
      */
     public function submitCommercialHandover(Request $request, Project $project)
     {
+        if ($request->has('contract_value')) {
+            $rawContract = preg_replace('/[^\d]/', '', (string)$request->input('contract_value'));
+            $request->merge(['contract_value' => $rawContract !== '' ? (float)$rawContract : 0]);
+        }
+
         $validated = $request->validate([
             'handover_target'          => 'required|string|in:pmo,managed_service,both',
             'po_spk_number'            => 'required|string|max:255',
