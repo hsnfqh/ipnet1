@@ -357,6 +357,23 @@
             </div>
 
 
+            @php
+                $daysInMonth = $daysInMonth ?? now()->daysInMonth;
+                $totalPeriodHours = $totalPeriodHours ?? ($daysInMonth * 24);
+                $totalDowntimeHours = $totalDowntimeHours ?? 0;
+                $slaUptimeScore = $slaUptimeScore ?? 100.0;
+                $targetSla = $targetSla ?? 99.50;
+                $maxAllowedDowntimeHours = $maxAllowedDowntimeHours ?? round($totalPeriodHours * (1 - ($targetSla / 100)), 2);
+                $toleranceRemainingHours = $toleranceRemainingHours ?? round($maxAllowedDowntimeHours - $totalDowntimeHours, 2);
+                $slaStatusBadge = $slaStatusBadge ?? 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                $slaStatusDot = $slaStatusDot ?? 'bg-emerald-500';
+                $slaStatusLabel = $slaStatusLabel ?? 'MEMENUHI TARGET (COMPLIANT)';
+                $deviceDowntimeList = $deviceDowntimeList ?? collect([]);
+                $coverageMode = $coverageMode ?? '24x7';
+                $selectedMonthSla = $selectedMonthSla ?? now()->month;
+                $selectedYearSla = $selectedYearSla ?? now()->year;
+            @endphp
+
             {{-- ======================================================== --}}
             {{-- PEMANTAUAN & KALKULATOR AVAILABILITY SLA (NETWORK UPTIME) --}}
             {{-- ======================================================== --}}

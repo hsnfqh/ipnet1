@@ -512,6 +512,7 @@ class ManagedServiceController extends Controller
             'customerStatusData',
             'selectedYear',
             'selectedClient',
+            'daysInMonth',
             'totalPeriodHours',
             'totalDowntimeHours',
             'slaUptimeScore',
