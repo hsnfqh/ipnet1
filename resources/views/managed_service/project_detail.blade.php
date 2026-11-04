@@ -38,7 +38,7 @@
 @section('content')
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" 
      x-data="{ 
-        activeTab: '{{ $activeTab ?? 'documents' }}',
+        activeTab: '{{ ($activeTab ?? 'documents') === 'sla' ? 'documents' : ($activeTab ?? 'documents') }}',
         isDocModalOpen: false, 
         selectedDocType: 'spk', 
         selectedDocTitle: '', 
@@ -113,7 +113,7 @@
                         </div>
                         <div class="flex items-center gap-2.5 flex-wrap">
                             <h1 class="text-[20px] font-bold text-[#1E293B] tracking-tight">{{ $project->client }}</h1>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 text-[#8F0A0D] border border-rose-200">
+                            {{-- [HIDDEN] Project Type, Tier & Status Badges --}}@if(false)<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 text-[#8F0A0D] border border-rose-200">
                                 {{ $project->project_type ?: 'Managed Service SLA' }}
                             </span>
                             @if($project->sla_tier)
@@ -124,14 +124,14 @@
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
                                 {{ $project->status ?: 'Active' }}
-                            </span>
+                            </span>@endif
                         </div>
                         <p class="text-[12.5px] text-[#64748B] mt-1">{{ $project->name }} &bull; Lokasi: {{ $project->location ?: 'On-Site Klien' }}</p>
                     </div>
 
                     <!-- Right Controls: Switch Project & Actions -->
                     <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-                        {{-- Project Switcher Dropdown --}}
+                        {{-- [HIDDEN] Project Switcher Dropdown --}}@if(false){{-- Project Switcher Dropdown --}}
                         <div class="flex items-center gap-2">
                             <span class="text-[11.5px] font-semibold text-[#64748B] hidden sm:inline">Pilih Proyek:</span>
                             <select onchange="window.location.href = this.value" 
@@ -142,7 +142,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                        </div>
+                        </div>@endif
 
                         {{-- Ubah Parameter SLA --}}
                         <button type="button" @click="isSlaModalOpen = true" 
@@ -270,7 +270,7 @@
                     }
                 @endphp
 
-                <div class="p-3.5 sm:p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs mt-3.5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                {{-- [HIDDEN] PIC & Field Team Banner Card --}}@if(false)<div class="p-3.5 sm:p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs mt-3.5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
                     
                     {{-- 1. SISI KIRI: PIC DARI TIM MAINTENANCE (Penanggung Jawab Layanan & Kontrak Aktif) --}}
                     <div class="flex items-center gap-3 pr-0 lg:pr-5 border-b lg:border-b-0 lg:border-r border-slate-200 pb-3 lg:pb-0 shrink-0 min-w-[260px]">
@@ -333,7 +333,7 @@
                         </a>
                     </div>
 
-                </div>
+                </div>@endif
             </div>
 
             <!-- ========================================================== -->
@@ -373,7 +373,7 @@
                     </span>
                 </button>
 
-                <button type="button" 
+                {{-- [HIDDEN] SLA Tab Button --}}@if(false)<button type="button" 
                         @click="activeTab = 'sla'; window.history.replaceState(null, '', '?tab=sla')"
                         :class="activeTab === 'sla' ? 'border-[#8F0A0D] text-[#8F0A0D]' : 'border-transparent text-[#64748B] hover:text-[#1E293B]'"
                         class="pb-3 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer">
@@ -382,7 +382,7 @@
                     <span :class="activeTab === 'sla' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-[#64748B]'" class="text-[10.5px] font-bold px-2 py-0.5 rounded-full">
                         {{ number_format($projectSlaUptime ?? 99.8, 1) }}%
                     </span>
-                </button>
+                </button>@endif
 
 
             </div>
@@ -420,13 +420,13 @@
                                 <span class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider block">Pre-Sales / SA</span>
                                 <p class="text-[13px] font-bold text-[#1E293B] mt-0.5">{{ $project->presales_name ?: 'Akbar' }}</p>
                             </div>
-                            <div class="bg-[#FFF5F5] p-3 rounded-xl border border-[#FECDD3] col-span-2">
+                            {{-- [HIDDEN] PIC MS Contract Receiver Card --}}@if(false)<div class="bg-[#FFF5F5] p-3 rounded-xl border border-[#FECDD3] col-span-2">
                                 <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider block">PIC Managed Service (Penerima Kontrak)</span>
                                 <p class="text-[13px] font-bold text-[#8F0A0D] mt-0.5 flex items-center gap-1.5">
                                     <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                     <span>{{ $project->msAcceptedBy?->name ?? ($project->handover_data['pic_ms_name'] ?? ($project->handover_data['lead_ms_name'] ?? 'Tim Managed Service')) }}</span>
                                 </p>
-                            </div>
+                            </div>@endif
                         </div>
 
                         <!-- Customer Contacts & Lokasi -->
@@ -1342,7 +1342,7 @@
             </div>
 
             <!-- ========================================================== -->
-            <!-- TAB 4: PERHITUNGAN & EVALUASI SLA (AVAILABILITY & DOWNTIME) -->
+            {{-- [HIDDEN] SLA Tab Content --}}@if(false)<!-- TAB 4: PERHITUNGAN & EVALUASI SLA (AVAILABILITY & DOWNTIME) -->
             <!-- ========================================================== -->
             <div x-show="activeTab === 'sla'" x-cloak class="space-y-5 anim-fade-up">
                 
@@ -1531,7 +1531,7 @@
                     </p>
                 </div>
 
-            </div>
+            </div>@endif
 
 
 
