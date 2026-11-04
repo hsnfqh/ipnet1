@@ -65,6 +65,11 @@
 @endpush
 
 @section('content')
+@php
+    $authUser = $authUser ?? auth()->user();
+    $isLeadUser = $isLeadUser ?? ($authUser && \App\Helpers\ScopeHelper::isTeamLeader($authUser));
+    $isPmoUser = $isPmoUser ?? ($authUser && (\App\Helpers\ScopeHelper::isPmo($authUser) || ($project->pm_id && $authUser->id == $project->pm_id) || \App\Helpers\ScopeHelper::isExecutive($authUser)));
+@endphp
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" 
      x-data="{ 
          activeMainTab: '{{ in_array(request('tab'), ['scurve', 'team', 'expenses']) ? request('tab') : 'scurve' }}',
@@ -887,9 +892,9 @@
                 
                 {{-- LEFT COLUMN: Task Share by Engineer & Team Resource Allocation --}}
                 @php
-                    $authUser = auth()->user();
-                    $isLeadUser = $authUser && \App\Helpers\ScopeHelper::isTeamLeader($authUser);
-                    $isPmoUser = $authUser && (\App\Helpers\ScopeHelper::isPmo($authUser) || $authUser->id == $project->pm_id || \App\Helpers\ScopeHelper::isExecutive($authUser));
+                    $authUser = $authUser ?? auth()->user();
+                    $isLeadUser = $isLeadUser ?? ($authUser && \App\Helpers\ScopeHelper::isTeamLeader($authUser));
+                    $isPmoUser = $isPmoUser ?? ($authUser && (\App\Helpers\ScopeHelper::isPmo($authUser) || ($project->pm_id && $authUser->id == $project->pm_id) || \App\Helpers\ScopeHelper::isExecutive($authUser)));
                 @endphp
                 <div x-show="activeMainTab === 'team'" 
                      class="lg:col-span-12 ipnet-card p-5 sm:p-6 space-y-4">
@@ -912,7 +917,7 @@
                     </div>
 
                     {{-- Summary Progress Indicator Berdasarkan Task Mingguan & Kurva S (Hijau / Kuning / Merah) --}}
-                    @if(isset($summaryProgress))
+                    @if(!empty($summaryProgress) && is_array($summaryProgress))
                         <div class="p-4 rounded-xl border {{ $summaryProgress['bg_card'] }} flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
                             <div class="flex items-start gap-3.5 min-w-0">
                                 <div class="w-9 h-9 rounded-xl {{ $summaryProgress['status'] === 'green' ? 'bg-emerald-600 text-white' : ($summaryProgress['status'] === 'yellow' ? 'bg-amber-500 text-white' : 'bg-rose-600 text-white') }} flex items-center justify-center shrink-0 shadow-xs mt-0.5">
@@ -942,12 +947,12 @@
                                 <div class="text-left md:text-right">
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Kesehatan Task Mingguan</span>
                                     <div class="flex items-center gap-2 mt-0.5">
-                                        <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{{ $summaryProgress['on_track_count'] }} Tepat Waktu</span>
-                                        @if($summaryProgress['overdue_count'] > 0)
+                                        <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{{ $summaryProgress['on_track_count'] ?? 0 }} Tepat Waktu</span>
+                                        @if(($summaryProgress['overdue_count'] ?? 0) > 0)
                                             <span class="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">{{ $summaryProgress['overdue_count'] }} Terlambat</span>
                                         @endif
                                     </div>
-                                    <span class="text-[10.5px] text-slate-500 block mt-1 font-medium">Deviasi Kurva S: <strong class="{{ $summaryProgress['variance'] >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">{{ $summaryProgress['variance'] > 0 ? '+' : '' }}{{ $summaryProgress['variance'] }}%</strong></span>
+                                    <span class="text-[10.5px] text-slate-500 block mt-1 font-medium">Deviasi Kurva S: <strong class="{{ ($summaryProgress['variance'] ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">{{ ($summaryProgress['variance'] ?? 0) > 0 ? '+' : '' }}{{ $summaryProgress['variance'] ?? 0 }}%</strong></span>
                                 </div>
                             </div>
                         </div>

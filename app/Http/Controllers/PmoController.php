@@ -16,6 +16,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use App\Helpers\ScopeHelper;
 
 class PmoController extends Controller
 {
@@ -123,6 +124,9 @@ class PmoController extends Controller
     public function projectDashboard(Project $project)
     {
         $authUser = auth()->user();
+        $isLeadUser = $authUser && ScopeHelper::isTeamLeader($authUser);
+        $isPmoUser = $authUser && (ScopeHelper::isPmo($authUser) || ($project->pm_id && $authUser->id == $project->pm_id) || ScopeHelper::isExecutive($authUser));
+
         $project->load([
             'pm:id,name,email',
             'division:id,name',
@@ -668,6 +672,9 @@ class PmoController extends Controller
 
         return view('pmo.project-dashboard', compact(
             'project',
+            'authUser',
+            'isLeadUser',
+            'isPmoUser',
             'contractValue',
             'expenses',
             'totalSpend',
