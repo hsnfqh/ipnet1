@@ -287,7 +287,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
                     
                     {{-- Metric 1: Klien Kontrak SLA --}}
                     <div class="ipnet-metric-card group block anim-fade-up anim-delay-1">
@@ -353,365 +353,25 @@
                         <p class="text-[11px] text-[#64748B] mt-0.5">Bulan berjalan</p>
                     </a>
 
-                </div>
-            </div>
-
-
-            @php
-                $daysInMonth = $daysInMonth ?? now()->daysInMonth;
-                $totalPeriodHours = $totalPeriodHours ?? ($daysInMonth * 24);
-                $totalDowntimeHours = $totalDowntimeHours ?? 0;
-                $slaUptimeScore = $slaUptimeScore ?? 100.0;
-                $targetSla = $targetSla ?? 99.50;
-                $maxAllowedDowntimeHours = $maxAllowedDowntimeHours ?? round($totalPeriodHours * (1 - ($targetSla / 100)), 2);
-                $toleranceRemainingHours = $toleranceRemainingHours ?? round($maxAllowedDowntimeHours - $totalDowntimeHours, 2);
-                $slaStatusBadge = $slaStatusBadge ?? 'bg-emerald-50 text-emerald-800 border-emerald-200';
-                $slaStatusDot = $slaStatusDot ?? 'bg-emerald-500';
-                $slaStatusLabel = $slaStatusLabel ?? 'MEMENUHI TARGET (COMPLIANT)';
-                $deviceDowntimeList = $deviceDowntimeList ?? collect([]);
-                $coverageMode = $coverageMode ?? '24x7';
-                $selectedMonthSla = $selectedMonthSla ?? now()->month;
-                $selectedYearSla = $selectedYearSla ?? now()->year;
-            @endphp
-
-            {{-- ======================================================== --}}
-            {{-- PEMANTAUAN & KALKULATOR AVAILABILITY SLA (NETWORK UPTIME) --}}
-            {{-- ======================================================== --}}
-            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-2" x-data="slaSimulator({{ $totalPeriodHours }}, {{ $totalDowntimeHours }}, {{ $targetSla }})">
-                
-                {{-- Section Top Header --}}
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-[#E2E8F0]">
-                    <div>
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold text-[#8F0A0D] bg-red-50 border border-red-200 uppercase tracking-wider mb-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                            IPNET NETWORK AVAILABILITY MANAGEMENT &bull; STANDAR ITIL / NOC
-                        </div>
-                        <h2 class="text-[18px] sm:text-[20px] font-extrabold text-[#1E293B] tracking-tight">
-                            Pemantauan &amp; Kalkulator Availability SLA (Network Uptime)
-                        </h2>
-                        <p class="text-[12px] text-slate-500 mt-0.5 leading-relaxed">
-                            Evaluasi persentase ketersediaan perangkat operasional bulanan berbasis akumulasi durasi gangguan (downtime).
-                        </p>
-                    </div>
-
-                    {{-- Action Controls & Filters --}}
-                    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-                        {{-- Coverage Mode Pill Selector --}}
-                        <div class="pill-group">
-                            <a href="{{ route('ms.dashboard', array_merge(request()->query(), ['coverage_mode' => '24x7'])) }}" 
-                               class="pill-btn {{ $coverageMode === '24x7' ? 'active' : '' }}">
-                                24 &times; 7 ({{ $coverageMode === '24x7' ? $totalPeriodHours : 720 }} Jam)
-                            </a>
-                            <a href="{{ route('ms.dashboard', array_merge(request()->query(), ['coverage_mode' => '8x5'])) }}" 
-                               class="pill-btn {{ $coverageMode === '8x5' ? 'active' : '' }}">
-                                8 &times; 5 (176 Jam)
-                            </a>
-                        </div>
-
-                        {{-- Target SLA Badge --}}
-                        <div class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">
-                            Target SLA: <strong class="text-slate-900">{{ number_format($targetSla, 2) }}%</strong>
-                        </div>
-
-                        {{-- Export Template Excel Button --}}
-                        <a href="{{ route('ms.sla.export', ['coverage_mode' => $coverageMode, 'target_sla' => $targetSla, 'sla_month' => $selectedMonthSla, 'sla_year' => $selectedYearSla]) }}" 
-                           class="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-[11.5px] border border-slate-300 shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
-                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            <span>Unduh Format Excel (SLA)</span>
-                        </a>
-
-                        {{-- Button Catat Gangguan Perangkat --}}
-                        <button type="button" 
-                                @click="isDowntimeModalOpen = true" 
-                                class="px-3.5 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-[11.5px] shadow-sm transition flex items-center gap-1.5 cursor-pointer active:scale-95">
-                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                            </svg>
-                            <span>+ Catat Gangguan Perangkat</span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- 4 Metric KPI Summary Cards (Identik dengan standar UI Sales Dashboard) --}}
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mt-5">
-                    
-                    {{-- KPI 1: Realisasi Uptime --}}
-                    <div class="kpi-card border border-slate-200">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Realisasi SLA Uptime</span>
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border {{ $slaStatusBadge }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $slaStatusDot }}"></span>
-                                {{ $slaUptimeScore >= $targetSla ? 'Compliant' : 'Breached' }}
-                            </span>
-                        </div>
-                        <div class="my-2">
-                            <div class="text-[28px] font-extrabold text-[#1E293B] tracking-tight leading-none" x-text="simulatedSla + '%'">
-                                {{ number_format($slaUptimeScore, 2) }}%
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2.5 overflow-hidden">
-                                <div class="h-1.5 rounded-full transition-all duration-300 {{ $slaUptimeScore >= $targetSla ? 'bg-emerald-500' : 'bg-[#8F0A0D]' }}" 
-                                     :style="'width: ' + Math.min(100, simulatedSla) + '%'"></div>
-                            </div>
-                        </div>
-                        <div class="text-[11px] text-slate-500 flex items-center justify-between">
-                            <span>Target: <strong class="text-slate-800">{{ number_format($targetSla, 2) }}%</strong></span>
-                            <span class="text-slate-400">Periode {{ date('M Y') }}</span>
-                        </div>
-                    </div>
-
-                    {{-- KPI 2: Total Akumulasi Downtime --}}
-                    <div class="kpi-card border border-slate-200">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Downtime</span>
-                            <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center border border-red-100">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="my-2">
-                            <div class="text-[28px] font-extrabold text-[#1E293B] tracking-tight leading-none" x-text="simulatedDowntime.toFixed(2) + ' Jam'">
-                                {{ number_format($totalDowntimeHours, 2) }} Jam
-                            </div>
-                            <p class="text-[11px] text-slate-500 mt-1" x-text="'Setara ' + Math.round(simulatedDowntime * 60) + ' Menit gangguan'"></p>
-                        </div>
-                        <div class="text-[11px] text-slate-500">
-                            Dari total <strong class="text-slate-800">{{ $totalPeriodHours }} Jam</strong> operasional
-                        </div>
-                    </div>
-
-                    {{-- KPI 3: Batas Toleransi Maksimal --}}
-                    <div class="kpi-card border border-slate-200">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Toleransi Maks. Down</span>
-                            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center border border-slate-200">
+                    {{-- Metric 5: SLA Availability (Network Uptime) --}}
+                    <div class="ipnet-metric-card group block anim-fade-up anim-delay-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">SLA Availability</span>
+                            <div class="w-7 h-7 rounded-lg {{ $slaUptimeScore >= $targetSla ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-[#8F0A0D] border border-red-200' }} flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="my-2">
-                            <div class="text-[28px] font-extrabold text-[#1E293B] tracking-tight leading-none">
-                                {{ number_format($maxAllowedDowntimeHours, 2) }} Jam
-                            </div>
-                            <p class="text-[11px] text-slate-500 mt-1">
-                                Ambang batas toleransi (0.50%)
-                            </p>
-                        </div>
-                        <div class="text-[11px] text-slate-500">
-                            Untuk mempertahankan SLA {{ number_format($targetSla, 2) }}%
-                        </div>
-                    </div>
-
-                    {{-- KPI 4: Sisa Buffer Toleransi --}}
-                    <div class="kpi-card border border-slate-200">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Sisa Buffer Aman</span>
-                            <div class="w-7 h-7 rounded-lg flex items-center justify-center border"
-                                 :class="remainingTolerance >= 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-[#8F0A0D] border-red-200'">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="my-2">
-                            <div class="text-[28px] font-extrabold tracking-tight leading-none" 
-                                 :class="remainingTolerance >= 0 ? 'text-emerald-700' : 'text-[#8F0A0D]'"
-                                 x-text="(remainingTolerance >= 0 ? '+' : '') + remainingTolerance.toFixed(2) + ' Jam'">
-                                {{ $toleranceRemainingHours >= 0 ? '+' : '' }}{{ number_format($toleranceRemainingHours, 2) }} Jam
-                            </div>
-                            <p class="text-[11px] mt-1 font-semibold" 
-                               :class="remainingTolerance >= 0 ? 'text-emerald-600' : 'text-[#8F0A0D]'"
-                               x-text="remainingTolerance >= 0 ? 'Buffer toleransi aman tersedia' : 'Downtime melewati toleransi kontrak'"></p>
-                        </div>
-                        <div class="text-[11px] text-slate-500">
-                            Status: <strong x-text="remainingTolerance >= 0 ? 'Aman / Sesuai Kontrak' : 'Breach / Terkena Penalti'"></strong>
-                        </div>
-                    </div>
-
-                </div>
-
-                {{-- Interactive Formula Box & Live Simulator Slider --}}
-                <div class="mt-4 p-4 rounded-xl bg-slate-50/80 border border-slate-200 grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-                    
-                    {{-- Formula Representation (Left: 6 cols) --}}
-                    <div class="lg:col-span-6 space-y-2">
-                        <div class="flex items-center gap-2">
-                            <span class="w-1.5 h-3.5 bg-[#8F0A0D] rounded-full inline-block"></span>
-                            <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Rumus Perhitungan Availability SLA</h4>
-                        </div>
-                        <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs font-mono text-[11px] sm:text-[12px] text-slate-800 flex items-center justify-center text-center">
-                            <span>SLA (%) = </span>
-                            <span class="inline-flex flex-col items-center mx-2 font-bold text-slate-900">
-                                <span class="border-b border-slate-700 pb-0.5 px-1.5">Total Waktu Periode - Total Downtime</span>
-                                <span class="pt-0.5">Total Waktu Periode</span>
-                            </span>
-                            <span>&times; 100%</span>
-                        </div>
-                        <p class="text-[11px] text-slate-500 leading-normal">
-                            Contoh perhitungan: Periode {{ $daysInMonth }} Hari &times; 24 Jam = <strong>{{ $totalPeriodHours }} Jam</strong>. Total downtime saat ini: <strong class="text-[#8F0A0D]">{{ number_format($totalDowntimeHours, 2) }} Jam</strong> &rarr; SLA = <strong class="text-slate-900">{{ number_format($slaUptimeScore, 2) }}%</strong>.
+                        <div class="text-[24px] font-extrabold text-[#1E293B] tracking-tight">{{ number_format($slaUptimeScore, 1) }}%</div>
+                        <p class="text-[11px] mt-0.5 {{ $slaUptimeScore >= $targetSla ? 'text-emerald-700 font-semibold' : 'text-[#8F0A0D] font-bold' }}">
+                            {{ $totalDowntimeHours > 0 ? number_format($totalDowntimeHours, 1) . ' Jam Downtime' : 'Target ' . number_format($targetSla, 1) . '%' }}
                         </p>
                     </div>
 
-                    {{-- Live Simulator Slider (Right: 6 cols) --}}
-                    <div class="lg:col-span-6 p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                                <span>Simulator Uji Sensitivitas Downtime</span>
-                            </div>
-                            <button type="button" @click="resetSimulator()" class="text-[10.5px] font-bold text-[#8F0A0D] hover:underline cursor-pointer">
-                                Reset Nilai Aktual
-                            </button>
-                        </div>
-                        
-                        <div class="flex items-center gap-3">
-                            <input type="range" 
-                                   min="0" 
-                                   max="24" 
-                                   step="0.25" 
-                                   x-model="simulatedDowntime" 
-                                   @input="updateSimulation()" 
-                                   class="w-full accent-[#8F0A0D] cursor-pointer">
-                            <span class="w-20 text-right font-mono font-extrabold text-xs text-slate-900 bg-slate-100 px-2 py-1 rounded-md border border-slate-200 shrink-0" 
-                                  x-text="simulatedDowntime.toFixed(2) + ' Jam'">
-                            </span>
-                        </div>
-
-                        <div class="mt-2.5 flex items-center justify-between text-[11px] pt-2 border-t border-slate-100">
-                            <span class="text-slate-500 font-medium">Hasil Proyeksi SLA:</span>
-                            <span class="font-extrabold font-mono text-[12.5px]" 
-                                  :class="simulatedSla >= targetSla ? 'text-emerald-700' : 'text-[#8F0A0D]'"
-                                  x-text="simulatedSla + '% (' + (simulatedSla >= targetSla ? 'MEMENUHI' : 'BREACH') + ')'">
-                            </span>
-                        </div>
-                    </div>
-
                 </div>
-
-                {{-- Tabel Rincian Gangguan & Perhitungan SLA Per Perangkat (Clean & Corporate) --}}
-                <div class="mt-5">
-                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
-                        <div class="flex items-center gap-2">
-                            <span class="ipnet-badge-dot"></span>
-                            <h3 class="text-[14px] font-bold text-slate-900">
-                                Rincian Gangguan &amp; Log Perangkat Jaringan Bulan Berjalan
-                            </h3>
-                            @if(isset($isSampleDowntime) && $isSampleDowntime)
-                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                    Format Demo (Sesuai Contoh Dokumen)
-                                </span>
-                            @endif
-                        </div>
-                        <div class="text-[11px] text-slate-500">
-                            Total <strong>{{ count($deviceDowntimeList) }} Kejadian Gangguan</strong>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto rounded-xl border border-slate-200">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                                <tr>
-                                    <th class="py-3 px-3 w-10 text-center">No</th>
-                                    <th class="py-3 px-3">Perangkat Jaringan</th>
-                                    <th class="py-3 px-3">Klien &amp; Insiden</th>
-                                    <th class="py-3 px-3">Mulai Gangguan (Down)</th>
-                                    <th class="py-3 px-3">Up Kembali (Normal)</th>
-                                    <th class="py-3 px-3 text-center">Durasi Down</th>
-                                    <th class="py-3 px-3 text-center">Realisasi SLA</th>
-                                    <th class="py-3 px-3">Penyebab (Root Cause)</th>
-                                    <th class="py-3 px-3 text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 bg-white">
-                                @forelse($deviceDowntimeList as $index => $item)
-                                <tr class="hover:bg-slate-50/80 transition">
-                                    <td class="py-3 px-3 text-center font-bold text-slate-400">
-                                        {{ $index + 1 }}
-                                    </td>
-                                    <td class="py-3 px-3 font-semibold text-slate-900">
-                                        <div class="flex items-center gap-2">
-                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
-                                                {{ $item['category'] === 'Router' ? 'bg-red-50 text-[#8F0A0D] border border-red-200' : '' }}
-                                                {{ $item['category'] === 'Switch' ? 'bg-blue-50 text-blue-700 border border-blue-200' : '' }}
-                                                {{ $item['category'] === 'Firewall' ? 'bg-purple-50 text-purple-700 border border-purple-200' : '' }}
-                                                {{ !in_array($item['category'], ['Router', 'Switch', 'Firewall']) ? 'bg-slate-100 text-slate-700 border border-slate-200' : '' }}">
-                                                {{ $item['category'] }}
-                                            </span>
-                                            <span class="text-[12.5px] font-extrabold text-slate-900">{{ $item['device'] }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3 px-3">
-                                        <div class="font-bold text-slate-900 text-[11.5px]">{{ $item['client'] }}</div>
-                                        <div class="text-[10.5px] text-slate-500 truncate max-w-[200px]" title="{{ $item['title'] }}">
-                                            <span class="font-mono text-[#8F0A0D]">{{ $item['ticket_number'] }}</span> &bull; {{ $item['title'] }}
-                                        </div>
-                                    </td>
-                                    <td class="py-3 px-3 font-mono text-[11px] text-slate-700 whitespace-nowrap">
-                                        {{ $item['start_down'] }}
-                                    </td>
-                                    <td class="py-3 px-3 font-mono text-[11px] whitespace-nowrap">
-                                        @if($item['is_resolved'])
-                                            <span class="text-slate-700">{{ $item['end_down'] }}</span>
-                                        @else
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                                Masih Down
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="py-3 px-3 text-center whitespace-nowrap">
-                                        <span class="font-mono font-extrabold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 text-[11.5px]">
-                                            {{ $item['duration_text'] }}
-                                        </span>
-                                    </td>
-                                    <td class="py-3 px-3 text-center whitespace-nowrap">
-                                        <span class="font-mono font-extrabold text-[11.5px] px-2 py-0.5 rounded border 
-                                            {{ $item['device_sla'] >= $targetSla ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-[#8F0A0D] border-red-200' }}">
-                                            {{ number_format($item['device_sla'], 2) }}%
-                                        </span>
-                                    </td>
-                                    <td class="py-3 px-3 text-[11.5px] text-slate-600 font-medium max-w-[240px]">
-                                        {{ $item['root_cause'] }}
-                                    </td>
-                                    <td class="py-3 px-3 text-center whitespace-nowrap">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold border 
-                                            {{ $item['is_resolved'] ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200' }}">
-                                            {{ $item['is_resolved'] ? 'Resolved' : 'In Progress' }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="9" class="py-8 text-center text-slate-400">
-                                        Tidak ada catatan gangguan perangkat pada periode ini (Uptime 100%).
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                            {{-- Footer Cumulative Row --}}
-                            <tfoot class="bg-slate-50 border-t-2 border-slate-200 text-xs font-bold text-slate-800">
-                                <tr>
-                                    <td colspan="5" class="py-3 px-4 text-right uppercase tracking-wider text-[11px] text-slate-600">
-                                        Akumulasi Downtime &amp; Realisasi Availability Keseluruhan:
-                                    </td>
-                                    <td class="py-3 px-3 text-center font-mono font-extrabold text-[#8F0A0D] text-[12.5px]">
-                                        {{ number_format($totalDowntimeHours, 2) }} Jam
-                                    </td>
-                                    <td class="py-3 px-3 text-center font-mono font-extrabold text-[12.5px] {{ $slaUptimeScore >= $targetSla ? 'text-emerald-700' : 'text-[#8F0A0D]' }}">
-                                        {{ number_format($slaUptimeScore, 2) }}%
-                                    </td>
-                                    <td colspan="2" class="py-3 px-3 text-[11px] font-semibold text-slate-500">
-                                        Status: <span class="font-bold {{ $slaUptimeScore >= $targetSla ? 'text-emerald-700' : 'text-[#8F0A0D]' }}">{{ $slaStatusLabel }}</span>
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-
             </div>
+
 
             {{-- ======================================================== --}}
             {{-- 3. PORTOFOLIO KLIEN & STATUS OPERASIONAL LAYANAN         --}}
@@ -895,7 +555,7 @@
 
 {{-- MODAL CREATE TICKET (STANDAR HELPDESK & SEVERITY IP-NET SESUAI GAMBAR 2) --}}
 @include('managed_service.partials.modal_ticket_create')
-@include('managed_service.partials.modal_downtime_create')
+
 @endsection
 
 @push('scripts')
@@ -944,32 +604,6 @@
     function msDashboard() {
         return {
             isCreateModalOpen: false,
-            isDowntimeModalOpen: false,
-        };
-    }
-
-    function slaSimulator(totalHours, actualDown, targetSla) {
-        return {
-            totalHours: totalHours,
-            actualDown: actualDown,
-            targetSla: targetSla,
-            simulatedDowntime: actualDown,
-            simulatedSla: '100.00',
-            remainingTolerance: 0,
-            init() {
-                this.updateSimulation();
-            },
-            updateSimulation() {
-                const down = parseFloat(this.simulatedDowntime) || 0;
-                const sla = Math.max(0, Math.min(100, ((this.totalHours - down) / this.totalHours) * 100));
-                this.simulatedSla = sla.toFixed(2);
-                const maxAllowed = this.totalHours * (1 - (this.targetSla / 100));
-                this.remainingTolerance = parseFloat((maxAllowed - down).toFixed(2));
-            },
-            resetSimulator() {
-                this.simulatedDowntime = this.actualDown;
-                this.updateSimulation();
-            }
         };
     }
 </script>
