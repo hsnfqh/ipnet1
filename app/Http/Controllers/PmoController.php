@@ -127,7 +127,6 @@ class PmoController extends Controller
     protected function ensurePpatkProjectData(Project $project): void
     {
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
-
         $projectUpdated = false;
 
         if ($project->client !== 'PPAT - Pusat Pelaporan dan Analisa Transaksi Keuangan') {
@@ -144,20 +143,35 @@ class PmoController extends Controller
             $projectUpdated = true;
         }
 
-        $handoverData['estimate_project_duration'] = 30;
-        $handoverData['execution_weeks']           = 5;
-        $handoverData['customer_pic']              = 'Richi Michael';
-        $handoverData['contract_spk_number']       = 'EP-01KYREAFEJH89MWPVDQ6W20NXV';
+        if (empty($handoverData['estimate_project_duration'])) {
+            $handoverData['estimate_project_duration'] = 30;
+            $projectUpdated = true;
+        }
+        if (empty($handoverData['execution_weeks'])) {
+            $handoverData['execution_weeks'] = 5;
+            $projectUpdated = true;
+        }
+        if (empty($handoverData['customer_pic'])) {
+            $handoverData['customer_pic'] = 'Richi Michael';
+            $projectUpdated = true;
+        }
+        if (empty($handoverData['contract_spk_number'])) {
+            $handoverData['contract_spk_number'] = 'EP-01KYREAFEJH89MWPVDQ6W20NXV';
+            $projectUpdated = true;
+        }
 
-        // S-Curve Weekly Breakdown Persis Sesuai Excel Template
-        $handoverData['s_curve_weekly'] = [
-            0 => ['plan_weekly' => 0.0,  'plan' => 0.0,   'actual_weekly' => 0.0,  'actual' => 0.0,  'variance' => 0.0,  'notes' => 'Baseline Awal Proyek & Kick-off SPK'],
-            1 => ['plan_weekly' => 23.3, 'plan' => 23.3,  'actual_weekly' => 20.0, 'actual' => 20.0, 'variance' => -3.3, 'notes' => 'Survey and Assessment selesai 100%, Design Review Meeting 50%, HLD/LLD Documentation 50%'],
-            2 => ['plan_weekly' => 23.3, 'plan' => 46.7,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => 'Target: Finalisasi HLD/LLD, Stagging perangkat, dan Instalasi awal'],
-            3 => ['plan_weekly' => 23.3, 'plan' => 70.0,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => 'Target: Selesai Instalasi & Konfigurasi, Integrasi Core, dan Cutover Migrasi tahap 1'],
-            4 => ['plan_weekly' => 23.3, 'plan' => 93.3,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => 'Target: Migrasi selesai, Testing & Commisioning, Monitoring 24 jam, Dokumentasi As-Built'],
-            5 => ['plan_weekly' => 6.7,  'plan' => 100.0, 'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => 'Target: BAST Final Proyek bersama PPATK'],
-        ];
+        // S-Curve Weekly Breakdown: Baseline Inisialisasi Plan (Jangan Timpa Data Aktual yang sudah diisi user)
+        if (empty($handoverData['s_curve_weekly'])) {
+            $handoverData['s_curve_weekly'] = [
+                0 => ['plan_weekly' => 0.0,  'plan' => 0.0,   'actual_weekly' => 0.0,  'actual' => 0.0,  'variance' => 0.0,  'notes' => 'Baseline Awal Proyek & Kick-off SPK'],
+                1 => ['plan_weekly' => 23.3, 'plan' => 23.3,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+                2 => ['plan_weekly' => 23.3, 'plan' => 46.7,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+                3 => ['plan_weekly' => 23.3, 'plan' => 70.0,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+                4 => ['plan_weekly' => 23.3, 'plan' => 93.3,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+                5 => ['plan_weekly' => 6.7,  'plan' => 100.0, 'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+            ];
+            $projectUpdated = true;
+        }
 
         // Pastikan Personil Tim Lapangan dari Lead Engineer telah terdaftar
         if (empty($handoverData['assigned_engineers'])) {
@@ -194,15 +208,217 @@ class PmoController extends Controller
             $projectUpdated = true;
         }
 
-        $project->handover_data = $handoverData;
-        $project->progress = 20.0;
-        $project->saveQuietly();
-
-        // Cek dan sinkronkan 11 Task WBS jika belum lengkap
-        if ($project->tasks()->count() < 11 || !$project->tasks()->where('title', 'Survey and Assessment')->exists()) {
-            $seeder = new \Database\Seeders\PpatkProjectSeeder();
-            $seeder->run();
+        if ($projectUpdated) {
+            $project->handover_data = $handoverData;
+            $project->saveQuietly();
         }
+
+        // Master 11 WBS Deliverables PPATK Persis Sesuai Excel Template
+        $masterWbs = [
+            [
+                'title'        => 'Survey and Assessment',
+                'duration'     => 2,
+                'starting_day' => 0,
+                'finish_day'   => 2,
+                'week'         => 1,
+                'bobot'        => 6.7,
+                'daily_weight' => 3.3,
+                'default_prog' => 100,
+                'default_stat' => 'Completed',
+                'description'  => 'Survey and Assessment topologi & infrastruktur jaringan eksisting router PPATK.',
+            ],
+            [
+                'title'        => 'Design Review Meeting',
+                'duration'     => 4,
+                'starting_day' => 2,
+                'finish_day'   => 6,
+                'week'         => 1,
+                'bobot'        => 13.3,
+                'daily_weight' => 3.3,
+                'default_prog' => 50,
+                'default_stat' => 'In Progress',
+                'description'  => 'Design Review Meeting arsitektur peremajaan router bersama PIC PPATK (Bpk. Richi Michael).',
+            ],
+            [
+                'title'        => 'HLD and LLD Documentation',
+                'duration'     => 4,
+                'starting_day' => 6,
+                'finish_day'   => 10,
+                'week'         => 2,
+                'bobot'        => 13.3,
+                'daily_weight' => 3.3,
+                'default_prog' => 50,
+                'default_stat' => 'In Progress',
+                'description'  => 'Penyusunan dokumen teknis High Level Design (HLD) dan Low Level Design (LLD).',
+            ],
+            [
+                'title'        => 'Stagging',
+                'duration'     => 1,
+                'starting_day' => 10,
+                'finish_day'   => 11,
+                'week'         => 2,
+                'bobot'        => 3.3,
+                'daily_weight' => 3.3,
+                'default_prog' => 0,
+                'default_stat' => 'Assigned',
+                'description'  => 'Staging dan pengujian modul hardware serta firmware pada unit router baru.',
+            ],
+            [
+                'title'        => 'Installation and Configuration',
+                'duration'     => 5,
+                'starting_day' => 11,
+                'finish_day'   => 16,
+                'week'         => 3,
+                'bobot'        => 16.7,
+                'daily_weight' => 3.3,
+                'default_prog' => 0,
+                'default_stat' => 'Assigned',
+                'description'  => 'Pemasangan fisik rackmount, perkabelan, dan konfigurasi routing peremajaan router.',
+            ],
+            [
+                'title'        => 'Integration',
+                'duration'     => 3,
+                'starting_day' => 16,
+                'finish_day'   => 19,
+                'week'         => 3,
+                'bobot'        => 10.0,
+                'daily_weight' => 3.3,
+                'default_prog' => 0,
+                'default_stat' => 'Assigned',
+                'description'  => 'Integrasi router ke backbone switch, firewall gateway, dan segmen server PPATK.',
+            ],
+            [
+                'title'        => 'Migration',
+                'duration'     => 3,
+                'starting_day' => 19,
+                'finish_day'   => 22,
+                'week'         => 4,
+                'bobot'        => 10.0,
+                'daily_weight' => 3.3,
+                'default_prog' => 0,
+                'default_stat' => 'Assigned',
+                'description'  => 'Migrasi routing tabel dan pengalihan traffic data live (cutover window).',
+            ],
+            [
+                'title'        => 'Testing and Commisioning',
+                'duration'     => 2,
+                'starting_day' => 22,
+                'finish_day'   => 24,
+                'week'         => 4,
+                'bobot'        => 6.7,
+                'daily_weight' => 3.3,
+                'default_prog' => 0,
+                'default_stat' => 'Assigned',
+                'description'  => 'Uji komisioning performa, redundansi High Availability (HA), dan failover link.',
+            ],
+            [
+                'title'        => 'Monitoring',
+                'duration'     => 1,
+                'starting_day' => 24,
+                'finish_day'   => 25,
+                'week'         => 4,
+                'bobot'        => 3.3,
+                'daily_weight' => 3.3,
+                'default_prog' => 0,
+                'default_stat' => 'Assigned',
+                'description'  => 'Monitoring stabilitas traffic 24 jam paska migrasi router.',
+            ],
+            [
+                'title'        => 'Documentation',
+                'duration'     => 3,
+                'starting_day' => 25,
+                'finish_day'   => 28,
+                'week'         => 4,
+                'bobot'        => 10.0,
+                'daily_weight' => 3.3,
+                'default_prog' => 0,
+                'default_stat' => 'Assigned',
+                'description'  => 'Penyusunan As-Built Documentation, konfigurasi backup, dan handover manual.',
+            ],
+            [
+                'title'        => 'BAST',
+                'duration'     => 2,
+                'starting_day' => 28,
+                'finish_day'   => 30,
+                'week'         => 5,
+                'bobot'        => 6.7,
+                'daily_weight' => 3.3,
+                'default_prog' => 0,
+                'default_stat' => 'Assigned',
+                'description'  => 'Penandatanganan Berita Acara Serah Terima (BAST) pekerjaan bersama PPATK.',
+            ],
+        ];
+
+        $startDate = $project->start_date ? \Carbon\Carbon::parse($project->start_date) : \Carbon\Carbon::create(2026, 7, 30);
+        $engSyaiful = User::where('name', 'like', '%Syaiful%')->first();
+        $engRaihan  = User::where('name', 'like', '%Raihan%')->first();
+        $pmRizki    = $project->pm_id ?: User::where('name', 'like', '%Rizki%')->first()?->id;
+
+        $existingTasks = $project->tasks()->get();
+
+        foreach ($masterWbs as $mw) {
+            $matchedTask = $existingTasks->first(function($t) use ($mw) {
+                $t1 = strtolower(trim($t->title));
+                $t2 = strtolower(trim($mw['title']));
+                if ($t1 === $t2) return true;
+                if (str_contains($t1, 'stag') && str_contains($t2, 'stag')) return true;
+                if (str_contains($t1, 'testing') && str_contains($t2, 'testing')) return true;
+                if (str_contains($t1, 'survey') && str_contains($t2, 'survey')) return true;
+                if (str_contains($t1, 'design review') && str_contains($t2, 'design review')) return true;
+                if (str_contains($t1, 'hld') && str_contains($t2, 'hld')) return true;
+                if (str_contains($t1, 'installation') && str_contains($t2, 'installation')) return true;
+                if (str_contains($t1, 'integration') && str_contains($t2, 'integration')) return true;
+                if (str_contains($t1, 'migration') && str_contains($t2, 'migration')) return true;
+                if (str_contains($t1, 'monitoring') && str_contains($t2, 'monitoring')) return true;
+                if (str_contains($t1, 'documentation') && str_contains($t2, 'documentation') && !str_contains($t1, 'hld')) return true;
+                if (str_contains($t1, 'bast') && str_contains($t2, 'bast')) return true;
+                return false;
+            });
+
+            $expectedMeta = "[Bobot: {$mw['bobot']}% | StartingDay: {$mw['starting_day']} | FinishDay: {$mw['finish_day']} | Week: {$mw['week']} | DailyWeight: {$mw['daily_weight']}%]";
+            $tStart = $startDate->copy()->addDays($mw['starting_day'])->format('Y-m-d');
+            $tEnd   = $startDate->copy()->addDays($mw['finish_day'])->subSecond()->format('Y-m-d H:i:s');
+            $engId  = in_array($mw['title'], ['Stagging', 'Installation and Configuration', 'Monitoring']) ? ($engRaihan?->id ?: $engSyaiful?->id) : ($engSyaiful?->id ?: $engRaihan?->id);
+
+            if ($matchedTask) {
+                $needsUpdate = false;
+                if (!str_contains($matchedTask->description ?? '', 'StartingDay:')) {
+                    $cleanDesc = trim(preg_replace('/\[[^\]]+\]/i', '', $matchedTask->description ?? $mw['description']));
+                    $matchedTask->description = ($cleanDesc ? $cleanDesc . ' ' : '') . $expectedMeta;
+                    $needsUpdate = true;
+                }
+                if ($matchedTask->title !== $mw['title']) {
+                    $matchedTask->title = $mw['title'];
+                    $needsUpdate = true;
+                }
+                if (empty($matchedTask->start_date) || !str_contains($matchedTask->description ?? '', "StartingDay: {$mw['starting_day']}")) {
+                    $matchedTask->start_date = $tStart;
+                    $matchedTask->deadline = $tEnd;
+                    $cleanDesc = trim(preg_replace('/\[[^\]]+\]/i', '', $matchedTask->description ?? $mw['description']));
+                    $matchedTask->description = ($cleanDesc ? $cleanDesc . ' ' : '') . $expectedMeta;
+                    $needsUpdate = true;
+                }
+                if ($needsUpdate) {
+                    $matchedTask->saveQuietly();
+                }
+            } else {
+                Task::create([
+                    'project_id'  => $project->id,
+                    'title'       => $mw['title'],
+                    'engineer_id' => $engId,
+                    'priority'    => 'High',
+                    'status'      => $mw['default_stat'],
+                    'progress'    => $mw['default_prog'],
+                    'start_date'  => $tStart,
+                    'deadline'    => $tEnd,
+                    'description' => $mw['description'] . ' ' . $expectedMeta,
+                    'created_by'  => $pmRizki ?: 1,
+                ]);
+            }
+        }
+
+        // Sinkronisasi akumulasi progres proyek dari task yang ada
+        $this->syncProjectProgressFromTasks($project);
     }
     public function projectDashboard(Project $project)
     {
@@ -401,8 +617,13 @@ class PmoController extends Controller
         
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $estimateDuration = $handoverData['estimate_project_duration'] ?? null;
+        $executionWeeks = $handoverData['execution_weeks'] ?? null;
 
-        if ($estimateDuration == 30 || $isPpatkProject) {
+        if ($estimateDuration) {
+            $totalProjectDays = (int) $estimateDuration;
+            $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
+            $projectTimelineText = $startDate->format('d M Y') . ' s/d ' . $startDate->copy()->addDays($totalProjectDays - 1)->format('d M Y') . ' (Kontrak SPK s/d ' . $deadlineDate->format('d M Y') . ')';
+        } elseif ($isPpatkProject) {
             $totalProjectDays = 30;
             $totalProjectWeeks = 5;
             $projectTimelineText = $startDate->format('d M Y') . ' s/d ' . $startDate->copy()->addDays(29)->format('d M Y') . ' (Kontrak SPK s/d ' . $deadlineDate->format('d M Y') . ')';
@@ -510,19 +731,78 @@ class PmoController extends Controller
         // S-Curve Weeks: Sesuaikan dinamis dengan durasi riil proyek
         $totalWeeks = max(1, $totalProjectWeeks);
 
-        // Hitung minggu berjalan saat ini (Minggu ke-X)
-        if ($estimateDuration == 30 || $isPpatkProject) {
-            $totalWeeks = 5;
-            $currentWeek = 1;
-            $currentProgressPercent = 20.0;
-        } else {
-            $elapsedWeeks = max(1, (int) ceil($startDate->diffInDays(now()) / 7));
-            $currentWeek = min($totalWeeks, $elapsedWeeks);
-            $currentProgressPercent = (float) ($project->progress > 0 ? $project->progress : ($actualEV > 0 ? $actualEV : 0.0));
+        // 1. Hitung total bobot dan earned EV aktual dari parsedTasks secara dinamis
+        // Rumus Sesuai Gambar 4: Actual Cumulative = sum of (task completion % x activity weight)
+        $totalEarnedEV = 0.0;
+        foreach ($parsedTasks as $pt) {
+            $totalEarnedEV += ($pt['bobot'] * ($pt['progress'] / 100.0));
+        }
+        $actualEV = round($totalEarnedEV, 2);
+
+        // Update progress project di DB jika berubah
+        if (abs((float) $project->progress - $actualEV) > 0.01 && $totalTaskCount > 0) {
+            $project->progress = $actualEV;
+            $project->saveQuietly();
+        }
+
+        $currentProgressPercent = $actualEV > 0 ? $actualEV : (float) ($project->progress ?: 0.0);
+
+        // Weekly Weight distribution per task untuk PPATK sesuai Gambar 2 Excel
+        $ppatkWeeklyTaskWeightMap = [
+            'Survey and Assessment'          => [1 => 6.7],
+            'Design Review Meeting'          => [1 => 13.3],
+            'HLD and LLD Documentation'      => [1 => 3.3, 2 => 10.0],
+            'Stagging'                       => [2 => 3.3],
+            'Installation and Configuration' => [2 => 10.0, 3 => 6.7],
+            'Integration'                    => [3 => 10.0],
+            'Migration'                      => [3 => 6.7, 4 => 3.3],
+            'Testing and Commisioning'       => [4 => 6.7],
+            'Monitoring'                     => [4 => 3.3],
+            'Documentation'                  => [4 => 10.0],
+            'BAST'                           => [5 => 6.7],
+        ];
+
+        // Tentukan minggu tertinggi yang sudah memiliki pelaporan progres (Active Week)
+        // Menurut Gambar 4: "A week shows only once at least one task is filled in for it."
+        $maxReportedWeek = 0;
+        if ($totalEarnedEV > 0) {
+            $maxReportedWeek = 1;
+        }
+
+        foreach ($parsedTasks as $pt) {
+            if ($pt['progress'] > 0) {
+                $tWeek = $pt['week'] ?? 1;
+                if ($isPpatkProject) {
+                    $tName = $pt['title'];
+                    if (in_array($tName, ['Stagging', 'Installation and Configuration']) && $pt['progress'] > 0) {
+                        $maxReportedWeek = max($maxReportedWeek, 2);
+                    }
+                    if (in_array($tName, ['Integration']) && $pt['progress'] > 0) {
+                        $maxReportedWeek = max($maxReportedWeek, 3);
+                    }
+                    if (in_array($tName, ['Migration', 'Testing and Commisioning', 'Monitoring', 'Documentation']) && $pt['progress'] > 0) {
+                        $maxReportedWeek = max($maxReportedWeek, 4);
+                    }
+                    if ($tName === 'BAST' && $pt['progress'] > 0) {
+                        $maxReportedWeek = max($maxReportedWeek, 5);
+                    }
+                } else {
+                    $maxReportedWeek = max($maxReportedWeek, $tWeek);
+                }
+            }
         }
 
         // Data Progres Mingguan yang tersimpan (Override PM via modal Update Progres)
         $savedWeekly = $handoverData['s_curve_weekly'] ?? [];
+
+        // Juga cek apakah ada input manual aktual PM di $savedWeekly
+        foreach ($savedWeekly as $wIdx => $swData) {
+            if ($wIdx > 0 && isset($swData['actual']) && $swData['actual'] !== null && $swData['actual'] !== '') {
+                $maxReportedWeek = max($maxReportedWeek, (int) $wIdx);
+            }
+        }
+
+        $currentWeek = max(1, min($totalWeeks, $maxReportedWeek ?: 1));
 
         // Generate Data Mingguan Lengkap (untuk Tabel & Grafik)
         $weeklyRecords = [];
@@ -565,7 +845,7 @@ class PmoController extends Controller
             $wStart = $startDate->copy()->addWeeks($w - 1)->startOfDay();
             $wEnd = $startDate->copy()->addWeeks($w)->subDay()->endOfDay();
             if ($w == $totalWeeks && $deadlineDate->gt($wEnd)) {
-                $wEnd = ($estimateDuration == 30 || $isPpatkProject) ? $startDate->copy()->addDays(29)->endOfDay() : $deadlineDate->copy()->endOfDay();
+                $wEnd = ($estimateDuration || $isPpatkProject) ? $startDate->copy()->addDays($totalProjectDays - 1)->endOfDay() : $deadlineDate->copy()->endOfDay();
             }
             $dateRange = $wStart->format('d M') . ' - ' . $wEnd->format('d M Y');
 
@@ -584,49 +864,34 @@ class PmoController extends Controller
                 }
             }
 
-            // Hitung kumulatif target rencana sampai akhir minggu ini ($wEnd)
-            $plannedWeightAccumulated = 0.0;
-            $actualWeightAccumulated = 0.0;
-
-            foreach ($parsedTasks as $pt) {
-                $tStart = $pt['start_date'];
-                $tEnd = $pt['deadline'];
-
-                if ($tEnd && $tEnd->lte($wEnd)) {
-                    $plannedWeightAccumulated += $pt['bobot'];
-                } elseif ($tStart && $tStart->lte($wEnd)) {
-                    $totalTaskDays = max(1, $pt['duration']);
-                    $daysUpToEndOfWeek = max(1, $tStart->diffInDays($wEnd) + 1);
-                    $fraction = min(1.0, $daysUpToEndOfWeek / $totalTaskDays);
-                    $plannedWeightAccumulated += ($pt['bobot'] * $fraction);
-                }
-
-                if ($w <= $currentWeek) {
-                    $earned = $pt['bobot'] * ($pt['progress'] / 100.0);
+            // Target Plan Kumulatif Sesuai Excel
+            $calcPlan = 0.0;
+            if ($isPpatkProject) {
+                $ppatkPlanMap = [1 => 23.3, 2 => 46.7, 3 => 70.0, 4 => 93.3, 5 => 100.0];
+                $calcPlan = $ppatkPlanMap[$w] ?? 100.0;
+            } else {
+                // Rencana kumulatif berdasarkan durasi task
+                $plannedWeightAccumulated = 0.0;
+                foreach ($parsedTasks as $pt) {
+                    $tStart = $pt['start_date'];
+                    $tEnd = $pt['deadline'];
                     if ($tEnd && $tEnd->lte($wEnd)) {
-                        $actualWeightAccumulated += $earned;
+                        $plannedWeightAccumulated += $pt['bobot'];
                     } elseif ($tStart && $tStart->lte($wEnd)) {
                         $totalTaskDays = max(1, $pt['duration']);
                         $daysUpToEndOfWeek = max(1, $tStart->diffInDays($wEnd) + 1);
                         $fraction = min(1.0, $daysUpToEndOfWeek / $totalTaskDays);
-                        $actualWeightAccumulated += ($earned * $fraction);
+                        $plannedWeightAccumulated += ($pt['bobot'] * $fraction);
                     }
                 }
+                $calcPlan = round(min(100.0, $plannedWeightAccumulated), 2);
             }
 
-            // Normalisasi agar jika totalTaskBobotSum > 0, skala bobot tetap proporsional terhadap 100%
-            if ($totalTaskBobotSum > 0 && abs($totalTaskBobotSum - 100.0) > 0.01) {
-                $plannedWeightAccumulated = ($plannedWeightAccumulated / $totalTaskBobotSum) * 100.0;
-                $actualWeightAccumulated = ($actualWeightAccumulated / $totalTaskBobotSum) * 100.0;
-            }
-
-            $calcPlan = $totalTaskCount > 0 ? min(100.0, round($plannedWeightAccumulated, 2)) : null;
-
-            // Plan Mingguan Kumulatif: Pakai input manual PM jika ada, jika tidak pakai $calcPlan dari Activity List
+            // Plan Mingguan Kumulatif: Pakai input manual PM jika ada, jika tidak pakai $calcPlan
             $planVal = null;
             if (isset($savedWeekly[$w]['plan']) && $savedWeekly[$w]['plan'] !== null && $savedWeekly[$w]['plan'] !== '') {
                 $planVal = (float) $savedWeekly[$w]['plan'];
-            } elseif ($totalTaskCount > 0) {
+            } else {
                 $planVal = $calcPlan;
             }
 
@@ -635,38 +900,54 @@ class PmoController extends Controller
             if (isset($savedWeekly[$w]['plan_weekly']) && $savedWeekly[$w]['plan_weekly'] !== null) {
                 $planWeeklyVal = (float) $savedWeekly[$w]['plan_weekly'];
             } elseif ($planVal !== null) {
-                $prevPlan = $weeklyRecords[$w]['plan_percent'] ?? ($weeklyRecords[$w - 1]['plan_percent'] ?? 0.0);
+                $prevPlan = $weeklyRecords[$w - 1]['plan_percent'] ?? 0.0;
                 $planWeeklyVal = max(0.0, round($planVal - $prevPlan, 2));
             }
 
-            // Actual Mingguan Kumulatif & Weekly
+            // Actual Mingguan Kumulatif & Weekly Sesuai Gambar 4:
+            // "Actual Cumulative = sum of (task completion % x activity weight) from the Actual Progress sheet. A week shows only once at least one task is filled in for it."
+            // "Column G returns NA() on purpose so the chart skips unreported weeks instead of drawing 0%."
             $actualVal = null;
             $actualWeeklyVal = null;
             $isRecorded = false;
-            $notes = null;
+            $notes = $savedWeekly[$w]['notes'] ?? null;
 
-            if (isset($savedWeekly[$w])) {
-                if (isset($savedWeekly[$w]['actual']) && $savedWeekly[$w]['actual'] !== null && $savedWeekly[$w]['actual'] !== '') {
-                    $actualVal = (float) $savedWeekly[$w]['actual'];
-                    $isRecorded = true;
-                }
-                if (isset($savedWeekly[$w]['actual_weekly']) && $savedWeekly[$w]['actual_weekly'] !== null) {
-                    $actualWeeklyVal = (float) $savedWeekly[$w]['actual_weekly'];
-                }
-                $notes = $savedWeekly[$w]['notes'] ?? null;
-            }
-
-            if ($actualVal === null && $totalTaskCount > 0) {
-                if ($w < $currentWeek) {
-                    $actualVal = min($currentProgressPercent, round($actualWeightAccumulated, 2));
-                } elseif ($w === $currentWeek) {
-                    $actualVal = round($currentProgressPercent, 2);
+            if (isset($savedWeekly[$w]['actual']) && $savedWeekly[$w]['actual'] !== null && $savedWeekly[$w]['actual'] !== '') {
+                $actualVal = (float) $savedWeekly[$w]['actual'];
+                $isRecorded = true;
+            } elseif ($w <= $maxReportedWeek && $totalEarnedEV > 0) {
+                if ($w === $maxReportedWeek) {
+                    $actualVal = $actualEV;
                 } else {
-                    $actualVal = null; // Masa depan tetap null / -
+                    $cumW = 0.0;
+                    if ($isPpatkProject) {
+                        foreach ($parsedTasks as $pt) {
+                            $tTitle = $pt['title'];
+                            if (isset($ppatkWeeklyTaskWeightMap[$tTitle])) {
+                                foreach ($ppatkWeeklyTaskWeightMap[$tTitle] as $distWeek => $distWeight) {
+                                    if ($distWeek <= $w) {
+                                        $cumW += ($distWeight * ($pt['progress'] / 100.0));
+                                    }
+                                }
+                            } elseif (($pt['week'] ?? 1) <= $w) {
+                                $cumW += ($pt['bobot'] * ($pt['progress'] / 100.0));
+                            }
+                        }
+                    } else {
+                        foreach ($parsedTasks as $pt) {
+                            if (($pt['week'] ?? 1) <= $w) {
+                                $cumW += ($pt['bobot'] * ($pt['progress'] / 100.0));
+                            }
+                        }
+                    }
+                    $actualVal = round(min($actualEV, $cumW), 2);
                 }
+                $isRecorded = true;
+            } else {
+                $actualVal = null;
             }
 
-            if ($actualWeeklyVal === null && $actualVal !== null) {
+            if ($actualVal !== null) {
                 $prevAct = $weeklyRecords[$w - 1]['actual_percent'] ?? 0.0;
                 $actualWeeklyVal = ($prevAct !== null) ? round($actualVal - $prevAct, 2) : $actualVal;
             }
@@ -693,23 +974,34 @@ class PmoController extends Controller
             $sCurveActual[] = $actualVal;
         }
 
-        // Catatan PM Terbaru untuk Ringkasan Status Kurva
+        // Catatan PM Terbaru untuk Ringkasan Status Kurva (Dinamis dari WBS Tasks)
         $latestPmNote = null;
-        if (isset($savedWeekly[$currentWeek]['notes']) && !empty($savedWeekly[$currentWeek]['notes'])) {
+        if (!empty($savedWeekly[$currentWeek]['notes'])) {
             $latestPmNote = $savedWeekly[$currentWeek]['notes'];
         } else {
             for ($w = $currentWeek; $w >= 1; $w--) {
-                if (isset($savedWeekly[$w]['notes']) && !empty($savedWeekly[$w]['notes'])) {
+                if (!empty($savedWeekly[$w]['notes'])) {
                     $latestPmNote = $savedWeekly[$w]['notes'];
                     break;
                 }
             }
         }
-        if (!$latestPmNote && !empty($project->special_notes)) {
-            $latestPmNote = $project->special_notes;
-        }
         if (!$latestPmNote) {
-            $latestPmNote = null;
+            $activeTaskNotes = [];
+            foreach ($parsedTasks as $pt) {
+                if ($pt['progress'] > 0) {
+                    if ($pt['progress'] >= 100) {
+                        $activeTaskNotes[] = $pt['title'] . ' selesai 100%';
+                    } else {
+                        $activeTaskNotes[] = $pt['title'] . ' ' . round($pt['progress']) . '%';
+                    }
+                }
+            }
+            if (!empty($activeTaskNotes)) {
+                $latestPmNote = implode(', ', $activeTaskNotes);
+            } elseif (!empty($project->special_notes)) {
+                $latestPmNote = $project->special_notes;
+            }
         }
 
         // Generate Data Harian Lengkap (Daily S-Curve & Table)
@@ -1000,8 +1292,10 @@ class PmoController extends Controller
     public function updateTimeline(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'start_date' => 'required|date',
-            'deadline'   => 'required|date|after_or_equal:start_date',
+            'start_date'                => 'required|date',
+            'deadline'                  => 'required|date|after_or_equal:start_date',
+            'estimate_project_duration' => 'nullable|integer|min:1|max:365',
+            'execution_weeks'           => 'nullable|integer|min:1|max:52',
         ]);
 
         $startDate = Carbon::parse($validated['start_date']);
@@ -1009,11 +1303,20 @@ class PmoController extends Controller
 
         $project->start_date = $startDate->format('Y-m-d');
         $project->deadline = $deadline->format('Y-m-d');
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        if ($request->filled('estimate_project_duration')) {
+            $handoverData['estimate_project_duration'] = (int) $request->input('estimate_project_duration');
+        }
+        if ($request->filled('execution_weeks')) {
+            $handoverData['execution_weeks'] = (int) $request->input('execution_weeks');
+        }
+        $project->handover_data = $handoverData;
         $project->save();
 
-        $days = max(1, (int) round($startDate->diffInDays($deadline)) + 1);
+        $durDays = $request->filled('estimate_project_duration') ? (int) $request->input('estimate_project_duration') : max(1, (int) round($startDate->diffInDays($deadline)) + 1);
 
-        return back()->with('success', "Periode tanggal proyek berhasil diperbarui menjadi {$startDate->format('d M Y')} s/d {$deadline->format('d M Y')} ({$days} Hari)!");
+        return back()->with('success', "Durasi dan periode tanggal proyek berhasil diperbarui menjadi {$startDate->format('d M Y')} s/d {$deadline->format('d M Y')} ({$durDays} Hari)!");
     }
 
     /**
@@ -2158,14 +2461,31 @@ class PmoController extends Controller
         $progress = isset($validated['progress']) ? (int) $validated['progress'] : (int) $task->progress;
         $status = $validated['status'] ?? ($progress >= 100 ? 'Completed' : ($progress > 0 ? 'In Progress' : 'Not Started'));
 
+        $oldDesc = $task->description ?? '';
+        $startingDayMeta = preg_match('/StartingDay:\s*\d+/i', $oldDesc, $sdm) ? $sdm[0] : null;
+        $finishDayMeta   = preg_match('/FinishDay:\s*\d+/i', $oldDesc, $fdm) ? $fdm[0] : null;
+        $weekMeta        = preg_match('/Week:\s*\d+/i', $oldDesc, $wm) ? $wm[0] : null;
+        $dailyWeightMeta = preg_match('/DailyWeight:\s*[\d\.]+\%/i', $oldDesc, $dwm) ? $dwm[0] : null;
+
         $desc = $validated['description'] ?? ($task->description ?? '');
-        if (isset($validated['bobot']) && is_numeric($validated['bobot'])) {
-            $bobotVal = number_format((float) $validated['bobot'], 2);
-            if (preg_match('/Bobot:\s*[\d\.]+/i', $desc)) {
-                $desc = preg_replace('/Bobot:\s*[\d\.]+/i', "Bobot: {$bobotVal}", $desc);
-            } else {
-                $desc = trim("[Bobot: {$bobotVal}%] " . $desc);
-            }
+        $bobotVal = (isset($validated['bobot']) && is_numeric($validated['bobot'])) ? number_format((float) $validated['bobot'], 1) : null;
+
+        $metaParts = [];
+        if ($bobotVal !== null) {
+            $metaParts[] = "Bobot: {$bobotVal}%";
+        } elseif (preg_match('/Bobot:\s*[\d\.]+\%/i', $oldDesc, $bm)) {
+            $metaParts[] = $bm[0];
+        }
+        if ($startingDayMeta) $metaParts[] = $startingDayMeta;
+        if ($finishDayMeta)   $metaParts[] = $finishDayMeta;
+        if ($weekMeta)        $metaParts[] = $weekMeta;
+        if ($dailyWeightMeta) $metaParts[] = $dailyWeightMeta;
+
+        $cleanText = trim(preg_replace('/\[[^\]]+\]/i', '', $desc));
+        if (!empty($metaParts)) {
+            $desc = ($cleanText ? $cleanText . ' ' : '') . '[' . implode(' | ', $metaParts) . ']';
+        } else {
+            $desc = $cleanText;
         }
 
         $updateData = [
@@ -2232,9 +2552,9 @@ class PmoController extends Controller
             }
         }
 
-        if ($hasBobot && $totalCumulative > 0) {
+        if ($hasBobot) {
             $project->progress = round($totalCumulative, 2);
-            $project->save();
+            $project->saveQuietly();
         }
     }
 

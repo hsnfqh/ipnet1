@@ -337,10 +337,22 @@
                     <div>
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Durasi Project</span>
-                            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
+                            <div class="flex items-center gap-1.5">
+                                @if($isPmoUser)
+                                    <button type="button" 
+                                            @click="showTimelineModal = true" 
+                                            title="Ubah Durasi Proyek" 
+                                            class="w-7 h-7 rounded-lg text-slate-500 hover:text-[#8F0A0D] bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 transition shrink-0 flex items-center justify-center cursor-pointer shadow-xs">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                        </svg>
+                                    </button>
+                                @endif
+                                <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                         <div class="text-[20px] font-extrabold text-[#1E293B] tracking-tight flex items-baseline justify-between">
@@ -864,9 +876,6 @@
                                     </svg>
                                     <span>Activity List Proyek (WBS Breakdown)</span>
                                 </h4>
-                                <p class="text-[11px] text-slate-400 mt-0.5">
-                                    Daftar aktivitas proyek (Actual Kumulatif). Penunjukan personil/assignee dikoordinasikan oleh Tim Lead Lapangan.
-                                </p>
                             </div>
 
                             <div class="flex items-center gap-2 shrink-0">
@@ -1398,12 +1407,12 @@
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Ubah Periode Tanggal Proyek</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Sesuaikan jadwal mulai dan target selesai (deadline) oleh PM</p>
+                        <h3 class="text-sm font-bold text-slate-900">Ubah Durasi &amp; Periode Proyek</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Sesuaikan durasi hari pelaksanaan, jumlah minggu, dan rentang tanggal oleh PM</p>
                     </div>
                 </div>
                 <button type="button" @click="showTimelineModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -1414,6 +1423,28 @@
             <form action="{{ route('pmo.projects.update_timeline', $project->id) }}" method="POST" class="space-y-4">
                 @csrf
                 <div class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Durasi Pelaksanaan (Hari)</label>
+                            <input type="number" 
+                                   name="estimate_project_duration" 
+                                   value="{{ $estimateDuration ?? ($totalProjectDays ?? 30) }}" 
+                                   min="1" 
+                                   max="365"
+                                   placeholder="Contoh: 30"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah Minggu (Weeks)</label>
+                            <input type="number" 
+                                   name="execution_weeks" 
+                                   value="{{ $executionWeeks ?? ($totalProjectWeeks ?? 5) }}" 
+                                   min="1" 
+                                   max="52"
+                                   placeholder="Contoh: 5"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
+                        </div>
+                    </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Mulai Proyek (Start Date) <span class="text-[#8F0A0D]">*</span></label>
                         <input type="date" 
@@ -1436,7 +1467,7 @@
                     <div class="flex items-start gap-2">
                         <svg class="w-4 h-4 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span class="text-[11.5px] leading-relaxed">
-                            Mengubah periode proyek akan otomatis menyesuaikan durasi total, rentang mingguan pada Kurva S, dan indikator sisa hari pada dashboard PMO.
+                            Mengubah durasi dan periode proyek akan otomatis menyesuaikan durasi total, rentang mingguan pada Kurva S, dan indikator sisa hari pada dashboard PMO.
                         </span>
                     </div>
                 </div>
