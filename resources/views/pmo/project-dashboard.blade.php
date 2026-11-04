@@ -742,13 +742,10 @@
                                 <span class="ipnet-badge-dot"></span> ACTIVITY LIST
                             </p>
                             <h3 class="text-sm font-bold text-[#1E293B]">Activity List Proyek</h3>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Daftar aktivitas pekerjaan &amp; alokasi tugas personil tim</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Daftar aktivitas pekerjaan &amp; deliverables WBS proyek</p>
                         </div>
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                                {{ count($assignedEngineers) }} Personil
-                            </span>
-                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                                 {{ $totalTasks }} Tasks
                             </span>
                         </div>
@@ -1016,68 +1013,6 @@
                                     @endforelse
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
-
-                    {{-- 4. BEBAN KERJA & DISTRIBUSI TUGAS ENGINEER LAPANGAN --}}
-                    <div class="space-y-4 pt-2 border-t border-slate-100">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                    </svg>
-                                    <span>Beban Tugas Engineer Lapangan (Workload Share)</span>
-                                </h4>
-                                <p class="text-[11px] text-slate-400 mt-0.5">Pemetaan pembagian tugas dan progres penyelesaian per personil tim</p>
-                            </div>
-                            @if($isLeadUser)
-                                <button type="button" @click="showAssignTeamModal = true" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 hover:text-slate-900 transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
-                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                    <span>Kelola Tim</span>
-                                </button>
-                            @endif
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                            @forelse($taskShareList as $ts)
-                                <div class="p-3.5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-2 min-w-0">
-                                            <div class="w-7 h-7 rounded-full bg-red-50 text-[#8F0A0D] font-bold text-xs flex items-center justify-center border border-red-100 shrink-0">
-                                                {{ substr($ts['name'], 0, 1) }}
-                                            </div>
-                                            <div class="min-w-0">
-                                                <div class="text-xs font-bold text-slate-800 truncate">{{ $ts['name'] }}</div>
-                                                <div class="text-[10px] text-slate-400 truncate">{{ $ts['position'] }}</div>
-                                            </div>
-                                        </div>
-                                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-full {{ $ts['completed'] == $ts['count'] && $ts['count'] > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700' }} shrink-0">
-                                            {{ $ts['completed'] }}/{{ $ts['count'] }} Task
-                                        </span>
-                                    </div>
-                                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                        <div class="h-full bg-[#8F0A0D] rounded-full" style="width: {{ $ts['count'] > 0 ? round(($ts['completed'] / $ts['count']) * 100) : 0 }}%"></div>
-                                    </div>
-                                    @if(!empty($ts['tasks']))
-                                        <div class="space-y-1 pt-1.5 border-t border-slate-100">
-                                            @foreach(array_slice($ts['tasks'], 0, 3) as $tsk)
-                                                <div class="flex items-center justify-between text-[11px] text-slate-600">
-                                                    <span class="truncate max-w-[170px]" title="{{ $tsk['title'] }}">• {{ $tsk['title'] }}</span>
-                                                    <span class="font-bold text-[10px] text-slate-400">{{ $tsk['progress'] }}%</span>
-                                                </div>
-                                            @endforeach
-                                            @if(count($ts['tasks']) > 3)
-                                                <div class="text-[10px] text-slate-400 italic text-right">+{{ count($ts['tasks']) - 3 }} task lainnya</div>
-                                            @endif
-                                        </div>
-                                    @endif
-                                </div>
-                            @empty
-                                <div class="col-span-full text-center py-6 text-xs text-slate-400">
-                                    Belum ada tim personil yang dialokasikan ke proyek ini.
-                                </div>
-                            @endforelse
                         </div>
                     </div>
                 </div>
