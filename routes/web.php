@@ -1164,6 +1164,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects/{project}/handover-conditional', [PmoController::class, 'conditionalHandover'])->name('pmo.handover.conditional');
         Route::post('/projects/{project}/handover-to-ms', [PmoController::class, 'handoverToManagedService'])->name('pmo.handover.to_ms');
         Route::post('/projects/{project}/weekly-progress', [PmoController::class, 'updateWeeklyProgress'])->name('pmo.projects.weekly_progress.update');
+        Route::post('/projects/{project}/actual-progress-matrix', [PmoController::class, 'updateActualProgressMatrix'])->name('pmo.projects.actual_progress_matrix.update');
         Route::post('/projects/{project}/daily-progress', [PmoController::class, 'updateDailyProgress'])->name('pmo.projects.daily_progress.update');
         Route::post('/projects/{project}/update-timeline', [PmoController::class, 'updateTimeline'])->name('pmo.projects.update_timeline');
         Route::post('/projects/{project}/update-client', [PmoController::class, 'updateClient'])->name('pmo.projects.update_client');

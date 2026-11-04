@@ -759,64 +759,163 @@ class PmoController extends Controller
 
         $currentProgressPercent = $actualEV > 0 ? $actualEV : (float) ($project->progress ?: 0.0);
 
-        // Weekly Weight distribution per task untuk PPATK sesuai Gambar 2 Excel
-        $ppatkWeeklyTaskWeightMap = [
-            'Survey and Assessment'          => [1 => 6.7],
-            'Design Review Meeting'          => [1 => 13.3],
-            'HLD and LLD Documentation'      => [1 => 3.3, 2 => 10.0],
-            'Stagging'                       => [2 => 3.3],
-            'Installation and Configuration' => [2 => 10.0, 3 => 6.7],
-            'Integration'                    => [3 => 10.0],
-            'Migration'                      => [3 => 6.7, 4 => 3.3],
-            'Testing and Commisioning'       => [4 => 6.7],
-            'Monitoring'                     => [4 => 3.3],
-            'Documentation'                  => [4 => 10.0],
-            'BAST'                           => [5 => 6.7],
+        // Weekly Weight distribution per task untuk PPATK sesuai Gambar 3 Excel
+        $ppatkWeeklyDistMap = [
+            'Survey and Assessment'          => [1 => 6.7, 2 => 0.0, 3 => 0.0, 4 => 0.0, 5 => 0.0],
+            'Design Review Meeting'          => [1 => 13.3, 2 => 0.0, 3 => 0.0, 4 => 0.0, 5 => 0.0],
+            'HLD and LLD Documentation'      => [1 => 3.3, 2 => 10.0, 3 => 0.0, 4 => 0.0, 5 => 0.0],
+            'Stagging'                       => [1 => 0.0, 2 => 3.3, 3 => 0.0, 4 => 0.0, 5 => 0.0],
+            'Installation and Configuration' => [1 => 0.0, 2 => 10.0, 3 => 6.7, 4 => 0.0, 5 => 0.0],
+            'Integration'                    => [1 => 0.0, 2 => 0.0, 3 => 10.0, 4 => 0.0, 5 => 0.0],
+            'Migration'                      => [1 => 0.0, 2 => 0.0, 3 => 6.7, 4 => 3.3, 5 => 0.0],
+            'Testing and Commisioning'       => [1 => 0.0, 2 => 0.0, 3 => 0.0, 4 => 6.7, 5 => 0.0],
+            'Monitoring'                     => [1 => 0.0, 2 => 0.0, 3 => 0.0, 4 => 3.3, 5 => 0.0],
+            'Documentation'                  => [1 => 0.0, 2 => 0.0, 3 => 0.0, 4 => 10.0, 5 => 0.0],
+            'BAST'                           => [1 => 0.0, 2 => 0.0, 3 => 0.0, 4 => 0.0, 5 => 6.7],
         ];
 
-        // Tentukan minggu tertinggi yang sudah memiliki pelaporan progres (Active Week)
-        // Menurut Gambar 4: "A week shows only once at least one task is filled in for it."
-        $maxReportedWeek = 0;
-        if ($totalEarnedEV > 0) {
-            $maxReportedWeek = 1;
-        }
+        // 1. Matriks Weekly Weight (plan) per task (Gambar 3)
+        $weeklyWeightMatrix = [];
+        $totalWeeklyWeightPlan = array_fill(1, $totalWeeks, 0.0);
 
         foreach ($parsedTasks as $pt) {
-            if ($pt['progress'] > 0) {
-                $tWeek = $pt['week'] ?? 1;
-                if ($isPpatkProject) {
-                    $tName = $pt['title'];
-                    if (in_array($tName, ['Stagging', 'Installation and Configuration']) && $pt['progress'] > 0) {
-                        $maxReportedWeek = max($maxReportedWeek, 2);
+            $tTitle = $pt['title'];
+            $wDist = [];
+            for ($w = 1; $w <= $totalWeeks; $w++) {
+                $wVal = 0.0;
+                if ($isPpatkProject && isset($ppatkWeeklyDistMap[$tTitle][$w])) {
+                    $wVal = (float) $ppatkWeeklyDistMap[$tTitle][$w];
+                } elseif (!$isPpatkProject) {
+                    $tStartDay = $pt['starting_day'] ?? 0;
+                    $tFinishDay = $pt['finish_day'] ?? ($tStartDay + $pt['duration']);
+                    $wStartDay = ($w - 1) * 7;
+                    $wEndDay = $w * 7;
+                    $overlapStart = max($tStartDay, $wStartDay);
+                    $overlapEnd = min($tFinishDay, $wEndDay);
+                    $overlapDays = max(0, $overlapEnd - $overlapStart);
+                    if ($pt['duration'] > 0 && $overlapDays > 0) {
+                        $wVal = round(($overlapDays / $pt['duration']) * $pt['bobot'], 1);
                     }
-                    if (in_array($tName, ['Integration']) && $pt['progress'] > 0) {
-                        $maxReportedWeek = max($maxReportedWeek, 3);
-                    }
-                    if (in_array($tName, ['Migration', 'Testing and Commisioning', 'Monitoring', 'Documentation']) && $pt['progress'] > 0) {
-                        $maxReportedWeek = max($maxReportedWeek, 4);
-                    }
-                    if ($tName === 'BAST' && $pt['progress'] > 0) {
-                        $maxReportedWeek = max($maxReportedWeek, 5);
-                    }
-                } else {
-                    $maxReportedWeek = max($maxReportedWeek, $tWeek);
+                }
+                $wDist[$w] = $wVal;
+                $totalWeeklyWeightPlan[$w] += $wVal;
+            }
+            $weeklyWeightMatrix[] = [
+                'id'           => $pt['id'],
+                'title'        => $pt['title'],
+                'duration'     => $pt['duration'],
+                'starting_day' => $pt['starting_day'] ?? 0,
+                'finish_day'   => $pt['finish_day'] ?? ($pt['duration']),
+                'weight'       => $pt['bobot'],
+                'weeks'        => $wDist,
+                'check'        => array_sum($wDist),
+            ];
+        }
+
+        for ($w = 1; $w <= $totalWeeks; $w++) {
+            $totalWeeklyWeightPlan[$w] = round($totalWeeklyWeightPlan[$w], 1);
+        }
+
+        // Plan Cumulative % per week (Gambar 3 Baris 16)
+        $totalWeeklyWeightCum = [];
+        $cumPlanAccum = 0.0;
+        for ($w = 1; $w <= $totalWeeks; $w++) {
+            $cumPlanAccum += $totalWeeklyWeightPlan[$w];
+            $totalWeeklyWeightCum[$w] = min(100.0, round($cumPlanAccum, 1));
+        }
+
+        // 2. Matriks Actual Progress (Sheet 3)
+        $savedActualInputs = $handoverData['actual_progress_inputs'] ?? [];
+        if (empty($savedActualInputs) && $isPpatkProject) {
+            $savedActualInputs = [
+                'Survey and Assessment'     => [1 => 100],
+                'Design Review Meeting'     => [1 => 100],
+                'HLD and LLD Documentation' => [1 => 50],
+            ];
+        }
+
+        $actualProgressInputMatrix = [];
+        $actualProgressCalcMatrix = [];
+        $weekReportedFlags = array_fill(1, $totalWeeks, 0);
+
+        // Cek minggu mana yang dilaporkan (memiliki minimal 1 task terisi)
+        for ($w = 1; $w <= $totalWeeks; $w++) {
+            foreach ($parsedTasks as $pt) {
+                $tId = (string) $pt['id'];
+                $tTitle = $pt['title'];
+                $val = $savedActualInputs[$tId][$w] ?? ($savedActualInputs[$tTitle][$w] ?? null);
+                if ($val !== null && $val !== '') {
+                    $weekReportedFlags[$w] = 1;
+                    break;
                 }
             }
         }
 
-        // Data Progres Mingguan yang tersimpan (Override PM via modal Update Progres)
-        $savedWeekly = $handoverData['s_curve_weekly'] ?? [];
+        // Matriks Input & Matriks Kalkulasi (Carry Forward)
+        $actualCumulativePerWeek = array_fill(1, $totalWeeks, 0.0);
 
-        // Juga cek apakah ada input manual aktual PM di $savedWeekly
-        foreach ($savedWeekly as $wIdx => $swData) {
-            if ($wIdx > 0 && isset($swData['actual']) && $swData['actual'] !== null && $swData['actual'] !== '') {
-                $maxReportedWeek = max($maxReportedWeek, (int) $wIdx);
+        foreach ($parsedTasks as $pt) {
+            $tId = (string) $pt['id'];
+            $tTitle = $pt['title'];
+            $inputWeeks = [];
+            $calcWeeks = [];
+            $lastUsedVal = 0.0;
+
+            for ($w = 1; $w <= $totalWeeks; $w++) {
+                $rawInp = $savedActualInputs[$tId][$w] ?? ($savedActualInputs[$tTitle][$w] ?? null);
+                $inputWeeks[$w] = ($rawInp !== null && $rawInp !== '') ? (float) $rawInp : null;
+
+                if ($rawInp !== null && $rawInp !== '') {
+                    $lastUsedVal = (float) $rawInp;
+                }
+                $calcWeeks[$w] = $lastUsedVal;
+                $actualCumulativePerWeek[$w] += ($lastUsedVal / 100.0) * $pt['bobot'];
             }
+
+            $actualProgressInputMatrix[] = [
+                'id'     => $pt['id'],
+                'title'  => $pt['title'],
+                'weight' => $pt['bobot'],
+                'weeks'  => $inputWeeks,
+            ];
+
+            $actualProgressCalcMatrix[] = [
+                'id'     => $pt['id'],
+                'title'  => $pt['title'],
+                'weight' => $pt['bobot'],
+                'weeks'  => $calcWeeks,
+            ];
+        }
+
+        for ($w = 1; $w <= $totalWeeks; $w++) {
+            $actualCumulativePerWeek[$w] = round($actualCumulativePerWeek[$w], 1);
+        }
+
+        // Tentukan minggu aktif tertinggi yang dilaporkan
+        $maxReportedWeek = 0;
+        for ($w = $totalWeeks; $w >= 1; $w--) {
+            if ($weekReportedFlags[$w] == 1) {
+                $maxReportedWeek = $w;
+                break;
+            }
+        }
+        if ($maxReportedWeek === 0 && $totalEarnedEV > 0) {
+            $maxReportedWeek = 1;
+            $weekReportedFlags[1] = 1;
         }
 
         $currentWeek = max(1, min($totalWeeks, $maxReportedWeek ?: 1));
+        $currentProgressPercent = $maxReportedWeek > 0 ? $actualCumulativePerWeek[$maxReportedWeek] : ($actualEV > 0 ? $actualEV : (float) ($project->progress ?: 0.0));
 
-        // Generate Data Mingguan Lengkap (untuk Tabel & Grafik)
+        if (abs((float) $project->progress - $currentProgressPercent) > 0.01) {
+            $project->progress = $currentProgressPercent;
+            $project->saveQuietly();
+        }
+
+        // Data Progres Mingguan yang tersimpan (Catatan / override)
+        $savedWeekly = $handoverData['s_curve_weekly'] ?? [];
+
+        // Generate Data Mingguan Lengkap (untuk Tabel & Grafik Kurva S)
         $weeklyRecords = [];
         $sCurveLabels = [];
         $sCurvePlan = [];
@@ -835,6 +934,7 @@ class PmoController extends Controller
             'actual_weekly'  => 0.0,
             'actual_percent' => 0.0,
             'variance'       => 0.0,
+            'chart_helper'   => 0.0,
             'is_current'     => false,
             'is_passed'      => true,
             'is_future'      => false,
@@ -844,7 +944,7 @@ class PmoController extends Controller
             'tasks_count'    => 1,
         ];
 
-        // Mapping Spesifik WBS Tasks Per Minggu untuk PPATK Sesuai Gambar 2 (Weekly Weight plan per task)
+        // Mapping WBS tasks per week
         $ppatkWeeklyTaskMap = [
             1 => ['Survey and Assessment', 'Design Review Meeting', 'HLD and LLD Documentation'],
             2 => ['HLD and LLD Documentation', 'Stagging', 'Installation and Configuration'],
@@ -861,7 +961,6 @@ class PmoController extends Controller
             }
             $dateRange = $wStart->format('d M') . ' - ' . $wEnd->format('d M Y');
 
-            // Kumpulkan tasks yang aktif atau jatuh pada rentang minggu ini
             $tasksInThisWeek = [];
             if ($isPpatkProject && isset($ppatkWeeklyTaskMap[$w])) {
                 $tasksInThisWeek = $ppatkWeeklyTaskMap[$w];
@@ -876,96 +975,24 @@ class PmoController extends Controller
                 }
             }
 
-            // Target Plan Kumulatif Sesuai Excel
-            $calcPlan = 0.0;
-            if ($isPpatkProject) {
-                $ppatkPlanMap = [1 => 23.3, 2 => 46.7, 3 => 70.0, 4 => 93.3, 5 => 100.0];
-                $calcPlan = $ppatkPlanMap[$w] ?? 100.0;
-            } else {
-                // Rencana kumulatif berdasarkan durasi task
-                $plannedWeightAccumulated = 0.0;
-                foreach ($parsedTasks as $pt) {
-                    $tStart = $pt['start_date'];
-                    $tEnd = $pt['deadline'];
-                    if ($tEnd && $tEnd->lte($wEnd)) {
-                        $plannedWeightAccumulated += $pt['bobot'];
-                    } elseif ($tStart && $tStart->lte($wEnd)) {
-                        $totalTaskDays = max(1, $pt['duration']);
-                        $daysUpToEndOfWeek = max(1, $tStart->diffInDays($wEnd) + 1);
-                        $fraction = min(1.0, $daysUpToEndOfWeek / $totalTaskDays);
-                        $plannedWeightAccumulated += ($pt['bobot'] * $fraction);
-                    }
-                }
-                $calcPlan = round(min(100.0, $plannedWeightAccumulated), 2);
-            }
+            $planVal = $totalWeeklyWeightCum[$w] ?? 100.0;
+            $planWeeklyVal = $totalWeeklyWeightPlan[$w] ?? 0.0;
 
-            // Plan Mingguan Kumulatif: Pakai input manual PM jika ada, jika tidak pakai $calcPlan
-            $planVal = null;
-            if (isset($savedWeekly[$w]['plan']) && $savedWeekly[$w]['plan'] !== null && $savedWeekly[$w]['plan'] !== '') {
-                $planVal = (float) $savedWeekly[$w]['plan'];
-            } else {
-                $planVal = $calcPlan;
-            }
-
-            // Plan Mingguan (Weekly Plan, bukan kumulatif)
-            $planWeeklyVal = null;
-            if (isset($savedWeekly[$w]['plan_weekly']) && $savedWeekly[$w]['plan_weekly'] !== null) {
-                $planWeeklyVal = (float) $savedWeekly[$w]['plan_weekly'];
-            } elseif ($planVal !== null) {
-                $prevPlan = $weeklyRecords[$w - 1]['plan_percent'] ?? 0.0;
-                $planWeeklyVal = max(0.0, round($planVal - $prevPlan, 2));
-            }
-
-            // Actual Mingguan Kumulatif & Weekly Sesuai Gambar 4:
-            // "Actual Cumulative = sum of (task completion % x activity weight) from the Actual Progress sheet. A week shows only once at least one task is filled in for it."
-            // "Column G returns NA() on purpose so the chart skips unreported weeks instead of drawing 0%."
+            $isRecorded = ($weekReportedFlags[$w] == 1);
             $actualVal = null;
             $actualWeeklyVal = null;
-            $isRecorded = false;
+            $variance = null;
+            $chartHelper = '#N/A';
+
+            if ($isRecorded) {
+                $actualVal = $actualCumulativePerWeek[$w];
+                $prevAct = ($w == 1) ? 0.0 : ($actualCumulativePerWeek[$w - 1] ?? 0.0);
+                $actualWeeklyVal = round($actualVal - $prevAct, 1);
+                $variance = round($actualVal - $planVal, 1);
+                $chartHelper = $actualVal;
+            }
+
             $notes = $savedWeekly[$w]['notes'] ?? null;
-
-            // 1. Prioritas Utama: Kalkulasi dinamis dari WBS Tasks (Gambar 4)
-            if ($w <= $maxReportedWeek && $totalEarnedEV > 0) {
-                if ($w === $maxReportedWeek) {
-                    $actualVal = round($actualEV, 1);
-                } else {
-                    $cumW = 0.0;
-                    if ($isPpatkProject) {
-                        foreach ($parsedTasks as $pt) {
-                            $tTitle = $pt['title'];
-                            if (isset($ppatkWeeklyTaskWeightMap[$tTitle])) {
-                                foreach ($ppatkWeeklyTaskWeightMap[$tTitle] as $distWeek => $distWeight) {
-                                    if ($distWeek <= $w) {
-                                        $cumW += ($distWeight * ($pt['progress'] / 100.0));
-                                    }
-                                }
-                            } elseif (($pt['week'] ?? 1) <= $w) {
-                                $cumW += ($pt['bobot'] * ($pt['progress'] / 100.0));
-                            }
-                        }
-                    } else {
-                        foreach ($parsedTasks as $pt) {
-                            if (($pt['week'] ?? 1) <= $w) {
-                                $cumW += ($pt['bobot'] * ($pt['progress'] / 100.0));
-                            }
-                        }
-                    }
-                    $actualVal = round(min($actualEV, $cumW), 1);
-                }
-                $isRecorded = true;
-            } elseif (isset($savedWeekly[$w]['actual']) && $savedWeekly[$w]['actual'] !== null && $savedWeekly[$w]['actual'] !== '') {
-                // Fallback manual hanya jika tidak ada WBS task yang aktif
-                $actualVal = (float) $savedWeekly[$w]['actual'];
-                $isRecorded = true;
-            } else {
-                // Belum dilaporkan / masa depan: null (Chart melewati tanpa garis ke 0%)
-                $actualVal = null;
-            }
-
-            if ($actualVal !== null) {
-                $prevAct = $weeklyRecords[$w - 1]['actual_percent'] ?? 0.0;
-                $actualWeeklyVal = ($prevAct !== null) ? round($actualVal - $prevAct, 2) : $actualVal;
-            }
 
             $weeklyRecords[] = [
                 'week'           => $w,
@@ -974,6 +1001,8 @@ class PmoController extends Controller
                 'plan_percent'   => $planVal,
                 'actual_weekly'  => $actualWeeklyVal,
                 'actual_percent' => $actualVal,
+                'variance'       => $variance,
+                'chart_helper'   => $chartHelper,
                 'is_current'     => ($w === $currentWeek),
                 'is_passed'      => ($w < $currentWeek),
                 'is_future'      => ($w > $currentWeek),
@@ -981,7 +1010,6 @@ class PmoController extends Controller
                 'notes'          => $notes,
                 'tasks_in_week'  => $tasksInThisWeek,
                 'tasks_count'    => count($tasksInThisWeek),
-                'variance'       => ($actualVal !== null && $planVal !== null) ? round($actualVal - $planVal, 2) : null,
             ];
 
             $sCurveLabels[] = $w;
@@ -1222,7 +1250,14 @@ class PmoController extends Controller
             'tasksInProgressCount',
             'tasksCompletedCount',
             'tasksNotStartedCount',
-            'latestPmNote'
+            'latestPmNote',
+            'weeklyWeightMatrix',
+            'totalWeeklyWeightPlan',
+            'totalWeeklyWeightCum',
+            'actualProgressInputMatrix',
+            'actualProgressCalcMatrix',
+            'actualCumulativePerWeek',
+            'weekReportedFlags'
         ));
     }
 
@@ -1262,6 +1297,45 @@ class PmoController extends Controller
         $infoStr = !empty($info) ? implode(', ', $info) : 'data disimpan';
 
         return redirect()->back()->with('success', 'Progres Minggu ke-' . $validated['week'] . ' berhasil diperbarui (' . $infoStr . ')!');
+    }
+    /**
+     * Update Matrix Actual Progress (Sheet 3) per task per minggu
+     */
+    public function updateActualProgressMatrix(Request $request, Project $project)
+    {
+        $matrix = $request->input('matrix', []);
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $handoverData['actual_progress_inputs'] = $matrix;
+        $project->handover_data = $handoverData;
+
+        // Sinkronkan progress task di DB dengan nilai terakhir yang dilaporkan
+        $tasks = $project->tasks()->get();
+        foreach ($tasks as $task) {
+            $key = (string) $task->id;
+            $taskInputs = $matrix[$key] ?? ($matrix[$task->title] ?? []);
+            
+            $latestVal = null;
+            for ($w = 5; $w >= 1; $w--) {
+                if (isset($taskInputs[$w]) && $taskInputs[$w] !== '' && $taskInputs[$w] !== null) {
+                    $latestVal = (float) $taskInputs[$w];
+                    break;
+                }
+            }
+
+            if ($latestVal !== null) {
+                $task->progress = $latestVal;
+                if ($latestVal >= 100) {
+                    $task->status = 'Completed';
+                } elseif ($latestVal > 0) {
+                    $task->status = 'In Progress';
+                }
+                $task->saveQuietly();
+            }
+        }
+
+        $project->save();
+
+        return redirect()->back()->with('success', 'Actual Progress matrix berhasil diperbarui dan disinkronkan ke Kurva S!');
     }
 
     /**

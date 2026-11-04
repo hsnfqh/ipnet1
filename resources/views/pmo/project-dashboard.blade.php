@@ -72,7 +72,7 @@
 @endphp
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" 
      x-data="{ 
-         activeMainTab: '{{ in_array(request('tab'), ['scurve', 'team', 'expenses']) ? request('tab') : 'scurve' }}',
+         activeMainTab: '{{ in_array(request('tab'), ['schedule', 'weekly_weight', 'actual_progress', 'scurve', 'expenses']) ? request('tab') : 'schedule' }}',
          sCurveMode: 'weekly',
          weeklyPage: {{ max(1, (int) ceil(($currentWeek ?? 1) / 6)) }},
          weeklyPerPage: 6,
@@ -446,672 +446,656 @@
 
             </div>
 
-            <!-- ========================================================== -->
-            <!-- 2.5 TAB NAVIGASI UTAMA DASHBOARD PROYEK (3 MODUL UTAMA)    -->
+                        <!-- ========================================================== -->
+            <!-- 2.5 TAB NAVIGASI UTAMA DASHBOARD PROYEK (5 SHEET EXCEL)   -->
             <!-- ========================================================== -->
             <div class="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2 rounded-2xl shadow-2xs gap-3 flex-wrap">
-                <div class="flex items-center gap-2 flex-wrap">
-                    {{-- Tab 1: Kurva S & Monitoring --}}
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    {{-- Tab 1: Schedule --}}
                     <button type="button" 
-                            @click="activeMainTab = 'scurve'"
+                            @click="activeMainTab = 'schedule'"
+                            :class="activeMainTab === 'schedule' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
+                            class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span>Schedule</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                              :class="activeMainTab === 'schedule' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">
+                            {{ $totalTasks }}
+                        </span>
+                    </button>
+
+                    {{-- Tab 2: Weekly Weight --}}
+                    <button type="button" 
+                            @click="activeMainTab = 'weekly_weight'"
+                            :class="activeMainTab === 'weekly_weight' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
+                            class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <span>Weekly Weight</span>
+                    </button>
+
+                    {{-- Tab 3: Actual Progress --}}
+                    <button type="button" 
+                            @click="activeMainTab = 'actual_progress'"
+                            :class="activeMainTab === 'actual_progress' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
+                            class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        <span>Actual Progress</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                              :class="activeMainTab === 'actual_progress' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'">
+                            {{ number_format($currentProgressPercent, 1) }}%
+                        </span>
+                    </button>
+
+                    {{-- Tab 4: S-Curve --}}
+                    <button type="button" 
+                            @click="activeMainTab = 'scurve'; $nextTick(() => { if (window.sCurveChartInstance) window.sCurveChartInstance.resize(); })"
                             :class="activeMainTab === 'scurve' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
-                            class="px-4 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
+                            class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                         </svg>
-                        <span>Kurva S & Monitoring</span>
+                        <span>S-Curve</span>
                     </button>
 
-                    {{-- Tab 2: Activity List (WBS Breakdown & Tugas) --}}
-                    <button type="button" 
-                            @click="activeMainTab = 'team'"
-                            :class="activeMainTab === 'team' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
-                            class="px-4 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                        <span>Activity List</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                              :class="activeMainTab === 'team' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">
-                            {{ $totalTasks }} Tasks
-                        </span>
-                    </button>
-
-                    {{-- Tab 3: Pengeluaran & Biaya --}}
+                    {{-- Tab 5: Expenses --}}
                     <button type="button" 
                             @click="activeMainTab = 'expenses'"
                             :class="activeMainTab === 'expenses' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
-                            class="px-4 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
+                            class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <span>Biaya & Pengeluaran</span>
+                        <span>Expenses</span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
                               :class="activeMainTab === 'expenses' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">
-                            {{ $expenses->count() }} Item
+                            {{ $expenses->count() }}
                         </span>
                     </button>
                 </div>
 
-                {{-- Status Chip Proyek Aktif --}}
-                <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
-                    <span>Modul Aktif:</span>
-                    <span class="font-extrabold text-[#8F0A0D]" 
-                          x-text="activeMainTab === 'scurve' ? 'Kurva S & Jadwal' : (activeMainTab === 'team' ? 'Activity List Proyek' : 'Catatan Biaya & Pengeluaran')"></span>
+                {{-- Status Chip Active Tab --}}
+                <div class="hidden md:flex items-center gap-2 text-xs text-slate-500 font-medium">
+                    <span>Active Sheet:</span>
+                    <span class="font-extrabold text-[#8F0A0D] uppercase" 
+                          x-text="activeMainTab === 'schedule' ? 'Schedule' : (activeMainTab === 'weekly_weight' ? 'Weekly Weight (plan)' : (activeMainTab === 'actual_progress' ? 'Actual Progress' : (activeMainTab === 'scurve' ? 'S-Curve Progress Proyek' : 'Expenses & Budget')))"></span>
                 </div>
             </div>
 
             {{-- ========================================================== --}}
-            {{-- VIEW TAB 1: KURVA S & MONITORING PROGRES                   --}}
+            {{-- TAB 1: SCHEDULE (WBS DELIVERABLES & TIMELINE)              --}}
             {{-- ========================================================== --}}
-            <div x-show="activeMainTab === 'scurve'" class="space-y-6">
-
-            <!-- ========================================================== -->
-            <!-- 3. KURVA S: PLAN KUMULATIF VS ACTUAL KUMULATIF (MINGGUAN)  -->
-            <!-- ========================================================== -->
-            <div class="ipnet-card p-5 sm:p-6 space-y-4">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
-                    <div>
-                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> MONITORING IMPLEMENTASI PMO
-                        </p>
-                        <h2 class="text-[17px] font-bold text-[#1E293B]">
-                            Plan Kumulatif Mingguan VS Actual Kumulatif Mingguan
-                        </h2>
-                        <p class="text-xs text-[#64748B] mt-0.5">
-                            Rentang Evaluasi: <strong>Minggu ke-0 s/d Minggu ke-{{ $totalWeeks }}</strong> (Periode: {{ $projectTimelineText }})
-                        </p>
-                    </div>
-
-                    {{-- Legend Pills --}}
-                    <div class="flex items-center gap-3">
-                        <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                            <span class="w-3.5 h-1 rounded-full bg-[#2563EB]"></span>
-                            <span>Plan Kumulatif</span>
-                        </div>
-                        <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                            <span class="w-3.5 h-1 rounded-full bg-[#8F0A0D]"></span>
-                            <span>Actual Kumulatif</span>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- S-Curve Grid: Left Metrics & Right Chart Area --}}
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
-                    
-                    {{-- Left Metrics Box --}}
-                    <div class="lg:col-span-4 bg-slate-50/80 rounded-xl p-4 sm:p-5 border border-slate-200/90 space-y-3.5">
-                        <div class="border-b border-slate-200 pb-2.5">
-                            <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Ringkasan Status Kurva</span>
-                            <h3 class="text-xs font-bold text-slate-800 mt-0.5">Indikator Kinerja Pelaksanaan</h3>
-                        </div>
-
-                        {{-- Item 1: Progress Pekerjaan --}}
-                        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-slate-600">Progress Pekerjaan</span>
-                                <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                    Minggu ke-{{ $currentWeek }}
-                                </span>
-                            </div>
-                            <div class="mt-2 flex items-baseline justify-between">
-                                <span class="text-[22px] font-black text-[#1E293B]">{{ number_format($currentProgressPercent, 2) }}%</span>
-                                <span class="text-[11px] text-slate-400 font-semibold">dari 100% target</span>
-                            </div>
-                            {{-- Ditambahkan: Catatan PM --}}
-                            <div class="mt-2.5 pt-2 border-t border-slate-100">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Catatan PM:</span>
-                                <p class="text-[11px] text-slate-700 font-medium mt-0.5 leading-snug">
-                                    {{ $latestPmNote ?? 'Pekerjaan berjalan sesuai rencana Kurva S.' }}
-                                </p>
-                            </div>
-                        </div>
-
-                        {{-- Item 2: Total Expenditure --}}
-                        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
-                            <div class="text-xs font-bold text-slate-600">Total Expenditure</div>
-                            <div class="mt-1.5 text-[17px] font-black text-[#8F0A0D]">
-                                Rp {{ number_format($totalSpend, 0, ',', '.') }}
-                            </div>
-                            <div class="text-[10.5px] text-slate-400 mt-0.5">
-                                Realisasi biaya tercatat oleh PM
-                            </div>
-                        </div>
-
-                        {{-- Item 3: Tanggal Update --}}
-                        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs flex items-center justify-between">
-                            <div>
-                                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Tanggal Update</span>
-                                <span class="text-xs font-bold text-slate-800">{{ $sCurveUpdateDate }}</span>
-                            </div>
-                            <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Right Chart Area: S-Curve Dual Line Chart --}}
-                    <div class="lg:col-span-8 bg-white rounded-xl p-3 sm:p-4 border border-slate-200">
-                        <div class="w-full" style="height: 310px;">
-                            <canvas id="sCurveDualLineChart"></canvas>
-                        </div>
-                        <div class="text-center mt-1 text-[11px] text-slate-400 font-semibold tracking-wider uppercase">
-                            Sumbu Horisontal: Minggu ke-0 s/d Minggu ke-{{ $totalWeeks }} (Rentang Tanggal Proyek: {{ $projectTimelineText }})
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- ========================================================== -->
-            <!-- 3.5 TABEL TRACKING & INPUT PROGRES MINGGUAN                -->
-            <!-- ========================================================== -->
-            <div class="ipnet-card p-5 sm:p-6 space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
-                    <div>
-                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> TATA KELOLA PMO
-                        </p>
-                        <h3 class="text-[16px] font-bold text-[#1E293B]">
-                            Tabel Progres Mingguan Kurva S (Weekly S-Curve Tracking)
-                        </h3>
-                        <p class="text-xs text-slate-500 mt-0.5">
-                            Rincian target mingguan, deliverable/task WBS yang berjalan, dan input progres aktual resmi oleh PM.
-                        </p>
-                    </div>
-                </div>
-
-                {{-- TABEL MINGGUAN --}}
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                <th class="py-3 px-3">Minggu</th>
-                                <th class="py-3 px-3">Aktivitas / Deliverables (WBS)</th>
-                                <th class="py-3 px-3 text-right">Plan Weekly (%)</th>
-                                <th class="py-3 px-3 text-right">Plan Cumulative (%)</th>
-                                <th class="py-3 px-3 text-right">Actual Weekly (%)</th>
-                                <th class="py-3 px-3 text-right">Actual Cumulative (%)</th>
-                                <th class="py-3 px-3 text-center">Deviasi (%)</th>
-                                <th class="py-3 px-3">Catatan PM</th>
-                                <th class="py-3 px-3 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            @foreach($weeklyRecords as $widx => $rec)
-                                <tr class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
-                                    
-                                    {{-- Kolom Minggu --}}
-                                    <td class="py-3 px-3 whitespace-nowrap">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-extrabold text-slate-900 text-[12.5px]">
-                                                {{ $rec['week'] === 0 ? 'Week 0' : 'Minggu ' . $rec['week'] }}
-                                            </span>
-                                            @if($rec['is_current'])
-                                                <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-[#8F0A0D] text-white">
-                                                    Berjalan
-                                                </span>
-                                            @elseif($rec['week'] === 0)
-                                                <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
-                                                    Baseline
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <div class="text-[10px] text-slate-400 font-medium mt-0.5">{{ $rec['date_range'] }}</div>
-                                    </td>
-
-                                    {{-- Kolom Aktivitas / Deliverables (WBS) --}}
-                                    <td class="py-3 px-3">
-                                        @if(!empty($rec['tasks_in_week']))
-                                            <div class="flex flex-wrap gap-1 max-w-[280px]">
-                                                @foreach($rec['tasks_in_week'] as $tw)
-                                                    <span class="inline-block px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10.5px] font-medium border border-slate-200/80 transition" title="{{ $tw }}">
-                                                        {{ Str::limit($tw, 28) }}
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                        @else
-                                            <span class="text-slate-300 text-[11px] italic">Tidak ada task terjadwal</span>
-                                        @endif
-                                    </td>
-
-                                    {{-- Kolom Plan Weekly (%) --}}
-                                    <td class="py-3 px-3 text-right whitespace-nowrap">
-                                        @if(isset($rec['plan_weekly']) && $rec['plan_weekly'] !== null)
-                                            <span class="font-bold text-slate-800">{{ number_format($rec['plan_weekly'], 1) }}%</span>
-                                        @else
-                                            <span class="text-slate-400 font-medium">-</span>
-                                        @endif
-                                    </td>
-
-                                    {{-- Kolom Plan Cumulative (%) --}}
-                                    <td class="py-3 px-3 text-right whitespace-nowrap">
-                                        @if($rec['plan_percent'] !== null)
-                                            <span class="font-bold text-blue-700">{{ number_format($rec['plan_percent'], 1) }}%</span>
-                                        @else
-                                            <span class="text-slate-400 font-medium">-</span>
-                                        @endif
-                                    </td>
-
-                                    {{-- Kolom Actual Weekly (%) --}}
-                                    <td class="py-3 px-3 text-right whitespace-nowrap">
-                                        @if(isset($rec['actual_weekly']) && $rec['actual_weekly'] !== null)
-                                            <span class="font-bold text-slate-800">{{ number_format($rec['actual_weekly'], 1) }}%</span>
-                                        @else
-                                            <span class="text-slate-400 font-medium">-</span>
-                                        @endif
-                                    </td>
-
-                                    {{-- Kolom Actual Cumulative (%) --}}
-                                    <td class="py-3 px-3 text-right whitespace-nowrap">
-                                        @if($rec['actual_percent'] !== null)
-                                            <div class="inline-flex items-center gap-1.5 justify-end">
-                                                <span class="font-extrabold text-[#8F0A0D] text-[12.5px]">
-                                                    {{ number_format($rec['actual_percent'], 1) }}%
-                                                </span>
-                                                @if($rec['is_recorded'])
-                                                    <span class="text-[9.5px] text-emerald-700 font-bold bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200" title="Validasi PM">
-                                                        Valid
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        @else
-                                            <span class="text-slate-400 font-medium">-</span>
-                                        @endif
-                                    </td>
-
-                                    {{-- Kolom Deviasi (%) --}}
-                                    <td class="py-3 px-3 text-center whitespace-nowrap">
-                                        @if($rec['variance'] !== null)
-                                            @if($rec['variance'] >= 0)
-                                                <span class="text-emerald-700 font-bold text-[11px] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                                                    +{{ number_format($rec['variance'], 1) }}%
-                                                </span>
-                                            @else
-                                                <span class="text-rose-700 font-bold text-[11px] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                                                    {{ number_format($rec['variance'], 1) }}%
-                                                </span>
-                                            @endif
-                                        @else
-                                            <span class="text-slate-400">-</span>
-                                        @endif
-                                    </td>
-
-                                    {{-- Kolom Catatan PM --}}
-                                    <td class="py-3 px-3 max-w-[240px]">
-                                        <span class="text-slate-600 text-[11.5px] truncate block" title="{{ $rec['notes'] ?? '-' }}">
-                                            {{ $rec['notes'] ?: '-' }}
-                                        </span>
-                                    </td>
-
-                                    {{-- Kolom Aksi --}}
-                                    <td class="py-3 px-3 text-right whitespace-nowrap">
-                                        @if($rec['week'] > 0)
-                                            <button type="button" 
-                                                    @click="openProgressModal({{ $rec['week'] }}, {{ $rec['actual_percent'] !== null ? $rec['actual_percent'] : 'null' }}, {{ $rec['plan_percent'] !== null ? $rec['plan_percent'] : 'null' }}, '{{ addslashes($rec['notes'] ?? '') }}', '{{ $rec['date_range'] }}')"
-                                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                                Update Progres
-                                            </button>
-                                        @else
-                                            <span class="text-[11px] text-slate-400 font-medium">Baseline</span>
-                                        @endif
-                                    </td>
-
-                                </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot class="bg-slate-50 border-t-2 border-slate-200 font-bold text-xs text-slate-800">
-                            <tr>
-                                <td colspan="2" class="py-2.5 px-3 uppercase tracking-wider text-[11px] text-slate-600">
-                                    Total Evaluasi Kurva S (Pelaksanaan Proyek)
-                                </td>
-                                <td class="py-2.5 px-3 text-right text-slate-900">
-                                    100.0%
-                                </td>
-                                <td class="py-2.5 px-3 text-right text-blue-800">
-                                    100.0%
-                                </td>
-                                <td class="py-2.5 px-3 text-right text-slate-900">
-                                    20.0%
-                                </td>
-                                <td class="py-2.5 px-3 text-right text-[#8F0A0D] font-black">
-                                    {{ number_format($currentProgressPercent, 1) }}%
-                                </td>
-                                <td class="py-2.5 px-3 text-center">
-                                    <span class="{{ ($summaryProgress['variance'] ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
-                                        {{ ($summaryProgress['variance'] ?? 0) > 0 ? '+' : '' }}{{ number_format($summaryProgress['variance'] ?? 0, 1) }}%
-                                    </span>
-                                </td>
-                                <td colspan="2" class="py-2.5 px-3 text-slate-500 text-[11px] font-normal italic">
-                                    Sesuai Kurva S Mingguan
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-
-            </div>
-            </div> {{-- End of S-Curve Tab Container --}}
-
-            <!-- ========================================================== -->
-            <!-- 4. LOG CATEGORIZED EXPENSE & TASK WORKLOAD BREAKDOWN        -->
-            <!-- ========================================================== -->
-            <div x-show="activeMainTab === 'team' || activeMainTab === 'expenses'" class="space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                
-                {{-- LEFT COLUMN: Task Share by Engineer & Team Resource Allocation --}}
-                @php
-                    $authUser = $authUser ?? auth()->user();
-                    $isLeadUser = $isLeadUser ?? ($authUser && \App\Helpers\ScopeHelper::isTeamLeader($authUser));
-                    $isPmoUser = $isPmoUser ?? ($authUser && (\App\Helpers\ScopeHelper::isPmo($authUser) || ($project->pm_id && $authUser->id == $project->pm_id) || \App\Helpers\ScopeHelper::isExecutive($authUser)));
-                @endphp
-                <div x-show="activeMainTab === 'team'" 
-                     class="lg:col-span-12 ipnet-card p-5 sm:p-6 space-y-4">
-                    <div class="border-b border-[#E2E8F0] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div x-show="activeMainTab === 'schedule'" class="space-y-6">
+                <div class="ipnet-card p-5 sm:p-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
                         <div>
-                            <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">
-                                <span class="ipnet-badge-dot"></span> ACTIVITY LIST
+                            <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center">
+                                <span class="ipnet-badge-dot"></span> PROJECT SPECIFICATION &amp; SCHEDULE
                             </p>
-                            <h3 class="text-sm font-bold text-[#1E293B]">Activity List Proyek</h3>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Daftar aktivitas pekerjaan &amp; deliverables WBS proyek</p>
+                            <h3 class="text-base font-bold text-[#1E293B]">Project Schedule &amp; WBS Deliverables</h3>
                         </div>
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                                {{ $totalTasks }} Tasks
-                            </span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            @if($isLeadUser)
+                                <button type="button" @click="showAssignTeamModal = true" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Kelola Personil Tim</span>
+                                </button>
+                            @endif
+                            <button type="button" @click="showImportExcelModal = true" class="px-2.5 py-1.5 rounded-lg border border-emerald-600 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span>Import Excel (WBS)</span>
+                            </button>
+                            <button type="button" @click="showQuickTaskModal = true" class="px-2.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                <span>Tambah Activity / Task</span>
+                            </button>
                         </div>
                     </div>
 
-                    {{-- Summary Progress Indicator Berdasarkan Task Mingguan & Kurva S (Hijau / Kuning / Merah) --}}
-                    @if(!empty($summaryProgress) && is_array($summaryProgress))
-                        <div class="p-4 rounded-xl border {{ $summaryProgress['bg_card'] }} flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
-                            <div class="flex items-start gap-3.5 min-w-0">
-                                <div class="w-9 h-9 rounded-xl {{ $summaryProgress['status'] === 'green' ? 'bg-emerald-600 text-white' : ($summaryProgress['status'] === 'yellow' ? 'bg-amber-500 text-white' : 'bg-rose-600 text-white') }} flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                                    @if($summaryProgress['status'] === 'green')
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    @elseif($summaryProgress['status'] === 'yellow')
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    @else
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                    @endif
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Summary Progress Proyek</span>
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ $summaryProgress['badge_class'] }}">
-                                            <span class="w-2 h-2 rounded-full {{ $summaryProgress['dot_class'] }} {{ $summaryProgress['status'] === 'red' ? 'animate-pulse' : '' }}"></span>
-                                            {{ $summaryProgress['label'] }}
-                                        </span>
-                                    </div>
-                                    <h4 class="text-[13px] font-bold text-slate-800 mt-1">{{ $summaryProgress['headline'] }}</h4>
-                                    <p class="text-[11.5px] text-slate-500 mt-0.5 font-normal">{{ $summaryProgress['description'] }}</p>
-                                </div>
-                            </div>
+                    {{-- Excel Metadata Header (Gambar 2 / Gambar 10) --}}
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-xs text-left">
+                            <tbody class="divide-y divide-slate-200 bg-white">
+                                <tr class="bg-slate-50/70">
+                                    <td class="w-64 py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Project Name</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">: {{ $project->name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Customer</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">: {{ $project->client ?: 'PPAT - Pusat Pelaporan dan Analisa Transaksi Keuangan' }}</td>
+                                </tr>
+                                <tr class="bg-slate-50/70">
+                                    <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Customer's PIC</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">: {{ $handoverData['customer_pic'] ?? $project->customer_pic_technical ?? 'Richi Michael' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Contract/SPK/PO Number</td>
+                                    <td class="py-2 px-4 font-mono font-bold text-slate-900">: {{ $project->po_spk_number ?: ($handoverData['contract_spk_number'] ?? 'EP-01KYREAFEJH89MWPVDQ6W20NXV') }}</td>
+                                </tr>
+                                <tr class="bg-slate-50/70">
+                                    <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Start Date ( by Contract/SPK/PO)</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">: {{ $startDate->format('d-M-y') }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Finish Date ( by Contract/SPK/PO)</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">: {{ $deadlineDate->format('d-M-y') }}</td>
+                                </tr>
+                                <tr class="bg-slate-50/70">
+                                    <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Estimate Project Duration</td>
+                                    <td class="py-2 px-4 font-bold text-[#8F0A0D]">
+                                        <div class="flex items-center justify-between">
+                                            <span>: {{ $totalProjectDays }}</span>
+                                            <button type="button" @click="showDurationModal = true" class="text-blue-600 hover:text-blue-800 text-[11px] font-semibold underline cursor-pointer">
+                                                Edit Timeline &amp; Durasi
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                            {{-- Mini Metrics --}}
-                            <div class="flex items-center gap-3 shrink-0 border-t md:border-t-0 md:border-l border-slate-200/80 pt-3 md:pt-0 md:pl-4">
-                                <div class="text-left md:text-right">
-                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Kesehatan Task Mingguan</span>
-                                    <div class="flex items-center gap-2 mt-0.5">
-                                        <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{{ $summaryProgress['on_track_count'] ?? 0 }} Tepat Waktu</span>
-                                        @if(($summaryProgress['overdue_count'] ?? 0) > 0)
-                                            <span class="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">{{ $summaryProgress['overdue_count'] }} Terlambat</span>
-                                        @endif
-                                    </div>
-                                    <span class="text-[10.5px] text-slate-500 block mt-1 font-medium">Deviasi Kurva S: <strong class="{{ ($summaryProgress['variance'] ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">{{ ($summaryProgress['variance'] ?? 0) > 0 ? '+' : '' }}{{ $summaryProgress['variance'] ?? 0 }}%</strong></span>
-                                </div>
-                            </div>
+                    {{-- Personil Tim Lapangan Chips --}}
+                    @if(count($assignedEngineers) > 0)
+                        <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center gap-2 flex-wrap text-xs">
+                            <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Personil Tim Lapangan:</span>
+                            @foreach($assignedEngineers as $aeng)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-800 text-[11px]">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <span>{{ $aeng['name'] ?? 'Engineer' }}</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">({{ $aeng['position'] ?? 'Teknisi' }})</span>
+                                </span>
+                            @endforeach
                         </div>
                     @endif
 
-                    {{-- 3. TABEL TASK KOLEKTIF PROYEK (WBS PELAKSANAAN) --}}
-                    <div class="space-y-3 pt-2 border-t border-slate-100">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                            <div>
-                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2"/>
-                                    </svg>
-                                    <span>Activity List Proyek (WBS Breakdown)</span>
-                                </h4>
-                            </div>
-
-                            <div class="flex items-center gap-2 shrink-0">
-                                @if($isLeadUser)
-                                    <button type="button" @click="showAssignTeamModal = true" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 hover:text-slate-900 transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
-                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                        <span>Kelola Personil Tim</span>
-                                    </button>
-                                @endif
-                                <button type="button" @click="showImportExcelModal = true" class="px-2.5 py-1.5 rounded-lg border border-emerald-600 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
-                                    <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    <span>Import Excel (WBS)</span>
-                                </button>
-                                <button type="button" @click="showQuickTaskModal = true" class="px-2.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                    <span>Tambah Activity / Task</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {{-- Tim Personil Chips --}}
-                        @if(count($assignedEngineers) > 0)
-                            <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center gap-2 flex-wrap text-xs">
-                                <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Personil Tim Lapangan:</span>
-                                @foreach($assignedEngineers as $aeng)
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-800 text-[11px]">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                        <span>{{ $aeng['name'] ?? 'Engineer' }}</span>
-                                        <span class="text-[10px] text-slate-400 font-normal">({{ $aeng['position'] ?? 'Teknisi' }})</span>
-                                    </span>
-                                @endforeach
-                            </div>
-                        @endif
-
-                        {{-- Tabel Task Kolektif Sesuai Excel --}}
-                        <div class="overflow-x-auto rounded-xl border border-slate-200">
-                            <table class="w-full text-left text-xs">
-                                <thead>
-                                    <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                        <th class="py-2.5 px-2.5 w-10 text-center">NO</th>
-                                        <th class="py-2.5 px-3 min-w-[220px]">TASK NAME (WBS DELIVERABLE)</th>
-                                        <th class="py-2.5 px-2.5 text-center whitespace-nowrap">DURATION</th>
-                                        <th class="py-2.5 px-2.5 text-center whitespace-nowrap">STARTING DAY</th>
-                                        <th class="py-2.5 px-2.5 text-center whitespace-nowrap">FINISH DAY</th>
-                                        <th class="py-2.5 px-2.5 text-center whitespace-nowrap">WEEK</th>
-                                        <th class="py-2.5 px-2.5 text-right whitespace-nowrap">ACTIVITY WEIGHT (%)</th>
-                                        <th class="py-2.5 px-2.5 text-right whitespace-nowrap">DAILY WEIGHT (%)</th>
-                                        <th class="py-2.5 px-3 min-w-[130px]">PROGRESS AKTUAL</th>
-                                        <th class="py-2.5 px-2.5 text-center whitespace-nowrap">STATUS</th>
-                                        <th class="py-2.5 px-3 text-right whitespace-nowrap">AKSI</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 bg-white">
+                    {{-- Schedule WBS Table (Image 2 / 10 - NO progress bars!) --}}
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-300 bg-[#334155] text-white text-[11px] font-bold uppercase tracking-wider">
+                                    <th class="py-3 px-4 min-w-[240px]">Task Name</th>
+                                    <th class="py-3 px-3 text-center whitespace-nowrap">Duration</th>
+                                    <th class="py-3 px-3 text-center whitespace-nowrap">Starting Day</th>
+                                    <th class="py-3 px-3 text-center whitespace-nowrap">Finish Day</th>
+                                    <th class="py-3 px-3 text-center whitespace-nowrap">Week</th>
+                                    <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
+                                    <th class="py-3 px-3 text-right whitespace-nowrap">Daily Weight (%)</th>
+                                    <th class="py-3 px-3 text-right whitespace-nowrap">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 bg-white">
+                                @php
+                                    $totDur = 0;
+                                    $totActW = 0.0;
+                                @endphp
+                                @forelse($weeklyWeightMatrix as $idx => $row)
                                     @php
-                                        $totDuration = 0;
-                                        $totActWeight = 0.0;
-                                        $totEarnedWeight = 0.0;
+                                        $totDur += $row['duration'];
+                                        $totActW += $row['weight'];
+                                        $t = $project->tasks->firstWhere('id', $row['id']) ?? $project->tasks->firstWhere('title', $row['title']);
+                                        $dWeight = $row['duration'] > 0 ? round($row['weight'] / $row['duration'], 1) : 0.0;
+                                        $wWeek = 1;
+                                        if (isset($row['weeks'])) {
+                                            foreach ($row['weeks'] as $wk => $wv) {
+                                                if ($wv > 0) { $wWeek = $wk; break; }
+                                            }
+                                        }
+                                        if ($t && preg_match('/Week:\s*(\d+)/i', $t->description ?? '', $wm)) {
+                                            $wWeek = (int) $wm[1];
+                                        }
                                     @endphp
-                                    @forelse($project->tasks->sortBy('id') as $tIdx => $t)
-                                        @php
-                                            // Ekstrak metadata Excel
-                                            $startingDay = null;
-                                            if (preg_match('/StartingDay:\s*(\d+)/i', $t->description ?? '', $sdm)) {
-                                                $startingDay = (int) $sdm[1];
-                                            }
-                                            $finishDay = null;
-                                            if (preg_match('/FinishDay:\s*(\d+)/i', $t->description ?? '', $fdm)) {
-                                                $finishDay = (int) $fdm[1];
-                                            }
-                                            $wbsWeek = null;
-                                            if (preg_match('/Week:\s*(\d+)/i', $t->description ?? '', $wm)) {
-                                                $wbsWeek = (int) $wm[1];
-                                            }
-                                            
-                                            $tDays = 1;
-                                            if ($startingDay !== null && $finishDay !== null) {
-                                                $tDays = max(1, $finishDay - $startingDay);
-                                            } elseif ($t->start_date && $t->deadline) {
-                                                $tDays = max(1, (int) round(\Carbon\Carbon::parse($t->start_date)->diffInDays(\Carbon\Carbon::parse($t->deadline))) + 1);
-                                            }
-                                            $totDuration += $tDays;
-
-                                            $bobotVal = 0.0;
-                                            if (preg_match('/Bobot:\s*([\d\.]+)%/i', $t->description ?? '', $bm)) {
-                                                $bobotVal = (float) $bm[1];
-                                            }
-                                            $totActWeight += $bobotVal;
-
-                                            $dailyWeightVal = 0.0;
-                                            if (preg_match('/DailyWeight:\s*([\d\.]+)%/i', $t->description ?? '', $dwm)) {
-                                                $dailyWeightVal = (float) $dwm[1];
-                                            } else {
-                                                $dailyWeightVal = $tDays > 0 ? round($bobotVal / $tDays, 1) : 0.0;
-                                            }
-
-                                            $progVal = (float) ($t->progress ?: 0);
-                                            $earnedVal = ($bobotVal * $progVal) / 100.0;
-                                            $totEarnedWeight += $earnedVal;
-
-                                            $cleanDesc = trim(preg_replace('/\[[^\]]+\]/i', '', $t->description ?? ''));
-                                            $tStartDate = $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '';
-                                            $tDeadline = $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '';
-                                        @endphp
-                                        <tr class="hover:bg-slate-50/80 transition">
-                                            <td class="py-2.5 px-2.5 text-center font-bold text-slate-400">
-                                                {{ $tIdx + 1 }}
-                                            </td>
-                                            <td class="py-2.5 px-3">
-                                                <div class="font-bold text-slate-900 text-xs">{{ $t->title }}</div>
-                                                @if(!empty($cleanDesc))
-                                                    <div class="text-[10px] text-slate-400 truncate max-w-xs" title="{{ $cleanDesc }}">{{ $cleanDesc }}</div>
-                                                @endif
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
-                                                <span class="font-bold text-slate-800 text-xs">{{ $tDays }} Hari</span>
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap font-medium text-slate-700">
-                                                {{ $startingDay !== null ? 'Day ' . $startingDay : '-' }}
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap font-medium text-slate-700">
-                                                {{ $finishDay !== null ? 'Day ' . $finishDay : '-' }}
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
-                                                @if($wbsWeek !== null)
-                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                                        Week {{ $wbsWeek }}
-                                                    </span>
-                                                @else
-                                                    <span class="text-slate-400">-</span>
-                                                @endif
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-right whitespace-nowrap">
-                                                <span class="font-bold text-blue-700 text-xs">{{ number_format($bobotVal, 1) }}%</span>
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-right whitespace-nowrap">
-                                                <span class="font-semibold text-slate-600 text-xs">{{ number_format($dailyWeightVal, 1) }}%</span>
-                                            </td>
-                                            <td class="py-2.5 px-3 whitespace-nowrap">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                                        <div class="h-full {{ (int)$progVal >= 100 ? 'bg-emerald-500' : 'bg-blue-600' }} rounded-full" style="width: {{ min(100, (int)$progVal) }}%"></div>
-                                                    </div>
-                                                    <span class="font-extrabold text-slate-800 text-xs">{{ (int)$progVal }}%</span>
-                                                </div>
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
-                                                @if(in_array($t->status, ['Done', 'Completed']))
-                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                        Completed
-                                                    </span>
-                                                @elseif(in_array($t->status, ['In Progress', 'in_progress', 'Ongoing']))
-                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                                        In Progress
-                                                    </span>
-                                                @else
-                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                                        Assigned
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                                    <tr class="hover:bg-slate-50/80 transition">
+                                        <td class="py-2.5 px-4 font-bold text-slate-800">
+                                            {{ $row['title'] }}
+                                        </td>
+                                        <td class="py-2.5 px-3 text-center font-bold text-slate-700">
+                                            {{ $row['duration'] }}
+                                        </td>
+                                        <td class="py-2.5 px-3 text-center font-medium text-slate-600">
+                                            {{ $row['starting_day'] }}
+                                        </td>
+                                        <td class="py-2.5 px-3 text-center font-medium text-slate-600">
+                                            {{ $row['finish_day'] }}
+                                        </td>
+                                        <td class="py-2.5 px-3 text-center">
+                                            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                {{ $wWeek }}
+                                            </span>
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right font-bold text-blue-700">
+                                            {{ number_format($row['weight'], 1) }}%
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right font-medium text-slate-700">
+                                            {{ number_format($dWeight, 1) }}%
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                                            @if($t)
                                                 <div class="flex items-center justify-end gap-1.5">
                                                     <button type="button" 
                                                             @click="openEditTaskModal({
                                                                 id: {{ $t->id }},
                                                                 title: '{{ addslashes($t->title) }}',
-                                                                duration_days: {{ $tDays }},
-                                                                start_date: '{{ $tStartDate }}',
-                                                                deadline: '{{ $tDeadline }}',
-                                                                bobot: {{ $bobotVal }},
-                                                                progress: {{ (int)$progVal }},
+                                                                duration_days: {{ $row['duration'] }},
+                                                                start_date: '{{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '' }}',
+                                                                deadline: '{{ $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '' }}',
+                                                                bobot: {{ $row['weight'] }},
+                                                                progress: {{ (int)($t->progress ?: 0) }},
                                                                 status: '{{ $t->status }}',
                                                                 priority: '{{ $t->priority ?: 'Medium' }}',
                                                                 engineer_id: '{{ $t->engineer_id }}',
-                                                                description: '{{ addslashes($cleanDesc) }}'
+                                                                description: '{{ addslashes($t->description ?? '') }}'
                                                             })"
                                                             class="px-2 py-1 rounded-md text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer">
                                                         Ubah
                                                     </button>
-                                                    <form action="{{ route('pmo.tasks.destroy_post', $t->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus task {{ addslashes($t->title) }}?')">
+                                                    <form action="{{ route('pmo.tasks.destroy_post', $t->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus task ini?')">
                                                         @csrf
-                                                        <button type="submit" 
-                                                                class="px-2 py-1 rounded-md text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer">
+                                                        <button type="submit" class="px-2 py-1 rounded-md text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer">
                                                             Hapus
                                                         </button>
                                                     </form>
                                                 </div>
+                                            @else
+                                                <span class="text-slate-400 text-[11px]">-</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="8" class="text-center py-6 text-slate-400">Belum ada task WBS.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                            <tfoot class="bg-slate-50 border-t-2 border-slate-200 font-bold text-xs text-slate-800">
+                                <tr>
+                                    <td class="py-3 px-4 uppercase tracking-wider text-[11px] text-slate-600">
+                                        Total Rekap Schedule ({{ count($weeklyWeightMatrix) }} Tasks)
+                                    </td>
+                                    <td class="py-3 px-3 text-center text-slate-900 font-black">
+                                        {{ $totDur }}
+                                    </td>
+                                    <td colspan="3" class="py-3 px-3 text-center text-slate-400 font-normal">
+                                        Day 0 s/d Day {{ $totDur }}
+                                    </td>
+                                    <td class="py-3 px-3 text-right text-blue-800 font-black">
+                                        {{ number_format($totActW, 1) }}%
+                                    </td>
+                                    <td class="py-3 px-3 text-right text-slate-700 font-bold">
+                                        3.3%
+                                    </td>
+                                    <td class="py-3 px-3 text-right text-slate-500 font-normal text-[11px]">
+                                        100% Selesai
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ========================================================== --}}
+            {{-- TAB 2: WEEKLY WEIGHT (PLAN) PER TASK                       --}}
+            {{-- ========================================================== --}}
+            <div x-show="activeMainTab === 'weekly_weight'" class="space-y-6">
+                <div class="ipnet-card p-5 sm:p-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
+                        <div>
+                            <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center">
+                                <span class="ipnet-badge-dot"></span> SHEET 2: WEEKLY WEIGHT (PLAN)
+                            </p>
+                            <h3 class="text-base font-bold text-[#1E293B]">Weekly Weight (plan) per task</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Distribusi rencana bobot mingguan per task WBS sesuai rentang pelaksanaan</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold">
+                                Total Bobot: 100.0%
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-300 bg-[#1E293B] text-white text-[11px] font-bold uppercase tracking-wider">
+                                    <th class="py-3 px-3.5 min-w-[220px]">Task Name</th>
+                                    <th class="py-3 px-2.5 text-center whitespace-nowrap">Duration</th>
+                                    <th class="py-3 px-2.5 text-center whitespace-nowrap">Starting Day</th>
+                                    <th class="py-3 px-2.5 text-center whitespace-nowrap">Finish Day</th>
+                                    <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
+                                    @for($w = 1; $w <= $totalWeeks; $w++)
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Week {{ $w }}</th>
+                                    @endfor
+                                    <th class="py-3 px-3 text-right whitespace-nowrap">Check (=weight)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 bg-white">
+                                @foreach($weeklyWeightMatrix as $row)
+                                    <tr class="hover:bg-slate-50/80 transition">
+                                        <td class="py-2.5 px-3.5 font-semibold text-emerald-800">
+                                            {{ $row['title'] }}
+                                        </td>
+                                        <td class="py-2.5 px-2.5 text-center font-bold text-slate-700">
+                                            {{ $row['duration'] }}
+                                        </td>
+                                        <td class="py-2.5 px-2.5 text-center text-slate-600">
+                                            {{ $row['starting_day'] }}
+                                        </td>
+                                        <td class="py-2.5 px-2.5 text-center text-slate-600">
+                                            {{ $row['finish_day'] }}
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right font-bold text-slate-900">
+                                            {{ number_format($row['weight'], 1) }}%
+                                        </td>
+                                        @for($w = 1; $w <= $totalWeeks; $w++)
+                                            <td class="py-2.5 px-3 text-right font-mono {{ ($row['weeks'][$w] ?? 0) > 0 ? 'font-bold text-blue-700 bg-blue-50/30' : 'text-slate-400' }}">
+                                                {{ number_format($row['weeks'][$w] ?? 0.0, 1) }}%
                                             </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="11" class="text-center py-6 text-slate-400 text-xs">
-                                                Belum ada task teknis WBS yang terdaftar.
+                                        @endfor
+                                        <td class="py-2.5 px-3 text-right font-bold text-slate-900 bg-slate-50/50">
+                                            {{ number_format($row['check'] ?? $row['weight'], 1) }}%
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot class="border-t-2 border-slate-300 font-bold text-xs">
+                                {{-- Row 1: Plan Weekly (%) --}}
+                                <tr class="bg-slate-100 text-slate-900">
+                                    <td class="py-2.5 px-3.5 font-bold uppercase text-[11px] text-slate-800">
+                                        Plan Weekly (%)
+                                    </td>
+                                    <td colspan="3" class="py-2.5 px-2.5"></td>
+                                    <td class="py-2.5 px-3 text-right font-black text-slate-900">
+                                        100.0%
+                                    </td>
+                                    @for($w = 1; $w <= $totalWeeks; $w++)
+                                        <td class="py-2.5 px-3 text-right font-bold text-slate-900">
+                                            {{ number_format($totalWeeklyWeightPlan[$w] ?? 0.0, 1) }}%
+                                        </td>
+                                    @endfor
+                                    <td class="py-2.5 px-3"></td>
+                                </tr>
+                                {{-- Row 2: Plan Cumulative (%) --}}
+                                <tr class="bg-slate-200/80 text-blue-900">
+                                    <td class="py-2.5 px-3.5 font-bold uppercase text-[11px] text-blue-900">
+                                        Plan Cumulative (%)
+                                    </td>
+                                    <td colspan="4" class="py-2.5 px-2.5"></td>
+                                    @for($w = 1; $w <= $totalWeeks; $w++)
+                                        <td class="py-2.5 px-3 text-right font-black text-blue-800">
+                                            {{ number_format($totalWeeklyWeightCum[$w] ?? 0.0, 1) }}%
+                                        </td>
+                                    @endfor
+                                    <td class="py-2.5 px-3"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ========================================================== --}}
+            {{-- TAB 3: ACTUAL PROGRESS (MANUAL INPUT & CALCULATION)        --}}
+            {{-- ========================================================== --}}
+            <div x-show="activeMainTab === 'actual_progress'" class="space-y-6">
+                <form action="{{ route('pmo.projects.actual_progress_matrix.update', $project->id) }}" method="POST">
+                    @csrf
+                    {{-- Table 1: Actual Progress per Task (manual input) --}}
+                    <div class="ipnet-card p-5 sm:p-6 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
+                            <div>
+                                <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center">
+                                    <span class="ipnet-badge-dot"></span> SHEET 3: ACTUAL PROGRESS PER TASK (MANUAL INPUT)
+                                </p>
+                                <h3 class="text-base font-bold text-[#1E293B]">Actual Progress per Task (manual input)</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">
+                                    Type the CUMULATIVE completion % of each task at the end of each week in the yellow cells (e.g. 50% = half done, 100% = finished). Leave a cell blank to carry the previous week
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold shadow-2xs transition inline-flex items-center gap-2 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span>Simpan Matrix Progres Aktual</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-300 bg-[#1E293B] text-white text-[11px] font-bold uppercase tracking-wider">
+                                        <th class="py-3 px-4 min-w-[220px]">Task Name</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
+                                        @for($w = 1; $w <= $totalWeeks; $w++)
+                                            <th class="py-3 px-3 text-center whitespace-nowrap">Week {{ $w }}</th>
+                                        @endfor
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    @foreach($actualProgressInputMatrix as $row)
+                                        <tr class="hover:bg-slate-50/80 transition">
+                                            <td class="py-2.5 px-4 font-semibold text-emerald-800">
+                                                {{ $row['title'] }}
                                             </td>
+                                            <td class="py-2.5 px-3 text-right font-bold text-slate-900">
+                                                {{ number_format($row['weight'], 1) }}%
+                                            </td>
+                                            @for($w = 1; $w <= $totalWeeks; $w++)
+                                                <td class="py-2 px-2 text-center bg-[#FEF08A] border border-amber-300">
+                                                    <div class="inline-flex items-center justify-center">
+                                                        <input type="number" 
+                                                               step="any" 
+                                                               min="0" 
+                                                               max="100" 
+                                                               name="matrix[{{ $row['id'] }}][{{ $w }}]" 
+                                                               value="{{ $row['weeks'][$w] !== null ? $row['weeks'][$w] : '' }}" 
+                                                               class="w-14 py-1 px-1 text-center font-bold text-blue-900 bg-transparent border-b border-blue-400 focus:bg-white focus:border-blue-700 focus:outline-hidden text-xs">
+                                                        <span class="text-[11px] font-bold text-blue-900 ml-0.5">%</span>
+                                                    </div>
+                                                </td>
+                                            @endfor
                                         </tr>
-                                    @endforelse
+                                    @endforeach
                                 </tbody>
-                                @if($project->tasks->count() > 0)
-                                    <tfoot class="bg-slate-50 border-t-2 border-slate-200 font-bold text-xs text-slate-800">
-                                        <tr>
-                                            <td colspan="2" class="py-2.5 px-3 uppercase tracking-wider text-[11px] text-slate-600">
-                                                Total Rekap WBS Proyek ({{ $project->tasks->count() }} Tasks)
+                                <tfoot class="border-t-2 border-slate-300 font-bold text-xs bg-slate-100">
+                                    <tr>
+                                        <td class="py-3 px-4 uppercase text-[11px] text-slate-800 font-bold">
+                                            Week reported? (1 = yes)
+                                        </td>
+                                        <td class="py-3 px-3"></td>
+                                        @for($w = 1; $w <= $totalWeeks; $w++)
+                                            <td class="py-3 px-3 text-center font-black text-slate-900 text-sm">
+                                                {{ $weekReportedFlags[$w] ?? 0 }}
                                             </td>
-                                            <td class="py-2.5 px-2.5 text-center text-slate-900 font-black">
-                                                {{ $totDuration }} Hari
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-center text-slate-600 font-semibold">
-                                                Day 0
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-center text-slate-600 font-semibold">
-                                                Day {{ $totDuration }}
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-center text-slate-600 font-semibold">
-                                                5 Weeks
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-right text-blue-800 font-black">
-                                                {{ number_format($totActWeight, 1) }}%
-                                            </td>
-                                            <td class="py-2.5 px-2.5 text-right text-slate-600 font-semibold">
-                                                3.3%
-                                            </td>
-                                            <td class="py-2.5 px-3 text-left text-[#8F0A0D] font-black">
-                                                {{ number_format($totEarnedWeight, 1) }}% Earned
-                                            </td>
-                                            <td colspan="2" class="py-2.5 px-3 text-right text-slate-500 font-medium text-[11px]">
-                                                11 Deliverables
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                @endif
+                                        @endfor
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>
-                </div>
 
-                {{-- RIGHT COLUMN: Log Categorized Expense & Riwayat --}}
+                    {{-- Table 2: Calculation: completion used per task (blank = carried forward from previous week) --}}
+                    <div class="ipnet-card p-5 sm:p-6 space-y-4 mt-6">
+                        <div class="border-b border-[#E2E8F0] pb-3">
+                            <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center">
+                                <span class="ipnet-badge-dot"></span> SIKLUS EVALUASI OTOMATIS
+                            </p>
+                            <h3 class="text-base font-bold text-[#1E293B]">Calculation: completion used per task (blank = carried forward from previous week)</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Hasil kalkulasi: task yang tidak diisi di minggu berjalan meneruskan nilai kumulatif minggu sebelumnya
+                            </p>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-300 bg-[#1E293B] text-white text-[11px] font-bold uppercase tracking-wider">
+                                        <th class="py-3 px-4 min-w-[220px]">Task Name</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
+                                        @for($w = 1; $w <= $totalWeeks; $w++)
+                                            <th class="py-3 px-3 text-right whitespace-nowrap">Week {{ $w }}</th>
+                                        @endfor
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    @foreach($actualProgressCalcMatrix as $row)
+                                        <tr class="hover:bg-slate-50/80 transition">
+                                            <td class="py-2.5 px-4 font-semibold text-slate-800">
+                                                {{ $row['title'] }}
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-bold text-slate-900">
+                                                {{ number_format($row['weight'], 1) }}%
+                                            </td>
+                                            @for($w = 1; $w <= $totalWeeks; $w++)
+                                                <td class="py-2.5 px-3 text-right font-mono {{ ($row['weeks'][$w] ?? 0) > 0 ? 'font-bold text-slate-900' : 'text-slate-400' }}">
+                                                    {{ number_format($row['weeks'][$w] ?? 0.0, 0) }}%
+                                                </td>
+                                            @endfor
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot class="border-t-2 border-slate-300 font-bold text-xs bg-slate-200/90">
+                                    <tr class="text-slate-900">
+                                        <td class="py-3 px-4 uppercase text-[11px] font-bold">
+                                            Actual Cumulative (%)
+                                        </td>
+                                        <td class="py-3 px-3"></td>
+                                        @for($w = 1; $w <= $totalWeeks; $w++)
+                                            <td class="py-3 px-3 text-right font-black text-[#8F0A0D] text-sm">
+                                                {{ number_format($actualCumulativePerWeek[$w] ?? 0.0, 1) }}%
+                                            </td>
+                                        @endfor
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            {{-- ========================================================== --}}
+            {{-- TAB 4: S-CURVE PROGRESS PROYEK                             --}}
+            {{-- ========================================================== --}}
+            <div x-show="activeMainTab === 'scurve'" class="space-y-6">
+                <div class="ipnet-card p-5 sm:p-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
+                        <div>
+                            <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center">
+                                <span class="ipnet-badge-dot"></span> SHEET 4: S-CURVE PROGRESS PROYEK
+                            </p>
+                            <h2 class="text-lg font-bold text-[#1E293B]">S-Curve Progress Proyek</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">{{ $project->name }}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                                <span class="w-3.5 h-1 rounded-full bg-[#1D4ED8]"></span>
+                                <span>Plan Cumulative (%)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                                <span class="w-3.5 h-1 rounded-full bg-[#C2410C]"></span>
+                                <span>Chart helper (Actual)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 2-Column Layout (Matching Image 5) --}}
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        {{-- Left Column: S-Curve Table & Notes --}}
+                        <div class="lg:col-span-6 space-y-4">
+                            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="border-b border-slate-300 bg-[#1E293B] text-white text-[10.5px] font-bold uppercase tracking-wider">
+                                            <th class="py-2.5 px-2.5 text-center whitespace-nowrap">Week</th>
+                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Plan Weekly (%)</th>
+                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Plan Cumulative (%)</th>
+                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Actual Weekly (%)</th>
+                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Actual Cumulative (%)</th>
+                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Deviation (Actual - Plan)</th>
+                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Chart helper (hidden pts = not reported)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 bg-white">
+                                        @foreach($weeklyRecords as $rec)
+                                            <tr class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
+                                                <td class="py-2.5 px-2.5 text-center font-bold text-slate-800">
+                                                    {{ $rec['week'] }}
+                                                </td>
+                                                <td class="py-2.5 px-2.5 text-right font-medium text-slate-700">
+                                                    {{ number_format($rec['plan_weekly'], 1) }}%
+                                                </td>
+                                                <td class="py-2.5 px-2.5 text-right font-bold text-blue-700">
+                                                    {{ number_format($rec['plan_percent'], 1) }}%
+                                                </td>
+                                                <td class="py-2.5 px-2.5 text-right font-medium text-slate-800">
+                                                    {{ $rec['actual_weekly'] !== null ? number_format($rec['actual_weekly'], 1) . '%' : '' }}
+                                                </td>
+                                                <td class="py-2.5 px-2.5 text-right font-bold text-[#8F0A0D]">
+                                                    {{ $rec['actual_percent'] !== null ? number_format($rec['actual_percent'], 1) . '%' : '' }}
+                                                </td>
+                                                <td class="py-2.5 px-2.5 text-right font-bold {{ ($rec['variance'] ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
+                                                    @if($rec['variance'] !== null)
+                                                        {{ $rec['variance'] > 0 ? '+' : '' }}{{ number_format($rec['variance'], 1) }}%
+                                                    @endif
+                                                </td>
+                                                <td class="py-2.5 px-2.5 text-right font-mono {{ $rec['chart_helper'] === '#N/A' ? 'text-slate-400 italic' : 'font-bold text-amber-800' }}">
+                                                    {{ $rec['chart_helper'] !== '#N/A' ? number_format($rec['chart_helper'], 1) . '%' : '#N/A' }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {{-- Notes Box Persis Sesuai Gambar 5 --}}
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1.5">
+                                <p class="font-bold text-slate-800">Notes</p>
+                                <p>• Plan Weekly comes from the 'Weekly Weight' sheet (task weight spread over the days each task overlaps a week).</p>
+                                <p>• Actual Cumulative = sum of (task completion % x activity weight) from the Actual Progress sheet. A week shows only once at least one task is filled in for it.</p>
+                                <p>• Column G returns NA() on purpose so the chart skips unreported weeks instead of drawing 0%. Week 0 = baseline (0%).</p>
+                            </div>
+                        </div>
+
+                        {{-- Right Column: Dual Line S-Curve Chart (Persis Sesuai Gambar 5 & 7) --}}
+                        <div class="lg:col-span-6 bg-white rounded-xl p-4 sm:p-5 border border-slate-200 space-y-3">
+                            <div class="border-b border-slate-100 pb-2 flex items-center justify-between">
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                    S-Curve: Plan vs Actual Cumulative Progress
+                                </h4>
+                                <span class="text-[11px] font-bold text-slate-500">
+                                    Minggu ke-0 s/d {{ $totalWeeks }}
+                                </span>
+                            </div>
+                            <div class="w-full" style="height: 340px;">
+                                <canvas id="sCurveDualLineChart"></canvas>
+                            </div>
+                            <div class="flex items-center justify-center gap-6 pt-2 border-t border-slate-100 text-xs">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-[#1D4ED8]"></span>
+                                    <span class="font-medium text-slate-700">Plan Cumulative (%)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-sm bg-[#C2410C]"></span>
+                                    <span class="font-medium text-slate-700">Chart helper (hidden pts = not reported)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ========================================================== --}}
+            {{-- TAB 5: EXPENSES & FINANCIAL TRACKING                       --}}
+            {{-- ========================================================== --}}
+            <div x-show="activeMainTab === 'expenses'" class="space-y-6">
+{{-- RIGHT COLUMN: Log Categorized Expense & Riwayat --}}
                 <div x-show="activeMainTab === 'expenses'" 
                      class="lg:col-span-12 space-y-5">
                     
@@ -1246,9 +1230,7 @@
                     </div>
 
                 </div>
-
-            </div>
-            </div> {{-- End of Team & Expenses Tab Container --}}
+            </div> {{-- End of Tab 5 Expenses --}}
 
         </div>
     </div>
@@ -2281,16 +2263,17 @@
         const sCurveActual = {!! json_encode($sCurveActual ?? []) !!};
 
         const sCurveCanvas = document.getElementById('sCurveDualLineChart');
+        window.sCurveChartInstance = null;
         let sCurveChartInstance = null;
 
         if (sCurveCanvas) {
-            sCurveChartInstance = new Chart(sCurveCanvas.getContext('2d'), {
+            window.sCurveChartInstance = sCurveChartInstance = new Chart(sCurveCanvas.getContext('2d'), {
                 type: 'line',
                 data: {
                     labels: sCurveLabels,
                     datasets: [
                         {
-                            label: 'Plan Kumulatif',
+                            label: 'Plan Cumulative (%)',
                             data: sCurvePlan,
                             borderColor: '#2563EB', // Blue line
                             backgroundColor: 'transparent',
@@ -2304,9 +2287,9 @@
                             spanGaps: false
                         },
                         {
-                            label: 'Actual Kumulatif',
+                            label: 'Chart helper (hidden pts = not reported)',
                             data: sCurveActual,
-                            borderColor: '#8F0A0D', // IPNET Red line
+                            borderColor: '#C2410C', // Orange helper line
                             backgroundColor: 'transparent',
                             borderWidth: 3,
                             tension: 0.35,
