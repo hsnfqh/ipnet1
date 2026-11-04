@@ -65,6 +65,34 @@
 @endpush
 
 @section('content')
+<script>
+    function calcDeadline(startDateStr, durationDays) {
+        if (!startDateStr) return '';
+        const dur = parseInt(durationDays, 10);
+        if (isNaN(dur) || dur < 1) return startDateStr;
+        const parts = startDateStr.split('-');
+        if (parts.length !== 3) return startDateStr;
+        const dt = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        dt.setDate(dt.getDate() + (dur - 1));
+        const y = dt.getFullYear();
+        const m = String(dt.getMonth() + 1).padStart(2, '0');
+        const d = String(dt.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    function calcDuration(startDateStr, deadlineStr) {
+        if (!startDateStr || !deadlineStr) return 1;
+        const p1 = startDateStr.split('-');
+        const p2 = deadlineStr.split('-');
+        if (p1.length !== 3 || p2.length !== 3) return 1;
+        const dt1 = new Date(parseInt(p1[0], 10), parseInt(p1[1], 10) - 1, parseInt(p1[2], 10));
+        const dt2 = new Date(parseInt(p2[0], 10), parseInt(p2[1], 10) - 1, parseInt(p2[2], 10));
+        const diffTime = dt2.getTime() - dt1.getTime();
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        return diffDays > 0 ? diffDays : 1;
+    }
+</script>
+
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" 
      x-data="{ 
          activeMainTab: '{{ in_array(request('tab'), ['scurve', 'team', 'expenses']) ? request('tab') : 'scurve' }}',
@@ -83,14 +111,14 @@
          },
          showProgressModal: false, 
          activeWeek: 1, 
-         activeActual: 0, 
+         activeActual: '', 
          activeNotes: '',
-         activePlan: 0,
+         activePlan: '',
          activeRange: '',
          showDailyProgressModal: false,
          activeDay: 1,
-         activeDayActual: 0,
-         activeDayPlan: 0,
+         activeDayActual: '',
+         activeDayPlan: '',
          activeDayNotes: '',
          activeDayDate: '',
          showClientModal: false,
@@ -112,12 +140,28 @@
          editTaskPriority: 'Medium',
          editTaskEngineerId: '',
          editTaskDescription: '',
+         onEditDurationOrStartChange() {
+             if (this.editTaskStartDate && this.editTaskDuration >= 1) {
+                 this.editTaskDeadline = calcDeadline(this.editTaskStartDate, this.editTaskDuration);
+             }
+         },
+         onEditDeadlineChange() {
+             if (this.editTaskStartDate && this.editTaskDeadline) {
+                 this.editTaskDuration = calcDuration(this.editTaskStartDate, this.editTaskDeadline);
+             }
+         },
          openEditTaskModal(task) {
              this.editTaskId = task.id;
              this.editTaskTitle = task.title;
-             this.editTaskDuration = task.duration_days;
-             this.editTaskStartDate = task.start_date;
-             this.editTaskDeadline = task.deadline;
+             this.editTaskStartDate = task.start_date || '';
+             this.editTaskDeadline = task.deadline || '';
+             if (task.duration_days) {
+                 this.editTaskDuration = parseInt(task.duration_days, 10);
+             } else if (this.editTaskStartDate && this.editTaskDeadline) {
+                 this.editTaskDuration = calcDuration(this.editTaskStartDate, this.editTaskDeadline);
+             } else {
+                 this.editTaskDuration = 1;
+             }
              this.editTaskBobot = task.bobot;
              this.editTaskProgress = task.progress;
              this.editTaskStatus = task.status;
@@ -128,16 +172,16 @@
          },
          openProgressModal(week, actual, plan, notes, range) {
              this.activeWeek = week;
-             this.activeActual = actual !== null ? actual : 0;
-             this.activePlan = plan;
+             this.activeActual = (actual !== null && actual !== undefined && actual !== 'null') ? actual : '';
+             this.activePlan = (plan !== null && plan !== undefined && plan !== 'null') ? plan : '';
              this.activeNotes = notes || '';
              this.activeRange = range;
              this.showProgressModal = true;
          },
          openDailyProgressModal(day, actual, plan, notes, date) {
              this.activeDay = day;
-             this.activeDayActual = actual !== null ? actual : 0;
-             this.activeDayPlan = plan;
+             this.activeDayActual = (actual !== null && actual !== undefined && actual !== 'null') ? actual : '';
+             this.activeDayPlan = (plan !== null && plan !== undefined && plan !== 'null') ? plan : '';
              this.activeDayNotes = notes || '';
              this.activeDayDate = date;
              this.showDailyProgressModal = true;
@@ -440,7 +484,7 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
-                        <span>Target: {{ number_format($planValAtCurrentWeek ?? 0, 1) }}%</span>
+                        <span>Target: {{ $planValAtCurrentWeek !== null ? number_format($planValAtCurrentWeek, 1) . '%' : '-' }}</span>
                         <span class="font-bold text-slate-800">
                             Aktual: {{ number_format($currentProgressPercent, 1) }}%
                         </span>
@@ -465,7 +509,7 @@
                         <span>Kurva S & Monitoring</span>
                     </button>
 
-                    {{-- Tab 2: Alokasi Tim & Task Engineer --}}
+                    {{-- Tab 2: Activity List (WBS Breakdown & Tugas) --}}
                     <button type="button" 
                             @click="activeMainTab = 'team'"
                             :class="activeMainTab === 'team' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
@@ -473,10 +517,10 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                         </svg>
-                        <span>Alokasi Tim & Task</span>
+                        <span>Activity List</span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
                               :class="activeMainTab === 'team' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">
-                            {{ count($assignedEngineers) }} Personil
+                            {{ $totalTasks }} Task
                         </span>
                     </button>
 
@@ -500,7 +544,7 @@
                 <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
                     <span>Modul Aktif:</span>
                     <span class="font-extrabold text-[#8F0A0D]" 
-                          x-text="activeMainTab === 'scurve' ? 'Kurva S & Jadwal' : (activeMainTab === 'team' ? 'Alokasi Tim Lapangan' : 'Catatan Biaya & Pengeluaran')"></span>
+                          x-text="activeMainTab === 'scurve' ? 'Kurva S & Jadwal' : (activeMainTab === 'team' ? 'Activity List Proyek' : 'Catatan Biaya & Pengeluaran')"></span>
                 </div>
             </div>
 
@@ -718,7 +762,11 @@
 
                                     {{-- Kolom Target Plan --}}
                                     <td class="py-3 px-3 whitespace-nowrap">
-                                        <span class="font-bold text-blue-700">{{ number_format($rec['plan_percent'], 2) }}%</span>
+                                        @if($rec['plan_percent'] !== null)
+                                            <span class="font-bold text-blue-700">{{ number_format($rec['plan_percent'], 2) }}%</span>
+                                        @else
+                                            <span class="text-slate-400 font-medium">-</span>
+                                        @endif
                                     </td>
 
                                     {{-- Kolom Realisasi Aktual --}}
@@ -766,7 +814,7 @@
                                     {{-- Kolom Aksi --}}
                                     <td class="py-3 px-3 text-right whitespace-nowrap">
                                         <button type="button" 
-                                                @click="openProgressModal({{ $rec['week'] }}, {{ $rec['actual_percent'] ?? 0 }}, {{ $rec['plan_percent'] }}, '{{ addslashes($rec['notes'] ?? '') }}', '{{ $rec['date_range'] }}')"
+                                                @click="openProgressModal({{ $rec['week'] }}, {{ $rec['actual_percent'] !== null ? $rec['actual_percent'] : 'null' }}, {{ $rec['plan_percent'] !== null ? $rec['plan_percent'] : 'null' }}, '{{ addslashes($rec['notes'] ?? '') }}', '{{ $rec['date_range'] }}')"
                                                 class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                                             Update Progres
                                         </button>
@@ -817,7 +865,11 @@
 
                                         {{-- Kolom Target Plan --}}
                                         <td class="py-3 px-3 whitespace-nowrap">
-                                            <span class="font-bold text-blue-700">{{ number_format($drec['plan_percent'], 2) }}%</span>
+                                            @if($drec['plan_percent'] !== null)
+                                                <span class="font-bold text-blue-700">{{ number_format($drec['plan_percent'], 2) }}%</span>
+                                            @else
+                                                <span class="text-slate-400 font-medium">-</span>
+                                            @endif
                                         </td>
 
                                         {{-- Kolom Realisasi Aktual --}}
@@ -865,7 +917,7 @@
                                         {{-- Kolom Aksi --}}
                                         <td class="py-3 px-3 text-right whitespace-nowrap">
                                             <button type="button" 
-                                                    @click="openDailyProgressModal({{ $drec['day'] }}, {{ $drec['actual_percent'] ?? 0 }}, {{ $drec['plan_percent'] }}, '{{ addslashes($drec['notes'] ?? '') }}', '{{ $drec['date'] }} ({{ $drec['day_name'] }})')"
+                                                    @click="openDailyProgressModal({{ $drec['day'] }}, {{ $drec['actual_percent'] !== null ? $drec['actual_percent'] : 'null' }}, {{ $drec['plan_percent'] !== null ? $drec['plan_percent'] : 'null' }}, '{{ addslashes($drec['notes'] ?? '') }}', '{{ $drec['date'] }} ({{ $drec['day_name'] }})')"
                                                     class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                                                 Update Progres
                                             </button>
@@ -1056,10 +1108,10 @@
                                     <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2"/>
                                     </svg>
-                                    <span>Tabel Task Kolektif Proyek (WBS Breakdown)</span>
+                                    <span>Activity List Proyek (WBS Breakdown)</span>
                                 </h4>
                                 <p class="text-[11px] text-slate-400 mt-0.5">
-                                    Task bersifat kolektif proyek (Actual Kumulatif). Penunjukan personil/assignee dikoordinasikan oleh Tim Lead Lapangan.
+                                    Daftar aktivitas proyek (Actual Kumulatif). Penunjukan personil/assignee dikoordinasikan oleh Tim Lead Lapangan.
                                 </p>
                             </div>
 
@@ -1076,7 +1128,7 @@
                                 </button>
                                 <button type="button" @click="showQuickTaskModal = true" class="px-2.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                    <span>Tambah Task (WBS)</span>
+                                    <span>+ Tambah Activity / Task</span>
                                 </button>
                             </div>
                         </div>
@@ -1375,25 +1427,38 @@
                 @csrf
                 <input type="hidden" name="week" :value="activeWeek">
 
-                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs">
-                    <span class="text-slate-500 font-semibold">Target Rencana (Plan):</span>
-                    <span class="font-extrabold text-blue-700 text-sm" x-text="activePlan + '%'"></span>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Capaian Realisasi Aktual (%)</label>
-                    <div class="relative">
-                        <input type="number" 
-                               name="actual" 
-                               step="0.01" 
-                               min="0" 
-                               max="100" 
-                               x-model="activeActual"
-                               required 
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-slate-900 focus:border-[#8F0A0D] outline-none">
-                        <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Target Rencana (Plan %)</label>
+                        <div class="relative">
+                            <input type="number" 
+                                   name="plan" 
+                                   step="0.01" 
+                                   min="0" 
+                                   max="100" 
+                                   x-model="activePlan"
+                                   placeholder="Contoh: 15.00"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-blue-700 focus:border-[#8F0A0D] outline-none">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                        </div>
+                        <p class="text-[10.5px] text-slate-400 mt-1">Target kumulatif</p>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-1">Masukkan persentase pencapaian kumulatif pada akhir pekan ini.</p>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Realisasi Aktual (%)</label>
+                        <div class="relative">
+                            <input type="number" 
+                                   name="actual" 
+                                   step="0.01" 
+                                   min="0" 
+                                   max="100" 
+                                   x-model="activeActual"
+                                   placeholder="Contoh: 12.50"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-[#8F0A0D] focus:border-[#8F0A0D] outline-none">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                        </div>
+                        <p class="text-[10.5px] text-slate-400 mt-1">Realisasi akhir pekan</p>
+                    </div>
                 </div>
 
                 <div>
@@ -1442,25 +1507,38 @@
                 @csrf
                 <input type="hidden" name="day" :value="activeDay">
 
-                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs">
-                    <span class="text-slate-500 font-semibold">Target Rencana (Plan):</span>
-                    <span class="font-extrabold text-blue-700 text-sm" x-text="activeDayPlan + '%'"></span>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Capaian Realisasi Aktual (%)</label>
-                    <div class="relative">
-                        <input type="number" 
-                               name="actual" 
-                               step="0.01" 
-                               min="0" 
-                               max="100" 
-                               x-model="activeDayActual"
-                               required 
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-slate-900 focus:border-[#8F0A0D] outline-none">
-                        <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Target Rencana (Plan %)</label>
+                        <div class="relative">
+                            <input type="number" 
+                                   name="plan" 
+                                   step="0.01" 
+                                   min="0" 
+                                   max="100" 
+                                   x-model="activeDayPlan"
+                                   placeholder="Contoh: 15.00"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-blue-700 focus:border-[#8F0A0D] outline-none">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                        </div>
+                        <p class="text-[10.5px] text-slate-400 mt-1">Target kumulatif</p>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-1">Masukkan persentase kumulatif penyelesaian proyek hingga hari ini.</p>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Realisasi Aktual (%)</label>
+                        <div class="relative">
+                            <input type="number" 
+                                   name="actual" 
+                                   step="0.01" 
+                                   min="0" 
+                                   max="100" 
+                                   x-model="activeDayActual"
+                                   placeholder="Contoh: 12.50"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-[#8F0A0D] focus:border-[#8F0A0D] outline-none">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                        </div>
+                        <p class="text-[10.5px] text-slate-400 mt-1">Realisasi hari ini</p>
+                    </div>
                 </div>
 
                 <div>
@@ -1905,6 +1983,19 @@
                       isCustomTitle: false,
                       openEngDropdown: false, 
                       selectedEngIds: [],
+                      taskDuration: 1,
+                      taskStartDate: '{{ date('Y-m-d') }}',
+                      taskDeadline: '{{ date('Y-m-d') }}',
+                      onDurationOrStartChange() {
+                          if (this.taskStartDate && this.taskDuration >= 1) {
+                              this.taskDeadline = calcDeadline(this.taskStartDate, this.taskDuration);
+                          }
+                      },
+                      onDeadlineChange() {
+                          if (this.taskStartDate && this.taskDeadline) {
+                              this.taskDuration = calcDuration(this.taskStartDate, this.taskDeadline);
+                          }
+                      },
                       engCount() { return this.selectedEngIds.length; },
                       toggleEng(id) {
                           id = parseInt(id, 10);
@@ -2068,7 +2159,8 @@
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
                         <input type="number" 
                                name="duration_days" 
-                               value="1" 
+                               x-model.number="taskDuration"
+                               @input="onDurationOrStartChange()"
                                min="1" 
                                max="365" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
@@ -2099,7 +2191,8 @@
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Mulai Pengerjaan</label>
                         <input type="date" 
                                name="start_date" 
-                               value="{{ date('Y-m-d') }}"
+                               x-model="taskStartDate"
+                               @change="onDurationOrStartChange()"
                                required
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
@@ -2107,7 +2200,8 @@
                         <label class="block text-xs font-bold text-slate-700 mb-1">Target Selesai (Deadline)</label>
                         <input type="date" 
                                name="deadline" 
-                               value="{{ $project->deadline ? $project->deadline->format('Y-m-d') : date('Y-m-d', strtotime('+14 days')) }}"
+                               x-model="taskDeadline"
+                               @change="onDeadlineChange()"
                                required
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
@@ -2184,7 +2278,8 @@
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
                         <input type="number" 
                                name="duration_days" 
-                               x-model="editTaskDuration" 
+                               x-model.number="editTaskDuration" 
+                               @input="onEditDurationOrStartChange()"
                                min="1" 
                                max="365" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
@@ -2216,6 +2311,7 @@
                         <input type="date" 
                                name="start_date" 
                                x-model="editTaskStartDate" 
+                               @change="onEditDurationOrStartChange()"
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
@@ -2223,6 +2319,7 @@
                         <input type="date" 
                                name="deadline" 
                                x-model="editTaskDeadline" 
+                               @change="onEditDeadlineChange()"
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                 </div>
@@ -2552,9 +2649,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // 1. S-Curve Dual Line Chart (Plan Kumulatif vs Actual Kumulatif)
-        const sCurveLabels = {!! json_encode($sCurveLabels ?? [0, 1, 2, 3, 4, 5, 6, 7, 8]) !!};
-        const sCurvePlan = {!! json_encode($sCurvePlan ?? [0, 5.5, 14, 28.5, 51, 72.5, 86, 94.5, 100]) !!};
-        const sCurveActual = {!! json_encode($sCurveActual ?? [0]) !!};
+        const sCurveLabels = {!! json_encode($sCurveLabels ?? []) !!};
+        const sCurvePlan = {!! json_encode($sCurvePlan ?? []) !!};
+        const sCurveActual = {!! json_encode($sCurveActual ?? []) !!};
 
         const sCurveDailyLabels = {!! json_encode($sCurveDailyLabels ?? []) !!};
         const sCurveDailyPlan = {!! json_encode($sCurveDailyPlan ?? []) !!};

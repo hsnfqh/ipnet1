@@ -341,20 +341,21 @@ class PmoController extends Controller
             $wEnd = $w == $totalWeeks ? $deadlineDate : $startDate->copy()->addWeeks($w)->subDay();
             $dateRange = $wStart->format('d M') . ' - ' . $wEnd->format('d M Y');
 
-            // Formula S-Curve Sigmoid Ideal
-            $norm = ($w / $totalWeeks) * 10 - 5;
-            $sig = 1 / (1 + exp(-$norm * 0.9));
-            $planVal = $w === $totalWeeks ? 100.0 : round($sig * 100, 2);
+            // Plan Mingguan: Diisi manual oleh PM via Update Progres (default null jika belum diisi)
+            $planVal = null;
+            if (isset($savedWeekly[$w]['plan']) && $savedWeekly[$w]['plan'] !== null && $savedWeekly[$w]['plan'] !== '') {
+                $planVal = (float) $savedWeekly[$w]['plan'];
+            }
 
-            // Actual Mingguan: Cek jika ada input manual PM di $savedWeekly
+            // Actual Mingguan: Diisi manual oleh PM via Update Progres (default null jika belum diisi)
             $actualVal = null;
             $isRecorded = false;
             $notes = null;
 
             if (isset($savedWeekly[$w])) {
-                $actualVal = (float) $savedWeekly[$w]['actual'];
+                $actualVal = (isset($savedWeekly[$w]['actual']) && $savedWeekly[$w]['actual'] !== null && $savedWeekly[$w]['actual'] !== '') ? (float) $savedWeekly[$w]['actual'] : null;
                 $notes = $savedWeekly[$w]['notes'] ?? null;
-                $isRecorded = true;
+                $isRecorded = ($actualVal !== null || $planVal !== null);
             } else {
                 $actualVal = null;
             }
@@ -372,7 +373,7 @@ class PmoController extends Controller
                 'is_recorded'    => $isRecorded,
                 'notes'          => $notes,
                 'tasks_count'    => $tasksCompletedThisWeek,
-                'variance'       => $actualVal !== null ? round($actualVal - $planVal, 2) : null,
+                'variance'       => ($actualVal !== null && $planVal !== null) ? round($actualVal - $planVal, 2) : null,
             ];
 
             $sCurveLabels[] = $w;
@@ -428,19 +429,20 @@ class PmoController extends Controller
             $dateStr = $curDate->format('d M Y');
             $dayName = $curDate->locale('id')->isoFormat('dddd');
 
-            // Formula S-Curve Sigmoid Ideal Harian
-            $normD = ($d / $totalDays) * 10 - 5;
-            $sigD = 1 / (1 + exp(-$normD * 0.9));
-            $planDVal = $d === $totalDays ? 100.0 : round($sigD * 100, 2);
+            // Plan Harian: Diisi manual oleh PM via Update Progres (default null jika belum diisi)
+            $planDVal = null;
+            if (isset($savedDaily[$d]['plan']) && $savedDaily[$d]['plan'] !== null && $savedDaily[$d]['plan'] !== '') {
+                $planDVal = (float) $savedDaily[$d]['plan'];
+            }
 
             $actualDVal = null;
             $isRecordedD = false;
             $notesD = null;
 
             if (isset($savedDaily[$d])) {
-                $actualDVal = (float) $savedDaily[$d]['actual'];
+                $actualDVal = (isset($savedDaily[$d]['actual']) && $savedDaily[$d]['actual'] !== null && $savedDaily[$d]['actual'] !== '') ? (float) $savedDaily[$d]['actual'] : null;
                 $notesD = $savedDaily[$d]['notes'] ?? null;
-                $isRecordedD = true;
+                $isRecordedD = ($actualDVal !== null || $planDVal !== null);
             } else {
                 $actualDVal = null;
             }
@@ -459,7 +461,7 @@ class PmoController extends Controller
                 'is_recorded'    => $isRecordedD,
                 'notes'          => $notesD,
                 'tasks_count'    => $tasksThisDay,
-                'variance'       => $actualDVal !== null ? round($actualDVal - $planDVal, 2) : null,
+                'variance'       => ($actualDVal !== null && $planDVal !== null) ? round($actualDVal - $planDVal, 2) : null,
             ];
 
             $sCurveDailyLabels[] = $d;
@@ -468,8 +470,8 @@ class PmoController extends Controller
         }
 
         // Varians Kurva S saat ini (Deviasi Realisasi vs Target Rencana)
-        $planValAtCurrentWeek = $weeklyRecords[min(count($weeklyRecords) - 1, max(0, $currentWeek - 1))]['plan_percent'] ?? 0;
-        $currentVariance = round($currentProgressPercent - $planValAtCurrentWeek, 2);
+        $planValAtCurrentWeek = $weeklyRecords[min(count($weeklyRecords) - 1, max(0, $currentWeek - 1))]['plan_percent'] ?? null;
+        $currentVariance = $planValAtCurrentWeek !== null ? round($currentProgressPercent - $planValAtCurrentWeek, 2) : 0.0;
 
         // Summary Progress Indicator (Hijau / Kuning / Merah)
         // Berdasarkan kesehatan task mingguan dan deviasi Kurva S
@@ -597,20 +599,22 @@ class PmoController extends Controller
     }
 
     /**
-     * Update Progres Mingguan Kurva S oleh PM (Opsi 3: Kombinasi Input PM & Rekomendasi Task)
+     * Update Progres Mingguan Kurva S oleh PM (Target Plan & Realisasi Aktual)
      */
     public function updateWeeklyProgress(Request $request, Project $project)
     {
         $validated = $request->validate([
             'week'   => 'required|integer|min:1|max:52',
-            'actual' => 'required|numeric|min:0|max:100',
+            'plan'   => 'nullable|numeric|min:0|max:100',
+            'actual' => 'nullable|numeric|min:0|max:100',
             'notes'  => 'nullable|string|max:255',
         ]);
 
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $weekly = $handoverData['s_curve_weekly'] ?? [];
         $weekly[$validated['week']] = [
-            'actual'     => (float) $validated['actual'],
+            'plan'       => (isset($validated['plan']) && $validated['plan'] !== '') ? (float) $validated['plan'] : null,
+            'actual'     => (isset($validated['actual']) && $validated['actual'] !== '') ? (float) $validated['actual'] : null,
             'notes'      => $validated['notes'] ?? null,
             'updated_at' => now()->toDateTimeString(),
             'updated_by' => auth()->user()?->name ?? 'PM',
@@ -618,28 +622,37 @@ class PmoController extends Controller
         $handoverData['s_curve_weekly'] = $weekly;
         $project->handover_data = $handoverData;
 
-        // Sinkronkan progres utama proyek
-        $project->progress = (int) round($validated['actual']);
+        // Sinkronkan progres utama proyek jika actual diisi
+        if (isset($validated['actual']) && $validated['actual'] !== '') {
+            $project->progress = (int) round($validated['actual']);
+        }
         $project->save();
 
-        return redirect()->back()->with('success', 'Progres aktual Minggu ke-' . $validated['week'] . ' berhasil diperbarui menjadi ' . $validated['actual'] . '%!');
+        $info = [];
+        if (isset($validated['plan']) && $validated['plan'] !== '') $info[] = 'Plan: ' . $validated['plan'] . '%';
+        if (isset($validated['actual']) && $validated['actual'] !== '') $info[] = 'Aktual: ' . $validated['actual'] . '%';
+        $infoStr = !empty($info) ? implode(', ', $info) : 'data disimpan';
+
+        return redirect()->back()->with('success', 'Progres Minggu ke-' . $validated['week'] . ' berhasil diperbarui (' . $infoStr . ')!');
     }
 
     /**
-     * Update Progres Harian Kurva S oleh PM
+     * Update Progres Harian Kurva S oleh PM (Target Plan & Realisasi Aktual)
      */
     public function updateDailyProgress(Request $request, Project $project)
     {
         $validated = $request->validate([
             'day'    => 'required|integer|min:1|max:365',
-            'actual' => 'required|numeric|min:0|max:100',
+            'plan'   => 'nullable|numeric|min:0|max:100',
+            'actual' => 'nullable|numeric|min:0|max:100',
             'notes'  => 'nullable|string|max:255',
         ]);
 
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $daily = $handoverData['s_curve_daily'] ?? [];
         $daily[$validated['day']] = [
-            'actual'     => (float) $validated['actual'],
+            'plan'       => (isset($validated['plan']) && $validated['plan'] !== '') ? (float) $validated['plan'] : null,
+            'actual'     => (isset($validated['actual']) && $validated['actual'] !== '') ? (float) $validated['actual'] : null,
             'notes'      => $validated['notes'] ?? null,
             'updated_at' => now()->toDateTimeString(),
             'updated_by' => auth()->user()?->name ?? 'PM',
@@ -647,10 +660,17 @@ class PmoController extends Controller
         $handoverData['s_curve_daily'] = $daily;
         $project->handover_data = $handoverData;
 
-        $project->progress = (int) round($validated['actual']);
+        if (isset($validated['actual']) && $validated['actual'] !== '') {
+            $project->progress = (int) round($validated['actual']);
+        }
         $project->save();
 
-        return redirect()->back()->with('success', 'Progres aktual Hari ke-' . $validated['day'] . ' berhasil diperbarui menjadi ' . $validated['actual'] . '%!');
+        $info = [];
+        if (isset($validated['plan']) && $validated['plan'] !== '') $info[] = 'Plan: ' . $validated['plan'] . '%';
+        if (isset($validated['actual']) && $validated['actual'] !== '') $info[] = 'Aktual: ' . $validated['actual'] . '%';
+        $infoStr = !empty($info) ? implode(', ', $info) : 'data disimpan';
+
+        return redirect()->back()->with('success', 'Progres Hari ke-' . $validated['day'] . ' berhasil diperbarui (' . $infoStr . ')!');
     }
 
     /**
