@@ -1932,32 +1932,8 @@
                   method="POST" 
                   x-data="{ 
                       wbsTitle: '', 
-                      isCustomTitle: false,
-                      openEngDropdown: false, 
-                      selectedEngIds: [],
-                      engCount() { return this.selectedEngIds.length; },
-                      toggleEng(id) {
-                          id = parseInt(id, 10);
-                          const idx = this.selectedEngIds.indexOf(id);
-                          if (idx > -1) {
-                              this.selectedEngIds.splice(idx, 1);
-                          } else {
-                              this.selectedEngIds.push(id);
-                          }
-                      },
-                      hasEng(id) {
-                          return this.selectedEngIds.includes(parseInt(id, 10));
-                      },
-                      validateForm(e) {
-                          if (this.selectedEngIds.length === 0) {
-                              e.preventDefault();
-                              alert('Silakan pilih minimal satu engineer pelaksana.');
-                              this.openEngDropdown = true;
-                              return false;
-                          }
-                      }
+                      isCustomTitle: false
                   }"
-                  @submit="validateForm($event)"
                   class="space-y-3.5">
                 @csrf
                 <div>
@@ -1993,107 +1969,30 @@
                     </div>
                 </div>
 
-                @php
-                    $candidateList = collect();
-                    // Hanya tampilkan personil engineer yang ditugaskan / turun ke proyek ini
-                    if (!empty($assignedEngineers) && count($assignedEngineers) > 0) {
-                        foreach ($assignedEngineers as $ae) {
-                            $candId = (int) ($ae['id'] ?? 0);
-                            if ($candId > 0 && !$candidateList->contains('id', $candId)) {
-                                $candidateList->push([
-                                    'id' => $candId,
-                                    'name' => $ae['name'] ?? 'Engineer',
-                                    'position' => $ae['position'] ?? 'Engineer',
-                                ]);
-                            }
-                        }
-                    } else {
-                        // Fallback jika belum ada engineer yang ditugaskan ke proyek ini oleh Lead
-                        if (!empty($availableEngineers)) {
-                            foreach ($availableEngineers as $ave) {
-                                $candidateList->push([
-                                    'id' => (int) $ave->id,
-                                    'name' => $ave->name,
-                                    'position' => $ave->position ?? 'Engineer',
-                                ]);
-                            }
-                        }
-                    }
-                @endphp
-
+                {{-- Row 1: Prioritas Tugas & Status Awal (2 Kolom Sejajar) --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {{-- Pilihan Engineer (Mendukung Multi-Select / Bisa Pilih Beberapa Engineer Sekaligus) --}}
-                    <div class="relative" @click.outside="openEngDropdown = false">
-                        <label class="block text-xs font-bold text-slate-700 mb-1">
-                            Tugaskan ke Engineer Pelaksana <span class="text-[#8F0A0D]">*</span>
-                        </label>
-
-                        {{-- Tombol Dropdown Multi-Select --}}
-                        <button type="button" 
-                                @click="openEngDropdown = !openEngDropdown" 
-                                class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white hover:border-slate-300 focus:border-[#8F0A0D] outline-none flex items-center justify-between transition cursor-pointer shadow-2xs">
-                            <span class="truncate" 
-                                  :class="engCount() === 0 ? 'text-slate-400 font-normal' : 'text-slate-900 font-bold'"
-                                  x-text="engCount() === 0 ? '-- Pilih Satu atau Beberapa Engineer --' : engCount() + ' Engineer Terpilih'">
-                            </span>
-                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1 transition-transform duration-200" :class="openEngDropdown ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-
-                        {{-- Popover Dropdown Berisi Checkbox Engineer --}}
-                        <div x-show="openEngDropdown" 
-                             x-transition:enter="transition ease-out duration-100"
-                             x-transition:enter-start="opacity-0 translate-y-1"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-75"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 translate-y-1"
-                             style="display: none;"
-                             class="absolute z-30 left-0 right-0 mt-1.5 p-2 bg-white rounded-xl border border-slate-200 shadow-xl max-h-56 overflow-y-auto space-y-1 text-xs">
-                            
-                            @if($candidateList->count() > 0)
-                                @foreach($candidateList as $ce)
-                                    <label class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition select-none"
-                                           :class="hasEng({{ $ce['id'] }}) ? 'bg-red-50/60 font-bold' : ''">
-                                        <input type="checkbox" 
-                                               value="{{ $ce['id'] }}"
-                                               :checked="hasEng({{ $ce['id'] }})"
-                                               @change="toggleEng({{ $ce['id'] }})"
-                                               class="w-4 h-4 rounded border-slate-300 text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
-                                        <div class="flex-1 min-w-0">
-                                            <div class="text-xs text-slate-800 truncate">{{ $ce['name'] }}</div>
-                                            <div class="text-[10px] text-slate-400 truncate">{{ $ce['position'] }}</div>
-                                        </div>
-                                    </label>
-                                @endforeach
-                            @else
-                                <div class="p-3 text-center text-slate-400 text-xs">
-                                    Tidak ada data engineer yang tersedia.
-                                </div>
-                            @endif
-                        </div>
-
-                        {{-- Hidden Inputs agar seluruh engineer_ids[] terkirim --}}
-                        <template x-for="engId in selectedEngIds" :key="engId">
-                            <input type="hidden" name="engineer_ids[]" :value="engId">
-                        </template>
-                        <input type="hidden" name="engineer_id" :value="selectedEngIds.length > 0 ? selectedEngIds[0] : ''">
-                    </div>
-
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Prioritas Tugas</label>
                         <select name="priority" required 
-                                class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
                             <option value="High">High (Kritikal / Utama)</option>
                             <option value="Medium" selected>Medium (Standar)</option>
                             <option value="Low">Low (Dukungan / Pendukung)</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Status Awal</label>
+                        <select name="status" 
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                            <option value="Not Started" selected>Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
                 </div>
 
-                {{-- Durasi, Bobot & Status --}}
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {{-- Row 2: Durasi & Bobot (2 Kolom Sejajar & Simetris) --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
                         <input type="number" 
@@ -2101,7 +2000,7 @@
                                value="1" 
                                min="1" 
                                max="365" 
-                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Bobot (%)</label>
@@ -2111,16 +2010,7 @@
                                step="0.01" 
                                min="0" 
                                max="100" 
-                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Status Awal</label>
-                        <select name="status" 
-                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
-                            <option value="Not Started" selected>Not Started</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                        </select>
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
                     </div>
                 </div>
 
@@ -2233,14 +2123,13 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Engineer Pelaksana</label>
-                        <select name="engineer_id" 
-                                x-model="editTaskEngineerId" 
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Prioritas Tugas</label>
+                        <select name="priority" 
+                                x-model="editTaskPriority" 
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
-                            <option value="">-- Tetapkan Assignee --</option>
-                            @foreach($candidateList as $ce)
-                                <option value="{{ $ce['id'] }}">{{ $ce['name'] }} ({{ $ce['position'] }})</option>
-                            @endforeach
+                            <option value="High">High (Kritikal / Utama)</option>
+                            <option value="Medium">Medium (Standar)</option>
+                            <option value="Low">Low (Dukungan / Pendukung)</option>
                         </select>
                     </div>
                 </div>
