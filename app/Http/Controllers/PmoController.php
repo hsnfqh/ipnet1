@@ -25,6 +25,17 @@ class PmoController extends Controller
      */
     public function dashboard(Request $request)
     {
+        // Pastikan proyek resmi PPATK selalu tersedia di portofolio PMO
+        $hasPpatk = Project::where('name', 'like', '%PPAT%')
+            ->orWhere('name', 'like', '%Peremajaan Router%')
+            ->orWhere('client', 'like', '%PPAT%')
+            ->exists();
+        if (!$hasPpatk) {
+            try {
+                $ppatkSeeder = new \Database\Seeders\PpatkProjectSeeder();
+                $ppatkSeeder->run();
+            } catch (\Throwable $e) {}
+        }
         $data = $this->getPmoBaseData($request);
         $formattedProjects = $data['formattedProjects'];
 
@@ -448,6 +459,27 @@ class PmoController extends Controller
         $isPpatkProject = str_contains(strtolower($project->name), 'ppat')
             || str_contains(strtolower($project->client ?? ''), 'ppat')
             || str_contains(strtolower($project->name), 'peremajaan router');
+
+        // Pastikan proyek resmi PPATK selalu ada di database
+        $hasPpatk = Project::where('name', 'like', '%PPAT%')
+            ->orWhere('name', 'like', '%Peremajaan Router%')
+            ->orWhere('client', 'like', '%PPAT%')
+            ->exists();
+        if (!$hasPpatk) {
+            try {
+                $ppatkSeeder = new \Database\Seeders\PpatkProjectSeeder();
+                $ppatkSeeder->run();
+            } catch (\Throwable $e) {}
+        }
+
+        $allPmoProjects = Project::whereNotIn('name', [
+            'DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti', 'SLA aa', 'SLA a'
+        ])
+        ->where('client', '!=', 'Internal / Umum')
+        ->where('name', 'not like', '%Training%')
+        ->where('name', 'not like', '%Meeting%')
+        ->orderBy('id')
+        ->get(['id', 'name', 'client', 'status']);
 
         if ($isPpatkProject) {
             $this->ensurePpatkProjectData($project);
@@ -1257,7 +1289,8 @@ class PmoController extends Controller
             'actualProgressInputMatrix',
             'actualProgressCalcMatrix',
             'actualCumulativePerWeek',
-            'weekReportedFlags'
+            'weekReportedFlags',
+            'allPmoProjects'
         ));
     }
 
@@ -1606,6 +1639,18 @@ class PmoController extends Controller
      */
     private function getPmoBaseData(Request $request)
     {
+        // Pastikan data proyek resmi PPATK selalu tersedia di portofolio PMO
+        $hasPpatk = Project::where('name', 'like', '%PPAT%')
+            ->orWhere('name', 'like', '%Peremajaan Router%')
+            ->orWhere('client', 'like', '%PPAT%')
+            ->exists();
+        if (!$hasPpatk) {
+            try {
+                $ppatkSeeder = new \Database\Seeders\PpatkProjectSeeder();
+                $ppatkSeeder->run();
+            } catch (\Throwable $e) {}
+        }
+
         // 1. Ambil data proyek aktif PMO (Hanya proyek komersial resmi tahap Deliver atau berkas Handover Implementasi dari Sales)
         $query = Project::with([
             'pm:id,name,email',
@@ -1628,12 +1673,18 @@ class PmoController extends Controller
         ->where(function($q) {
             $q->whereNull('handover_target')
               ->orWhere('handover_target', '!=', 'managed_service')
-              ->orWhere('handover_target', 'both');
+              ->orWhere('handover_target', 'both')
+              ->orWhere('name', 'like', '%PPAT%')
+              ->orWhere('client', 'like', '%PPAT%')
+              ->orWhere('name', 'like', '%Peremajaan Router%');
         })
         ->where(function($q) {
             $q->whereNull('project_type')
               ->orWhere('project_type', 'not like', '%Managed Service%')
-              ->orWhere('handover_target', 'both');
+              ->orWhere('handover_target', 'both')
+              ->orWhere('name', 'like', '%PPAT%')
+              ->orWhere('client', 'like', '%PPAT%')
+              ->orWhere('name', 'like', '%Peremajaan Router%');
         })
         ->where(function($q) {
             $q->where('sales_name', 'like', '%Nabylla%')

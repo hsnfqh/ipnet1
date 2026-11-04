@@ -153,7 +153,20 @@
                     {{-- Left Title & Badges --}}
                     <div class="space-y-2 flex-1 min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <a href="{{ route('pmo.implementations.index') }}" 
+                            @if(!empty($allPmoProjects) && $allPmoProjects->count() > 0)
+                            <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
+                                <label class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Pilih Proyek:</label>
+                                <select onchange="window.location.href='/pmo/projects/' + this.value"
+                                        class="bg-transparent border-0 text-xs font-bold text-slate-800 focus:outline-hidden cursor-pointer max-w-[200px] sm:max-w-[260px] truncate">
+                                    @foreach($allPmoProjects as $pItem)
+                                        <option value="{{ $pItem->id }}" {{ $pItem->id == $project->id ? 'selected' : '' }}>
+                                            {{ $pItem->client ? $pItem->client . ' - ' : '' }}{{ Str::limit($pItem->name, 40) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                        <a href="{{ route('pmo.implementations.index') }}" 
                                class="text-xs font-bold text-[#8F0A0D] hover:underline inline-flex items-center gap-1 transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
@@ -173,6 +186,12 @@
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                                     Total {{ $totalProjectDays ?? $daysSpan }} Hari ({{ $totalProjectWeeks ?? 8 }} Minggu)
                                 </span>
+                                <a href="{{ route('pmo.projects.ppatk') }}" 
+                                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition shadow-2xs" 
+                                   title="Buka Proyek PPATK">
+                                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    <span>Buka Proyek PPATK (Peremajaan Router)</span>
+                                </a>
                             @endif
                             @if($healthStatus === 'Healthy')
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -294,6 +313,19 @@
 
                     {{-- Right Action Buttons --}}
                     <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
+                        @if(!empty($allPmoProjects) && $allPmoProjects->count() > 0)
+                            <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
+                                <label class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Pilih Proyek:</label>
+                                <select onchange="window.location.href='/pmo/projects/' + this.value"
+                                        class="bg-transparent border-0 text-xs font-bold text-slate-800 focus:outline-hidden cursor-pointer max-w-[200px] sm:max-w-[260px] truncate">
+                                    @foreach($allPmoProjects as $pItem)
+                                        <option value="{{ $pItem->id }}" {{ $pItem->id == $project->id ? 'selected' : '' }}>
+                                            {{ $pItem->client ? $pItem->client . ' - ' : '' }}{{ Str::limit($pItem->name, 40) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
                         <a href="{{ route('pmo.implementations.index') }}" 
                            class="px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold transition shadow-2xs flex items-center gap-2 active:scale-95">
                             <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -1005,93 +1037,90 @@
                         </div>
                     </div>
 
-                    {{-- 2-Column Layout (Matching Image 5) --}}
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        {{-- Left Column: S-Curve Table & Notes --}}
-                        <div class="lg:col-span-6 space-y-4">
-                            <div class="overflow-x-auto rounded-xl border border-slate-200">
-                                <table class="w-full text-left text-xs">
-                                    <thead>
-                                        <tr class="border-b border-slate-300 bg-[#1E293B] text-white text-[10.5px] font-bold uppercase tracking-wider">
-                                            <th class="py-2.5 px-2.5 text-center whitespace-nowrap">Week</th>
-                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Plan Weekly (%)</th>
-                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Plan Cumulative (%)</th>
-                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Actual Weekly (%)</th>
-                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Actual Cumulative (%)</th>
-                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Deviation (Actual - Plan)</th>
-                                            <th class="py-2.5 px-2.5 text-right whitespace-nowrap">Chart helper (hidden pts = not reported)</th>
+                    {{-- Layout Dibagi 2 Vertikal: Atas Tabel Full Width & Bawah Kurva S Full Width --}}
+                    {{-- 1. BAGIAN ATAS: Tabel S-Curve Full Width (Tidak Terpotong / Sliced) --}}
+                    <div class="space-y-3">
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-300 bg-[#1E293B] text-white text-[11px] font-bold uppercase tracking-wider">
+                                        <th class="py-3 px-3 text-center whitespace-nowrap">Week</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Plan Weekly (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Plan Cumulative (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Actual Weekly (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Actual Cumulative (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Deviation (Actual - Plan)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Chart helper (hidden pts = not reported)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    @foreach($weeklyRecords as $rec)
+                                        <tr class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
+                                            <td class="py-2.5 px-3 text-center font-bold text-slate-800">
+                                                {{ $rec['week'] }}
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-medium text-slate-700">
+                                                {{ number_format($rec['plan_weekly'], 1) }}%
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-bold text-blue-700">
+                                                {{ number_format($rec['plan_percent'], 1) }}%
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-medium text-slate-800">
+                                                {{ $rec['actual_weekly'] !== null ? number_format($rec['actual_weekly'], 1) . '%' : '' }}
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-bold text-[#8F0A0D]">
+                                                {{ $rec['actual_percent'] !== null ? number_format($rec['actual_percent'], 1) . '%' : '' }}
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-bold {{ ($rec['variance'] ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
+                                                @if($rec['variance'] !== null)
+                                                    {{ $rec['variance'] > 0 ? '+' : '' }}{{ number_format($rec['variance'], 1) }}%
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-mono {{ $rec['chart_helper'] === '#N/A' ? 'text-slate-400 italic' : 'font-bold text-amber-800' }}">
+                                                {{ $rec['chart_helper'] !== '#N/A' ? number_format($rec['chart_helper'], 1) . '%' : '#N/A' }}
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100 bg-white">
-                                        @foreach($weeklyRecords as $rec)
-                                            <tr class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
-                                                <td class="py-2.5 px-2.5 text-center font-bold text-slate-800">
-                                                    {{ $rec['week'] }}
-                                                </td>
-                                                <td class="py-2.5 px-2.5 text-right font-medium text-slate-700">
-                                                    {{ number_format($rec['plan_weekly'], 1) }}%
-                                                </td>
-                                                <td class="py-2.5 px-2.5 text-right font-bold text-blue-700">
-                                                    {{ number_format($rec['plan_percent'], 1) }}%
-                                                </td>
-                                                <td class="py-2.5 px-2.5 text-right font-medium text-slate-800">
-                                                    {{ $rec['actual_weekly'] !== null ? number_format($rec['actual_weekly'], 1) . '%' : '' }}
-                                                </td>
-                                                <td class="py-2.5 px-2.5 text-right font-bold text-[#8F0A0D]">
-                                                    {{ $rec['actual_percent'] !== null ? number_format($rec['actual_percent'], 1) . '%' : '' }}
-                                                </td>
-                                                <td class="py-2.5 px-2.5 text-right font-bold {{ ($rec['variance'] ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
-                                                    @if($rec['variance'] !== null)
-                                                        {{ $rec['variance'] > 0 ? '+' : '' }}{{ number_format($rec['variance'], 1) }}%
-                                                    @endif
-                                                </td>
-                                                <td class="py-2.5 px-2.5 text-right font-mono {{ $rec['chart_helper'] === '#N/A' ? 'text-slate-400 italic' : 'font-bold text-amber-800' }}">
-                                                    {{ $rec['chart_helper'] !== '#N/A' ? number_format($rec['chart_helper'], 1) . '%' : '#N/A' }}
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {{-- Notes Box Persis Sesuai Gambar 5 --}}
-                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1.5">
-                                <p class="font-bold text-slate-800">Notes</p>
-                                <p>• Plan Weekly comes from the 'Weekly Weight' sheet (task weight spread over the days each task overlaps a week).</p>
-                                <p>• Actual Cumulative = sum of (task completion % x activity weight) from the Actual Progress sheet. A week shows only once at least one task is filled in for it.</p>
-                                <p>• Column G returns NA() on purpose so the chart skips unreported weeks instead of drawing 0%. Week 0 = baseline (0%).</p>
-                            </div>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
 
-                        {{-- Right Column: Dual Line S-Curve Chart (Persis Sesuai Gambar 5 & 7) --}}
-                        <div class="lg:col-span-6 bg-white rounded-xl p-4 sm:p-5 border border-slate-200 space-y-3">
-                            <div class="border-b border-slate-100 pb-2 flex items-center justify-between">
-                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                                    S-Curve: Plan vs Actual Cumulative Progress
-                                </h4>
-                                <span class="text-[11px] font-bold text-slate-500">
-                                    Minggu ke-0 s/d {{ $totalWeeks }}
-                                </span>
+                        {{-- Notes Box Persis Sesuai Gambar 5 --}}
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
+                            <p class="font-bold text-slate-800">Notes</p>
+                            <p>• Plan Weekly comes from the 'Weekly Weight' sheet (task weight spread over the days each task overlaps a week).</p>
+                            <p>• Actual Cumulative = sum of (task completion % x activity weight) from the Actual Progress sheet. A week shows only once at least one task is filled in for it.</p>
+                            <p>• Column G returns NA() on purpose so the chart skips unreported weeks instead of drawing 0%. Week 0 = baseline (0%).</p>
+                        </div>
+                    </div>
+
+                    {{-- 2. BAGIAN BAWAH: Kurva S Dual Line Chart Full Width --}}
+                    <div class="bg-white rounded-xl p-5 border border-slate-200 space-y-3">
+                        <div class="border-b border-slate-100 pb-2.5 flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                S-Curve: Plan vs Actual Cumulative Progress
+                            </h4>
+                            <span class="text-[11px] font-bold text-slate-500">
+                                Minggu ke-0 s/d {{ $totalWeeks }} ({{ $projectTimelineText }})
+                            </span>
+                        </div>
+                        <div class="w-full" style="height: 380px;">
+                            <canvas id="sCurveDualLineChart"></canvas>
+                        </div>
+                        <div class="flex items-center justify-center gap-6 pt-3 border-t border-slate-100 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3.5 h-3.5 rounded-full bg-[#1D4ED8]"></span>
+                                <span class="font-semibold text-slate-700">Plan Cumulative (%)</span>
                             </div>
-                            <div class="w-full" style="height: 340px;">
-                                <canvas id="sCurveDualLineChart"></canvas>
-                            </div>
-                            <div class="flex items-center justify-center gap-6 pt-2 border-t border-slate-100 text-xs">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-3 h-3 rounded-full bg-[#1D4ED8]"></span>
-                                    <span class="font-medium text-slate-700">Plan Cumulative (%)</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="w-3 h-3 rounded-sm bg-[#C2410C]"></span>
-                                    <span class="font-medium text-slate-700">Chart helper (hidden pts = not reported)</span>
-                                </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3.5 h-3.5 rounded-sm bg-[#C2410C]"></span>
+                                <span class="font-semibold text-slate-700">Chart helper (hidden pts = not reported)</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            {{-- ========================================================== --}}
+{{-- ========================================================== --}}
             {{-- TAB 5: EXPENSES & FINANCIAL TRACKING                       --}}
             {{-- ========================================================== --}}
             <div x-show="activeMainTab === 'expenses'" class="space-y-6">
@@ -2291,13 +2320,14 @@
                             data: sCurveActual,
                             borderColor: '#C2410C', // Orange helper line
                             backgroundColor: 'transparent',
-                            borderWidth: 3,
-                            tension: 0.35,
-                            pointRadius: 4.5,
+                            borderWidth: 2.5,
+                            tension: 0.2,
+                            pointStyle: 'rect',
+                            pointRadius: 5,
                             pointHoverRadius: 7,
-                            pointBackgroundColor: '#8F0A0D',
+                            pointBackgroundColor: '#C2410C',
                             pointBorderColor: '#FFFFFF',
-                            pointBorderWidth: 2,
+                            pointBorderWidth: 1.5,
                             spanGaps: false
                         }
                     ]

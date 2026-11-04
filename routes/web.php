@@ -1153,6 +1153,26 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('pmo')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Super Admin|Admin')->group(function () {
         Route::get('/dashboard', [PmoController::class, 'dashboard'])->name('pmo.dashboard');
         Route::get('/implementations', [PmoController::class, 'implementations'])->name('pmo.implementations.index');
+        Route::get('/ppatk', function () {
+            $project = \App\Models\Project::where('name', 'like', '%PPAT%')
+                ->orWhere('name', 'like', '%Peremajaan Router%')
+                ->orWhere('client', 'like', '%PPAT%')
+                ->first();
+
+            if (!$project) {
+                try {
+                    $seeder = new \Database\Seeders\PpatkProjectSeeder();
+                    $seeder->run();
+                    $project = \App\Models\Project::where('name', 'like', '%PPAT%')->first();
+                } catch (\Throwable $e) {}
+            }
+
+            if ($project) {
+                return redirect()->route('pmo.projects.show', $project->id);
+            }
+
+            return redirect()->route('pmo.implementations.index')->with('error', 'Proyek PPATK tidak ditemukan.');
+        })->name('pmo.projects.ppatk');
         Route::get('/projects/{project}', [PmoController::class, 'projectDashboard'])->name('pmo.projects.show');
         Route::post('/projects/create-manual', [PmoController::class, 'storeManualProject'])->name('pmo.projects.store_manual');
         Route::post('/projects/{project}/expenses', [PmoController::class, 'storeExpense'])->name('pmo.projects.expenses.store');
