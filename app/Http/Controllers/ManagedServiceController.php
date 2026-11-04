@@ -1437,8 +1437,9 @@ class ManagedServiceController extends Controller
                 'handover_data'         => [
                     'so_number'              => 'SO-2026-MS-MNDR01',
                     'coordinator_name'       => $leadMs?->name ?: 'Tim Maintenance',
-                    'lead_engineer_name'     => 'Lead Maintenance',
-                    'team_delegated_by_name' => 'Lead Maintenance',
+                    'lead_engineer_name'     => 'Lead Engineer',
+                    'team_delegated_by_name' => 'Lead Engineer',
+                    'pic_ms_name'            => 'Doris (Tim Maintenance)',
                     'assigned_engineers'     => [
                         [
                             'id'       => $fieldTech?->id ?: 1,
@@ -1987,6 +1988,26 @@ class ManagedServiceController extends Controller
         $pmCompleted = $pmCycles->where('activity_status', 'Completed')->count();
         $pmTotal = $pmCycles->count() ?: ($project->pm_total_cycles ?: 4);
         $pmProgress = $pmTotal > 0 ? round(($pmCompleted / $pmTotal) * 100) : 0;
+
+        // Normalisasi handover_data: PIC Maintenance vs Delegasi Lead Engineer
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $needsHandoverSave = false;
+        if (($handoverData['team_delegated_by_name'] ?? '') === 'Lead Maintenance' || empty($handoverData['team_delegated_by_name'])) {
+            $handoverData['team_delegated_by_name'] = 'Lead Engineer';
+            $needsHandoverSave = true;
+        }
+        if (($handoverData['lead_engineer_name'] ?? '') === 'Lead Maintenance' || empty($handoverData['lead_engineer_name'])) {
+            $handoverData['lead_engineer_name'] = 'Lead Engineer';
+            $needsHandoverSave = true;
+        }
+        if (empty($handoverData['pic_ms_name'])) {
+            $handoverData['pic_ms_name'] = 'Doris (Tim Maintenance)';
+            $needsHandoverSave = true;
+        }
+        if ($needsHandoverSave) {
+            $project->handover_data = $handoverData;
+            $project->save();
+        }
 
         // -------------------------------------------------------------
         // PERHITUNGAN & EVALUASI SLA KETERSEDIAAN (AVAILABILITY & DOWNTIME)

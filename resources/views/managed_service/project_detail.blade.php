@@ -168,13 +168,7 @@
                             </button>
                         </div>
 
-                        <div x-show="activeTab === 'sla'">
-                            <button type="button" @click="isSlaModalOpen = true" 
-                                    class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                <span>Sesuaikan Parameter SLA</span>
-                            </button>
-                        </div>
+
                     </div>
                 </div>
 
@@ -243,75 +237,103 @@
                     </div>
                 </div>
 
-                <!-- TEAM & ENGINEER DELEGATION INFO BANNER -->
+                <!-- TEAM & ENGINEER DELEGATION INFO BANNER (FLOW MAINTENANCE & LEAD ENGINEER) -->
                 @php
                     $allAssigned = $project->handover_data['assigned_engineers'] ?? [];
                     $delegatedBy = $project->handover_data['team_delegated_by_name'] ?? 'Lead Engineer';
+                    if (stripos($delegatedBy, 'Maintenance') !== false) {
+                        $delegatedBy = 'Lead Engineer';
+                    }
                     $delegatedAt = $project->handover_data['team_delegated_at'] ?? null;
                     $delegationNotes = $project->handover_data['team_delegation_notes'] ?? null;
-                    $coordinatorName = $project->handover_data['coordinator_name'] ?? ($project->handover_data['pic_ms_name'] ?? ($project->msAcceptedBy?->name ?? 'Tim Maintenance'));
                     
-                    // Pisahkan personil lapangan asli (field engineers) dari pendamping/helpdesk
-                    $fieldEngineers = collect($allAssigned)->filter(function($e) {
+                    // PIC Penanggung Jawab dari Tim Maintenance (Operasional & Helpdesk)
+                    $picMs = $project->handover_data['pic_ms_name'] 
+                        ?? ($project->handover_data['coordinator_name'] 
+                        ?? ($project->msAcceptedBy?->name ?? 'Doris (Tim Maintenance)'));
+                    
+                    // Personil Lapangan yang ditugaskan & dibagi task-nya oleh Lead Engineer
+                    $fieldEngineers = collect($allAssigned)->filter(function($e) use ($picMs) {
                         $name = strtolower($e['name'] ?? '');
-                        return !str_contains($name, 'doris') && !str_contains($name, 'eris');
+                        $pic = strtolower($picMs);
+                        return !str_contains($name, 'doris') && !str_contains($name, 'eris') && !str_contains($name, 'helpdesk') && $name !== $pic;
                     })->values()->all();
 
-                    if (empty($fieldEngineers) && !empty($allAssigned)) {
-                        $fieldEngineers = $allAssigned;
+                    // Fallback jika belum ada teknisi selain PIC
+                    if (empty($fieldEngineers)) {
+                        $fieldEngineers = collect($allAssigned)->filter(fn($e) => strtolower($e['name'] ?? '') !== strtolower($picMs))->values()->all();
+                    }
+                    if (empty($fieldEngineers) && (stripos($project->client, 'Mandiri') !== false || stripos($project->name, 'Mandiri') !== false)) {
+                        $fieldEngineers = [
+                            ['name' => 'Mario', 'role' => 'Teknisi Lapangan', 'position' => 'Field Support']
+                        ];
                     }
                 @endphp
-                @if(!empty($fieldEngineers))
-                    <div class="p-3.5 rounded-xl bg-gradient-to-r from-emerald-50/80 via-white to-slate-50 border border-emerald-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-3 shadow-2xs">
-                        <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+
+                <div class="p-3.5 sm:p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs mt-3.5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                    
+                    {{-- 1. SISI KIRI: PIC DARI TIM MAINTENANCE (Penanggung Jawab Layanan & Kontrak Aktif) --}}
+                    <div class="flex items-center gap-3 pr-0 lg:pr-5 border-b lg:border-b-0 lg:border-r border-slate-200 pb-3 lg:pb-0 shrink-0 min-w-[260px]">
+                        <div class="w-10 h-10 rounded-xl bg-red-50 text-[#8F0A0D] border border-red-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#8F0A0D]">PIC Tim Maintenance</span>
+                                <span class="text-[9.5px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Aktif</span>
                             </div>
-                            <div>
+                            <div class="text-[13px] font-extrabold text-[#1E293B] truncate mt-0.5">
+                                {{ $picMs }}
+                            </div>
+                            <p class="text-[11px] text-[#64748B] truncate">Koordinator Layanan SLA &amp; Helpdesk</p>
+                        </div>
+                    </div>
+
+                    {{-- 2. SISI KANAN: PERSONIL TIM LAPANGAN (Didelegasikan & Dibagi Task oleh Lead Engineer) --}}
+                    <div class="flex-1 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 min-w-0">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap mb-1.5">
+                                <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-slate-700">Personil Tim Lapangan</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                                    Didelegasikan oleh {{ $delegatedBy }}
+                                </span>
+                                @if($delegatedAt)
+                                    <span class="text-[10.5px] text-slate-400">({{ $delegatedAt }})</span>
+                                @endif
+                            </div>
+
+                            @if(!empty($fieldEngineers) && count($fieldEngineers) > 0)
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Personil Tim Lapangan</span>
-                                    <span class="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300/60">Ditugaskan oleh {{ $delegatedBy }}</span>
-                                    @if($delegatedAt)
-                                        <span class="text-[10.5px] text-slate-500 font-normal">({{ $delegatedAt }})</span>
-                                    @endif
-                                </div>
-                                <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                                     @foreach($fieldEngineers as $idx => $eng)
-                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200/90 shadow-2xs">
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 shadow-2xs">
                                             <span class="w-2 h-2 rounded-full {{ $idx === 0 ? 'bg-emerald-500' : 'bg-blue-500' }}"></span>
                                             <span class="font-bold text-slate-800 text-xs">{{ $eng['name'] }}</span>
-                                            <span class="text-[10.5px] text-slate-500 font-medium">({{ $eng['role'] ?? ($idx === 0 ? 'PIC Utama' : 'Teknisi Lapangan') }})</span>
+                                            <span class="text-[10.5px] text-slate-500 font-medium">({{ $eng['role'] ?? ($idx === 0 ? 'Teknisi Lapangan' : 'Support Lapangan') }})</span>
                                         </div>
                                     @endforeach
-
-                                    {{-- Badge Koordinator / Helpdesk Maintenance (Pendamping) --}}
-                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 shadow-2xs">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        <span class="font-semibold text-xs text-slate-700">{{ $coordinatorName }}</span>
-                                        <span class="text-[10px] text-slate-500 font-normal">(Helpdesk &amp; Pendamping)</span>
-                                    </div>
                                 </div>
                                 @if($delegationNotes)
-                                    <p class="text-[11px] text-slate-600 mt-1.5 italic font-normal">
+                                    <p class="text-[11px] text-slate-600 mt-1 italic font-normal">
                                         <span class="font-semibold text-slate-700">Catatan Lead:</span> &ldquo;{{ $delegationNotes }}&rdquo;
                                     </p>
                                 @endif
-                            </div>
+                            @else
+                                <div class="flex items-center gap-2 text-xs text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                    <span class="font-medium">Jadwal layanan aktif. Menunggu Lead Engineer membagikan penugasan teknisi lapangan ke task proyek ini.</span>
+                                </div>
+                            @endif
                         </div>
-                        <a href="{{ route('schedules.index') }}" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-800 bg-white hover:bg-emerald-100 border border-emerald-300 transition shadow-2xs flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            <span>Lihat di Jadwal Kerja</span>
+
+                        <a href="{{ route('schedules.index') }}" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition shadow-2xs flex items-center gap-1.5 cursor-pointer">
+                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>Jadwal Kerja Tim</span>
                         </a>
                     </div>
-                @else
-                    <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200 flex items-center justify-between gap-3 mt-3">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-                            <span class="text-xs font-semibold text-amber-900">Menunggu Delegasi Personil Lapangan dari Lead Engineer</span>
-                        </div>
-                        <span class="text-[11px] text-amber-800 font-medium">Lead Engineer dapat menugaskan teknisi via Dashboard Lead</span>
-                    </div>
-                @endif
+
+                </div>
             </div>
 
             <!-- ========================================================== -->
