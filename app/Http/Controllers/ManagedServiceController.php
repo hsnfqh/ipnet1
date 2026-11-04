@@ -1708,6 +1708,13 @@ class ManagedServiceController extends Controller
             'pic_ms_name'               => 'nullable|string|max:255',
             'assigned_engineer_id'      => 'nullable|exists:users,id',
             'description'               => 'nullable|string',
+            'teams'                     => 'nullable|array',
+            'file_bast'                 => 'nullable|file|max:51200',
+            'file_spk'                  => 'nullable|file|max:51200',
+            'file_contract'             => 'nullable|file|max:51200',
+            'file_boq'                  => 'nullable|file|max:51200',
+            'file_tor'                  => 'nullable|file|max:51200',
+            'file_tech'                 => 'nullable|file|max:51200',
         ]);
 
         // Parsing nilai kontrak rupiah (bersihkan format titik / koma / simbol)
@@ -1745,6 +1752,42 @@ class ManagedServiceController extends Controller
         $currentUser = auth()->user();
         $picMsName = $validated['pic_ms_name'] ?: ($currentUser?->name ?: 'Tim Maintenance');
 
+        // Tim Pelaksana Teknis (Tim Network, Tim Security, atau keduanya)
+        $rawTeams = (array) ($request->input('teams') ?? ['Tim Network']);
+        $cleanTeams = [];
+        foreach ($rawTeams as $t) {
+            $t = trim((string) $t);
+            if (!empty($t)) {
+                $formatted = preg_match('/^tim\s+/i', $t) ? $t : ('Tim ' . $t);
+                if (!in_array($formatted, $cleanTeams)) {
+                    $cleanTeams[] = $formatted;
+                }
+            }
+        }
+        if (empty($cleanTeams)) {
+            $cleanTeams = ['Tim Network'];
+        }
+
+        // Resolusi Division ID
+        $hasNet = false;
+        $hasSec = false;
+        foreach ($cleanTeams as $tm) {
+            $l = strtolower($tm);
+            if (str_contains($l, 'net')) $hasNet = true;
+            if (str_contains($l, 'sec')) $hasSec = true;
+        }
+        $divisionId = null;
+        if (class_exists(\App\Models\Division::class)) {
+            if ($hasNet && $hasSec) {
+                $divisionId = \App\Models\Division::where('name', 'like', '%Network%')->where('name', 'like', '%Security%')->value('id')
+                    ?? \App\Models\Division::where('name', 'like', '%Network%')->value('id');
+            } elseif ($hasNet) {
+                $divisionId = \App\Models\Division::where('name', 'like', '%Network%')->value('id');
+            } elseif ($hasSec) {
+                $divisionId = \App\Models\Division::where('name', 'like', '%Security%')->value('id');
+            }
+        }
+
         // Personil teknisi lapangan jika dipilih
         $fieldTech = null;
         $assignedEngineers = [];
@@ -1770,6 +1813,7 @@ class ManagedServiceController extends Controller
             'lead_engineer_name'     => $picMsName,
             'team_delegated_by_name' => $picMsName,
             'pic_ms_name'            => $picMsName,
+            'assigned_teams'         => $cleanTeams,
             'customer_pic'           => $validated['customer_pic'] ?? null,
             'customer_pic_phone'     => $validated['customer_pic_phone'] ?? null,
             'notes'                  => $validated['description'] ?? null,
@@ -1790,6 +1834,7 @@ class ManagedServiceController extends Controller
             'customer_pic_business'     => $validated['customer_pic'] ?? null,
             'location'                  => $validated['location'] ?? null,
             'sales_name'                => $salesName,
+            'division_id'               => $divisionId,
             'contract_value'            => $contractValue,
             'po_spk_number'             => $validated['po_spk_number'] ?? null,
             'po_number'                 => $validated['po_spk_number'] ?? null,
@@ -1818,6 +1863,50 @@ class ManagedServiceController extends Controller
             'created_by'                => $currentUser?->id ?? 1,
             'handover_data'             => $handoverData,
         ]);
+
+        // Upload berkas dokumen kontrak / legalitas / teknis jika dilampirkan
+        $docMapping = [
+            'file_bast'     => ['key' => 'ba',          'column' => 'bast_file',     'title' => 'Berita Acara Serah Terima (BAST)'],
+            'file_spk'      => ['key' => 'spk',         'column' => 'po_spk_file',   'title' => 'Surat Perintah Kerja (SPK)'],
+            'file_contract' => ['key' => 'contract',    'column' => 'contract_file', 'title' => 'Kontrak Layanan Managed Service'],
+            'file_boq'      => ['key' => 'boq',         'column' => 'boq_file',      'title' => 'Bill of Quantity (BOQ)'],
+            'file_tor'      => ['key' => 'tor',         'column' => 'tor_file',      'title' => 'Terms of Reference (TOR)'],
+            'file_tech'     => ['key' => 'project_doc', 'column' => 'proposal_file', 'title' => 'Dokumen Teknis & Topologi Proyek'],
+        ];
+
+        $uploadedPaths = [];
+        $checklist = [];
+        foreach ($docMapping as $inputName => $meta) {
+            if ($request->hasFile($inputName) && $request->file($inputName)->isValid()) {
+                $file = $request->file($inputName);
+                $filePath = FileUploadHelper::storePublicly($file, 'managed_service_documents');
+                $uploadedPaths[$meta['column']] = $filePath;
+                $checklist[$meta['key']] = true;
+
+                if (Schema::hasTable('project_documents')) {
+                    ProjectDocument::updateOrCreate(
+                        [
+                            'project_id'   => $project->id,
+                            'document_key' => $meta['key'],
+                        ],
+                        [
+                            'document_title' => $meta['title'],
+                            'file_path'      => $filePath,
+                            'file_name'      => $file->getClientOriginalName(),
+                            'file_size'      => $file->getSize() ?: 0,
+                            'status'         => 'Uploaded',
+                            'uploaded_by'    => $currentUser?->id,
+                            'uploaded_at'    => now(),
+                        ]
+                    );
+                }
+            }
+        }
+
+        if (!empty($uploadedPaths)) {
+            $uploadedPaths['documents_checklist'] = $checklist;
+            $project->update($uploadedPaths);
+        }
 
         // Auto inisialisasi PM cycles berdasarkan durasi & frekuensi
         self::initPmCycles($project);

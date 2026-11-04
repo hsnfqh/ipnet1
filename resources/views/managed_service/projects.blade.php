@@ -615,6 +615,18 @@
                              startDate: '{{ now()->format('Y-m-d') }}',
                              endDate: '{{ now()->addYear()->format('Y-m-d') }}',
                              durationMonths: 12,
+                             selectedTeams: ['Tim Network'],
+
+                             toggleTeam(team) {
+                                 const idx = this.selectedTeams.indexOf(team);
+                                 if (idx > -1) {
+                                     if (this.selectedTeams.length > 1) {
+                                         this.selectedTeams.splice(idx, 1);
+                                     }
+                                 } else {
+                                     this.selectedTeams.push(team);
+                                 }
+                             },
 
                              formatRupiah(val) {
                                  let clean = (val || '').toString().replace(/\D/g, '');
@@ -697,7 +709,7 @@
                         </div>
 
                         {{-- Modal Body (Scrollable Form) --}}
-                        <form action="{{ route('ms.projects.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden m-0">
+                        <form action="{{ route('ms.projects.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden m-0">
                             @csrf
                             <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
 
@@ -810,12 +822,9 @@
                                                     <button type="button" 
                                                             @click="slaTier = t; updateSlaDefaults();"
                                                             :class="slaTier === t 
-                                                                ? (t === 'Platinum' ? 'bg-purple-700 text-white border-purple-700 shadow-xs' 
-                                                                   : t === 'Gold' ? 'bg-amber-600 text-white border-amber-600 shadow-xs' 
-                                                                   : t === 'Silver' ? 'bg-slate-700 text-white border-slate-700 shadow-xs' 
-                                                                   : 'bg-amber-800 text-white border-amber-800 shadow-xs') 
-                                                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
-                                                            class="py-2 text-center text-xs font-bold rounded-xl border transition cursor-pointer"
+                                                                ? 'bg-[#8F0A0D] text-white border-[#8F0A0D] shadow-xs ring-1 ring-[#8F0A0D]/20 font-bold' 
+                                                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
+                                                            class="py-2.5 text-center text-xs rounded-xl border transition cursor-pointer select-none"
                                                             x-text="t">
                                                     </button>
                                                 </template>
@@ -869,6 +878,60 @@
                                         <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Penugasan Personil &amp; Ruang Lingkup</h4>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {{-- Pilih Tim Pelaksana (Network / Security / Keduanya) --}}
+                                        <div class="space-y-1.5 md:col-span-2">
+                                            <label class="block text-xs font-bold text-slate-700">
+                                                Pilih Tim Pelaksana <span class="text-red-500">*</span>
+                                                <span class="text-[11px] font-normal text-slate-400 ml-1">(Pilih Tim Network, Tim Security, atau bisa pilih keduanya)</span>
+                                            </label>
+                                            <div class="flex flex-wrap items-center gap-2.5">
+                                                {{-- Tim Network --}}
+                                                <button type="button" 
+                                                        @click="toggleTeam('Tim Network')"
+                                                        :class="selectedTeams.includes('Tim Network') 
+                                                            ? 'bg-[#8F0A0D] text-white border-[#8F0A0D] shadow-xs ring-1 ring-[#8F0A0D]/20 font-bold' 
+                                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
+                                                        class="px-4 py-2 rounded-xl border text-xs flex items-center gap-2 transition cursor-pointer select-none">
+                                                    <span class="w-4 h-4 rounded flex items-center justify-center border"
+                                                          :class="selectedTeams.includes('Tim Network') ? 'border-white bg-white text-[#8F0A0D]' : 'border-slate-300 bg-white'">
+                                                        <svg x-show="selectedTeams.includes('Tim Network')" class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                    </span>
+                                                    <span>Tim Network</span>
+                                                </button>
+
+                                                {{-- Tim Security --}}
+                                                <button type="button" 
+                                                        @click="toggleTeam('Tim Security')"
+                                                        :class="selectedTeams.includes('Tim Security') 
+                                                            ? 'bg-[#8F0A0D] text-white border-[#8F0A0D] shadow-xs ring-1 ring-[#8F0A0D]/20 font-bold' 
+                                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
+                                                        class="px-4 py-2 rounded-xl border text-xs flex items-center gap-2 transition cursor-pointer select-none">
+                                                    <span class="w-4 h-4 rounded flex items-center justify-center border"
+                                                          :class="selectedTeams.includes('Tim Security') ? 'border-white bg-white text-[#8F0A0D]' : 'border-slate-300 bg-white'">
+                                                        <svg x-show="selectedTeams.includes('Tim Security')" class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                    </span>
+                                                    <span>Tim Security</span>
+                                                </button>
+
+                                                {{-- Tim Maintenance & Support --}}
+                                                <button type="button" 
+                                                        @click="toggleTeam('Tim Maintenance & Support')"
+                                                        :class="selectedTeams.includes('Tim Maintenance & Support') 
+                                                            ? 'bg-[#8F0A0D] text-white border-[#8F0A0D] shadow-xs ring-1 ring-[#8F0A0D]/20 font-bold' 
+                                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
+                                                        class="px-4 py-2 rounded-xl border text-xs flex items-center gap-2 transition cursor-pointer select-none">
+                                                    <span class="w-4 h-4 rounded flex items-center justify-center border"
+                                                          :class="selectedTeams.includes('Tim Maintenance & Support') ? 'border-white bg-white text-[#8F0A0D]' : 'border-slate-300 bg-white'">
+                                                        <svg x-show="selectedTeams.includes('Tim Maintenance & Support')" class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                    </span>
+                                                    <span>Tim Maintenance &amp; Support</span>
+                                                </button>
+                                            </div>
+                                            <template x-for="t in selectedTeams" :key="t">
+                                                <input type="hidden" name="teams[]" :value="t">
+                                            </template>
+                                        </div>
+
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Koordinator / Lead PIC Managed Service</label>
                                             <input type="text" name="pic_ms_name" value="{{ $currentUserName ?? auth()->user()->name ?? 'Tim Maintenance' }}" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-slate-50 font-semibold text-slate-800">
@@ -893,25 +956,179 @@
                                     </div>
                                 </div>
 
+                                {{-- SECTION 5: Berkas Dokumen Kontrak & Legalitas Layanan --}}
+                                <div>
+                                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[10.5px] font-bold flex items-center justify-center">5</span>
+                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Berkas Dokumen Kontrak &amp; Legalitas Layanan</h4>
+                                        </div>
+                                        <span class="text-[11px] font-semibold text-slate-400">Format PDF, DOC, XLS, Gambar (Maks. 50MB per berkas)</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                        {{-- 1. BA / BAST / BAP --}}
+                                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
+                                             x-data="{ fileName: '' }">
+                                            <div class="flex items-start gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Berita Acara Serah Terima (BA / BAST / BAP)</h5>
+                                                    <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Bukti serah terima operasional dan milestone penagihan berkala.</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
+                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <input type="file" name="file_bast" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                </label>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
+                                            </div>
+                                        </div>
+
+                                        {{-- 2. Surat Perintah Kerja (SPK / PO) --}}
+                                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
+                                             x-data="{ fileName: '' }">
+                                            <div class="flex items-start gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Surat Perintah Kerja (SPK / PO)</h5>
+                                                    <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Dokumen acuan perintah kerja resmi dari klien.</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
+                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <input type="file" name="file_spk" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                </label>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
+                                            </div>
+                                        </div>
+
+                                        {{-- 3. Kontrak Perjanjian Layanan (PKS / Contract) --}}
+                                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
+                                             x-data="{ fileName: '' }">
+                                            <div class="flex items-start gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Kontrak Perjanjian Layanan (PKS / Contract)</h5>
+                                                    <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Perjanjian kerja sama SLA dan pemeliharaan jangka panjang.</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
+                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <input type="file" name="file_contract" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                </label>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
+                                            </div>
+                                        </div>
+
+                                        {{-- 4. Bill of Quantity (BOQ & Spesifikasi Layanan) --}}
+                                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
+                                             x-data="{ fileName: '' }">
+                                            <div class="flex items-start gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Bill of Quantity (BOQ &amp; Spesifikasi Layanan)</h5>
+                                                    <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Daftar rincian perangkat keras, lisensi software, dan alokasi mandays.</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
+                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <input type="file" name="file_boq" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                </label>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
+                                            </div>
+                                        </div>
+
+                                        {{-- 5. Terms of Reference (TOR) --}}
+                                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
+                                             x-data="{ fileName: '' }">
+                                            <div class="flex items-start gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Terms of Reference (TOR)</h5>
+                                                    <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Kerangka acuan kerja, ruang lingkup &amp; spesifikasi teknis layanan.</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
+                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <input type="file" name="file_tor" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                </label>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
+                                            </div>
+                                        </div>
+
+                                        {{-- 6. Dokumen Teknis & Topologi Proyek --}}
+                                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
+                                             x-data="{ fileName: '' }">
+                                            <div class="flex items-start gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Dokumen Teknis &amp; Topologi Proyek</h5>
+                                                    <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Diagram jaringan, desain arsitektur, IP addressing, dan NDA.</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
+                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <input type="file" name="file_tech" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                </label>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
 
                             {{-- Modal Footer --}}
-                            <div class="flex items-center justify-between border-t border-[#E2E8F0] p-4 sm:p-5 px-6 bg-slate-50 shrink-0">
-                                <p class="text-[11.5px] text-slate-500 font-medium hidden sm:block">Kontrak akan otomatis berstatus <span class="font-bold text-emerald-700">Active (Operate)</span> dan siklus PM siap dijalankan.</p>
-                                <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-                                    <button type="button" 
-                                            @click="showCreateContractModal = false" 
-                                            class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200 border border-slate-300 rounded-xl transition cursor-pointer">
-                                        Batal
-                                    </button>
-                                    <button type="submit" 
-                                            class="inline-flex items-center gap-2 px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-xl shadow-md shadow-red-900/15 transition cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                        <span>Simpan &amp; Aktifkan Kontrak</span>
-                                    </button>
-                                </div>
+                            <div class="flex items-center justify-end gap-2.5 border-t border-[#E2E8F0] p-4 sm:p-5 px-6 bg-slate-50 shrink-0">
+                                <button type="button" 
+                                        @click="showCreateContractModal = false" 
+                                        class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200 border border-slate-300 rounded-xl transition cursor-pointer">
+                                    Batal
+                                </button>
+                                <button type="submit" 
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-xl shadow-md shadow-red-900/15 transition cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span>Simpan &amp; Aktifkan Kontrak</span>
+                                </button>
                             </div>
                         </form>
                     </div>
