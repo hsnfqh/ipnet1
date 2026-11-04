@@ -35,7 +35,7 @@
 @endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" x-data="{ activeTab: '{{ request('tab', 'active') }}' }">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" x-data="{ activeTab: '{{ request('tab', 'active') }}', showCreateContractModal: false }">
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
@@ -67,8 +67,19 @@
                         <p class="text-[13px] text-[#64748B] mt-0.5">Kelola pelaksanaan kontrak berjalan, dokumen legal BAST/SPK, serah terima masuk (onboarding), dan monitoring SLA</p>
                     </div>
 
-                    {{-- Tab Switcher: Segmented Toggle Styled Like Reference (Gambar 2) on the right side --}}
-                    <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0 self-start lg:self-center">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 self-start lg:self-center">
+                        {{-- Tombol Buat Kontrak Baru --}}
+                        <button type="button" 
+                                @click="showCreateContractModal = true" 
+                                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Buat Kontrak Service Baru</span>
+                        </button>
+
+                        {{-- Tab Switcher: Segmented Toggle Styled Like Reference (Gambar 2) on the right side --}}
+                        <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0">
                         {{-- Tab 1: Kontrak Layanan Aktif --}}
                         <button type="button" 
                                 @click="activeTab = 'active'" 
@@ -102,6 +113,7 @@
                                 {{ $pendingHandoversCount ?? ($incomingHandovers->count() ?? 0) }}
                             </span>
                         </button>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -578,6 +590,333 @@
 
             </div>
 
+
+            {{-- =================================================================== --}}
+            {{-- MODAL BUAT KONTRAK MANAGED SERVICE BARU                             --}}
+            {{-- =================================================================== --}}
+            <template x-teleport="body">
+                <div x-show="showCreateContractModal" 
+                     x-cloak 
+                     class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5"
+                     @keydown.escape.window="showCreateContractModal = false">
+                    
+                    <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-[#CBD5E1] max-h-[92vh] flex flex-col overflow-hidden anim-fade-up"
+                         @click.outside="showCreateContractModal = false"
+                         x-data="{
+                             contractValueFormatted: '',
+                             contractValueRaw: '',
+                             slaTier: 'Gold',
+                             slaPercentage: 99.50,
+                             mttrHours: 4,
+                             callResponseTime: '30 Menit',
+                             pmFrequency: 'per_3_bulan',
+                             pmCycles: 4,
+                             cmQuota: 12,
+                             startDate: '{{ now()->format('Y-m-d') }}',
+                             endDate: '{{ now()->addYear()->format('Y-m-d') }}',
+                             durationMonths: 12,
+
+                             formatRupiah(val) {
+                                 let clean = (val || '').toString().replace(/\D/g, '');
+                                 this.contractValueRaw = clean;
+                                 this.contractValueFormatted = clean ? new Intl.NumberFormat('id-ID').format(clean) : '';
+                             },
+
+                             updateSlaDefaults() {
+                                 if (this.slaTier === 'Platinum') {
+                                     this.slaPercentage = 99.90;
+                                     this.mttrHours = 2;
+                                     this.callResponseTime = '15 Menit';
+                                     this.cmQuota = 24;
+                                 } else if (this.slaTier === 'Gold') {
+                                     this.slaPercentage = 99.50;
+                                     this.mttrHours = 4;
+                                     this.callResponseTime = '30 Menit';
+                                     this.cmQuota = 12;
+                                 } else if (this.slaTier === 'Silver') {
+                                     this.slaPercentage = 99.00;
+                                     this.mttrHours = 8;
+                                     this.callResponseTime = '1 Jam';
+                                     this.cmQuota = 6;
+                                 } else if (this.slaTier === 'Bronze') {
+                                     this.slaPercentage = 98.00;
+                                     this.mttrHours = 12;
+                                     this.callResponseTime = '2 Jam';
+                                     this.cmQuota = 4;
+                                 }
+                             },
+
+                             updateFrequencyCycles() {
+                                 const map = {
+                                     'per_bulan': 12,
+                                     'per_2_bulan': 6,
+                                     'per_3_bulan': 4,
+                                     'per_4_bulan': 3,
+                                     'per_6_bulan': 2,
+                                     'tahunan': 1
+                                 };
+                                 if (map[this.pmFrequency]) {
+                                     this.pmCycles = map[this.pmFrequency];
+                                 }
+                             },
+
+                             calculateDuration() {
+                                 if (!this.startDate || !this.endDate) return;
+                                 const start = new Date(this.startDate);
+                                 const end = new Date(this.endDate);
+                                 if (end > start) {
+                                     const diffTime = Math.abs(end - start);
+                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                     this.durationMonths = Math.round(diffDays / 30.4);
+                                 }
+                             }
+                         }"
+                         x-init="updateSlaDefaults(); updateFrequencyCycles(); calculateDuration();">
+                        
+                        {{-- Modal Header --}}
+                        <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-[#F8FAFC]">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center font-bold shadow-2xs">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-[#8F0A0D]">Operate Stage</span>
+                                        <span class="text-[11px] font-semibold text-slate-500">Inisialisasi Portofolio Managed Service</span>
+                                    </div>
+                                    <h3 class="text-base sm:text-lg font-bold text-[#1E293B]">Buat Kontrak Managed Service Baru</h3>
+                                </div>
+                            </div>
+                            <button type="button" @click="showCreateContractModal = false" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-200 transition cursor-pointer">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        {{-- Modal Body (Scrollable Form) --}}
+                        <form action="{{ route('ms.projects.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden m-0">
+                            @csrf
+                            <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+
+                                {{-- SECTION 1: Informasi Kontrak & Klien --}}
+                                <div>
+                                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                        <span class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[10.5px] font-bold flex items-center justify-center">1</span>
+                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Informasi Kontrak &amp; Klien</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="space-y-1 md:col-span-2">
+                                            <label class="block text-xs font-bold text-slate-700">Nama Kontrak Layanan / Proyek <span class="text-red-500">*</span></label>
+                                            <input type="text" name="name" required placeholder="Contoh: Managed Service Pemeliharaan Jaringan & Router WAN" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Nama Perusahaan / Klien <span class="text-red-500">*</span></label>
+                                            <input type="text" name="client" required placeholder="Contoh: PT Bank Mandiri (Persero) Tbk" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Sales PIC / Account Manager</label>
+                                            <select name="sales_name" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white">
+                                                <option value="">-- Pilih Sales (Opsional) --</option>
+                                                @foreach($salesUsers ?? [] as $s)
+                                                    <option value="{{ $s->name }}">{{ $s->name }} (Sales)</option>
+                                                @endforeach
+                                                <option value="Direct Maintenance">Direct Maintenance / Non-Sales</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Nama PIC Klien (Customer PIC)</label>
+                                            <input type="text" name="customer_pic" placeholder="Contoh: Bapak Irwan (Head of IT Ops)" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Kontak / No. Telp PIC Klien</label>
+                                            <input type="text" name="customer_pic_phone" placeholder="Contoh: 0812-3456-7890" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+
+                                        <div class="space-y-1 md:col-span-2">
+                                            <label class="block text-xs font-bold text-slate-700">Lokasi / Kantor / Data Center Layanan</label>
+                                            <input type="text" name="location" placeholder="Contoh: Plaza Mandiri Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta Selatan" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- SECTION 2: Nilai & Durasi Kontrak --}}
+                                <div>
+                                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                        <span class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[10.5px] font-bold flex items-center justify-center">2</span>
+                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Nilai Kontrak &amp; Durasi Layanan</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Nomor PO / SPK / Kontrak</label>
+                                            <input type="text" name="po_spk_number" placeholder="Contoh: PO-2026/MNDR-IT/088" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Nilai Kontrak (Rp)</label>
+                                            <div class="relative">
+                                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                                                <input type="text" 
+                                                       :value="contractValueFormatted" 
+                                                       @input="formatRupiah($event.target.value)" 
+                                                       placeholder="0" 
+                                                       class="w-full text-xs pl-9 pr-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-semibold text-slate-800">
+                                                <input type="hidden" name="contract_value" :value="contractValueRaw">
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Ketentuan Tagihan (Termin)</label>
+                                            <input type="text" name="billing_terms" value="Bulanan (Net 30 Hari)" placeholder="Contoh: Bulanan (Net 30 Hari)" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Tanggal Mulai Layanan <span class="text-red-500">*</span></label>
+                                            <input type="date" name="service_start_date" required x-model="startDate" @change="calculateDuration()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Tanggal Berakhir Layanan <span class="text-red-500">*</span></label>
+                                            <input type="date" name="service_end_date" required x-model="endDate" @change="calculateDuration()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Estimasi Durasi Kontrak</label>
+                                            <div class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 flex items-center justify-between">
+                                                <span x-text="durationMonths > 0 ? durationMonths + ' Bulan' : '-'">12 Bulan</span>
+                                                <span class="text-[10px] font-semibold text-slate-400" x-text="durationMonths >= 12 ? '(' + (durationMonths/12).toFixed(1) + ' Tahun)' : ''"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- SECTION 3: Parameter SLA & Preventive Maintenance --}}
+                                <div>
+                                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                        <span class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[10.5px] font-bold flex items-center justify-center">3</span>
+                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Parameter SLA &amp; Jadwal Pemeliharaan (PM)</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                        <div class="space-y-1 md:col-span-2">
+                                            <label class="block text-xs font-bold text-slate-700">SLA Tier Layanan <span class="text-red-500">*</span></label>
+                                            <div class="grid grid-cols-4 gap-2">
+                                                <template x-for="t in ['Platinum', 'Gold', 'Silver', 'Bronze']" :key="t">
+                                                    <button type="button" 
+                                                            @click="slaTier = t; updateSlaDefaults();"
+                                                            :class="slaTier === t 
+                                                                ? (t === 'Platinum' ? 'bg-purple-700 text-white border-purple-700 shadow-xs' 
+                                                                   : t === 'Gold' ? 'bg-amber-600 text-white border-amber-600 shadow-xs' 
+                                                                   : t === 'Silver' ? 'bg-slate-700 text-white border-slate-700 shadow-xs' 
+                                                                   : 'bg-amber-800 text-white border-amber-800 shadow-xs') 
+                                                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
+                                                            class="py-2 text-center text-xs font-bold rounded-xl border transition cursor-pointer"
+                                                            x-text="t">
+                                                    </button>
+                                                </template>
+                                            </div>
+                                            <input type="hidden" name="sla_tier" :value="slaTier">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Target Uptime SLA (%)</label>
+                                            <input type="number" step="0.01" name="sla_target_percentage" x-model="slaPercentage" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Max MTTR (Jam)</label>
+                                            <input type="number" name="mttr_hours" x-model="mttrHours" min="1" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Response Time</label>
+                                            <input type="text" name="call_response_time" x-model="callResponseTime" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-semibold text-slate-800">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Frekuensi Kunjungan PM <span class="text-red-500">*</span></label>
+                                            <select name="pm_frequency_type" x-model="pmFrequency" @change="updateFrequencyCycles()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white">
+                                                <option value="per_bulan">Bulanan (Setiap Bulan - 12x)</option>
+                                                <option value="per_2_bulan">Bi-Monthly (Setiap 2 Bulan - 6x)</option>
+                                                <option value="per_3_bulan">Triwulan / Q-Cycle (Per 3 Bulan - 4x)</option>
+                                                <option value="per_4_bulan">Caturwulan (Per 4 Bulan - 3x)</option>
+                                                <option value="per_6_bulan">Semesteran (Per 6 Bulan - 2x)</option>
+                                                <option value="tahunan">Tahunan (Annual - 1x)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Total Siklus PM Otomatis</label>
+                                            <input type="number" name="pm_total_cycles" x-model="pmCycles" min="1" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Kuota Tiket Insiden (CM Quota)</label>
+                                            <input type="number" name="cm_quota" x-model="cmQuota" min="0" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- SECTION 4: Penugasan Tim & Ruang Lingkup --}}
+                                <div>
+                                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                        <span class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[10.5px] font-bold flex items-center justify-center">4</span>
+                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Penugasan Personil &amp; Ruang Lingkup</h4>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Koordinator / Lead PIC Managed Service</label>
+                                            <input type="text" name="pic_ms_name" value="{{ $currentUserName ?? auth()->user()->name ?? 'Tim Maintenance' }}" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-slate-50 font-semibold text-slate-800">
+                                            <p class="text-[10.5px] text-slate-400">Secara default diisi oleh user maintenance yang sedang login.</p>
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Teknisi Lapangan yang Ditugaskan</label>
+                                            <select name="assigned_engineer_id" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white">
+                                                <option value="">-- Pilih Teknisi Lapangan (Opsional) --</option>
+                                                @foreach($fieldEngineers ?? [] as $fe)
+                                                    <option value="{{ $fe->id }}">{{ $fe->name }} ({{ $fe->position ?: 'Engineer' }})</option>
+                                                @endforeach
+                                            </select>
+                                            <p class="text-[10.5px] text-slate-400">Teknisi yang dipilih akan otomatis di-assign ke seluruh siklus PM baru.</p>
+                                        </div>
+
+                                        <div class="space-y-1 md:col-span-2">
+                                            <label class="block text-xs font-bold text-slate-700">Deskripsi / Ruang Lingkup Pekerjaan</label>
+                                            <textarea name="description" rows="3" placeholder="Tuliskan catatan cakupan pekerjaan pemeliharaan, perangkat yang dicakup (Router/Switch/Access Point/Server), atau spesifikasi lainnya..." class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {{-- Modal Footer --}}
+                            <div class="flex items-center justify-between border-t border-[#E2E8F0] p-4 sm:p-5 px-6 bg-slate-50 shrink-0">
+                                <p class="text-[11.5px] text-slate-500 font-medium hidden sm:block">Kontrak akan otomatis berstatus <span class="font-bold text-emerald-700">Active (Operate)</span> dan siklus PM siap dijalankan.</p>
+                                <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                                    <button type="button" 
+                                            @click="showCreateContractModal = false" 
+                                            class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200 border border-slate-300 rounded-xl transition cursor-pointer">
+                                        Batal
+                                    </button>
+                                    <button type="submit" 
+                                            class="inline-flex items-center gap-2 px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-xl shadow-md shadow-red-900/15 transition cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span>Simpan &amp; Aktifkan Kontrak</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </template>
         </div>
     </div>
 </div>

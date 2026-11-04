@@ -1659,7 +1659,178 @@ class ManagedServiceController extends Controller
         $currentUserName = auth()->user()?->name ?? 'Tim Managed Service';
         $leadMsName = $currentUserName;
 
-        return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage', 'leadMsName', 'currentUserName'));
+        $fieldEngineers = User::where('status', 'Active')
+            ->where(function($q) {
+                $q->whereHas('roles', fn($r) => $r->whereIn('name', ['Field Support', 'Field Support (EOS)', 'Maintenance', 'Lead Maintenance', 'Managed Service', 'Engineer', 'Network Engineer', 'Security Engineer']))
+                  ->orWhere('position', 'like', '%Engineer%')
+                  ->orWhere('position', 'like', '%Teknisi%')
+                  ->orWhere('position', 'like', '%Maintenance%');
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'position']);
+
+        if ($fieldEngineers->isEmpty()) {
+            $fieldEngineers = User::where('status', 'Active')->orderBy('name')->get(['id', 'name', 'position']);
+        }
+
+        $salesUsers = User::where('status', 'Active')
+            ->whereHas('roles', fn($r) => $r->where('name', 'Sales'))
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage', 'leadMsName', 'currentUserName', 'fieldEngineers', 'salesUsers'));
+    }
+
+    /**
+     * Simpan Kontrak Managed Service Baru yang dibuat langsung oleh tim Managed Service
+     */
+    public function storeProject(Request $request)
+    {
+        $validated = $request->validate([
+            'name'                      => 'required|string|max:255',
+            'client'                    => 'required|string|max:255',
+            'customer_pic'              => 'nullable|string|max:255',
+            'customer_pic_phone'        => 'nullable|string|max:50',
+            'location'                  => 'nullable|string|max:255',
+            'sales_name'                => 'nullable|string|max:255',
+            'po_spk_number'             => 'nullable|string|max:100',
+            'contract_value'            => 'nullable',
+            'service_start_date'        => 'required|date',
+            'service_end_date'          => 'required|date|after_or_equal:service_start_date',
+            'billing_terms'             => 'nullable|string|max:255',
+            'sla_tier'                  => 'required|string|in:Platinum,Gold,Silver,Bronze',
+            'sla_target_percentage'     => 'nullable|numeric|between:80,100',
+            'mttr_hours'                => 'nullable|numeric|min:1',
+            'call_response_time'        => 'nullable|string|max:50',
+            'pm_frequency_type'         => 'required|string',
+            'pm_total_cycles'           => 'nullable|integer|min:1',
+            'cm_quota'                  => 'nullable|integer|min:0',
+            'pic_ms_name'               => 'nullable|string|max:255',
+            'assigned_engineer_id'      => 'nullable|exists:users,id',
+            'description'               => 'nullable|string',
+        ]);
+
+        // Parsing nilai kontrak rupiah (bersihkan format titik / koma / simbol)
+        $rawVal = preg_replace('/[^\d]/', '', (string) ($request->contract_value ?? '0'));
+        $contractValue = ($rawVal !== '' && $rawVal !== '0') ? (float) $rawVal : null;
+
+        // SLA Tier Preset Defaults
+        $tier = $validated['sla_tier'];
+        $tierDefaults = match($tier) {
+            'Platinum' => ['sla' => 99.90, 'mttr' => 2, 'resp' => '15 Menit', 'cm' => 24],
+            'Gold'     => ['sla' => 99.50, 'mttr' => 4, 'resp' => '30 Menit', 'cm' => 12],
+            'Silver'   => ['sla' => 99.00, 'mttr' => 8, 'resp' => '1 Jam',    'cm' => 6],
+            'Bronze'   => ['sla' => 98.00, 'mttr' => 12, 'resp' => '2 Jam',   'cm' => 4],
+            default    => ['sla' => 99.50, 'mttr' => 4, 'resp' => '30 Menit', 'cm' => 12],
+        };
+
+        $slaTarget = !empty($validated['sla_target_percentage']) ? (float) $validated['sla_target_percentage'] : $tierDefaults['sla'];
+        $mttrHours = !empty($validated['mttr_hours']) ? (int) $validated['mttr_hours'] : $tierDefaults['mttr'];
+        $callResp  = !empty($validated['call_response_time']) ? $validated['call_response_time'] : $tierDefaults['resp'];
+        $cmQuota   = (isset($validated['cm_quota']) && $validated['cm_quota'] !== '') ? (int) $validated['cm_quota'] : $tierDefaults['cm'];
+
+        // PM Total Cycles Default
+        $freq = $validated['pm_frequency_type'];
+        $freqCycles = match($freq) {
+            'per_bulan'   => 12,
+            'per_2_bulan' => 6,
+            'per_3_bulan' => 4,
+            'per_4_bulan' => 3,
+            'per_6_bulan' => 2,
+            'tahunan'     => 1,
+            default       => 4,
+        };
+        $totalCycles = !empty($validated['pm_total_cycles']) ? (int) $validated['pm_total_cycles'] : $freqCycles;
+
+        $currentUser = auth()->user();
+        $picMsName = $validated['pic_ms_name'] ?: ($currentUser?->name ?: 'Tim Maintenance');
+
+        // Personil teknisi lapangan jika dipilih
+        $fieldTech = null;
+        $assignedEngineers = [];
+        if (!empty($validated['assigned_engineer_id'])) {
+            $fieldTech = User::find($validated['assigned_engineer_id']);
+            if ($fieldTech) {
+                $assignedEngineers[] = [
+                    'id'       => $fieldTech->id,
+                    'name'     => $fieldTech->name,
+                    'email'    => $fieldTech->email ?? '',
+                    'role'     => 'PIC Utama Lapangan',
+                    'position' => $fieldTech->position ?? 'Maintenance Engineer',
+                ];
+            }
+        }
+
+        $handoverData = [
+            'source'                 => 'Direct Managed Service Contract',
+            'so_number'              => 'SO-' . date('Y') . '-MS-' . strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $validated['client']), 0, 6)) . rand(10, 99),
+            'po_spk_number'          => $validated['po_spk_number'] ?? null,
+            'billing_terms'          => $validated['billing_terms'] ?? 'Bulanan (Net 30 Hari)',
+            'coordinator_name'       => $picMsName,
+            'lead_engineer_name'     => $picMsName,
+            'team_delegated_by_name' => $picMsName,
+            'pic_ms_name'            => $picMsName,
+            'customer_pic'           => $validated['customer_pic'] ?? null,
+            'customer_pic_phone'     => $validated['customer_pic_phone'] ?? null,
+            'notes'                  => $validated['description'] ?? null,
+            'assigned_engineers'     => $assignedEngineers,
+            'ms_signature'           => [
+                'user_name' => $picMsName,
+                'signed_at' => now()->toIso8601String(),
+                'notes'     => 'Kontrak Service dibuat & diaktifkan langsung oleh tim Managed Service.',
+            ],
+        ];
+
+        $salesName = $validated['sales_name'] ?: 'Direct Maintenance';
+
+        $project = Project::create([
+            'name'                      => $validated['name'],
+            'client'                    => $validated['client'],
+            'customer_pic_technical'    => $validated['customer_pic'] ?? null,
+            'customer_pic_business'     => $validated['customer_pic'] ?? null,
+            'location'                  => $validated['location'] ?? null,
+            'sales_name'                => $salesName,
+            'contract_value'            => $contractValue,
+            'po_spk_number'             => $validated['po_spk_number'] ?? null,
+            'po_number'                 => $validated['po_spk_number'] ?? null,
+            'stage'                     => 'Operate',
+            'status'                    => 'Active',
+            'sales_stage'               => 'Closed Won',
+            'ms_handover_status'        => 'Accepted',
+            'ms_accepted_by'            => $currentUser?->id,
+            'ms_accepted_at'            => now(),
+            'handover_target'           => 'managed_service',
+            'project_type'              => 'Managed Service SLA',
+            'sla_tier'                  => $tier,
+            'sla_target_percentage'     => $slaTarget,
+            'mttr_hours'                => $mttrHours,
+            'call_response_time'        => $callResp,
+            'incident_resolution_hours' => $mttrHours,
+            'pm_frequency_type'         => $freq,
+            'pm_total_cycles'           => $totalCycles,
+            'cm_quota'                  => $cmQuota,
+            'service_start_date'        => $validated['service_start_date'],
+            'service_end_date'          => $validated['service_end_date'],
+            'start_date'                => $validated['service_start_date'],
+            'deadline'                  => $validated['service_end_date'],
+            'billing_terms'             => $validated['billing_terms'] ?? 'Bulanan (Net 30 Hari)',
+            'description'               => $validated['description'] ?? null,
+            'created_by'                => $currentUser?->id ?? 1,
+            'handover_data'             => $handoverData,
+        ]);
+
+        // Auto inisialisasi PM cycles berdasarkan durasi & frekuensi
+        self::initPmCycles($project);
+
+        // Jika teknisi dipilih, assign ke semua siklus PM yang baru dibuat
+        if ($fieldTech) {
+            ManagedServicePmCycle::where('project_id', $project->id)
+                ->whereNull('assigned_engineer_id')
+                ->update(['assigned_engineer_id' => $fieldTech->id]);
+        }
+
+        return redirect()->route('ms.projects.index', ['tab' => 'active'])
+            ->with('success', "Kontrak Managed Service '{$project->name}' untuk klien '{$project->client}' berhasil dibuat & otomatis diaktifkan.");
     }
 
     /**
