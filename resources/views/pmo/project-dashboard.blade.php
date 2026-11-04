@@ -514,7 +514,7 @@
 
                     {{-- Tab 4: S-Curve --}}
                     <button type="button" 
-                            @click="activeMainTab = 'scurve'; $nextTick(() => { if (window.sCurveChartInstance) window.sCurveChartInstance.resize(); })"
+                            @click="activeMainTab = 'scurve'; $nextTick(() => { if (window.renderSCurveChart) { window.renderSCurveChart(); } else if (window.sCurveChartInstance) { window.sCurveChartInstance.resize(); window.sCurveChartInstance.update(); } })"
                             :class="activeMainTab === 'scurve' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
                             class="px-3.5 py-2 rounded-xl text-xs transition inline-flex items-center gap-2 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -2350,9 +2350,48 @@
                         }
                     ]
                 },
+                plugins: [{
+                    id: 'sCurveDataLabels',
+                    afterDatasetsDraw(chart) {
+                        const ctx = chart.ctx;
+                        ctx.save();
+                        ctx.font = 'bold 11px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+
+                        chart.data.datasets.forEach((dataset, dIdx) => {
+                            const meta = chart.getDatasetMeta(dIdx);
+                            if (meta.hidden) return;
+
+                            meta.data.forEach((element, pIdx) => {
+                                const val = dataset.data[pIdx];
+                                if (val === null || val === undefined || isNaN(val)) return;
+
+                                ctx.fillStyle = dataset.borderColor;
+                                // At week 1: actual point is higher (26.7%), plan point is lower (23.3%)
+                                let yOffset = -14;
+                                if (dIdx === 0 && pIdx === 1) {
+                                    yOffset = 16;
+                                } else if (dIdx === 0) {
+                                    yOffset = -14;
+                                }
+                                ctx.fillText(val.toFixed(1) + '%', element.x, element.y + yOffset);
+                            });
+                        });
+                        ctx.restore();
+                    }
+                }],
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 10,
+                            left: 10,
+                            right: 15
+                        }
+                    },
                     interaction: {
                         mode: 'index',
                         intersect: false
@@ -2389,11 +2428,11 @@
                         },
                         y: {
                             min: 0,
-                            max: 100,
+                            max: 105,
                             ticks: {
                                 stepSize: 10,
                                 callback: function(value) {
-                                    return value + '%';
+                                    return value <= 100 ? value + '%' : '';
                                 },
                                 color: '#64748B',
                                 font: { size: 11, weight: '600' }
@@ -2419,8 +2458,9 @@
                 sCurveChartInstance.data.datasets[0].data = sCurvePlan;
                 sCurveChartInstance.data.datasets[1].data = sCurveActual;
                 sCurveChartInstance.data.datasets[0].pointRadius = 3.5;
-                sCurveChartInstance.data.datasets[1].pointRadius = 4.5;
+                sCurveChartInstance.data.datasets[1].pointRadius = 5.0;
                 sCurveChartInstance.options.scales.x.title.text = 'Minggu Pelaksanaan (Minggu ke-0 s/d {{ $totalWeeks }})';
+                sCurveChartInstance.resize();
                 sCurveChartInstance.update();
             };
         }

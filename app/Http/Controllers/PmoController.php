@@ -280,8 +280,8 @@ class PmoController extends Controller
                 'week'         => 1,
                 'bobot'        => 13.3,
                 'daily_weight' => 3.3,
-                'default_prog' => 50,
-                'default_stat' => 'In Progress',
+                'default_prog' => 100,
+                'default_stat' => 'Completed',
                 'description'  => 'Design Review Meeting arsitektur peremajaan router bersama PIC PPATK (Bpk. Richi Michael).',
             ],
             [
@@ -446,19 +446,24 @@ class PmoController extends Controller
                     $matchedTask->description = ($cleanDesc ? $cleanDesc . ' ' : '') . $expectedMeta;
                     $needsUpdate = true;
                 }
-                if ($mw['title'] === 'Design Review Meeting' && ($matchedTask->progress != 50 || $matchedTask->status !== 'In Progress')) {
-                    $matchedTask->progress = 50;
-                    $matchedTask->status = 'In Progress';
-                    $needsUpdate = true;
-                }
-                if ($mw['title'] === 'Survey and Assessment' && ($matchedTask->progress != 100 || $matchedTask->status !== 'Completed')) {
+                if ($mw['title'] === 'Design Review Meeting' && ($matchedTask->progress < 100 || $matchedTask->status !== 'Completed')) {
                     $matchedTask->progress = 100;
                     $matchedTask->status = 'Completed';
                     $needsUpdate = true;
                 }
-                if ($mw['title'] === 'HLD and LLD Documentation' && ($matchedTask->progress != 50 || $matchedTask->status !== 'In Progress')) {
+                if ($mw['title'] === 'Survey and Assessment' && ($matchedTask->progress < 100 || $matchedTask->status !== 'Completed')) {
+                    $matchedTask->progress = 100;
+                    $matchedTask->status = 'Completed';
+                    $needsUpdate = true;
+                }
+                if ($mw['title'] === 'HLD and LLD Documentation' && ($matchedTask->progress === null)) {
                     $matchedTask->progress = 50;
                     $matchedTask->status = 'In Progress';
+                    $needsUpdate = true;
+                }
+                if ($matchedTask->progress === null) {
+                    $matchedTask->progress = $mw['default_prog'];
+                    $matchedTask->status = $mw['default_stat'];
                     $needsUpdate = true;
                 }
                 if ($needsUpdate) {
@@ -906,76 +911,7 @@ class PmoController extends Controller
             $totalWeeklyWeightCum[$w] = min(100.0, round($cumPlanAccum, 1));
         }
 
-        // 2. Matriks Actual Progress (Sheet 3)
-        $savedActualInputs = $handoverData['actual_progress_inputs'] ?? [];
-        if ($isPpatkProject) {
-            if (empty($savedActualInputs) || (isset($savedActualInputs['Design Review Meeting'][1]) && $savedActualInputs['Design Review Meeting'][1] == 100)) {
-                $savedActualInputs = [
-                    'Survey and Assessment'     => [1 => 100],
-                    'Design Review Meeting'     => [1 => 50],
-                    'HLD and LLD Documentation' => [1 => 50],
-                ];
-            }
-        }
-
-        $actualProgressInputMatrix = [];
-        $actualProgressCalcMatrix = [];
-        $weekReportedFlags = array_fill(1, $totalWeeks, 0);
-
-        // Cek minggu mana yang dilaporkan (memiliki minimal 1 task terisi)
-        for ($w = 1; $w <= $totalWeeks; $w++) {
-            foreach ($parsedTasks as $pt) {
-                $tId = (string) $pt['id'];
-                $tTitle = $pt['title'];
-                $val = $savedActualInputs[$tId][$w] ?? ($savedActualInputs[$tTitle][$w] ?? null);
-                if ($val !== null && $val !== '') {
-                    $weekReportedFlags[$w] = 1;
-                    break;
-                }
-            }
-        }
-
-        // Matriks Input & Matriks Kalkulasi (Carry Forward)
-        $actualCumulativePerWeek = array_fill(1, $totalWeeks, 0.0);
-
-        foreach ($parsedTasks as $pt) {
-            $tId = (string) $pt['id'];
-            $tTitle = $pt['title'];
-            $inputWeeks = [];
-            $calcWeeks = [];
-            $lastUsedVal = 0.0;
-
-            for ($w = 1; $w <= $totalWeeks; $w++) {
-                $rawInp = $savedActualInputs[$tId][$w] ?? ($savedActualInputs[$tTitle][$w] ?? null);
-                $inputWeeks[$w] = ($rawInp !== null && $rawInp !== '') ? (float) $rawInp : null;
-
-                if ($rawInp !== null && $rawInp !== '') {
-                    $lastUsedVal = (float) $rawInp;
-                }
-                $calcWeeks[$w] = $lastUsedVal;
-                $actualCumulativePerWeek[$w] += ($lastUsedVal / 100.0) * $pt['bobot'];
-            }
-
-            $actualProgressInputMatrix[] = [
-                'id'     => $pt['id'],
-                'title'  => $pt['title'],
-                'weight' => $pt['bobot'],
-                'weeks'  => $inputWeeks,
-            ];
-
-            $actualProgressCalcMatrix[] = [
-                'id'     => $pt['id'],
-                'title'  => $pt['title'],
-                'weight' => $pt['bobot'],
-                'weeks'  => $calcWeeks,
-            ];
-        }
-
-        for ($w = 1; $w <= $totalWeeks; $w++) {
-            $actualCumulativePerWeek[$w] = round($actualCumulativePerWeek[$w], 1);
-        }
-
-        // 3. Matriks Actual Progress per Task (Tanpa kolom week, langsung Progress % dan Actual %)
+        // 2. Matriks Actual Progress per Task (Sheet 3)
         $actualProgressRows = [];
         $totalActualProgressSum = 0.0;
         foreach ($parsedTasks as $pt) {
@@ -991,6 +927,30 @@ class PmoController extends Controller
             ];
         }
         $totalActualProgressSum = round($totalActualProgressSum, 1);
+        $actualEV = $totalActualProgressSum;
+
+        // Distribusi Kurva S Mingguan
+        $actualCumulativePerWeek = array_fill(1, $totalWeeks, 0.0);
+        $weekReportedFlags = array_fill(1, $totalWeeks, 0);
+
+        // Minggu 1 selalu dilaporkan berdasarkan progres riil aktual task saat ini (26.7%)
+        $actualCumulativePerWeek[1] = $actualEV;
+        $weekReportedFlags[1] = ($actualEV > 0) ? 1 : 1;
+
+        // Untuk minggu-minggu berikutnya (Minggu 2..5), cek apakah ada laporan spesifik
+        $savedActualInputs = $handoverData['actual_progress_inputs'] ?? [];
+        for ($w = 2; $w <= $totalWeeks; $w++) {
+            if (isset($savedActualInputs['week_' . $w]) && $savedActualInputs['week_' . $w] !== null && $savedActualInputs['week_' . $w] !== '') {
+                $actualCumulativePerWeek[$w] = (float) $savedActualInputs['week_' . $w];
+                $weekReportedFlags[$w] = 1;
+            } else {
+                $actualCumulativePerWeek[$w] = null;
+                $weekReportedFlags[$w] = 0;
+            }
+        }
+
+        $actualProgressInputMatrix = [];
+        $actualProgressCalcMatrix = [];
 
         // Tentukan minggu aktif tertinggi yang dilaporkan
         $maxReportedWeek = 0;
