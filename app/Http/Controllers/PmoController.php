@@ -776,6 +776,16 @@ class PmoController extends Controller
             ];
         }
 
+        // Urutkan parsedTasks berdasarkan urutan sekuensial WBS (starting_day & finish_day)
+        usort($parsedTasks, function($a, $b) {
+            $sdA = $a['starting_day'] ?? 999;
+            $sdB = $b['starting_day'] ?? 999;
+            if ($sdA === $sdB) {
+                return ($a['finish_day'] ?? 999) <=> ($b['finish_day'] ?? 999);
+            }
+            return $sdA <=> $sdB;
+        });
+
         // Jika bobot belum diisi sama sekali pada task, distribusikan rata 100% / totalTask
         if ($totalTaskCount > 0 && $totalTaskBobotSum <= 0) {
             $equalBobot = round(100.0 / $totalTaskCount, 2);
@@ -964,6 +974,23 @@ class PmoController extends Controller
         for ($w = 1; $w <= $totalWeeks; $w++) {
             $actualCumulativePerWeek[$w] = round($actualCumulativePerWeek[$w], 1);
         }
+
+        // 3. Matriks Actual Progress per Task (Tanpa kolom week, langsung Progress % dan Actual %)
+        $actualProgressRows = [];
+        $totalActualProgressSum = 0.0;
+        foreach ($parsedTasks as $pt) {
+            $actContribution = round(($pt['bobot'] * ($pt['progress'] / 100.0)), 1);
+            $totalActualProgressSum += $actContribution;
+            $actualProgressRows[] = [
+                'id'       => $pt['id'],
+                'title'    => $pt['title'],
+                'weight'   => $pt['bobot'],
+                'progress' => (float) $pt['progress'],
+                'actual'   => $actContribution,
+                'task'     => $project->tasks->firstWhere('id', $pt['id']),
+            ];
+        }
+        $totalActualProgressSum = round($totalActualProgressSum, 1);
 
         // Tentukan minggu aktif tertinggi yang dilaporkan
         $maxReportedWeek = 0;
@@ -1330,6 +1357,8 @@ class PmoController extends Controller
             'totalWeeklyWeightCum',
             'actualProgressInputMatrix',
             'actualProgressCalcMatrix',
+            'actualProgressRows',
+            'totalActualProgressSum',
             'actualCumulativePerWeek',
             'weekReportedFlags',
             'allPmoProjects'
@@ -1378,13 +1407,44 @@ class PmoController extends Controller
      */
     public function updateActualProgressMatrix(Request $request, Project $project)
     {
+        $tasksInput = $request->input('tasks', []);
         $matrix = $request->input('matrix', []);
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+
+        $tasks = $project->tasks()->get();
+
+        if (!empty($tasksInput)) {
+            $savedInputs = $handoverData['actual_progress_inputs'] ?? [];
+            foreach ($tasks as $task) {
+                if (isset($tasksInput[$task->id]['progress'])) {
+                    $prog = (float) $tasksInput[$task->id]['progress'];
+                    $prog = max(0, min(100, $prog));
+                    $task->progress = $prog;
+                    if ($prog >= 100) {
+                        $task->status = 'Completed';
+                    } elseif ($prog > 0) {
+                        $task->status = 'In Progress';
+                    } else {
+                        $task->status = 'Pending';
+                    }
+                    $task->saveQuietly();
+
+                    // Sync into week 1 inputs as baseline
+                    $savedInputs[$task->id][1] = $prog;
+                    $savedInputs[$task->title][1] = $prog;
+                }
+            }
+            $handoverData['actual_progress_inputs'] = $savedInputs;
+            $project->handover_data = $handoverData;
+            $project->save();
+
+            return redirect()->back()->with('success', 'Progres aktual per task berhasil disimpan!');
+        }
+
         $handoverData['actual_progress_inputs'] = $matrix;
         $project->handover_data = $handoverData;
 
         // Sinkronkan progress task di DB dengan nilai terakhir yang dilaporkan
-        $tasks = $project->tasks()->get();
         foreach ($tasks as $task) {
             $key = (string) $task->id;
             $taskInputs = $matrix[$key] ?? ($matrix[$task->title] ?? []);

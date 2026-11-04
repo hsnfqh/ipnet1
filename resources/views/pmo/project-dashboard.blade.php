@@ -867,29 +867,52 @@
             </div>
 
             {{-- ========================================================== --}}
-            {{-- TAB 3: ACTUAL PROGRESS (MANUAL INPUT & CALCULATION)        --}}
+            {{-- TAB 3: ACTUAL PROGRESS (PROGRES AKTUAL PER TASK)           --}}
             {{-- ========================================================== --}}
-            <div x-show="activeMainTab === 'actual_progress'" class="space-y-6">
+            <div x-show="activeMainTab === 'actual_progress'" class="space-y-6"
+                 x-data="{
+                    weights: {
+                        @foreach($actualProgressRows as $r)
+                            {{ $r['id'] }}: {{ (float)$r['weight'] }},
+                        @endforeach
+                    },
+                    taskProgress: {
+                        @foreach($actualProgressRows as $r)
+                            {{ $r['id'] }}: {{ (float)$r['progress'] }},
+                        @endforeach
+                    },
+                    calcTotalActual() {
+                        let sum = 0;
+                        for (let id in this.weights) {
+                            let w = this.weights[id] || 0;
+                            let p = this.taskProgress[id] || 0;
+                            sum += (w * p) / 100;
+                        }
+                        return sum.toFixed(1);
+                    }
+                 }">
                 <form action="{{ route('pmo.projects.actual_progress_matrix.update', $project->id) }}" method="POST">
                     @csrf
-                    {{-- Table 1: Actual Progress per Task (manual input) --}}
                     <div class="ipnet-card p-5 sm:p-6 space-y-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
                             <div>
                                 <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center">
-                                    <span class="ipnet-badge-dot"></span> SHEET 3: ACTUAL PROGRESS PER TASK (MANUAL INPUT)
+                                    <span class="ipnet-badge-dot"></span> SHEET 3: ACTUAL PROGRESS
                                 </p>
-                                <h3 class="text-base font-bold text-[#1E293B]">Actual Progress per Task (manual input)</h3>
+                                <h3 class="text-base font-bold text-[#1E293B]">Actual Progress per Task</h3>
                                 <p class="text-xs text-slate-500 mt-0.5">
-                                    Type the CUMULATIVE completion % of each task at the end of each week in the yellow cells (e.g. 50% = half done, 100% = finished). Leave a cell blank to carry the previous week
+                                    Daftar capaian progres aktual per task WBS terhadap total bobot proyek (Actual = Activity Weight &times; Progress %)
                                 </p>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button type="submit" class="px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold shadow-2xs transition inline-flex items-center gap-2 cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold">
+                                    Actual Cumulative: <span x-text="calcTotalActual() + '%'">{{ number_format($totalActualProgressSum, 1) }}%</span>
+                                </span>
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold shadow-2xs transition inline-flex items-center gap-2 cursor-pointer active:scale-95">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                     </svg>
-                                    <span>Simpan Matrix Progres Aktual</span>
+                                    <span>Simpan Progres Aktual</span>
                                 </button>
                             </div>
                         </div>
@@ -898,15 +921,24 @@
                             <table class="w-full text-left text-xs">
                                 <thead>
                                     <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                        <th class="py-3 px-4 min-w-[220px]">Task Name</th>
+                                        <th class="py-3 px-4 min-w-[240px]">Task Name</th>
                                         <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
-                                        @for($w = 1; $w <= $totalWeeks; $w++)
-                                            <th class="py-3 px-3 text-center whitespace-nowrap">Week {{ $w }}</th>
-                                        @endfor
+                                        <th class="py-3 px-3 text-right whitespace-nowrap min-w-[120px]">Progress (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Actual (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
-                                    @foreach($actualProgressInputMatrix as $row)
+                                    @php
+                                        $totWeight = 0;
+                                        $totActual = 0;
+                                    @endphp
+                                    @foreach($actualProgressRows as $row)
+                                        @php
+                                            $totWeight += $row['weight'];
+                                            $totActual += $row['actual'];
+                                            $t = $row['task'] ?? $project->tasks->firstWhere('id', $row['id']);
+                                        @endphp
                                         <tr class="hover:bg-slate-50/80 transition">
                                             <td class="py-2.5 px-4 font-semibold text-slate-800">
                                                 {{ $row['title'] }}
@@ -914,91 +946,82 @@
                                             <td class="py-2.5 px-3 text-right font-bold text-slate-900">
                                                 {{ number_format($row['weight'], 1) }}%
                                             </td>
-                                            @for($w = 1; $w <= $totalWeeks; $w++)
-                                                <td class="py-2 px-2 text-center bg-[#FEF08A] border border-amber-300">
-                                                    <div class="inline-flex items-center justify-center">
-                                                        <input type="number" 
-                                                               step="any" 
-                                                               min="0" 
-                                                               max="100" 
-                                                               name="matrix[{{ $row['id'] }}][{{ $w }}]" 
-                                                               value="{{ $row['weeks'][$w] !== null ? $row['weeks'][$w] : '' }}" 
-                                                               class="w-14 py-1 px-1 text-center font-bold text-blue-900 bg-transparent border-b border-blue-400 focus:bg-white focus:border-blue-700 focus:outline-hidden text-xs">
-                                                        <span class="text-[11px] font-bold text-blue-900 ml-0.5">%</span>
+                                            <td class="py-2 px-3 text-right">
+                                                <div class="inline-flex items-center justify-end gap-1">
+                                                    <input type="number" 
+                                                           step="any" 
+                                                           min="0" 
+                                                           max="100" 
+                                                           name="tasks[{{ $row['id'] }}][progress]" 
+                                                           value="{{ (float) $row['progress'] }}" 
+                                                           x-model.number="taskProgress[{{ $row['id'] }}]"
+                                                           class="w-16 py-1 px-1.5 text-right font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:border-blue-600 focus:outline-hidden text-xs">
+                                                    <span class="text-[11px] font-bold text-slate-500">%</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-bold text-slate-800">
+                                                <span x-text="(((weights[{{ $row['id'] }}] || 0) * (taskProgress[{{ $row['id'] }}] || 0)) / 100).toFixed(1) + '%'">
+                                                    {{ number_format($row['actual'], 1) }}%
+                                                </span>
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                                                @if($t)
+                                                    <div class="flex items-center justify-end gap-1.5">
+                                                        <button type="button" 
+                                                                @click="openEditTaskModal({
+                                                                    id: {{ $t->id }},
+                                                                    title: '{{ addslashes($t->title) }}',
+                                                                    duration_days: {{ $t->duration ?? 1 }},
+                                                                    start_date: '{{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '' }}',
+                                                                    deadline: '{{ $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '' }}',
+                                                                    bobot: {{ $row['weight'] }},
+                                                                    progress: taskProgress[{{ $row['id'] }}] !== undefined ? taskProgress[{{ $row['id'] }}] : {{ (int)($t->progress ?: 0) }},
+                                                                    status: '{{ $t->status }}',
+                                                                    priority: '{{ $t->priority ?: 'Medium' }}',
+                                                                    engineer_id: '{{ $t->engineer_id }}',
+                                                                    description: '{{ addslashes($t->description ?? '') }}'
+                                                                })"
+                                                                title="Ubah Task"
+                                                                class="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 transition cursor-pointer shadow-2xs">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                                            </svg>
+                                                        </button>
+                                                        <form action="{{ route('pmo.tasks.destroy_post', $t->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus task ini?')">
+                                                            @csrf
+                                                            <button type="submit" 
+                                                                    title="Hapus Task"
+                                                                    class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-300 transition cursor-pointer shadow-2xs">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                                </svg>
+                                                            </button>
+                                                        </form>
                                                     </div>
-                                                </td>
-                                            @endfor
+                                                @else
+                                                    <span class="text-slate-400 text-[11px]">-</span>
+                                                @endif
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
-                                <tfoot class="border-t-2 border-slate-300 font-bold text-xs bg-slate-100">
+                                <tfoot class="border-t-2 border-slate-300 font-bold text-xs bg-slate-100 text-slate-800">
                                     <tr>
-                                        <td class="py-2.5 px-4 uppercase text-[11px] text-slate-800 font-bold">
-                                            Week reported? (1 = yes)
+                                        <td class="py-2.5 px-4 uppercase text-[11px] font-bold text-slate-700">
+                                            Total Rekap Actual Progress ({{ count($actualProgressRows) }} Tasks)
                                         </td>
-                                        <td class="py-2.5 px-3"></td>
-                                        @for($w = 1; $w <= $totalWeeks; $w++)
-                                            <td class="py-2.5 px-3 text-center font-bold text-slate-800 text-xs">
-                                                {{ $weekReportedFlags[$w] ?? 0 }}
-                                            </td>
-                                        @endfor
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-
-                    {{-- Table 2: Calculation: completion used per task (blank = carried forward from previous week) --}}
-                    <div class="ipnet-card p-5 sm:p-6 space-y-4 mt-6">
-                        <div class="border-b border-[#E2E8F0] pb-3">
-                            <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center">
-                                <span class="ipnet-badge-dot"></span> SIKLUS EVALUASI OTOMATIS
-                            </p>
-                            <h3 class="text-base font-bold text-[#1E293B]">Calculation: completion used per task (blank = carried forward from previous week)</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">
-                                Hasil kalkulasi: task yang tidak diisi di minggu berjalan meneruskan nilai kumulatif minggu sebelumnya
-                            </p>
-                        </div>
-
-                        <div class="overflow-x-auto rounded-xl border border-slate-200">
-                            <table class="w-full text-left text-xs">
-                                <thead>
-                                    <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                        <th class="py-3 px-4 min-w-[220px]">Task Name</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
-                                        @for($w = 1; $w <= $totalWeeks; $w++)
-                                            <th class="py-3 px-3 text-right whitespace-nowrap">Week {{ $w }}</th>
-                                        @endfor
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 bg-white">
-                                    @foreach($actualProgressCalcMatrix as $row)
-                                        <tr class="hover:bg-slate-50/80 transition">
-                                            <td class="py-2.5 px-4 font-semibold text-slate-800">
-                                                {{ $row['title'] }}
-                                            </td>
-                                            <td class="py-2.5 px-3 text-right font-bold text-slate-900">
-                                                {{ number_format($row['weight'], 1) }}%
-                                            </td>
-                                            @for($w = 1; $w <= $totalWeeks; $w++)
-                                                <td class="py-2.5 px-3 text-right text-xs {{ ($row['weeks'][$w] ?? 0) > 0 ? 'font-bold text-slate-800' : 'text-slate-400' }}">
-                                                    {{ number_format($row['weeks'][$w] ?? 0.0, 0) }}%
-                                                </td>
-                                            @endfor
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot class="border-t-2 border-slate-300 font-bold text-xs bg-slate-200/90">
-                                    <tr class="text-slate-900">
-                                        <td class="py-2.5 px-4 uppercase text-[11px] font-bold text-slate-800">
-                                            Actual Cumulative (%)
+                                        <td class="py-2.5 px-3 text-right font-bold text-slate-900 text-xs">
+                                            {{ number_format($totWeight, 1) }}%
                                         </td>
-                                        <td class="py-2.5 px-3"></td>
-                                        @for($w = 1; $w <= $totalWeeks; $w++)
-                                            <td class="py-2.5 px-3 text-right font-bold text-slate-800 text-xs">
-                                                {{ number_format($actualCumulativePerWeek[$w] ?? 0.0, 1) }}%
-                                            </td>
-                                        @endfor
+                                        <td class="py-2.5 px-3 text-center text-slate-400 text-xs font-normal">
+                                            -
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right font-bold text-slate-900 text-xs">
+                                            <span x-text="calcTotalActual() + '%'">{{ number_format($totActual, 1) }}%</span>
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right text-slate-500 font-normal text-[11px]">
+                                            100% Selesai
+                                        </td>
                                     </tr>
                                 </tfoot>
                             </table>
