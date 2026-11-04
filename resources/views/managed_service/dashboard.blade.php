@@ -398,6 +398,7 @@
                                         <th class="pb-2.5">Pelanggan &amp; Proyek</th>
                                         <th class="pb-2.5">Urgensi Tiket (Severity)</th>
                                         <th class="pb-2.5">Status Layanan</th>
+                                        <th class="pb-2.5">Realisasi SLA</th>
                                         <th class="pb-2.5">Keterangan</th>
                                         <th class="pb-2.5 text-right">Aksi</th>
                                     </tr>
@@ -423,18 +424,29 @@
                                                 {{ $client['status_label'] }}
                                             </span>
                                         </td>
+                                        <td class="py-3 px-2 whitespace-nowrap">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-mono font-extrabold text-[12px] {{ $client['sla_uptime'] >= $client['target_sla'] ? 'text-emerald-700' : 'text-[#8F0A0D]' }}">
+                                                    {{ number_format($client['sla_uptime'], 1) }}%
+                                                </span>
+                                                <span class="text-[10px] text-slate-400">/ {{ number_format($client['target_sla'], 1) }}%</span>
+                                            </div>
+                                            <div class="text-[10.5px] text-slate-500 font-medium">
+                                                {{ $client['downtime_hours'] > 0 ? $client['downtime_hours'] . ' Jam Down' : 'Zero Downtime' }}
+                                            </div>
+                                        </td>
                                         <td class="py-3 px-2 text-[11.5px] text-slate-600 font-medium whitespace-nowrap">
                                             {{ $client['status_desc'] }}
                                         </td>
                                         <td class="py-3 pl-2 text-right whitespace-nowrap">
-                                            <a href="{{ route('ms.tickets.index', ['search' => $client['name']]) }}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition inline-block">
-                                                Detail &rarr;
+                                            <a href="{{ route('ms.projects.show', $client['id']) }}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition inline-block">
+                                                Detail Proyek &amp; SLA &rarr;
                                             </a>
                                         </td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="5" class="py-6 text-center text-slate-400">Belum ada portofolio klien SLA terdaftar.</td>
+                                        <td colspan="6" class="py-6 text-center text-slate-400">Belum ada portofolio klien SLA terdaftar.</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
