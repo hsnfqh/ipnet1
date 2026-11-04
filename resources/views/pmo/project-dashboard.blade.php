@@ -429,7 +429,7 @@
             <!-- ========================================================== -->
             <div class="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2 rounded-2xl shadow-2xs gap-3 flex-wrap">
                 <div class="flex items-center gap-2 flex-wrap">
-                    {{-- Tab 1: Kurva S & Activity List --}}
+                    {{-- Tab 1: Kurva S & Monitoring --}}
                     <button type="button" 
                             @click="activeMainTab = 'scurve'"
                             :class="activeMainTab === 'scurve' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
@@ -437,14 +437,10 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                         </svg>
-                        <span>Kurva S & Activity List</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                              :class="activeMainTab === 'scurve' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">
-                            {{ $totalTasks }} Tasks
-                        </span>
+                        <span>Kurva S & Monitoring</span>
                     </button>
 
-                    {{-- Tab 2: Alokasi Tim Lapangan --}}
+                    {{-- Tab 2: Activity List (WBS Breakdown & Tugas) --}}
                     <button type="button" 
                             @click="activeMainTab = 'team'"
                             :class="activeMainTab === 'team' ? 'bg-[#8F0A0D] text-white font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-100'"
@@ -452,10 +448,10 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                         </svg>
-                        <span>Alokasi Tim Lapangan</span>
+                        <span>Activity List</span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
                               :class="activeMainTab === 'team' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">
-                            {{ count($assignedEngineers) }} Personil
+                            {{ $totalTasks }} Tasks
                         </span>
                     </button>
 
@@ -479,7 +475,7 @@
                 <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
                     <span>Modul Aktif:</span>
                     <span class="font-extrabold text-[#8F0A0D]" 
-                          x-text="activeMainTab === 'scurve' ? 'Kurva S & Activity List' : (activeMainTab === 'team' ? 'Alokasi Tim Lapangan' : 'Catatan Biaya & Pengeluaran')"></span>
+                          x-text="activeMainTab === 'scurve' ? 'Kurva S & Jadwal' : (activeMainTab === 'team' ? 'Activity List Proyek' : 'Catatan Biaya & Pengeluaran')"></span>
                 </div>
             </div>
 
@@ -724,164 +720,6 @@
                 </div>
 
             </div>
-
-            <!-- ========================================================== -->
-            <!-- 3.6 ACTIVITY LIST PROYEK (WBS BREAKDOWN)                   -->
-            <!-- ========================================================== -->
-            <div class="ipnet-card p-5 sm:p-6 space-y-4">
-                <div class="border-b border-[#E2E8F0] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <div>
-                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-                            <span class="ipnet-badge-dot"></span> ACTIVITY LIST PROYEK (WBS BREAKDOWN)
-                        </p>
-                        <h3 class="text-sm font-bold text-[#1E293B]">Activity List Proyek (WBS Breakdown)</h3>
-                        <p class="text-[11px] text-slate-400 mt-0.5">
-                            Daftar aktivitas proyek (Actual Kumulatif). Penunjukan personil/assignee dikoordinasikan oleh Tim Lead Lapangan.
-                        </p>
-                    </div>
-
-                    <div class="flex items-center gap-2 shrink-0">
-                        @if($isLeadUser)
-                            <button type="button" @click="showAssignTeamModal = true" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 hover:text-slate-900 transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                <span>Kelola Personil Tim</span>
-                            </button>
-                        @endif
-                        <button type="button" @click="showImportExcelModal = true" class="px-2.5 py-1.5 rounded-lg border border-emerald-600 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
-                            <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            <span>Import Excel (WBS)</span>
-                        </button>
-                        <button type="button" @click="showQuickTaskModal = true" class="px-2.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                            <span>Tambah Activity / Task</span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Tim Personil Chips --}}
-                @if(count($assignedEngineers) > 0)
-                    <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center gap-2 flex-wrap text-xs">
-                        <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Personil Tim Lapangan:</span>
-                        @foreach($assignedEngineers as $aeng)
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-800 text-[11px]">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                <span>{{ $aeng['name'] ?? 'Engineer' }}</span>
-                                <span class="text-[10px] text-slate-400 font-normal">({{ $aeng['position'] ?? 'Teknisi' }})</span>
-                            </span>
-                        @endforeach
-                    </div>
-                @endif
-
-                {{-- Tabel Task Kolektif --}}
-                <div class="overflow-x-auto rounded-xl border border-slate-200">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                <th class="py-2.5 px-3 w-10 text-center">NO</th>
-                                <th class="py-2.5 px-3">NAMA TUGAS / DELIVERABLE (WBS)</th>
-                                <th class="py-2.5 px-3">DURASI</th>
-                                <th class="py-2.5 px-3">BOBOT</th>
-                                <th class="py-2.5 px-3">PROGRESS AKTUAL</th>
-                                <th class="py-2.5 px-3">STATUS</th>
-                                <th class="py-2.5 px-3 text-right">AKSI</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 bg-white">
-                            @forelse($project->tasks->sortBy('id') as $tIdx => $t)
-                                @php
-                                    $tDays = ($t->start_date && $t->deadline) 
-                                        ? max(1, (int) round(\Carbon\Carbon::parse($t->start_date)->diffInDays(\Carbon\Carbon::parse($t->deadline))) + 1)
-                                        : 1;
-                                    $bobotVal = 0;
-                                    $bobotTxt = '-';
-                                    if (preg_match('/Bobot:\s*([\d\.]+)%/i', $t->description ?? '', $bm)) {
-                                        $bobotVal = (float) $bm[1];
-                                        $bobotTxt = number_format($bobotVal, 2) . '%';
-                                    }
-                                    $cleanDesc = trim(preg_replace('/\[Bobot:[^\]]+\]/i', '', $t->description ?? ''));
-                                    $cleanDesc = trim(preg_replace('/\[Kontribusi:[^\]]+\]/i', '', $cleanDesc));
-                                    $tStartDate = $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '';
-                                    $tDeadline = $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '';
-                                @endphp
-                                <tr class="hover:bg-slate-50/80 transition">
-                                    <td class="py-2.5 px-3 text-center font-bold text-slate-400">
-                                        {{ $tIdx + 1 }}
-                                    </td>
-                                    <td class="py-2.5 px-3">
-                                        <div class="font-bold text-slate-900 text-xs">{{ $t->title }}</div>
-                                        @if(!empty($cleanDesc) && !str_starts_with($cleanDesc, '['))
-                                            <div class="text-[10.5px] text-slate-400 truncate max-w-sm" title="{{ $cleanDesc }}">{{ $cleanDesc }}</div>
-                                        @endif
-                                    </td>
-                                    <td class="py-2.5 px-3 whitespace-nowrap">
-                                        <span class="font-bold text-slate-800 text-xs">{{ $tDays }} Hari</span>
-                                    </td>
-                                    <td class="py-2.5 px-3 whitespace-nowrap">
-                                        <span class="font-bold text-blue-700 text-xs">{{ $bobotTxt }}</span>
-                                    </td>
-                                    <td class="py-2.5 px-3 whitespace-nowrap">
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                                <div class="h-full {{ (int)($t->progress ?: 0) >= 100 ? 'bg-emerald-500' : 'bg-blue-600' }} rounded-full" style="width: {{ min(100, (int)($t->progress ?: 0)) }}%"></div>
-                                            </div>
-                                            <span class="font-extrabold text-slate-800 text-xs">{{ (int)($t->progress ?: 0) }}%</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-2.5 px-3 whitespace-nowrap">
-                                        @if(in_array($t->status, ['Done', 'Completed']))
-                                            <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                Completed
-                                            </span>
-                                        @elseif(in_array($t->status, ['In Progress', 'in_progress', 'Ongoing']))
-                                            <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                                In Progress
-                                            </span>
-                                        @else
-                                            <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                                Not Started
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <div class="flex items-center justify-end gap-1.5">
-                                            <button type="button" 
-                                                    @click="openEditTaskModal({
-                                                        id: {{ $t->id }},
-                                                        title: '{{ addslashes($t->title) }}',
-                                                        duration_days: {{ $tDays }},
-                                                        start_date: '{{ $tStartDate }}',
-                                                        deadline: '{{ $tDeadline }}',
-                                                        bobot: {{ $bobotVal }},
-                                                        progress: {{ (int)($t->progress ?: 0) }},
-                                                        status: '{{ $t->status }}',
-                                                        priority: '{{ $t->priority ?: 'Medium' }}',
-                                                        engineer_id: '{{ $t->engineer_id }}',
-                                                        description: '{{ addslashes($cleanDesc) }}'
-                                                    })"
-                                                    class="px-2.5 py-1 rounded-md text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer">
-                                                Ubah
-                                            </button>
-                                            <form action="{{ route('pmo.tasks.destroy_post', $t->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus task {{ addslashes($t->title) }}?')">
-                                                @csrf
-                                                <button type="submit" 
-                                                        class="px-2.5 py-1 rounded-md text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer">
-                                                    Hapus
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="text-center py-6 text-slate-400 text-xs">
-                                        Belum ada task teknis WBS yang terdaftar.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
             </div> {{-- End of S-Curve Tab Container --}}
 
             <!-- ========================================================== -->
@@ -901,10 +739,10 @@
                     <div class="border-b border-[#E2E8F0] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <div>
                             <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">
-                                <span class="ipnet-badge-dot"></span> DISTRIBUSI TIM LAPANGAN
+                                <span class="ipnet-badge-dot"></span> ACTIVITY LIST
                             </p>
-                            <h3 class="text-sm font-bold text-[#1E293B]">Alokasi Tim &amp; Beban Kerja Lapangan</h3>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Delegasi personil oleh Lead Lapangan &amp; alokasi beban tugas teknis</p>
+                            <h3 class="text-sm font-bold text-[#1E293B]">Activity List Proyek</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Daftar aktivitas pekerjaan &amp; alokasi tugas personil tim</p>
                         </div>
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
@@ -1023,7 +861,165 @@
                         @endif
                     @endif
 
-                    {{-- 3. BEBAN KERJA & DISTRIBUSI TUGAS ENGINEER LAPANGAN --}}
+                    {{-- 3. TABEL TASK KOLEKTIF PROYEK (WBS PELAKSANAAN) --}}
+                    <div class="space-y-3 pt-2 border-t border-slate-100">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2"/>
+                                    </svg>
+                                    <span>Activity List Proyek (WBS Breakdown)</span>
+                                </h4>
+                                <p class="text-[11px] text-slate-400 mt-0.5">
+                                    Daftar aktivitas proyek (Actual Kumulatif). Penunjukan personil/assignee dikoordinasikan oleh Tim Lead Lapangan.
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-2 shrink-0">
+                                @if($isLeadUser)
+                                    <button type="button" @click="showAssignTeamModal = true" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 hover:text-slate-900 transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                        <span>Kelola Personil Tim</span>
+                                    </button>
+                                @endif
+                                <button type="button" @click="showImportExcelModal = true" class="px-2.5 py-1.5 rounded-lg border border-emerald-600 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>Import Excel (WBS)</span>
+                                </button>
+                                <button type="button" @click="showQuickTaskModal = true" class="px-2.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Tambah Activity / Task</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Tim Personil Chips --}}
+                        @if(count($assignedEngineers) > 0)
+                            <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center gap-2 flex-wrap text-xs">
+                                <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Personil Tim Lapangan:</span>
+                                @foreach($assignedEngineers as $aeng)
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-800 text-[11px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        <span>{{ $aeng['name'] ?? 'Engineer' }}</span>
+                                        <span class="text-[10px] text-slate-400 font-normal">({{ $aeng['position'] ?? 'Teknisi' }})</span>
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Tabel Task Kolektif --}}
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="py-2.5 px-3 w-10 text-center">NO</th>
+                                        <th class="py-2.5 px-3">NAMA TUGAS / DELIVERABLE (WBS)</th>
+                                        <th class="py-2.5 px-3">DURASI</th>
+                                        <th class="py-2.5 px-3">BOBOT</th>
+                                        <th class="py-2.5 px-3">PROGRESS AKTUAL</th>
+                                        <th class="py-2.5 px-3">STATUS</th>
+                                        <th class="py-2.5 px-3 text-right">AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    @forelse($project->tasks->sortBy('id') as $tIdx => $t)
+                                        @php
+                                            $tDays = ($t->start_date && $t->deadline) 
+                                                ? max(1, (int) round(\Carbon\Carbon::parse($t->start_date)->diffInDays(\Carbon\Carbon::parse($t->deadline))) + 1)
+                                                : 1;
+                                            $bobotVal = 0;
+                                            $bobotTxt = '-';
+                                            if (preg_match('/Bobot:\s*([\d\.]+)%/i', $t->description ?? '', $bm)) {
+                                                $bobotVal = (float) $bm[1];
+                                                $bobotTxt = number_format($bobotVal, 2) . '%';
+                                            }
+                                            $cleanDesc = trim(preg_replace('/\[Bobot:[^\]]+\]/i', '', $t->description ?? ''));
+                                            $cleanDesc = trim(preg_replace('/\[Kontribusi:[^\]]+\]/i', '', $cleanDesc));
+                                            $tStartDate = $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '';
+                                            $tDeadline = $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '';
+                                        @endphp
+                                        <tr class="hover:bg-slate-50/80 transition">
+                                            <td class="py-2.5 px-3 text-center font-bold text-slate-400">
+                                                {{ $tIdx + 1 }}
+                                            </td>
+                                            <td class="py-2.5 px-3">
+                                                <div class="font-bold text-slate-900 text-xs">{{ $t->title }}</div>
+                                                @if(!empty($cleanDesc) && !str_starts_with($cleanDesc, '['))
+                                                    <div class="text-[10.5px] text-slate-400 truncate max-w-sm" title="{{ $cleanDesc }}">{{ $cleanDesc }}</div>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                                <span class="font-bold text-slate-800 text-xs">{{ $tDays }} Hari</span>
+                                            </td>
+                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                                <span class="font-bold text-blue-700 text-xs">{{ $bobotTxt }}</span>
+                                            </td>
+                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                                        <div class="h-full {{ (int)($t->progress ?: 0) >= 100 ? 'bg-emerald-500' : 'bg-blue-600' }} rounded-full" style="width: {{ min(100, (int)($t->progress ?: 0)) }}%"></div>
+                                                    </div>
+                                                    <span class="font-extrabold text-slate-800 text-xs">{{ (int)($t->progress ?: 0) }}%</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                                @if(in_array($t->status, ['Done', 'Completed']))
+                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                        Completed
+                                                    </span>
+                                                @elseif(in_array($t->status, ['In Progress', 'in_progress', 'Ongoing']))
+                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                        In Progress
+                                                    </span>
+                                                @else
+                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                        Not Started
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                                                <div class="flex items-center justify-end gap-1.5">
+                                                    <button type="button" 
+                                                            @click="openEditTaskModal({
+                                                                id: {{ $t->id }},
+                                                                title: '{{ addslashes($t->title) }}',
+                                                                duration_days: {{ $tDays }},
+                                                                start_date: '{{ $tStartDate }}',
+                                                                deadline: '{{ $tDeadline }}',
+                                                                bobot: {{ $bobotVal }},
+                                                                progress: {{ (int)($t->progress ?: 0) }},
+                                                                status: '{{ $t->status }}',
+                                                                priority: '{{ $t->priority ?: 'Medium' }}',
+                                                                engineer_id: '{{ $t->engineer_id }}',
+                                                                description: '{{ addslashes($cleanDesc) }}'
+                                                            })"
+                                                            class="px-2.5 py-1 rounded-md text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer">
+                                                        Ubah
+                                                    </button>
+                                                    <form action="{{ route('pmo.tasks.destroy_post', $t->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus task {{ addslashes($t->title) }}?')">
+                                                        @csrf
+                                                        <button type="submit" 
+                                                                class="px-2.5 py-1 rounded-md text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer">
+                                                            Hapus
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center py-6 text-slate-400 text-xs">
+                                                Belum ada task teknis WBS yang terdaftar.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- 4. BEBAN KERJA & DISTRIBUSI TUGAS ENGINEER LAPANGAN --}}
                     <div class="space-y-4 pt-2 border-t border-slate-100">
                         <div class="flex items-center justify-between">
                             <div>
