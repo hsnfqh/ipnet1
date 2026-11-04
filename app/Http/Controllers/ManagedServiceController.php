@@ -338,7 +338,7 @@ class ManagedServiceController extends Controller
         ];
 
         // 8. Incoming Service Handovers (Dari Sales Tipe 2 & Pasca-Implementasi PMO) - Hanya yang Pending
-        $incomingHandovers = Project::where(function($q) {
+        $incomingQuery = Project::where(function($q) {
                 $q->where('handover_target', 'managed_service')
                   ->orWhere(function($sub) {
                       $sub->where('handover_target', 'both')
@@ -355,9 +355,19 @@ class ManagedServiceController extends Controller
                 $q->whereNull('ms_handover_status')
                   ->orWhere('ms_handover_status', '!=', 'Accepted');
             })
-            ->with(['creator', 'commercialHandoverBy', 'pm', 'msAcceptedBy'])
-            ->latest('updated_at')
-            ->get();
+            ->with(['creator', 'commercialHandoverBy', 'pm', 'msAcceptedBy']);
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $incomingQuery->where(function($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('client', 'like', "%{$s}%")
+                  ->orWhere('sales_name', 'like', "%{$s}%")
+                  ->orWhere('location', 'like', "%{$s}%");
+            });
+        }
+
+        $incomingHandovers = $incomingQuery->latest('updated_at')->get();
 
         $pendingHandoversCount = $incomingHandovers->where('ms_handover_status', '!=', 'Accepted')->count();
 
@@ -1607,7 +1617,7 @@ class ManagedServiceController extends Controller
         $projects = $query->latest()->paginate($perPage)->withQueryString();
 
         // 2. Query Serah Terima Kontrak Layanan Masuk (Incoming Service Handovers) - Hanya yang Pending / Menunggu Aktivasi
-        $incomingHandovers = Project::where(function($q) {
+        $incomingQuery = Project::where(function($q) {
                 $q->where('handover_target', 'managed_service')
                   ->orWhere(function($sub) {
                       $sub->where('handover_target', 'both')
@@ -1624,9 +1634,19 @@ class ManagedServiceController extends Controller
                 $q->whereNull('ms_handover_status')
                   ->orWhere('ms_handover_status', '!=', 'Accepted');
             })
-            ->with(['creator', 'commercialHandoverBy', 'pm', 'msAcceptedBy'])
-            ->latest('updated_at')
-            ->get();
+            ->with(['creator', 'commercialHandoverBy', 'pm', 'msAcceptedBy']);
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $incomingQuery->where(function($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('client', 'like', "%{$s}%")
+                  ->orWhere('sales_name', 'like', "%{$s}%")
+                  ->orWhere('location', 'like', "%{$s}%");
+            });
+        }
+
+        $incomingHandovers = $incomingQuery->latest('updated_at')->get();
 
         foreach ($incomingHandovers as $ho) {
             $ho->resolved_documents = self::getProjectDocuments($ho);
@@ -1681,11 +1701,12 @@ class ManagedServiceController extends Controller
         
         $pmUsers = User::where('status', 'Active')
             ->where(function($q) {
-                $q->whereHas('roles', fn($r) => $r->whereIn('name', ['Project Manager', 'PM', 'Maintenance', 'Lead Maintenance', 'Managed Service', 'Engineer', 'Lead Engineer']))
+                $q->whereHas('roles', fn($r) => $r->whereIn('name', ['Project Manager', 'PM', 'Maintenance', 'Lead Maintenance', 'Managed Service']))
                   ->orWhere('position', 'like', '%PM%')
                   ->orWhere('position', 'like', '%Project Manager%')
                   ->orWhere('position', 'like', '%Maintenance%');
             })
+            ->where('name', 'not like', '%Lead Engineer%')
             ->orderBy('name')
             ->get(['id', 'name', 'position']);
 
@@ -1771,7 +1792,10 @@ class ManagedServiceController extends Controller
         if (!empty($validated['pm_id'])) {
             $pmUser = User::find($validated['pm_id']);
         }
-        $pmName = $pmUser?->name ?: ($validated['pm_name'] ?: ($currentUser?->name ?: 'Eris Maintenance'));
+        if (!$pmUser || in_array(trim($pmUser->name), ['Lead Engineer', 'Engineer'])) {
+            $pmUser = User::where('name', 'like', '%Eris%')->first() ?: $currentUser;
+        }
+        $pmName = $pmUser?->name ?: ($validated['pm_name'] ?: 'Eris');
         $pmId   = $pmUser?->id ?: $currentUser?->id;
 
         // Tim Pelaksana Teknis (Tim Network, Tim Security, atau keduanya)

@@ -67,7 +67,7 @@
                         <p class="text-[13px] text-[#64748B] mt-0.5">Kelola pelaksanaan kontrak berjalan, dokumen legal BAST/SPK, serah terima masuk (onboarding), dan monitoring SLA</p>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 self-start lg:self-center">
+                    <div class="flex items-center gap-3 shrink-0 self-start lg:self-center">
                         {{-- Tombol Buat Kontrak Baru --}}
                         <button type="button" 
                                 @click="showCreateContractModal = true" 
@@ -77,56 +77,16 @@
                             </svg>
                             <span>Buat Kontrak Service Baru</span>
                         </button>
-
-                        {{-- Tab Switcher: Segmented Toggle Styled Like Reference (Gambar 2) on the right side --}}
-                        <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0">
-                        {{-- Tab 1: Kontrak Layanan Aktif --}}
-                        <button type="button" 
-                                @click="activeTab = 'active'" 
-                                :class="activeTab === 'active' 
-                                    ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
-                                    : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
-                                class="px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                            </svg>
-                            <span>Kontrak Layanan Aktif</span>
-                            <span :class="activeTab === 'active' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
-                                  class="px-2 py-0.5 rounded-full text-[10.5px] font-bold">
-                                {{ $projects->total() }}
-                            </span>
-                        </button>
-
-                        {{-- Tab 2: Serah Terima Masuk (Incoming Handover) --}}
-                        <button type="button" 
-                                @click="activeTab = 'incoming'" 
-                                :class="activeTab === 'incoming' 
-                                    ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
-                                    : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
-                                class="px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                            <span>Incoming Handover</span>
-                            <span :class="activeTab === 'incoming' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
-                                  class="px-2 py-0.5 rounded-full text-[10.5px] font-bold">
-                                {{ $pendingHandoversCount ?? ($incomingHandovers->count() ?? 0) }}
-                            </span>
-                        </button>
-                    </div>
                     </div>
                 </div>
             </div>
 
             <!-- ========================================================== -->
-            <!-- TAB 1: KONTRAK LAYANAN AKTIF                               -->
+            <!-- 2. FILTER CONTROLS                                         -->
             <!-- ========================================================== -->
-            <div x-show="activeTab === 'active'" class="space-y-5">
-                
-                {{-- Filter Controls Tab 1 --}}
+            {{-- Filter Controls Tab 1 --}}
                 <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2">
                     <form method="GET" action="{{ route('ms.projects.index') }}" class="flex flex-col md:flex-row flex-wrap items-center justify-between gap-3">
-                        <input type="hidden" name="tab" value="active">
                         <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full md:w-auto flex-1">
                             <div class="relative flex-1 min-w-[240px] w-full sm:w-auto">
                                 <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -139,13 +99,10 @@
                                        class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
                             </div>
                             
-                            <select name="status" onchange="this.form.submit()" 
-                                    class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                                <option value="all">Semua Status</option>
-                                <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active / Operate</option>
-                                <option value="In Progress" {{ request('status') === 'In Progress' ? 'selected' : '' }}>In Progress</option>
-                                <option value="Planning" {{ request('status') === 'Planning' ? 'selected' : '' }}>Planning</option>
-                                <option value="Completed" {{ request('status') === 'Completed' ? 'selected' : '' }}>Completed</option>
+                            <select name="tab" x-model="activeTab" @change="this.form.submit()" 
+                                    class="w-full sm:w-60 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-bold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                                <option value="active" {{ request('tab', 'active') === 'active' ? 'selected' : '' }}>Kontrak Layanan Aktif ({{ $projects->total() }})</option>
+                                <option value="incoming" {{ request('tab') === 'incoming' ? 'selected' : '' }}>Incoming Handover ({{ $pendingHandoversCount ?? ($incomingHandovers->count() ?? 0) }})</option>
                             </select>
 
                             <select name="type" onchange="this.form.submit()" 
@@ -156,8 +113,8 @@
                                 <option value="One-Time" {{ request('type') === 'One-Time' ? 'selected' : '' }}>One-Time Project</option>
                             </select>
 
-                            @if(request('search') || (request('status') && request('status') !== 'all') || (request('type') && request('type') !== 'all') || (request('per_page') && request('per_page') != 10))
-                                <a href="{{ route('ms.projects.index', ['tab' => 'active']) }}" 
+                            @if(request('search') || (request('tab') && request('tab') !== 'active') || (request('type') && request('type') !== 'all') || (request('per_page') && request('per_page') != 10))
+                                <a href="{{ route('ms.projects.index') }}" 
                                    class="px-3 py-2 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
                                     Reset Filter
                                 </a>
@@ -175,6 +132,13 @@
                         </div>
                     </form>
                 </div>
+
+            <!-- ========================================================== -->
+            <!-- TAB 1: KONTRAK LAYANAN AKTIF                               -->
+            <!-- ========================================================== -->
+            <div x-show="activeTab === 'active'" class="space-y-5">
+                
+                
 
                 {{-- Table Card Tab 1 --}}
                 <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
@@ -218,24 +182,24 @@
                                     <tr class="hover:bg-[#F8FAFC]/80 transition-colors duration-150">
                                         {{-- Nama Project & Tipe --}}
                                         <td class="py-3 px-4">
-                                            <div class="flex items-center gap-1.5 flex-wrap">
-                                                <a href="{{ route('ms.projects.show', $p->id) }}" class="font-medium text-[#1E293B] text-[13px] leading-snug hover:text-[#8F0A0D] transition">
-                                                    {{ $p->name }}
-                                                </a>
+                                            <a href="{{ route('ms.projects.show', $p->id) }}" class="font-bold text-[#1E293B] text-[13px] leading-snug hover:text-[#8F0A0D] transition block">
+                                                {{ $p->name }}
+                                            </a>
+                                            <div class="flex items-center gap-1.5 flex-wrap mt-1">
                                                 @if($p->sla_tier)
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                                                         Tier: {{ $p->sla_tier }}
                                                     </span>
                                                 @endif
-                                            </div>
-                                            <div class="flex items-center gap-1.5 mt-0.5">
-                                                <span class="inline-block text-[10.5px] font-normal text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded border border-[#E2E8F0]">
-                                                    {{ $p->project_type ?: 'Managed Service SLA' }}
-                                                </span>
                                                 @if($p->pm_frequency_type)
                                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]">
                                                         <svg class="w-3 h-3 text-[#4F46E5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                                         <span>PM: {{ str_replace('_', ' ', $p->pm_frequency_type) }}</span>
+                                                    </span>
+                                                @endif
+                                                @if($p->project_type && !in_array($p->project_type, ['Managed Service SLA', 'Managed Service']))
+                                                    <span class="inline-block text-[10.5px] font-normal text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded border border-[#E2E8F0]">
+                                                        {{ $p->project_type }}
                                                     </span>
                                                 @endif
                                             </div>
@@ -256,13 +220,21 @@
                                                 $pmName = $p->pm?->name 
                                                     ?: ($p->handover_data['project_manager'] 
                                                     ?? ($p->handover_data['pm_name'] 
-                                                    ?? ($p->handover_data['lead_engineer_name'] 
-                                                    ?? ($p->handover_data['pic_ms_name'] 
-                                                    ?? ($p->msAcceptedBy?->name ?? 'Eris Maintenance')))));
+                                                    ?? null));
+
+                                                if (empty($pmName) || in_array(trim($pmName), ['Lead Engineer', 'Engineer', 'PIC MS', 'Tim Maintenance', 'Maintenance', 'Coordinator'])) {
+                                                    $pmName = $p->msAcceptedBy?->name 
+                                                        ?? ($p->assignedEngineer?->name 
+                                                        ?? ($p->creator && !in_array($p->creator->name, ['Donny Burnan', 'Raiza']) ? $p->creator->name : 'Eris'));
+                                                    if (in_array(trim($pmName), ['Lead Engineer', 'Engineer', 'Tim Maintenance'])) {
+                                                        $pmName = 'Eris';
+                                                    }
+                                                }
+                                                $initial = strtoupper(substr($pmName ?: 'E', 0, 1));
                                             @endphp
                                             <div class="flex items-center gap-2">
                                                 <div class="w-7 h-7 rounded-full bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                                                    {{ strtoupper(substr($pmName, 0, 1)) }}
+                                                    {{ $initial }}
                                                 </div>
                                                 <div>
                                                     <div class="font-bold text-[#1E293B] text-[12.5px] leading-tight">{{ $pmName }}</div>
@@ -723,10 +695,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                             </svg>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">BAGIAN I</span>
-                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Informasi Kontrak &amp; Klien</h4>
-                                        </div>
+                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">1. Informasi Kontrak &amp; Klien</h4>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div class="space-y-1 md:col-span-2">
@@ -775,10 +744,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                             </svg>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">BAGIAN II</span>
-                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Nilai Kontrak &amp; Durasi Layanan</h4>
-                                        </div>
+                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">2. Nilai Kontrak &amp; Durasi Layanan</h4>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div class="space-y-1">
@@ -832,10 +798,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                             </svg>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">BAGIAN III</span>
-                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Parameter SLA &amp; Jadwal Pemeliharaan (PM)</h4>
-                                        </div>
+                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">3. Parameter SLA &amp; Jadwal Pemeliharaan (PM)</h4>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                         <div class="space-y-1 md:col-span-2">
@@ -902,18 +865,12 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                             </svg>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">BAGIAN IV</span>
-                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Penugasan Tim Teknis &amp; Project Manager</h4>
-                                        </div>
+                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">4. Penugasan Tim Teknis &amp; Project Manager</h4>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {{-- Pilih Tim Pelaksana (Network / Security / Keduanya) --}}
                                         <div class="space-y-1.5 md:col-span-2">
-                                            <label class="block text-xs font-bold text-slate-700">
-                                                Pilih Tim Pelaksana <span class="text-red-500">*</span>
-                                                <span class="text-[11px] font-normal text-slate-400 ml-1">(Pilih Tim Network, Tim Security, atau bisa pilih keduanya)</span>
-                                            </label>
+                                            <label class="block text-xs font-bold text-slate-700">Pilih Tim Pelaksana <span class="text-red-500">*</span></label>
                                             <div class="flex flex-wrap items-center gap-2.5">
                                                 {{-- Tim Network --}}
                                                 <button type="button" 
@@ -954,11 +911,11 @@
                                             <select name="pm_id" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white font-semibold text-slate-800">
                                                 @foreach($pmUsers ?? [] as $u)
                                                     <option value="{{ $u->id }}" {{ (auth()->id() == $u->id || str_contains(strtolower($u->name), 'eris')) ? 'selected' : '' }}>
-                                                        {{ $u->name }} ({{ $u->position ?: 'Project Manager' }})
+                                                        {{ $u->name }} (Project Manager)
                                                     </option>
                                                 @endforeach
                                                 @if(empty($pmUsers) || (is_object($pmUsers) && $pmUsers->isEmpty()))
-                                                    <option value="{{ auth()->id() }}" selected>{{ auth()->user()->name ?? 'Eris Maintenance' }} (Project Manager)</option>
+                                                    <option value="{{ auth()->id() }}" selected>{{ auth()->user()->name ?? 'Eris' }} (Project Manager)</option>
                                                 @endif
                                             </select>
                                             <p class="text-[10.5px] text-slate-400">Project Manager penanggung jawab utama pelaksanaan kontrak dan monitoring SLA.</p>
@@ -980,10 +937,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                                                 </svg>
                                             </div>
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">BAGIAN V</span>
-                                                <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Berkas Dokumen Kontrak &amp; Legalitas Layanan</h4>
-                                            </div>
+                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">5. Berkas Dokumen Kontrak &amp; Legalitas Layanan</h4>
                                         </div>
                                         <span class="text-[11px] font-semibold text-slate-400">Format PDF, DOC, XLS, Gambar (Maks. 50MB per berkas)</span>
                                     </div>
