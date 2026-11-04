@@ -302,26 +302,85 @@ class PmoController extends Controller
         
         $projectTimelineText = $startDate->format('d M Y') . ' s/d ' . $deadlineDate->format('d M Y');
 
+        // Parse Activity List Tasks (WBS Breakdown) & Hubungkan ke Kurva S
+        $tasksList = $project->tasks()->orderBy('id')->get();
+        $totalTaskCount = $tasksList->count();
+
+        $parsedTasks = [];
+        $totalTaskBobotSum = 0.0;
+
+        foreach ($tasksList as $t) {
+            $bobotVal = 0.0;
+            if (preg_match('/Bobot:\s*([\d\.]+)%/i', $t->description ?? '', $bm)) {
+                $bobotVal = (float) $bm[1];
+            }
+            $totalTaskBobotSum += $bobotVal;
+
+            $duration = 1;
+            if ($t->start_date && $t->deadline) {
+                $duration = max(1, (int) round(\Carbon\Carbon::parse($t->start_date)->diffInDays(\Carbon\Carbon::parse($t->deadline))) + 1);
+            }
+
+            $prog = (float) ($t->progress ?: (in_array($t->status, ['Done', 'Completed']) ? 100 : 0));
+
+            $parsedTasks[] = [
+                'id'         => $t->id,
+                'title'      => $t->title,
+                'duration'   => $duration,
+                'bobot'      => $bobotVal,
+                'progress'   => $prog,
+                'status'     => $t->status,
+                'start_date' => $t->start_date ? \Carbon\Carbon::parse($t->start_date)->startOfDay() : null,
+                'deadline'   => $t->deadline ? \Carbon\Carbon::parse($t->deadline)->endOfDay() : null,
+            ];
+        }
+
+        // Jika bobot belum diisi sama sekali pada task, distribusikan rata 100% / totalTask
+        if ($totalTaskCount > 0 && $totalTaskBobotSum <= 0) {
+            $equalBobot = round(100.0 / $totalTaskCount, 2);
+            foreach ($parsedTasks as &$pt) {
+                $pt['bobot'] = $equalBobot;
+            }
+            unset($pt);
+            $totalTaskBobotSum = 100.0;
+        }
+
+        // Pastikan setiap task memiliki start_date dan deadline yang valid secara sekuensial
+        $taskPointer = $startDate->copy()->startOfDay();
+        foreach ($parsedTasks as &$pt) {
+            if (!$pt['start_date']) {
+                $pt['start_date'] = $taskPointer->copy();
+                $pt['deadline'] = $taskPointer->copy()->addDays(max(0, $pt['duration'] - 1))->endOfDay();
+                $taskPointer = $pt['deadline']->copy()->startOfDay()->addDay();
+            }
+        }
+        unset($pt);
+
+        // Sesuaikan durasi total minggu proyek jika task melampaui deadline awal
+        if (!empty($parsedTasks)) {
+            $maxTaskDeadline = null;
+            foreach ($parsedTasks as $pt) {
+                if ($pt['deadline'] && (!$maxTaskDeadline || $pt['deadline']->gt($maxTaskDeadline))) {
+                    $maxTaskDeadline = $pt['deadline']->copy();
+                }
+            }
+            if ($maxTaskDeadline && $maxTaskDeadline->gt($deadlineDate)) {
+                $deadlineDate = $maxTaskDeadline->copy();
+                $totalProjectWeeks = max(1, (int) ceil($startDate->diffInDays($deadlineDate) / 7));
+                $projectTimelineText = $startDate->format('d M Y') . ' s/d ' . $deadlineDate->format('d M Y');
+            }
+        }
+
         // S-Curve Weeks: Sesuaikan dinamis dengan durasi riil proyek
         $totalWeeks = max(1, $totalProjectWeeks);
 
         // Hitung minggu berjalan saat ini (Minggu ke-X)
-        $elapsedWeeks = max(1, (int) ceil($startDate->diffInWeeks(now())));
+        $elapsedWeeks = max(1, (int) ceil($startDate->diffInDays(now()) / 7));
         $currentWeek = min($totalWeeks, $elapsedWeeks);
 
-        // Data Progres Mingguan yang tersimpan (Opsi 3: Input PM & Rekomendasi Task)
+        // Data Progres Mingguan yang tersimpan (Override PM via modal Update Progres)
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $savedWeekly = $handoverData['s_curve_weekly'] ?? [];
-
-        // Hitung task selesai per rentang minggu (Rekomendasi otomatis)
-        $weeklyTaskRecommendations = [];
-        foreach ($project->tasks as $t) {
-            if (in_array($t->status, ['Done', 'Completed']) && $t->updated_at) {
-                $completedAt = \Carbon\Carbon::parse($t->updated_at);
-                $wIdx = max(1, min($totalWeeks, (int) ceil($startDate->diffInWeeks($completedAt))));
-                $weeklyTaskRecommendations[$wIdx] = ($weeklyTaskRecommendations[$wIdx] ?? 0) + 1;
-            }
-        }
 
         // Generate Data Mingguan Lengkap (untuk Tabel & Grafik)
         $weeklyRecords = [];
@@ -337,30 +396,89 @@ class PmoController extends Controller
         $sCurveActual[] = 0.0;
 
         for ($w = 1; $w <= $totalWeeks; $w++) {
-            $wStart = $startDate->copy()->addWeeks($w - 1);
-            $wEnd = $w == $totalWeeks ? $deadlineDate : $startDate->copy()->addWeeks($w)->subDay();
+            $wStart = $startDate->copy()->addWeeks($w - 1)->startOfDay();
+            $wEnd = $startDate->copy()->addWeeks($w)->subDay()->endOfDay();
+            if ($w == $totalWeeks && $deadlineDate->gt($wEnd)) {
+                $wEnd = $deadlineDate->copy()->endOfDay();
+            }
             $dateRange = $wStart->format('d M') . ' - ' . $wEnd->format('d M Y');
 
-            // Plan Mingguan: Diisi manual oleh PM via Update Progres (default null jika belum diisi)
+            // Kumpulkan tasks yang aktif atau jatuh pada rentang minggu ini
+            $tasksInThisWeek = [];
+            $plannedWeightAccumulated = 0.0;
+            $actualWeightAccumulated = 0.0;
+
+            foreach ($parsedTasks as $pt) {
+                $tStart = $pt['start_date'];
+                $tEnd = $pt['deadline'];
+
+                // Cek apakah task aktif di minggu ini
+                if ($tStart->lte($wEnd) && $tEnd->gte($wStart)) {
+                    $tasksInThisWeek[] = $pt['title'];
+                }
+
+                // Hitung kumulatif target rencana sampai akhir minggu ini ($wEnd)
+                if ($tEnd->lte($wEnd)) {
+                    $plannedWeightAccumulated += $pt['bobot'];
+                } elseif ($tStart->lte($wEnd)) {
+                    $totalTaskDays = max(1, $pt['duration']);
+                    $daysUpToEndOfWeek = max(1, $tStart->diffInDays($wEnd) + 1);
+                    $fraction = min(1.0, $daysUpToEndOfWeek / $totalTaskDays);
+                    $plannedWeightAccumulated += ($pt['bobot'] * $fraction);
+                }
+
+                // Hitung kumulatif realisasi aktual task
+                if ($w <= $currentWeek) {
+                    $earned = $pt['bobot'] * ($pt['progress'] / 100.0);
+                    if ($tEnd->lte($wEnd)) {
+                        $actualWeightAccumulated += $earned;
+                    } elseif ($tStart->lte($wEnd)) {
+                        $totalTaskDays = max(1, $pt['duration']);
+                        $daysUpToEndOfWeek = max(1, $tStart->diffInDays($wEnd) + 1);
+                        $fraction = min(1.0, $daysUpToEndOfWeek / $totalTaskDays);
+                        $actualWeightAccumulated += ($earned * $fraction);
+                    }
+                }
+            }
+
+            // Normalisasi agar jika totalTaskBobotSum > 0, skala bobot tetap proporsional terhadap 100%
+            if ($totalTaskBobotSum > 0 && abs($totalTaskBobotSum - 100.0) > 0.01) {
+                $plannedWeightAccumulated = ($plannedWeightAccumulated / $totalTaskBobotSum) * 100.0;
+                $actualWeightAccumulated = ($actualWeightAccumulated / $totalTaskBobotSum) * 100.0;
+            }
+
+            $calcPlan = $totalTaskCount > 0 ? min(100.0, round($plannedWeightAccumulated, 2)) : null;
+
+            // Plan Mingguan: Pakai input manual PM jika ada, jika tidak pakai $calcPlan dari Activity List
             $planVal = null;
             if (isset($savedWeekly[$w]['plan']) && $savedWeekly[$w]['plan'] !== null && $savedWeekly[$w]['plan'] !== '') {
                 $planVal = (float) $savedWeekly[$w]['plan'];
+            } elseif ($totalTaskCount > 0) {
+                $planVal = $calcPlan;
             }
 
-            // Actual Mingguan: Diisi manual oleh PM via Update Progres (default null jika belum diisi)
+            // Actual Mingguan: Pakai input manual PM jika ada, jika tidak pakai dari progress task
             $actualVal = null;
             $isRecorded = false;
             $notes = null;
 
             if (isset($savedWeekly[$w])) {
-                $actualVal = (isset($savedWeekly[$w]['actual']) && $savedWeekly[$w]['actual'] !== null && $savedWeekly[$w]['actual'] !== '') ? (float) $savedWeekly[$w]['actual'] : null;
+                if (isset($savedWeekly[$w]['actual']) && $savedWeekly[$w]['actual'] !== null && $savedWeekly[$w]['actual'] !== '') {
+                    $actualVal = (float) $savedWeekly[$w]['actual'];
+                    $isRecorded = true;
+                }
                 $notes = $savedWeekly[$w]['notes'] ?? null;
-                $isRecorded = ($actualVal !== null || $planVal !== null);
-            } else {
-                $actualVal = null;
             }
 
-            $tasksCompletedThisWeek = $weeklyTaskRecommendations[$w] ?? 0;
+            if ($actualVal === null && $totalTaskCount > 0) {
+                if ($w < $currentWeek) {
+                    $actualVal = min($currentProgressPercent, round($actualWeightAccumulated, 2));
+                } elseif ($w === $currentWeek) {
+                    $actualVal = round($currentProgressPercent, 2);
+                } else {
+                    $actualVal = null; // Masa depan tetap null / -
+                }
+            }
 
             $weeklyRecords[] = [
                 'week'           => $w,
@@ -372,7 +490,8 @@ class PmoController extends Controller
                 'is_future'      => ($w > $currentWeek),
                 'is_recorded'    => $isRecorded,
                 'notes'          => $notes,
-                'tasks_count'    => $tasksCompletedThisWeek,
+                'tasks_in_week'  => $tasksInThisWeek,
+                'tasks_count'    => count($tasksInThisWeek),
                 'variance'       => ($actualVal !== null && $planVal !== null) ? round($actualVal - $planVal, 2) : null,
             ];
 
