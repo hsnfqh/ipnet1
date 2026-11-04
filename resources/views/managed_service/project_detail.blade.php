@@ -167,6 +167,14 @@
                                 <span>Catat Tiket CM Baru</span>
                             </button>
                         </div>
+
+                        <div x-show="activeTab === 'sla'">
+                            <button type="button" @click="isSlaModalOpen = true" 
+                                    class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span>Sesuaikan Parameter SLA</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -330,6 +338,17 @@
                     <span>Corrective Maintenance (CM)</span>
                     <span :class="activeTab === 'cm' ? 'bg-red-50 text-[#8F0A0D]' : 'bg-gray-100 text-[#64748B]'" class="text-[10.5px] font-bold px-1.5 py-0.5 rounded-full">
                         {{ $cmUsed }}/{{ $cmQuota >= 999 ? '∞' : $cmQuota }} Tiket
+                    </span>
+                </button>
+
+                <button type="button" 
+                        @click="activeTab = 'sla'; window.history.replaceState(null, '', '?tab=sla')"
+                        :class="activeTab === 'sla' ? 'border-[#8F0A0D] text-[#8F0A0D]' : 'border-transparent text-[#64748B] hover:text-[#1E293B]'"
+                        class="pb-3 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Perhitungan &amp; Evaluasi SLA</span>
+                    <span :class="activeTab === 'sla' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-[#64748B]'" class="text-[10.5px] font-bold px-2 py-0.5 rounded-full">
+                        {{ number_format($projectSlaUptime ?? 99.8, 1) }}%
                     </span>
                 </button>
 
@@ -1288,6 +1307,198 @@
                         </div>
                     @endif
                 </div>
+            </div>
+
+            <!-- ========================================================== -->
+            <!-- TAB 4: PERHITUNGAN & EVALUASI SLA (AVAILABILITY & DOWNTIME) -->
+            <!-- ========================================================== -->
+            <div x-show="activeTab === 'sla'" x-cloak class="space-y-5 anim-fade-up">
+                
+                {{-- 4 Clean KPI Cards Symmetrical with Sales Design Standard --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    {{-- KPI 1: Realisasi SLA Uptime --}}
+                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border {{ ($isSlaMet ?? true) ? 'border-emerald-200 bg-emerald-50/20' : 'border-rose-200 bg-rose-50/20' }} space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Realisasi SLA Uptime</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ ($isSlaMet ?? true) ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-[#8F0A0D] border border-rose-300' }}">
+                                {{ ($isSlaMet ?? true) ? 'Memenuhi Target' : 'Di Bawah Target' }}
+                            </span>
+                        </div>
+                        <p class="text-[20px] font-extrabold {{ ($isSlaMet ?? true) ? 'text-emerald-700' : 'text-[#8F0A0D]' }}">
+                            {{ number_format($projectSlaUptime ?? 99.8, 2) }}%
+                        </p>
+                        <p class="text-[11.5px] text-[#64748B]">Bulan {{ now()->isoFormat('MMMM Y') }} ({{ $daysInMonth ?? 30 }} Hari)</p>
+                    </div>
+
+                    {{-- KPI 2: Target SLA Kontrak --}}
+                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Target Kontrak</span>
+                            <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                                {{ $project->sla_tier ?: 'Gold' }} Tier
+                            </span>
+                        </div>
+                        <p class="text-[20px] font-extrabold text-[#1E293B]">
+                            {{ number_format($targetSla ?? ($project->sla_target_percentage ?: 99.50), 2) }}%
+                        </p>
+                        <p class="text-[11.5px] text-[#64748B]">Cakupan Standby {{ $project->sla_coverage_hours ?: '24x7' }}</p>
+                    </div>
+
+                    {{-- KPI 3: Akumulasi Downtime --}}
+                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Akumulasi Downtime</span>
+                            <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-[#8F0A0D] border border-rose-200">
+                                {{ count($downtimeDeviceList ?? []) }} Insiden
+                            </span>
+                        </div>
+                        <p class="text-[20px] font-extrabold text-[#8F0A0D]">
+                            {{ $totalProjDowntimeHours ?? 0 }} Jam
+                        </p>
+                        <p class="text-[11.5px] text-[#64748B]">Dari Total {{ $totalPeriodHours ?? 720 }} Jam Operasional</p>
+                    </div>
+
+                    {{-- KPI 4: Sisa Buffer Toleransi Downtime --}}
+                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Sisa Buffer Toleransi</span>
+                            <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full {{ ($remainingBufferHours ?? 0) >= 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-[#8F0A0D] border border-rose-200' }}">
+                                Maks. {{ $maxAllowedDowntimeHours ?? 3.6 }} Jam
+                            </span>
+                        </div>
+                        <p class="text-[20px] font-extrabold {{ ($remainingBufferHours ?? 0) >= 0 ? 'text-emerald-700' : 'text-[#8F0A0D]' }}">
+                            {{ ($remainingBufferHours ?? 0) >= 0 ? '+' : '' }}{{ $remainingBufferHours ?? 0 }} Jam
+                        </p>
+                        <p class="text-[11.5px] text-[#64748B]">Sebelum Pelanggaran SLA / Penalty</p>
+                    </div>
+                </div>
+
+                {{-- Table: Rincian Gangguan & Evaluasi SLA Perangkat --}}
+                <div class="ipnet-card overflow-hidden">
+                    <div class="p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-4 bg-[#8F0A0D] rounded-full inline-block"></span>
+                            <div>
+                                <h3 class="text-[15px] font-bold text-[#1E293B]">Tabel Perhitungan SLA &amp; Rekapitulasi Downtime Perangkat</h3>
+                                <p class="text-xs text-[#64748B]">Rincian durasi insiden perangkat jaringan, realisasi persentase availability, dan root cause sesuai standar SLA operasional.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="window.print()" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                <span>Cetak Laporan SLA</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-[#E2E8F0] bg-slate-50/70 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                                    <th class="py-3 px-3.5 w-12 text-center">No</th>
+                                    <th class="py-3 px-3.5">Perangkat Jaringan</th>
+                                    <th class="py-3 px-3.5">Tiket / Masalah</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap">Mulai Down</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap">Up Kembali</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-center">Durasi Down</th>
+                                    <th class="py-3 px-3.5 whitespace-nowrap text-center">Realisasi SLA</th>
+                                    <th class="py-3 px-3.5">Penyebab (Root Cause)</th>
+                                    <th class="py-3 px-3.5 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
+                                @forelse($downtimeDeviceList as $idx => $item)
+                                <tr class="hover:bg-slate-50/80 transition">
+                                    <td class="py-3.5 px-3.5 text-center font-bold text-slate-400">{{ $idx + 1 }}</td>
+                                    <td class="py-3.5 px-3.5">
+                                        <div class="font-bold text-slate-900 text-[12.5px]">{{ $item['device'] }}</div>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 mt-0.5">
+                                            {{ $item['category'] }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-3.5">
+                                        <div class="font-mono text-[11px] font-bold text-[#8F0A0D]">{{ $item['ticket_number'] }}</div>
+                                        <div class="text-[11.5px] text-slate-800 font-medium line-clamp-1" title="{{ $item['title'] }}">{{ $item['title'] }}</div>
+                                    </td>
+                                    <td class="py-3.5 px-3.5 whitespace-nowrap text-slate-600">
+                                        {{ $item['start_down'] }}
+                                    </td>
+                                    <td class="py-3.5 px-3.5 whitespace-nowrap text-slate-600">
+                                        {{ $item['end_down'] }}
+                                    </td>
+                                    <td class="py-3.5 px-3.5 whitespace-nowrap text-center">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-rose-50 text-[#8F0A0D] border border-rose-200">
+                                            {{ $item['duration_text'] }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-3.5 whitespace-nowrap text-center">
+                                        <div class="font-mono font-extrabold text-[12.5px] {{ $item['device_sla'] >= $targetSla ? 'text-emerald-700' : 'text-[#8F0A0D]' }}">
+                                            {{ number_format($item['device_sla'], 2) }}%
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 block">Ketersediaan</span>
+                                    </td>
+                                    <td class="py-3.5 px-3.5 text-[11.5px] text-slate-600 max-w-xs">
+                                        {{ $item['root_cause'] }}
+                                    </td>
+                                    <td class="py-3.5 px-3.5 whitespace-nowrap text-center">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold {{ $item['is_resolved'] ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
+                                            {{ $item['status'] }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="9" class="py-8 text-center">
+                                        <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-2 border border-emerald-200">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        </div>
+                                        <p class="text-[13px] font-bold text-slate-800">Zero Downtime (Ketersediaan Layanan 100%)</p>
+                                        <p class="text-xs text-slate-500 mt-0.5">Tidak ada insiden atau gangguan perangkat yang tercatat pada periode ini.</p>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                            @if(!empty($downtimeDeviceList) && count($downtimeDeviceList) > 0)
+                            <tfoot>
+                                <tr class="bg-slate-100/80 border-t-2 border-slate-300 font-bold text-slate-900 text-xs">
+                                    <td colspan="5" class="py-3 px-3.5 text-right uppercase tracking-wider text-[11px] text-slate-600">
+                                        Total Akumulasi Periode Ini:
+                                    </td>
+                                    <td class="py-3 px-3.5 text-center whitespace-nowrap">
+                                        <span class="font-extrabold text-[#8F0A0D]">{{ $totalProjDowntimeHours }} Jam</span>
+                                    </td>
+                                    <td class="py-3 px-3.5 text-center whitespace-nowrap">
+                                        <span class="font-mono font-extrabold text-[13px] {{ ($isSlaMet ?? true) ? 'text-emerald-700' : 'text-[#8F0A0D]' }}">
+                                            {{ number_format($projectSlaUptime, 2) }}%
+                                        </span>
+                                    </td>
+                                    <td colspan="2" class="py-3 px-3.5 text-center whitespace-nowrap">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-bold {{ ($isSlaMet ?? true) ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-[#8F0A0D] border border-rose-300' }}">
+                                            <span class="w-2 h-2 rounded-full {{ ($isSlaMet ?? true) ? 'bg-emerald-600' : 'bg-[#8F0A0D]' }}"></span>
+                                            {{ ($isSlaMet ?? true) ? 'MEMENUHI TARGET SLA (KOMPLIAN)' : 'PELANGGARAN SLA (BREACH)' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                            @endif
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Catatan Metode Perhitungan & Evaluasi SLA (Executive Corporate) --}}
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1.5">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="font-bold text-slate-800">Dasar Rumus &amp; Parameter Pengukuran SLA Ketersediaan Jaringan</span>
+                    </div>
+                    <p class="leading-relaxed pl-6 text-slate-600">
+                        Perhitungan SLA Uptime didasarkan pada rumus ketersediaan: 
+                        <code class="px-1.5 py-0.5 rounded bg-white border border-slate-300 font-mono text-[11px] text-slate-800">SLA (%) = (Total Durasi Periode - Total Downtime) / Total Durasi Periode &times; 100%</code>.
+                        Total periode bulan ini adalah <strong class="text-slate-800">{{ $daysInMonth ?? 30 }} hari &times; 24 jam = {{ $totalPeriodHours ?? 720 }} jam</strong>. Dengan batas toleransi downtime maksimum <strong class="text-slate-800">{{ $maxAllowedDowntimeHours ?? 3.6 }} jam</strong> untuk mempertahankan standar SLA Tier {{ $project->sla_tier ?: 'Gold' }} ({{ number_format($targetSla ?? 99.5, 2) }}%).
+                    </p>
+                </div>
+
             </div>
 
 

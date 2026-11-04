@@ -439,8 +439,8 @@
                                             {{ $client['status_desc'] }}
                                         </td>
                                         <td class="py-3 pl-2 text-right whitespace-nowrap">
-                                            <a href="{{ route('ms.projects.show', $client['id']) }}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition inline-block">
-                                                Detail Proyek &amp; SLA &rarr;
+                                            <a href="{{ route('ms.projects.show', ['project' => $client['id'], 'tab' => 'sla']) }}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition inline-block">
+                                                Lihat Perhitungan SLA &rarr;
                                             </a>
                                         </td>
                                     </tr>
