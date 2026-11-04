@@ -65,34 +65,6 @@
 @endpush
 
 @section('content')
-<script>
-    function calcDeadline(startDateStr, durationDays) {
-        if (!startDateStr) return '';
-        const dur = parseInt(durationDays, 10);
-        if (isNaN(dur) || dur < 1) return startDateStr;
-        const parts = startDateStr.split('-');
-        if (parts.length !== 3) return startDateStr;
-        const dt = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-        dt.setDate(dt.getDate() + (dur - 1));
-        const y = dt.getFullYear();
-        const m = String(dt.getMonth() + 1).padStart(2, '0');
-        const d = String(dt.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-    }
-
-    function calcDuration(startDateStr, deadlineStr) {
-        if (!startDateStr || !deadlineStr) return 1;
-        const p1 = startDateStr.split('-');
-        const p2 = deadlineStr.split('-');
-        if (p1.length !== 3 || p2.length !== 3) return 1;
-        const dt1 = new Date(parseInt(p1[0], 10), parseInt(p1[1], 10) - 1, parseInt(p1[2], 10));
-        const dt2 = new Date(parseInt(p2[0], 10), parseInt(p2[1], 10) - 1, parseInt(p2[2], 10));
-        const diffTime = dt2.getTime() - dt1.getTime();
-        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        return diffDays > 0 ? diffDays : 1;
-    }
-</script>
-
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" 
      x-data="{ 
          activeMainTab: '{{ in_array(request('tab'), ['scurve', 'team', 'expenses']) ? request('tab') : 'scurve' }}',
@@ -132,36 +104,16 @@
          editTaskId: null,
          editTaskTitle: '',
          editTaskDuration: 1,
-         editTaskStartDate: '',
-         editTaskDeadline: '',
          editTaskBobot: 0,
          editTaskProgress: 0,
          editTaskStatus: 'In Progress',
          editTaskPriority: 'Medium',
          editTaskEngineerId: '',
          editTaskDescription: '',
-         onEditDurationOrStartChange() {
-             if (this.editTaskStartDate && this.editTaskDuration >= 1) {
-                 this.editTaskDeadline = calcDeadline(this.editTaskStartDate, this.editTaskDuration);
-             }
-         },
-         onEditDeadlineChange() {
-             if (this.editTaskStartDate && this.editTaskDeadline) {
-                 this.editTaskDuration = calcDuration(this.editTaskStartDate, this.editTaskDeadline);
-             }
-         },
          openEditTaskModal(task) {
              this.editTaskId = task.id;
              this.editTaskTitle = task.title;
-             this.editTaskStartDate = task.start_date || '';
-             this.editTaskDeadline = task.deadline || '';
-             if (task.duration_days) {
-                 this.editTaskDuration = parseInt(task.duration_days, 10);
-             } else if (this.editTaskStartDate && this.editTaskDeadline) {
-                 this.editTaskDuration = calcDuration(this.editTaskStartDate, this.editTaskDeadline);
-             } else {
-                 this.editTaskDuration = 1;
-             }
+             this.editTaskDuration = task.duration_days ? parseInt(task.duration_days, 10) : 1;
              this.editTaskBobot = task.bobot;
              this.editTaskProgress = task.progress;
              this.editTaskStatus = task.status;
@@ -1128,7 +1080,7 @@
                                 </button>
                                 <button type="button" @click="showQuickTaskModal = true" class="px-2.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                    <span>+ Tambah Activity / Task</span>
+                                    <span>Tambah Activity / Task</span>
                                 </button>
                             </div>
                         </div>
@@ -1983,19 +1935,6 @@
                       isCustomTitle: false,
                       openEngDropdown: false, 
                       selectedEngIds: [],
-                      taskDuration: 1,
-                      taskStartDate: '{{ date('Y-m-d') }}',
-                      taskDeadline: '{{ date('Y-m-d') }}',
-                      onDurationOrStartChange() {
-                          if (this.taskStartDate && this.taskDuration >= 1) {
-                              this.taskDeadline = calcDeadline(this.taskStartDate, this.taskDuration);
-                          }
-                      },
-                      onDeadlineChange() {
-                          if (this.taskStartDate && this.taskDeadline) {
-                              this.taskDuration = calcDuration(this.taskStartDate, this.taskDeadline);
-                          }
-                      },
                       engCount() { return this.selectedEngIds.length; },
                       toggleEng(id) {
                           id = parseInt(id, 10);
@@ -2159,8 +2098,7 @@
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
                         <input type="number" 
                                name="duration_days" 
-                               x-model.number="taskDuration"
-                               @input="onDurationOrStartChange()"
+                               value="1" 
                                min="1" 
                                max="365" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
@@ -2183,27 +2121,6 @@
                             <option value="In Progress">In Progress</option>
                             <option value="Completed">Completed</option>
                         </select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Mulai Pengerjaan</label>
-                        <input type="date" 
-                               name="start_date" 
-                               x-model="taskStartDate"
-                               @change="onDurationOrStartChange()"
-                               required
-                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Target Selesai (Deadline)</label>
-                        <input type="date" 
-                               name="deadline" 
-                               x-model="taskDeadline"
-                               @change="onDeadlineChange()"
-                               required
-                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                 </div>
 
@@ -2279,7 +2196,6 @@
                         <input type="number" 
                                name="duration_days" 
                                x-model.number="editTaskDuration" 
-                               @input="onEditDurationOrStartChange()"
                                min="1" 
                                max="365" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
@@ -2302,25 +2218,6 @@
                                min="0" 
                                max="100" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-emerald-700 focus:border-[#8F0A0D] outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Mulai</label>
-                        <input type="date" 
-                               name="start_date" 
-                               x-model="editTaskStartDate" 
-                               @change="onEditDurationOrStartChange()"
-                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Target Selesai (Deadline)</label>
-                        <input type="date" 
-                               name="deadline" 
-                               x-model="editTaskDeadline" 
-                               @change="onEditDeadlineChange()"
-                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                 </div>
 
