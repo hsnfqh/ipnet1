@@ -1339,9 +1339,11 @@ Route::middleware(['auth'])->group(function () {
         // Preventive Maintenance
         Route::get('/maintenance', [\App\Http\Controllers\ManagedServiceController::class, 'maintenance'])->name('ms.maintenance.index');
 
-        // Reports
+        // Reports & SLA Availability
         Route::get('/reports', [\App\Http\Controllers\ManagedServiceController::class, 'reports'])->name('ms.reports.index');
         Route::post('/reports', [\App\Http\Controllers\ManagedServiceController::class, 'storeReport'])->name('ms.reports.store');
+        Route::post('/downtime-log', [\App\Http\Controllers\ManagedServiceController::class, 'storeDowntimeLog'])->name('ms.downtime.store');
+        Route::get('/sla-export', [\App\Http\Controllers\ManagedServiceController::class, 'exportSlaReport'])->name('ms.sla.export');
 
         // Incoming Service Handovers (Accept & Activate)
         Route::post('/handovers/{project}/accept', [\App\Http\Controllers\ManagedServiceController::class, 'acceptServiceHandover'])->name('ms.handovers.accept');
