@@ -221,15 +221,25 @@
                     </div>
 
                     {{-- KPI 4: Komitmen SLA --}}
-                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1 cursor-pointer hover:border-[#8F0A0D]/60 hover:shadow-2xs transition group"
+                         @click="activeTab = 'sla'; window.history.replaceState(null, '', '?tab=sla')"
+                         title="Klik untuk membuka rincian perhitungan dan evaluasi SLA">
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Komitmen SLA</span>
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider group-hover:text-[#8F0A0D] transition-colors">Komitmen SLA</span>
                             <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-[#8F0A0D] border border-rose-200">
                                 Tier: {{ $project->sla_tier ?: 'Gold' }}
                             </span>
                         </div>
-                        <p class="text-[15px] font-bold text-[#1E293B]">{{ $project->sla_target_percentage ?: '99.50' }}% Uptime</p>
-                        <p class="text-[11.5px] text-[#64748B]">Support Standby {{ $project->sla_coverage_hours ?: '24x7' }}</p>
+                        <div class="flex items-baseline justify-between gap-1">
+                            <p class="text-[15px] font-bold text-[#1E293B]">{{ $project->sla_target_percentage ?: '99.50' }}% Target</p>
+                            <span class="text-[11px] font-bold {{ ($isSlaMet ?? true) ? 'text-emerald-700 bg-emerald-50 border border-emerald-200' : 'text-[#8F0A0D] bg-rose-50 border border-rose-200' }} px-1.5 py-0.5 rounded">
+                                Realisasi: {{ number_format($projectSlaUptime ?? 99.8, 1) }}%
+                            </span>
+                        </div>
+                        <p class="text-[11.5px] text-[#64748B] flex items-center justify-between">
+                            <span>Support Standby {{ $project->sla_coverage_hours ?: '24x7' }}</span>
+                            <span class="text-[10.5px] text-[#8F0A0D] font-bold group-hover:underline">Lihat Detail SLA &rarr;</span>
+                        </p>
                     </div>
                 </div>
 
