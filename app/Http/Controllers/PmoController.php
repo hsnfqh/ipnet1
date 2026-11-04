@@ -173,6 +173,13 @@ class PmoController extends Controller
             $projectUpdated = true;
         }
 
+        // Hapus nilai hardcoded 20.0 statis terdahulu agar tidak mengunci kalkulasi Kurva S dinamis
+        if (isset($handoverData['s_curve_weekly'][1]['actual']) && ((float) $handoverData['s_curve_weekly'][1]['actual'] == 20.0 || (float) $handoverData['s_curve_weekly'][1]['actual'] == 20)) {
+            $handoverData['s_curve_weekly'][1]['actual'] = null;
+            $handoverData['s_curve_weekly'][1]['actual_weekly'] = null;
+            $projectUpdated = true;
+        }
+
         // Pastikan Personil Tim Lapangan dari Lead Engineer telah terdaftar
         if (empty($handoverData['assigned_engineers'])) {
             $engSyaiful = User::where('name', 'like', '%Syaiful%')->first();
@@ -235,8 +242,8 @@ class PmoController extends Controller
                 'week'         => 1,
                 'bobot'        => 13.3,
                 'daily_weight' => 3.3,
-                'default_prog' => 50,
-                'default_stat' => 'In Progress',
+                'default_prog' => 100,
+                'default_stat' => 'Completed',
                 'description'  => 'Design Review Meeting arsitektur peremajaan router bersama PIC PPATK (Bpk. Richi Michael).',
             ],
             [
@@ -396,6 +403,11 @@ class PmoController extends Controller
                     $matchedTask->deadline = $tEnd;
                     $cleanDesc = trim(preg_replace('/\[[^\]]+\]/i', '', $matchedTask->description ?? $mw['description']));
                     $matchedTask->description = ($cleanDesc ? $cleanDesc . ' ' : '') . $expectedMeta;
+                    $needsUpdate = true;
+                }
+                if ($mw['title'] === 'Design Review Meeting' && $matchedTask->progress < 100) {
+                    $matchedTask->progress = 100;
+                    $matchedTask->status = 'Completed';
                     $needsUpdate = true;
                 }
                 if ($needsUpdate) {
@@ -912,12 +924,10 @@ class PmoController extends Controller
             $isRecorded = false;
             $notes = $savedWeekly[$w]['notes'] ?? null;
 
-            if (isset($savedWeekly[$w]['actual']) && $savedWeekly[$w]['actual'] !== null && $savedWeekly[$w]['actual'] !== '') {
-                $actualVal = (float) $savedWeekly[$w]['actual'];
-                $isRecorded = true;
-            } elseif ($w <= $maxReportedWeek && $totalEarnedEV > 0) {
+            // 1. Prioritas Utama: Kalkulasi dinamis dari WBS Tasks (Gambar 4)
+            if ($w <= $maxReportedWeek && $totalEarnedEV > 0) {
                 if ($w === $maxReportedWeek) {
-                    $actualVal = $actualEV;
+                    $actualVal = round($actualEV, 1);
                 } else {
                     $cumW = 0.0;
                     if ($isPpatkProject) {
@@ -940,10 +950,15 @@ class PmoController extends Controller
                             }
                         }
                     }
-                    $actualVal = round(min($actualEV, $cumW), 2);
+                    $actualVal = round(min($actualEV, $cumW), 1);
                 }
                 $isRecorded = true;
+            } elseif (isset($savedWeekly[$w]['actual']) && $savedWeekly[$w]['actual'] !== null && $savedWeekly[$w]['actual'] !== '') {
+                // Fallback manual hanya jika tidak ada WBS task yang aktif
+                $actualVal = (float) $savedWeekly[$w]['actual'];
+                $isRecorded = true;
             } else {
+                // Belum dilaporkan / masa depan: null (Chart melewati tanpa garis ke 0%)
                 $actualVal = null;
             }
 
