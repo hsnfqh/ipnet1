@@ -161,9 +161,19 @@
                                 <span>Kembali ke Portofolio PMO</span>
                             </a>
                             <span class="text-slate-300">&bull;</span>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                Total {{ $totalProjectDays ?? $daysSpan }} Hari ({{ $totalProjectWeeks ?? 8 }} Minggu)
-                            </span>
+                            @php
+                                $estDuration = $project->handover_data['estimate_project_duration'] ?? null;
+                                $isPpatkBadge = ($estDuration == 30) || str_contains(strtolower($project->name), 'ppat') || str_contains(strtolower($project->client ?? ''), 'ppat');
+                            @endphp
+                            @if($isPpatkBadge)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                    Total 30 Hari (5 Minggu Pelaksanaan) &bull; Kontrak s/d {{ \Carbon\Carbon::parse($project->deadline)->format('d M Y') }}
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                    Total {{ $totalProjectDays ?? $daysSpan }} Hari ({{ $totalProjectWeeks ?? 8 }} Minggu)
+                                </span>
+                            @endif
                             @if($healthStatus === 'Healthy')
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -607,11 +617,12 @@
                         <thead>
                             <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                                 <th class="py-3 px-3">Minggu</th>
-                                <th class="py-3 px-3">Duration (in Days)</th>
                                 <th class="py-3 px-3">Aktivitas / Deliverables (WBS)</th>
-                                <th class="py-3 px-3">Target Rencana (Plan)</th>
-                                <th class="py-3 px-3">Realisasi Aktual</th>
-                                <th class="py-3 px-3">Deviasi</th>
+                                <th class="py-3 px-3 text-right">Plan Weekly (%)</th>
+                                <th class="py-3 px-3 text-right">Plan Cumulative (%)</th>
+                                <th class="py-3 px-3 text-right">Actual Weekly (%)</th>
+                                <th class="py-3 px-3 text-right">Actual Cumulative (%)</th>
+                                <th class="py-3 px-3 text-center">Deviasi (%)</th>
                                 <th class="py-3 px-3">Catatan PM</th>
                                 <th class="py-3 px-3 text-right">Aksi</th>
                             </tr>
@@ -623,19 +634,20 @@
                                     {{-- Kolom Minggu --}}
                                     <td class="py-3 px-3 whitespace-nowrap">
                                         <div class="flex items-center gap-2">
-                                            <span class="font-extrabold text-slate-900 text-[12.5px]">Minggu {{ $rec['week'] }}</span>
+                                            <span class="font-extrabold text-slate-900 text-[12.5px]">
+                                                {{ $rec['week'] === 0 ? 'Week 0' : 'Minggu ' . $rec['week'] }}
+                                            </span>
                                             @if($rec['is_current'])
                                                 <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-[#8F0A0D] text-white">
                                                     Berjalan
                                                 </span>
+                                            @elseif($rec['week'] === 0)
+                                                <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
+                                                    Baseline
+                                                </span>
                                             @endif
                                         </div>
                                         <div class="text-[10px] text-slate-400 font-medium mt-0.5">{{ $rec['date_range'] }}</div>
-                                    </td>
-
-                                    {{-- Kolom Duration (in Days) --}}
-                                    <td class="py-3 px-3 whitespace-nowrap">
-                                        <span class="font-bold text-slate-800 text-xs">7 Hari</span>
                                     </td>
 
                                     {{-- Kolom Aktivitas / Deliverables (WBS) --}}
@@ -653,25 +665,43 @@
                                         @endif
                                     </td>
 
-                                    {{-- Kolom Target Plan --}}
-                                    <td class="py-3 px-3 whitespace-nowrap">
-                                        @if($rec['plan_percent'] !== null)
-                                            <span class="font-bold text-blue-700">{{ number_format($rec['plan_percent'], 2) }}%</span>
+                                    {{-- Kolom Plan Weekly (%) --}}
+                                    <td class="py-3 px-3 text-right whitespace-nowrap">
+                                        @if(isset($rec['plan_weekly']) && $rec['plan_weekly'] !== null)
+                                            <span class="font-bold text-slate-800">{{ number_format($rec['plan_weekly'], 1) }}%</span>
                                         @else
                                             <span class="text-slate-400 font-medium">-</span>
                                         @endif
                                     </td>
 
-                                    {{-- Kolom Realisasi Aktual --}}
-                                    <td class="py-3 px-3 whitespace-nowrap">
+                                    {{-- Kolom Plan Cumulative (%) --}}
+                                    <td class="py-3 px-3 text-right whitespace-nowrap">
+                                        @if($rec['plan_percent'] !== null)
+                                            <span class="font-bold text-blue-700">{{ number_format($rec['plan_percent'], 1) }}%</span>
+                                        @else
+                                            <span class="text-slate-400 font-medium">-</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Kolom Actual Weekly (%) --}}
+                                    <td class="py-3 px-3 text-right whitespace-nowrap">
+                                        @if(isset($rec['actual_weekly']) && $rec['actual_weekly'] !== null)
+                                            <span class="font-bold text-slate-800">{{ number_format($rec['actual_weekly'], 1) }}%</span>
+                                        @else
+                                            <span class="text-slate-400 font-medium">-</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Kolom Actual Cumulative (%) --}}
+                                    <td class="py-3 px-3 text-right whitespace-nowrap">
                                         @if($rec['actual_percent'] !== null)
-                                            <div class="flex items-center gap-1.5">
+                                            <div class="inline-flex items-center gap-1.5 justify-end">
                                                 <span class="font-extrabold text-[#8F0A0D] text-[12.5px]">
-                                                    {{ number_format($rec['actual_percent'], 2) }}%
+                                                    {{ number_format($rec['actual_percent'], 1) }}%
                                                 </span>
                                                 @if($rec['is_recorded'])
-                                                    <span class="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200" title="Diinput manual oleh PM">
-                                                        PM Validated
+                                                    <span class="text-[9.5px] text-emerald-700 font-bold bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200" title="Validasi PM">
+                                                        Valid
                                                     </span>
                                                 @endif
                                             </div>
@@ -680,16 +710,16 @@
                                         @endif
                                     </td>
 
-                                    {{-- Kolom Deviasi (Variance) --}}
-                                    <td class="py-3 px-3 whitespace-nowrap">
+                                    {{-- Kolom Deviasi (%) --}}
+                                    <td class="py-3 px-3 text-center whitespace-nowrap">
                                         @if($rec['variance'] !== null)
                                             @if($rec['variance'] >= 0)
                                                 <span class="text-emerald-700 font-bold text-[11px] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                                                    +{{ number_format($rec['variance'], 2) }}%
+                                                    +{{ number_format($rec['variance'], 1) }}%
                                                 </span>
                                             @else
                                                 <span class="text-rose-700 font-bold text-[11px] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                                                    {{ number_format($rec['variance'], 2) }}%
+                                                    {{ number_format($rec['variance'], 1) }}%
                                                 </span>
                                             @endif
                                         @else
@@ -698,7 +728,7 @@
                                     </td>
 
                                     {{-- Kolom Catatan PM --}}
-                                    <td class="py-3 px-3 max-w-[260px]">
+                                    <td class="py-3 px-3 max-w-[240px]">
                                         <span class="text-slate-600 text-[11.5px] truncate block" title="{{ $rec['notes'] ?? '-' }}">
                                             {{ $rec['notes'] ?: '-' }}
                                         </span>
@@ -706,16 +736,47 @@
 
                                     {{-- Kolom Aksi --}}
                                     <td class="py-3 px-3 text-right whitespace-nowrap">
-                                        <button type="button" 
-                                                @click="openProgressModal({{ $rec['week'] }}, {{ $rec['actual_percent'] !== null ? $rec['actual_percent'] : 'null' }}, {{ $rec['plan_percent'] !== null ? $rec['plan_percent'] : 'null' }}, '{{ addslashes($rec['notes'] ?? '') }}', '{{ $rec['date_range'] }}')"
-                                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                            Update Progres
-                                        </button>
+                                        @if($rec['week'] > 0)
+                                            <button type="button" 
+                                                    @click="openProgressModal({{ $rec['week'] }}, {{ $rec['actual_percent'] !== null ? $rec['actual_percent'] : 'null' }}, {{ $rec['plan_percent'] !== null ? $rec['plan_percent'] : 'null' }}, '{{ addslashes($rec['notes'] ?? '') }}', '{{ $rec['date_range'] }}')"
+                                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                Update Progres
+                                            </button>
+                                        @else
+                                            <span class="text-[11px] text-slate-400 font-medium">Baseline</span>
+                                        @endif
                                     </td>
 
                                 </tr>
                             @endforeach
                         </tbody>
+                        <tfoot class="bg-slate-50 border-t-2 border-slate-200 font-bold text-xs text-slate-800">
+                            <tr>
+                                <td colspan="2" class="py-2.5 px-3 uppercase tracking-wider text-[11px] text-slate-600">
+                                    Total Evaluasi Kurva S (Pelaksanaan Proyek)
+                                </td>
+                                <td class="py-2.5 px-3 text-right text-slate-900">
+                                    100.0%
+                                </td>
+                                <td class="py-2.5 px-3 text-right text-blue-800">
+                                    100.0%
+                                </td>
+                                <td class="py-2.5 px-3 text-right text-slate-900">
+                                    20.0%
+                                </td>
+                                <td class="py-2.5 px-3 text-right text-[#8F0A0D] font-black">
+                                    {{ number_format($currentProgressPercent, 1) }}%
+                                </td>
+                                <td class="py-2.5 px-3 text-center">
+                                    <span class="{{ ($summaryProgress['variance'] ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
+                                        {{ ($summaryProgress['variance'] ?? 0) > 0 ? '+' : '' }}{{ number_format($summaryProgress['variance'] ?? 0, 1) }}%
+                                    </span>
+                                </td>
+                                <td colspan="2" class="py-2.5 px-3 text-slate-500 text-[11px] font-normal italic">
+                                    Sesuai Kurva S Mingguan
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 
@@ -840,62 +901,118 @@
                             </div>
                         @endif
 
-                        {{-- Tabel Task Kolektif --}}
+                        {{-- Tabel Task Kolektif Sesuai Excel --}}
                         <div class="overflow-x-auto rounded-xl border border-slate-200">
                             <table class="w-full text-left text-xs">
                                 <thead>
                                     <tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                        <th class="py-2.5 px-3 w-10 text-center">NO</th>
-                                        <th class="py-2.5 px-3">NAMA TUGAS / DELIVERABLE (WBS)</th>
-                                        <th class="py-2.5 px-3">DURASI</th>
-                                        <th class="py-2.5 px-3">BOBOT</th>
-                                        <th class="py-2.5 px-3">PROGRESS AKTUAL</th>
-                                        <th class="py-2.5 px-3">STATUS</th>
-                                        <th class="py-2.5 px-3 text-right">AKSI</th>
+                                        <th class="py-2.5 px-2.5 w-10 text-center">NO</th>
+                                        <th class="py-2.5 px-3 min-w-[220px]">TASK NAME (WBS DELIVERABLE)</th>
+                                        <th class="py-2.5 px-2.5 text-center whitespace-nowrap">DURATION</th>
+                                        <th class="py-2.5 px-2.5 text-center whitespace-nowrap">STARTING DAY</th>
+                                        <th class="py-2.5 px-2.5 text-center whitespace-nowrap">FINISH DAY</th>
+                                        <th class="py-2.5 px-2.5 text-center whitespace-nowrap">WEEK</th>
+                                        <th class="py-2.5 px-2.5 text-right whitespace-nowrap">ACTIVITY WEIGHT (%)</th>
+                                        <th class="py-2.5 px-2.5 text-right whitespace-nowrap">DAILY WEIGHT (%)</th>
+                                        <th class="py-2.5 px-3 min-w-[130px]">PROGRESS AKTUAL</th>
+                                        <th class="py-2.5 px-2.5 text-center whitespace-nowrap">STATUS</th>
+                                        <th class="py-2.5 px-3 text-right whitespace-nowrap">AKSI</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
+                                    @php
+                                        $totDuration = 0;
+                                        $totActWeight = 0.0;
+                                        $totEarnedWeight = 0.0;
+                                    @endphp
                                     @forelse($project->tasks->sortBy('id') as $tIdx => $t)
                                         @php
-                                            $tDays = ($t->start_date && $t->deadline) 
-                                                ? max(1, (int) round(\Carbon\Carbon::parse($t->start_date)->diffInDays(\Carbon\Carbon::parse($t->deadline))) + 1)
-                                                : 1;
-                                            $bobotVal = 0;
-                                            $bobotTxt = '-';
+                                            // Ekstrak metadata Excel
+                                            $startingDay = null;
+                                            if (preg_match('/StartingDay:\s*(\d+)/i', $t->description ?? '', $sdm)) {
+                                                $startingDay = (int) $sdm[1];
+                                            }
+                                            $finishDay = null;
+                                            if (preg_match('/FinishDay:\s*(\d+)/i', $t->description ?? '', $fdm)) {
+                                                $finishDay = (int) $fdm[1];
+                                            }
+                                            $wbsWeek = null;
+                                            if (preg_match('/Week:\s*(\d+)/i', $t->description ?? '', $wm)) {
+                                                $wbsWeek = (int) $wm[1];
+                                            }
+                                            
+                                            $tDays = 1;
+                                            if ($startingDay !== null && $finishDay !== null) {
+                                                $tDays = max(1, $finishDay - $startingDay);
+                                            } elseif ($t->start_date && $t->deadline) {
+                                                $tDays = max(1, (int) round(\Carbon\Carbon::parse($t->start_date)->diffInDays(\Carbon\Carbon::parse($t->deadline))) + 1);
+                                            }
+                                            $totDuration += $tDays;
+
+                                            $bobotVal = 0.0;
                                             if (preg_match('/Bobot:\s*([\d\.]+)%/i', $t->description ?? '', $bm)) {
                                                 $bobotVal = (float) $bm[1];
-                                                $bobotTxt = number_format($bobotVal, 2) . '%';
                                             }
-                                            $cleanDesc = trim(preg_replace('/\[Bobot:[^\]]+\]/i', '', $t->description ?? ''));
-                                            $cleanDesc = trim(preg_replace('/\[Kontribusi:[^\]]+\]/i', '', $cleanDesc));
+                                            $totActWeight += $bobotVal;
+
+                                            $dailyWeightVal = 0.0;
+                                            if (preg_match('/DailyWeight:\s*([\d\.]+)%/i', $t->description ?? '', $dwm)) {
+                                                $dailyWeightVal = (float) $dwm[1];
+                                            } else {
+                                                $dailyWeightVal = $tDays > 0 ? round($bobotVal / $tDays, 1) : 0.0;
+                                            }
+
+                                            $progVal = (float) ($t->progress ?: 0);
+                                            $earnedVal = ($bobotVal * $progVal) / 100.0;
+                                            $totEarnedWeight += $earnedVal;
+
+                                            $cleanDesc = trim(preg_replace('/\[[^\]]+\]/i', '', $t->description ?? ''));
                                             $tStartDate = $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '';
                                             $tDeadline = $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '';
                                         @endphp
                                         <tr class="hover:bg-slate-50/80 transition">
-                                            <td class="py-2.5 px-3 text-center font-bold text-slate-400">
+                                            <td class="py-2.5 px-2.5 text-center font-bold text-slate-400">
                                                 {{ $tIdx + 1 }}
                                             </td>
                                             <td class="py-2.5 px-3">
                                                 <div class="font-bold text-slate-900 text-xs">{{ $t->title }}</div>
-                                                @if(!empty($cleanDesc) && !str_starts_with($cleanDesc, '['))
-                                                    <div class="text-[10.5px] text-slate-400 truncate max-w-sm" title="{{ $cleanDesc }}">{{ $cleanDesc }}</div>
+                                                @if(!empty($cleanDesc))
+                                                    <div class="text-[10px] text-slate-400 truncate max-w-xs" title="{{ $cleanDesc }}">{{ $cleanDesc }}</div>
                                                 @endif
                                             </td>
-                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
                                                 <span class="font-bold text-slate-800 text-xs">{{ $tDays }} Hari</span>
                                             </td>
-                                            <td class="py-2.5 px-3 whitespace-nowrap">
-                                                <span class="font-bold text-blue-700 text-xs">{{ $bobotTxt }}</span>
+                                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap font-medium text-slate-700">
+                                                {{ $startingDay !== null ? 'Day ' . $startingDay : '-' }}
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap font-medium text-slate-700">
+                                                {{ $finishDay !== null ? 'Day ' . $finishDay : '-' }}
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
+                                                @if($wbsWeek !== null)
+                                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                        Week {{ $wbsWeek }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-slate-400">-</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-right whitespace-nowrap">
+                                                <span class="font-bold text-blue-700 text-xs">{{ number_format($bobotVal, 1) }}%</span>
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-right whitespace-nowrap">
+                                                <span class="font-semibold text-slate-600 text-xs">{{ number_format($dailyWeightVal, 1) }}%</span>
                                             </td>
                                             <td class="py-2.5 px-3 whitespace-nowrap">
                                                 <div class="flex items-center gap-2">
                                                     <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                                        <div class="h-full {{ (int)($t->progress ?: 0) >= 100 ? 'bg-emerald-500' : 'bg-blue-600' }} rounded-full" style="width: {{ min(100, (int)($t->progress ?: 0)) }}%"></div>
+                                                        <div class="h-full {{ (int)$progVal >= 100 ? 'bg-emerald-500' : 'bg-blue-600' }} rounded-full" style="width: {{ min(100, (int)$progVal) }}%"></div>
                                                     </div>
-                                                    <span class="font-extrabold text-slate-800 text-xs">{{ (int)($t->progress ?: 0) }}%</span>
+                                                    <span class="font-extrabold text-slate-800 text-xs">{{ (int)$progVal }}%</span>
                                                 </div>
                                             </td>
-                                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                            <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
                                                 @if(in_array($t->status, ['Done', 'Completed']))
                                                     <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                         Completed
@@ -906,7 +1023,7 @@
                                                     </span>
                                                 @else
                                                     <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                                        Not Started
+                                                        Assigned
                                                     </span>
                                                 @endif
                                             </td>
@@ -920,19 +1037,19 @@
                                                                 start_date: '{{ $tStartDate }}',
                                                                 deadline: '{{ $tDeadline }}',
                                                                 bobot: {{ $bobotVal }},
-                                                                progress: {{ (int)($t->progress ?: 0) }},
+                                                                progress: {{ (int)$progVal }},
                                                                 status: '{{ $t->status }}',
                                                                 priority: '{{ $t->priority ?: 'Medium' }}',
                                                                 engineer_id: '{{ $t->engineer_id }}',
                                                                 description: '{{ addslashes($cleanDesc) }}'
                                                             })"
-                                                            class="px-2.5 py-1 rounded-md text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer">
+                                                            class="px-2 py-1 rounded-md text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer">
                                                         Ubah
                                                     </button>
                                                     <form action="{{ route('pmo.tasks.destroy_post', $t->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus task {{ addslashes($t->title) }}?')">
                                                         @csrf
                                                         <button type="submit" 
-                                                                class="px-2.5 py-1 rounded-md text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer">
+                                                                class="px-2 py-1 rounded-md text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer">
                                                             Hapus
                                                         </button>
                                                     </form>
@@ -941,12 +1058,45 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="7" class="text-center py-6 text-slate-400 text-xs">
+                                            <td colspan="11" class="text-center py-6 text-slate-400 text-xs">
                                                 Belum ada task teknis WBS yang terdaftar.
                                             </td>
                                         </tr>
                                     @endforelse
                                 </tbody>
+                                @if($project->tasks->count() > 0)
+                                    <tfoot class="bg-slate-50 border-t-2 border-slate-200 font-bold text-xs text-slate-800">
+                                        <tr>
+                                            <td colspan="2" class="py-2.5 px-3 uppercase tracking-wider text-[11px] text-slate-600">
+                                                Total Rekap WBS Proyek ({{ $project->tasks->count() }} Tasks)
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-center text-slate-900 font-black">
+                                                {{ $totDuration }} Hari
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-center text-slate-600 font-semibold">
+                                                Day 0
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-center text-slate-600 font-semibold">
+                                                Day {{ $totDuration }}
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-center text-slate-600 font-semibold">
+                                                5 Weeks
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-right text-blue-800 font-black">
+                                                {{ number_format($totActWeight, 1) }}%
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-right text-slate-600 font-semibold">
+                                                3.3%
+                                            </td>
+                                            <td class="py-2.5 px-3 text-left text-[#8F0A0D] font-black">
+                                                {{ number_format($totEarnedWeight, 1) }}% Earned
+                                            </td>
+                                            <td colspan="2" class="py-2.5 px-3 text-right text-slate-500 font-medium text-[11px]">
+                                                11 Deliverables
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                @endif
                             </table>
                         </div>
                     </div>

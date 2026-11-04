@@ -8,8 +8,11 @@ class PmoDummyProjectsSeeder extends Seeder
 {
     public function run(): void
     {
-        // Hanya seed proyek resmi Angkasa Pura Support sesuai instruksi user
+        // Seed proyek resmi Angkasa Pura Support & PPATK Peremajaan Router
         $seeder = new AngkasaPuraProjectSeeder();
         $seeder->run();
+
+        $ppatkSeeder = new PpatkProjectSeeder();
+        $ppatkSeeder->run();
     }
 }

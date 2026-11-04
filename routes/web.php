@@ -715,6 +715,47 @@ Route::get('/seed-angkasa-pura-project', function () {
     }
 });
 
+// Route Helper untuk membuat/memperbarui Data Proyek PPATK Peremajaan Router (S-Curve & 11 WBS Tasks)
+Route::get('/seed-ppatk-project', function () {
+    try {
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+        $seeder = new \Database\Seeders\PpatkProjectSeeder();
+        $seeder->run();
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+
+        $project = \App\Models\Project::where('name', 'like', '%PPAT%')
+            ->orWhere('name', 'like', '%Peremajaan Router%')
+            ->orWhere('client', 'like', '%PPAT%')
+            ->first();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Proyek Pengadaan Paket Perangkat Jaringan dan Support 5 Tahun untuk Peremajaan Router TA 2026 (PPATK) berhasil disinkronkan!',
+            'project' => [
+                'id'             => $project?->id,
+                'name'           => $project?->name,
+                'client'         => $project?->client,
+                'spk'            => $project?->po_spk_number,
+                'sales'          => $project?->sales_name,
+                'pm'             => $project?->pm?->name ?? 'Rizki',
+                'stage'          => $project?->stage,
+                'status'         => $project?->status,
+                'duration'       => '30 Hari (5 Minggu Pelaksanaan)',
+                'progress'       => ($project?->progress ?? 20.0) . '%',
+                'total_tasks'    => $project?->tasks()->count(),
+                'url_detail'     => url('/pmo/projects/' . ($project?->id ?? 1)),
+                'url_implementations' => url('/pmo/implementations'),
+            ]
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
 // Route Helper untuk membersihkan seluruh data operasional & dummy di modul Maintenance / Managed Service
 Route::get('/clean-maintenance-data', function () {
     try {
