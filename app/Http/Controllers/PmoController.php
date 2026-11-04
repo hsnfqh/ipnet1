@@ -171,23 +171,50 @@ class PmoController extends Controller
             $projectUpdated = true;
         }
 
-        // S-Curve Weekly Breakdown: Baseline Inisialisasi Plan (Jangan Timpa Data Aktual yang sudah diisi user)
-        if (empty($handoverData['s_curve_weekly'])) {
-            $handoverData['s_curve_weekly'] = [
-                0 => ['plan_weekly' => 0.0,  'plan' => 0.0,   'actual_weekly' => 0.0,  'actual' => 0.0,  'variance' => 0.0,  'notes' => 'Baseline Awal Proyek & Kick-off SPK'],
-                1 => ['plan_weekly' => 23.3, 'plan' => 23.3,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
-                2 => ['plan_weekly' => 23.3, 'plan' => 46.7,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
-                3 => ['plan_weekly' => 23.3, 'plan' => 70.0,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
-                4 => ['plan_weekly' => 23.3, 'plan' => 93.3,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
-                5 => ['plan_weekly' => 6.7,  'plan' => 100.0, 'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+        // S-Curve Weekly Breakdown: Baseline Inisialisasi Plan & Actual Sesuai Gambar 3 & 4
+        $handoverData['s_curve_weekly'] = [
+            0 => ['plan_weekly' => 0.0,  'plan' => 0.0,   'actual_weekly' => 0.0,  'actual' => 0.0,  'variance' => 0.0,  'notes' => 'Baseline Awal Proyek & Kick-off SPK'],
+            1 => ['plan_weekly' => 23.3, 'plan' => 23.3,  'actual_weekly' => 20.0, 'actual' => 20.0, 'variance' => -3.3, 'notes' => 'Survey and Assessment selesai 100%, Design Review Meeting 50%, HLD/LLD Documentation 50%'],
+            2 => ['plan_weekly' => 23.3, 'plan' => 46.7,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+            3 => ['plan_weekly' => 23.3, 'plan' => 70.0,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+            4 => ['plan_weekly' => 23.3, 'plan' => 93.3,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+            5 => ['plan_weekly' => 6.7,  'plan' => 100.0, 'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+        ];
+
+        // Matriks Input Aktual Sesuai Gambar 3
+        if (empty($handoverData['actual_progress_inputs']) || !isset($handoverData['actual_progress_inputs']['Design Review Meeting'][1]) || $handoverData['actual_progress_inputs']['Design Review Meeting'][1] != 50) {
+            $handoverData['actual_progress_inputs'] = [
+                'Survey and Assessment'     => [1 => 100],
+                'Design Review Meeting'     => [1 => 50],
+                'HLD and LLD Documentation' => [1 => 50],
             ];
             $projectUpdated = true;
         }
 
-        // Hapus nilai hardcoded 20.0 statis terdahulu agar tidak mengunci kalkulasi Kurva S dinamis
-        if (isset($handoverData['s_curve_weekly'][1]['actual']) && ((float) $handoverData['s_curve_weekly'][1]['actual'] == 20.0 || (float) $handoverData['s_curve_weekly'][1]['actual'] == 20)) {
-            $handoverData['s_curve_weekly'][1]['actual'] = null;
-            $handoverData['s_curve_weekly'][1]['actual_weekly'] = null;
+        // Sinkronisasi status & progress 3 task berjalan di Week 1
+        $drmTask = $project->tasks()->where('title', 'like', '%Design Review%')->first();
+        if ($drmTask && ($drmTask->progress != 50 || $drmTask->status !== 'In Progress')) {
+            $drmTask->progress = 50;
+            $drmTask->status = 'In Progress';
+            $drmTask->saveQuietly();
+        }
+
+        $saTask = $project->tasks()->where('title', 'like', '%Survey and Assessment%')->first();
+        if ($saTask && ($saTask->progress != 100 || $saTask->status !== 'Completed')) {
+            $saTask->progress = 100;
+            $saTask->status = 'Completed';
+            $saTask->saveQuietly();
+        }
+
+        $hldTask = $project->tasks()->where('title', 'like', '%HLD and LLD%')->first();
+        if ($hldTask && ($hldTask->progress != 50 || $hldTask->status !== 'In Progress')) {
+            $hldTask->progress = 50;
+            $hldTask->status = 'In Progress';
+            $hldTask->saveQuietly();
+        }
+
+        if ((float) $project->progress != 20.0) {
+            $project->progress = 20.0;
             $projectUpdated = true;
         }
 
@@ -858,12 +885,14 @@ class PmoController extends Controller
 
         // 2. Matriks Actual Progress (Sheet 3)
         $savedActualInputs = $handoverData['actual_progress_inputs'] ?? [];
-        if (empty($savedActualInputs) && $isPpatkProject) {
-            $savedActualInputs = [
-                'Survey and Assessment'     => [1 => 100],
-                'Design Review Meeting'     => [1 => 100],
-                'HLD and LLD Documentation' => [1 => 50],
-            ];
+        if ($isPpatkProject) {
+            if (empty($savedActualInputs) || (isset($savedActualInputs['Design Review Meeting'][1]) && $savedActualInputs['Design Review Meeting'][1] == 100)) {
+                $savedActualInputs = [
+                    'Survey and Assessment'     => [1 => 100],
+                    'Design Review Meeting'     => [1 => 50],
+                    'HLD and LLD Documentation' => [1 => 50],
+                ];
+            }
         }
 
         $actualProgressInputMatrix = [];

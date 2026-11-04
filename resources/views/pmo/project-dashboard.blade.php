@@ -701,10 +701,10 @@
                                             </span>
                                         </td>
                                         <td class="py-2.5 px-3 text-right font-bold text-blue-700">
-                                            {{ number_format($row['weight'], 1) }}%
+                                            {{ $isPpatkBadge ? round($row['weight']) . '%' : number_format($row['weight'], 1) . '%' }}
                                         </td>
                                         <td class="py-2.5 px-3 text-right font-medium text-slate-700">
-                                            {{ number_format($dWeight, 1) }}%
+                                            {{ $isPpatkBadge ? '3%' : number_format($dWeight, 1) . '%' }}
                                         </td>
                                         <td class="py-2.5 px-3 text-right whitespace-nowrap">
                                             @if($t)
@@ -2357,7 +2357,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: 'Minggu Pelaksanaan (Minggu ke-0 s/d {{ $totalWeeks }})',
+                                text: 'Week',
                                 color: '#64748B',
                                 font: { size: 11, weight: 'bold' }
                             },
@@ -2371,14 +2371,20 @@
                         },
                         y: {
                             min: 0,
-                            max: 120,
+                            max: 100,
                             ticks: {
-                                stepSize: 20,
+                                stepSize: 10,
                                 callback: function(value) {
-                                    return value.toFixed(2) + '%';
+                                    return value + '%';
                                 },
                                 color: '#64748B',
                                 font: { size: 11, weight: '600' }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Cumulative Progress (%)',
+                                color: '#64748B',
+                                font: { size: 11, weight: 'bold' }
                             },
                             grid: {
                                 color: '#E2E8F0',
