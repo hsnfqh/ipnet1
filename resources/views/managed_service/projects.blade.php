@@ -236,10 +236,7 @@
                                                 <div class="w-7 h-7 rounded-full bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                                                     {{ $initial }}
                                                 </div>
-                                                <div>
-                                                    <div class="font-bold text-[#1E293B] text-[12.5px] leading-tight">{{ $pmName }}</div>
-                                                    <div class="text-[10.5px] text-[#64748B] leading-none mt-0.5">Project Manager</div>
-                                                </div>
+                                                <span class="font-bold text-[#1E293B] text-[12.5px] leading-tight">{{ $pmName }}</span>
                                             </div>
                                         </td>
 
@@ -911,11 +908,11 @@
                                             <select name="pm_id" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white font-semibold text-slate-800">
                                                 @foreach($pmUsers ?? [] as $u)
                                                     <option value="{{ $u->id }}" {{ (auth()->id() == $u->id || str_contains(strtolower($u->name), 'eris')) ? 'selected' : '' }}>
-                                                        {{ $u->name }} (Project Manager)
+                                                        {{ $u->name }}
                                                     </option>
                                                 @endforeach
                                                 @if(empty($pmUsers) || (is_object($pmUsers) && $pmUsers->isEmpty()))
-                                                    <option value="{{ auth()->id() }}" selected>{{ auth()->user()->name ?? 'Eris' }} (Project Manager)</option>
+                                                    <option value="{{ auth()->id() }}" selected>{{ auth()->user()->name ?? 'Eris' }}</option>
                                                 @endif
                                             </select>
                                             <p class="text-[10.5px] text-slate-400">Project Manager penanggung jawab utama pelaksanaan kontrak dan monitoring SLA.</p>
