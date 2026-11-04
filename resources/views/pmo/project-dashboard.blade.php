@@ -506,7 +506,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
                         <span>Actual Progress</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                        <span id="tab-actual-progress-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold"
                               :class="activeMainTab === 'actual_progress' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'">
                             {{ number_format($currentProgressPercent, 1) }}%
                         </span>
@@ -889,10 +889,17 @@
                             sum += (w * p) / 100;
                         }
                         return sum.toFixed(1);
+                    },
+                    onProgressChanged() {
+                        const total = parseFloat(this.calcTotalActual());
+                        if (window.updateLiveSCurveActual) {
+                            window.updateLiveSCurveActual(total);
+                        }
                     }
                  }">
                 <form action="{{ route('pmo.projects.actual_progress_matrix.update', $project->id) }}" method="POST">
                     @csrf
+                    <input type="hidden" name="tab" value="actual_progress">
                     <div class="ipnet-card p-5 sm:p-6 space-y-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
                             <div>
@@ -955,6 +962,7 @@
                                                            name="tasks[{{ $row['id'] }}][progress]" 
                                                            value="{{ (float) $row['progress'] }}" 
                                                            x-model.number="taskProgress[{{ $row['id'] }}]"
+                                                           @input="onProgressChanged()"
                                                            class="w-16 py-1 px-1.5 text-right font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:border-blue-600 focus:outline-hidden text-xs">
                                                     <span class="text-[11px] font-bold text-slate-500">%</span>
                                                 </div>
@@ -1083,18 +1091,18 @@
                                             <td class="py-2.5 px-3 text-right font-bold text-blue-700">
                                                 {{ number_format($rec['plan_percent'], 1) }}%
                                             </td>
-                                            <td class="py-2.5 px-3 text-right font-medium text-slate-800">
+                                            <td id="scurve-actual-weekly-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right font-medium text-slate-800">
                                                 {{ $rec['actual_weekly'] !== null ? number_format($rec['actual_weekly'], 1) . '%' : '' }}
                                             </td>
-                                            <td class="py-2.5 px-3 text-right font-bold text-slate-800">
+                                            <td id="scurve-actual-cum-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right font-bold text-slate-800">
                                                 {{ $rec['actual_percent'] !== null ? number_format($rec['actual_percent'], 1) . '%' : '' }}
                                             </td>
-                                            <td class="py-2.5 px-3 text-right font-bold {{ ($rec['variance'] ?? 0) < 0 ? 'text-rose-700' : 'text-slate-800' }}">
+                                            <td id="scurve-variance-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right font-bold {{ ($rec['variance'] ?? 0) < 0 ? 'text-rose-700' : 'text-slate-800' }}">
                                                 @if($rec['variance'] !== null)
                                                     {{ $rec['variance'] > 0 ? '+' : '' }}{{ number_format($rec['variance'], 1) }}%
                                                 @endif
                                             </td>
-                                            <td class="py-2.5 px-3 text-right text-xs {{ $rec['chart_helper'] === '#N/A' ? 'text-slate-400 italic' : 'font-bold text-slate-800' }}">
+                                            <td id="scurve-helper-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right text-xs {{ $rec['chart_helper'] === '#N/A' ? 'text-slate-400 italic' : 'font-bold text-slate-800' }}">
                                                 {{ $rec['chart_helper'] !== '#N/A' ? number_format($rec['chart_helper'], 1) . '%' : '#N/A' }}
                                             </td>
                                         </tr>
@@ -2462,6 +2470,38 @@
                 sCurveChartInstance.options.scales.x.title.text = 'Minggu Pelaksanaan (Minggu ke-0 s/d {{ $totalWeeks }})';
                 sCurveChartInstance.resize();
                 sCurveChartInstance.update();
+            };
+
+            window.updateLiveSCurveActual = function(newTotal) {
+                if (sCurveChartInstance && sCurveChartInstance.data.datasets[1]) {
+                    sCurveChartInstance.data.datasets[1].data[1] = newTotal;
+                    sCurveChartInstance.update();
+                }
+                const planW1 = {{ (float) ($totalWeeklyWeightCum[1] ?? 23.3) }};
+                const devW1 = (newTotal - planW1).toFixed(1);
+                const devStr = (devW1 > 0 ? '+' : '') + devW1 + '%';
+
+                const elActWeekly = document.getElementById('scurve-actual-weekly-w1');
+                if (elActWeekly) elActWeekly.textContent = newTotal.toFixed(1) + '%';
+
+                const elActCum = document.getElementById('scurve-actual-cum-w1');
+                if (elActCum) elActCum.textContent = newTotal.toFixed(1) + '%';
+
+                const elDev = document.getElementById('scurve-variance-w1');
+                if (elDev) {
+                    elDev.textContent = devStr;
+                    if (parseFloat(devW1) < 0) {
+                        elDev.className = 'py-2.5 px-3 text-right font-bold text-rose-700';
+                    } else {
+                        elDev.className = 'py-2.5 px-3 text-right font-bold text-slate-800';
+                    }
+                }
+
+                const elHlp = document.getElementById('scurve-helper-w1');
+                if (elHlp) elHlp.textContent = newTotal.toFixed(1) + '%';
+
+                const tab3Badge = document.getElementById('tab-actual-progress-badge');
+                if (tab3Badge) tab3Badge.textContent = newTotal.toFixed(1) + '%';
             };
         }
 

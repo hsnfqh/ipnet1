@@ -292,8 +292,8 @@ class PmoController extends Controller
                 'week'         => 2,
                 'bobot'        => 13.3,
                 'daily_weight' => 3.3,
-                'default_prog' => 50,
-                'default_stat' => 'In Progress',
+                'default_prog' => 100,
+                'default_stat' => 'Completed',
                 'description'  => 'Penyusunan dokumen teknis High Level Design (HLD) dan Low Level Design (LLD).',
             ],
             [
@@ -456,9 +456,9 @@ class PmoController extends Controller
                     $matchedTask->status = 'Completed';
                     $needsUpdate = true;
                 }
-                if ($mw['title'] === 'HLD and LLD Documentation' && ($matchedTask->progress === null)) {
-                    $matchedTask->progress = 50;
-                    $matchedTask->status = 'In Progress';
+                if ($mw['title'] === 'HLD and LLD Documentation' && ($matchedTask->progress < 100 || $matchedTask->status !== 'Completed')) {
+                    $matchedTask->progress = 100;
+                    $matchedTask->status = 'Completed';
                     $needsUpdate = true;
                 }
                 if ($matchedTask->progress === null) {
@@ -1398,7 +1398,8 @@ class PmoController extends Controller
             $project->handover_data = $handoverData;
             $project->save();
 
-            return redirect()->back()->with('success', 'Progres aktual per task berhasil disimpan!');
+            return redirect()->route('pmo.projects.dashboard', ['project' => $project->id, 'tab' => 'actual_progress'])
+                ->with('success', 'Progres aktual per task berhasil disimpan!');
         }
 
         $handoverData['actual_progress_inputs'] = $matrix;
@@ -1430,7 +1431,8 @@ class PmoController extends Controller
 
         $project->save();
 
-        return redirect()->back()->with('success', 'Actual Progress matrix berhasil diperbarui dan disinkronkan ke Kurva S!');
+        return redirect()->route('pmo.projects.dashboard', ['project' => $project->id, 'tab' => 'actual_progress'])
+            ->with('success', 'Actual Progress matrix berhasil diperbarui dan disinkronkan ke Kurva S!');
     }
 
     /**
