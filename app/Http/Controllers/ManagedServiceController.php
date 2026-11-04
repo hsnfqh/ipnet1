@@ -1678,7 +1678,22 @@ class ManagedServiceController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage', 'leadMsName', 'currentUserName', 'fieldEngineers', 'salesUsers'));
+        
+        $pmUsers = User::where('status', 'Active')
+            ->where(function($q) {
+                $q->whereHas('roles', fn($r) => $r->whereIn('name', ['Project Manager', 'PM', 'Maintenance', 'Lead Maintenance', 'Managed Service', 'Engineer', 'Lead Engineer']))
+                  ->orWhere('position', 'like', '%PM%')
+                  ->orWhere('position', 'like', '%Project Manager%')
+                  ->orWhere('position', 'like', '%Maintenance%');
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'position']);
+
+        if ($pmUsers->isEmpty()) {
+            $pmUsers = User::where('status', 'Active')->orderBy('name')->get(['id', 'name', 'position']);
+        }
+
+        return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage', 'leadMsName', 'currentUserName', 'fieldEngineers', 'salesUsers', 'pmUsers'));
     }
 
     /**
@@ -1705,8 +1720,8 @@ class ManagedServiceController extends Controller
             'pm_frequency_type'         => 'required|string',
             'pm_total_cycles'           => 'nullable|integer|min:1',
             'cm_quota'                  => 'nullable|integer|min:0',
-            'pic_ms_name'               => 'nullable|string|max:255',
-            'assigned_engineer_id'      => 'nullable|exists:users,id',
+            'pm_id'                     => 'nullable|exists:users,id',
+            'pm_name'                   => 'nullable|string|max:255',
             'description'               => 'nullable|string',
             'teams'                     => 'nullable|array',
             'file_bast'                 => 'nullable|file|max:51200',
@@ -1750,7 +1765,14 @@ class ManagedServiceController extends Controller
         $totalCycles = !empty($validated['pm_total_cycles']) ? (int) $validated['pm_total_cycles'] : $freqCycles;
 
         $currentUser = auth()->user();
-        $picMsName = $validated['pic_ms_name'] ?: ($currentUser?->name ?: 'Tim Maintenance');
+
+        // Project Manager resolution
+        $pmUser = null;
+        if (!empty($validated['pm_id'])) {
+            $pmUser = User::find($validated['pm_id']);
+        }
+        $pmName = $pmUser?->name ?: ($validated['pm_name'] ?: ($currentUser?->name ?: 'Eris Maintenance'));
+        $pmId   = $pmUser?->id ?: $currentUser?->id;
 
         // Tim Pelaksana Teknis (Tim Network, Tim Security, atau keduanya)
         $rawTeams = (array) ($request->input('teams') ?? ['Tim Network']);
@@ -1788,38 +1810,25 @@ class ManagedServiceController extends Controller
             }
         }
 
-        // Personil teknisi lapangan jika dipilih
-        $fieldTech = null;
-        $assignedEngineers = [];
-        if (!empty($validated['assigned_engineer_id'])) {
-            $fieldTech = User::find($validated['assigned_engineer_id']);
-            if ($fieldTech) {
-                $assignedEngineers[] = [
-                    'id'       => $fieldTech->id,
-                    'name'     => $fieldTech->name,
-                    'email'    => $fieldTech->email ?? '',
-                    'role'     => 'PIC Utama Lapangan',
-                    'position' => $fieldTech->position ?? 'Maintenance Engineer',
-                ];
-            }
-        }
-
         $handoverData = [
             'source'                 => 'Direct Managed Service Contract',
             'so_number'              => 'SO-' . date('Y') . '-MS-' . strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $validated['client']), 0, 6)) . rand(10, 99),
             'po_spk_number'          => $validated['po_spk_number'] ?? null,
             'billing_terms'          => $validated['billing_terms'] ?? 'Bulanan (Net 30 Hari)',
-            'coordinator_name'       => $picMsName,
-            'lead_engineer_name'     => $picMsName,
-            'team_delegated_by_name' => $picMsName,
-            'pic_ms_name'            => $picMsName,
+            'coordinator_name'       => $pmName,
+            'lead_engineer_name'     => $pmName,
+            'team_delegated_by_name' => $pmName,
+            'pic_ms_name'            => $pmName,
+            'project_manager'        => $pmName,
+            'pm_name'                => $pmName,
+            'pm_id'                  => $pmId,
             'assigned_teams'         => $cleanTeams,
             'customer_pic'           => $validated['customer_pic'] ?? null,
             'customer_pic_phone'     => $validated['customer_pic_phone'] ?? null,
             'notes'                  => $validated['description'] ?? null,
-            'assigned_engineers'     => $assignedEngineers,
+            'assigned_engineers'     => [],
             'ms_signature'           => [
-                'user_name' => $picMsName,
+                'user_name' => $pmName,
                 'signed_at' => now()->toIso8601String(),
                 'notes'     => 'Kontrak Service dibuat & diaktifkan langsung oleh tim Managed Service.',
             ],
@@ -1834,6 +1843,7 @@ class ManagedServiceController extends Controller
             'customer_pic_business'     => $validated['customer_pic'] ?? null,
             'location'                  => $validated['location'] ?? null,
             'sales_name'                => $salesName,
+            'pm_id'                     => $pmId,
             'division_id'               => $divisionId,
             'contract_value'            => $contractValue,
             'po_spk_number'             => $validated['po_spk_number'] ?? null,
@@ -1910,13 +1920,6 @@ class ManagedServiceController extends Controller
 
         // Auto inisialisasi PM cycles berdasarkan durasi & frekuensi
         self::initPmCycles($project);
-
-        // Jika teknisi dipilih, assign ke semua siklus PM yang baru dibuat
-        if ($fieldTech) {
-            ManagedServicePmCycle::where('project_id', $project->id)
-                ->whereNull('assigned_engineer_id')
-                ->update(['assigned_engineer_id' => $fieldTech->id]);
-        }
 
         return redirect()->route('ms.projects.index', ['tab' => 'active'])
             ->with('success', "Kontrak Managed Service '{$project->name}' untuk klien '{$project->client}' berhasil dibuat & otomatis diaktifkan.");

@@ -184,6 +184,7 @@
                                 <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Nama Project &amp; Tipe</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Client &amp; Sales</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Project Manager</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Lokasi</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Durasi &amp; Deadline</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Progress Siklus PM</th>
@@ -240,33 +241,34 @@
                                             </div>
                                         </td>
 
-                                        {{-- Client & Sales / Teknisi --}}
+                                        {{-- Client & Sales --}}
                                         <td class="py-3 px-4">
                                             <div class="font-medium text-[#334155] text-[13px]">{{ $p->client }}</div>
                                             <div class="text-[11px] text-[#64748B] flex items-center gap-1.5 mt-0.5">
                                                 <span class="text-[#94A3B8]">Sales:</span>
                                                 <span class="text-[#475569]">{{ $p->sales_name ?: ($p->creator?->name ?: '-') }}</span>
                                             </div>
+                                        </td>
+
+                                        {{-- Project Manager --}}
+                                        <td class="py-3 px-4">
                                             @php
-                                                $picMsName = $p->msAcceptedBy?->name ?? ($p->handover_data['pic_ms_name'] ?? ($p->handover_data['lead_ms_name'] ?? null));
+                                                $pmName = $p->pm?->name 
+                                                    ?: ($p->handover_data['project_manager'] 
+                                                    ?? ($p->handover_data['pm_name'] 
+                                                    ?? ($p->handover_data['lead_engineer_name'] 
+                                                    ?? ($p->handover_data['pic_ms_name'] 
+                                                    ?? ($p->msAcceptedBy?->name ?? 'Eris Maintenance')))));
                                             @endphp
-                                            @if($picMsName)
-                                                <div class="text-[11px] text-[#8F0A0D] font-bold flex items-center gap-1 mt-0.5">
-                                                    <svg class="w-3 h-3 text-[#8F0A0D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                                    <span>PIC MS: {{ $picMsName }}</span>
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-7 h-7 rounded-full bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                                                    {{ strtoupper(substr($pmName, 0, 1)) }}
                                                 </div>
-                                            @endif
-                                            @php
-                                                $assignedEngs = $p->handover_data['assigned_engineers'] ?? [];
-                                            @endphp
-                                            @if(!empty($assignedEngs))
-                                                <div class="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 mt-0.5">
-                                                    <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                                    <span class="truncate max-w-[150px]" title="{{ implode(', ', array_column($assignedEngs, 'name')) }}">
-                                                        Teknisi: {{ $assignedEngs[0]['name'] }}{{ count($assignedEngs) > 1 ? ' +' . (count($assignedEngs)-1) : '' }}
-                                                    </span>
+                                                <div>
+                                                    <div class="font-bold text-[#1E293B] text-[12.5px] leading-tight">{{ $pmName }}</div>
+                                                    <div class="text-[10.5px] text-[#64748B] leading-none mt-0.5">Project Manager</div>
                                                 </div>
-                                            @endif
+                                            </div>
                                         </td>
 
                                         {{-- Lokasi --}}
@@ -345,7 +347,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="py-12 text-center text-[#64748B] text-[13px]">
+                                        <td colspan="8" class="py-12 text-center text-[#64748B] text-[13px]">
                                             Tidak ada proyek Managed Service yang sesuai dengan kriteria filter.
                                         </td>
                                     </tr>
@@ -715,9 +717,16 @@
 
                                 {{-- SECTION 1: Informasi Kontrak & Klien --}}
                                 <div>
-                                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
-                                        <span class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[10.5px] font-bold flex items-center justify-center">1</span>
-                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Informasi Kontrak &amp; Klien</h4>
+                                    <div class="flex items-center gap-2.5 mb-3 pb-2 border-b border-slate-100">
+                                        <div class="w-6 h-6 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-[#8F0A0D] shadow-2xs">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                            </svg>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">BAGIAN I</span>
+                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Informasi Kontrak &amp; Klien</h4>
+                                        </div>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div class="space-y-1 md:col-span-2">
@@ -760,9 +769,16 @@
 
                                 {{-- SECTION 2: Nilai & Durasi Kontrak --}}
                                 <div>
-                                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
-                                        <span class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[10.5px] font-bold flex items-center justify-center">2</span>
-                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Nilai Kontrak &amp; Durasi Layanan</h4>
+                                    <div class="flex items-center gap-2.5 mb-3 pb-2 border-b border-slate-100">
+                                        <div class="w-6 h-6 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-[#8F0A0D] shadow-2xs">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">BAGIAN II</span>
+                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Nilai Kontrak &amp; Durasi Layanan</h4>
+                                        </div>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div class="space-y-1">
@@ -810,9 +826,16 @@
 
                                 {{-- SECTION 3: Parameter SLA & Preventive Maintenance --}}
                                 <div>
-                                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
-                                        <span class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[10.5px] font-bold flex items-center justify-center">3</span>
-                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Parameter SLA &amp; Jadwal Pemeliharaan (PM)</h4>
+                                    <div class="flex items-center gap-2.5 mb-3 pb-2 border-b border-slate-100">
+                                        <div class="w-6 h-6 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-[#8F0A0D] shadow-2xs">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">BAGIAN III</span>
+                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Parameter SLA &amp; Jadwal Pemeliharaan (PM)</h4>
+                                        </div>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                         <div class="space-y-1 md:col-span-2">
@@ -871,11 +894,18 @@
                                     </div>
                                 </div>
 
-                                {{-- SECTION 4: Penugasan Tim & Ruang Lingkup --}}
+                                {{-- SECTION 4: Penugasan Tim Teknis & Project Manager --}}
                                 <div>
-                                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
-                                        <span class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[10.5px] font-bold flex items-center justify-center">4</span>
-                                        <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Penugasan Personil &amp; Ruang Lingkup</h4>
+                                    <div class="flex items-center gap-2.5 mb-3 pb-2 border-b border-slate-100">
+                                        <div class="w-6 h-6 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-[#8F0A0D] shadow-2xs">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">BAGIAN IV</span>
+                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Penugasan Tim Teknis &amp; Project Manager</h4>
+                                        </div>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {{-- Pilih Tim Pelaksana (Network / Security / Keduanya) --}}
@@ -912,41 +942,26 @@
                                                     </span>
                                                     <span>Tim Security</span>
                                                 </button>
-
-                                                {{-- Tim Maintenance & Support --}}
-                                                <button type="button" 
-                                                        @click="toggleTeam('Tim Maintenance & Support')"
-                                                        :class="selectedTeams.includes('Tim Maintenance & Support') 
-                                                            ? 'bg-[#8F0A0D] text-white border-[#8F0A0D] shadow-xs ring-1 ring-[#8F0A0D]/20 font-bold' 
-                                                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
-                                                        class="px-4 py-2 rounded-xl border text-xs flex items-center gap-2 transition cursor-pointer select-none">
-                                                    <span class="w-4 h-4 rounded flex items-center justify-center border"
-                                                          :class="selectedTeams.includes('Tim Maintenance & Support') ? 'border-white bg-white text-[#8F0A0D]' : 'border-slate-300 bg-white'">
-                                                        <svg x-show="selectedTeams.includes('Tim Maintenance & Support')" class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                    </span>
-                                                    <span>Tim Maintenance &amp; Support</span>
-                                                </button>
                                             </div>
                                             <template x-for="t in selectedTeams" :key="t">
                                                 <input type="hidden" name="teams[]" :value="t">
                                             </template>
                                         </div>
 
-                                        <div class="space-y-1">
-                                            <label class="block text-xs font-bold text-slate-700">Koordinator / Lead PIC Managed Service</label>
-                                            <input type="text" name="pic_ms_name" value="{{ $currentUserName ?? auth()->user()->name ?? 'Tim Maintenance' }}" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-slate-50 font-semibold text-slate-800">
-                                            <p class="text-[10.5px] text-slate-400">Secara default diisi oleh user maintenance yang sedang login.</p>
-                                        </div>
-
-                                        <div class="space-y-1">
-                                            <label class="block text-xs font-bold text-slate-700">Teknisi Lapangan yang Ditugaskan</label>
-                                            <select name="assigned_engineer_id" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white">
-                                                <option value="">-- Pilih Teknisi Lapangan (Opsional) --</option>
-                                                @foreach($fieldEngineers ?? [] as $fe)
-                                                    <option value="{{ $fe->id }}">{{ $fe->name }} ({{ $fe->position ?: 'Engineer' }})</option>
+                                        {{-- Project Manager (PM) --}}
+                                        <div class="space-y-1 md:col-span-2">
+                                            <label class="block text-xs font-bold text-slate-700">Project Manager (PM) <span class="text-red-500">*</span></label>
+                                            <select name="pm_id" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white font-semibold text-slate-800">
+                                                @foreach($pmUsers ?? [] as $u)
+                                                    <option value="{{ $u->id }}" {{ (auth()->id() == $u->id || str_contains(strtolower($u->name), 'eris')) ? 'selected' : '' }}>
+                                                        {{ $u->name }} ({{ $u->position ?: 'Project Manager' }})
+                                                    </option>
                                                 @endforeach
+                                                @if(empty($pmUsers) || (is_object($pmUsers) && $pmUsers->isEmpty()))
+                                                    <option value="{{ auth()->id() }}" selected>{{ auth()->user()->name ?? 'Eris Maintenance' }} (Project Manager)</option>
+                                                @endif
                                             </select>
-                                            <p class="text-[10.5px] text-slate-400">Teknisi yang dipilih akan otomatis di-assign ke seluruh siklus PM baru.</p>
+                                            <p class="text-[10.5px] text-slate-400">Project Manager penanggung jawab utama pelaksanaan kontrak dan monitoring SLA.</p>
                                         </div>
 
                                         <div class="space-y-1 md:col-span-2">
@@ -959,9 +974,16 @@
                                 {{-- SECTION 5: Berkas Dokumen Kontrak & Legalitas Layanan --}}
                                 <div>
                                     <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[10.5px] font-bold flex items-center justify-center">5</span>
-                                            <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Berkas Dokumen Kontrak &amp; Legalitas Layanan</h4>
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-6 h-6 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-[#8F0A0D] shadow-2xs">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">BAGIAN V</span>
+                                                <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Berkas Dokumen Kontrak &amp; Legalitas Layanan</h4>
+                                            </div>
                                         </div>
                                         <span class="text-[11px] font-semibold text-slate-400">Format PDF, DOC, XLS, Gambar (Maks. 50MB per berkas)</span>
                                     </div>
@@ -971,8 +993,8 @@
                                         <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
                                              x-data="{ fileName: '' }">
                                             <div class="flex items-start gap-2.5">
-                                                <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                     </svg>
                                                 </div>
@@ -984,7 +1006,7 @@
                                             <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
                                                 <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
                                                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas'">Upload Berkas</span>
                                                     <input type="file" name="file_bast" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
                                                 </label>
                                                 <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
@@ -995,8 +1017,8 @@
                                         <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
                                              x-data="{ fileName: '' }">
                                             <div class="flex items-start gap-2.5">
-                                                <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                     </svg>
                                                 </div>
@@ -1008,7 +1030,7 @@
                                             <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
                                                 <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
                                                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas'">Upload Berkas</span>
                                                     <input type="file" name="file_spk" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
                                                 </label>
                                                 <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
@@ -1019,8 +1041,8 @@
                                         <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
                                              x-data="{ fileName: '' }">
                                             <div class="flex items-start gap-2.5">
-                                                <div class="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                     </svg>
                                                 </div>
@@ -1032,7 +1054,7 @@
                                             <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
                                                 <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
                                                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas'">Upload Berkas</span>
                                                     <input type="file" name="file_contract" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
                                                 </label>
                                                 <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
@@ -1043,8 +1065,8 @@
                                         <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
                                              x-data="{ fileName: '' }">
                                             <div class="flex items-start gap-2.5">
-                                                <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                     </svg>
                                                 </div>
@@ -1056,7 +1078,7 @@
                                             <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
                                                 <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
                                                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas'">Upload Berkas</span>
                                                     <input type="file" name="file_boq" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
                                                 </label>
                                                 <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
@@ -1067,8 +1089,8 @@
                                         <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
                                              x-data="{ fileName: '' }">
                                             <div class="flex items-start gap-2.5">
-                                                <div class="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                     </svg>
                                                 </div>
@@ -1080,7 +1102,7 @@
                                             <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
                                                 <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
                                                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas'">Upload Berkas</span>
                                                     <input type="file" name="file_tor" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
                                                 </label>
                                                 <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
@@ -1091,8 +1113,8 @@
                                         <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
                                              x-data="{ fileName: '' }">
                                             <div class="flex items-start gap-2.5">
-                                                <div class="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                     </svg>
                                                 </div>
@@ -1104,7 +1126,7 @@
                                             <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
                                                 <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
                                                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti File' : 'Pilih Berkas'">Pilih Berkas</span>
+                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas'">Upload Berkas</span>
                                                     <input type="file" name="file_tech" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
                                                 </label>
                                                 <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
