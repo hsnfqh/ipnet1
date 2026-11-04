@@ -280,8 +280,8 @@ class PmoController extends Controller
                 'week'         => 1,
                 'bobot'        => 13.3,
                 'daily_weight' => 3.3,
-                'default_prog' => 100,
-                'default_stat' => 'Completed',
+                'default_prog' => 50,
+                'default_stat' => 'In Progress',
                 'description'  => 'Design Review Meeting arsitektur peremajaan router bersama PIC PPATK (Bpk. Richi Michael).',
             ],
             [
@@ -399,25 +399,28 @@ class PmoController extends Controller
         $engRaihan  = User::where('name', 'like', '%Raihan%')->first();
         $pmRizki    = $project->pm_id ?: User::where('name', 'like', '%Rizki%')->first()?->id;
 
+        $valid11Titles = [
+            'Survey and Assessment',
+            'Design Review Meeting',
+            'HLD and LLD Documentation',
+            'Stagging',
+            'Installation and Configuration',
+            'Integration',
+            'Migration',
+            'Testing and Commisioning',
+            'Monitoring',
+            'Documentation',
+            'BAST',
+        ];
+
+        // Hapus task lama / duplikat yang namanya tidak baku (seperti DRM, Integrasi, Migrasi)
+        $project->tasks()->whereNotIn('title', $valid11Titles)->delete();
+
         $existingTasks = $project->tasks()->get();
 
         foreach ($masterWbs as $mw) {
             $matchedTask = $existingTasks->first(function($t) use ($mw) {
-                $t1 = strtolower(trim($t->title));
-                $t2 = strtolower(trim($mw['title']));
-                if ($t1 === $t2) return true;
-                if (str_contains($t1, 'stag') && str_contains($t2, 'stag')) return true;
-                if (str_contains($t1, 'testing') && str_contains($t2, 'testing')) return true;
-                if (str_contains($t1, 'survey') && str_contains($t2, 'survey')) return true;
-                if (str_contains($t1, 'design review') && str_contains($t2, 'design review')) return true;
-                if (str_contains($t1, 'hld') && str_contains($t2, 'hld')) return true;
-                if (str_contains($t1, 'installation') && str_contains($t2, 'installation')) return true;
-                if (str_contains($t1, 'integration') && str_contains($t2, 'integration')) return true;
-                if (str_contains($t1, 'migration') && str_contains($t2, 'migration')) return true;
-                if (str_contains($t1, 'monitoring') && str_contains($t2, 'monitoring')) return true;
-                if (str_contains($t1, 'documentation') && str_contains($t2, 'documentation') && !str_contains($t1, 'hld')) return true;
-                if (str_contains($t1, 'bast') && str_contains($t2, 'bast')) return true;
-                return false;
+                return strtolower(trim($t->title)) === strtolower(trim($mw['title']));
             });
 
             $expectedMeta = "[Bobot: {$mw['bobot']}% | StartingDay: {$mw['starting_day']} | FinishDay: {$mw['finish_day']} | Week: {$mw['week']} | DailyWeight: {$mw['daily_weight']}%]";
@@ -443,9 +446,19 @@ class PmoController extends Controller
                     $matchedTask->description = ($cleanDesc ? $cleanDesc . ' ' : '') . $expectedMeta;
                     $needsUpdate = true;
                 }
-                if ($mw['title'] === 'Design Review Meeting' && $matchedTask->progress < 100) {
+                if ($mw['title'] === 'Design Review Meeting' && ($matchedTask->progress != 50 || $matchedTask->status !== 'In Progress')) {
+                    $matchedTask->progress = 50;
+                    $matchedTask->status = 'In Progress';
+                    $needsUpdate = true;
+                }
+                if ($mw['title'] === 'Survey and Assessment' && ($matchedTask->progress != 100 || $matchedTask->status !== 'Completed')) {
                     $matchedTask->progress = 100;
                     $matchedTask->status = 'Completed';
+                    $needsUpdate = true;
+                }
+                if ($mw['title'] === 'HLD and LLD Documentation' && ($matchedTask->progress != 50 || $matchedTask->status !== 'In Progress')) {
+                    $matchedTask->progress = 50;
+                    $matchedTask->status = 'In Progress';
                     $needsUpdate = true;
                 }
                 if ($needsUpdate) {

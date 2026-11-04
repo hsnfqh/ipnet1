@@ -17,3 +17,4 @@ class PmoDummyProjectsSeeder extends Seeder
         $ppatkSeeder->run();
     }
 
+}

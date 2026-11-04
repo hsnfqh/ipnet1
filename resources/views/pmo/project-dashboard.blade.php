@@ -753,22 +753,22 @@
                             </tbody>
                             <tfoot class="bg-slate-50 border-t-2 border-slate-200 font-bold text-xs text-slate-800">
                                 <tr>
-                                    <td class="py-3 px-4 uppercase tracking-wider text-[11px] text-slate-600">
+                                    <td class="py-2.5 px-4 uppercase tracking-wider text-[11px] text-slate-600">
                                         Total Rekap Schedule ({{ count($weeklyWeightMatrix) }} Tasks)
                                     </td>
-                                    <td class="py-3 px-3 text-center text-slate-900 font-black">
+                                    <td class="py-2.5 px-3 text-center text-slate-800 font-bold text-xs">
                                         {{ $totDur }}
                                     </td>
-                                    <td colspan="3" class="py-3 px-3 text-center text-slate-400 font-normal">
+                                    <td colspan="3" class="py-2.5 px-3 text-center text-slate-400 font-normal text-xs">
                                         Day 0 s/d Day {{ $totDur }}
                                     </td>
-                                    <td class="py-3 px-3 text-right text-blue-800 font-black">
+                                    <td class="py-2.5 px-3 text-right text-blue-800 font-bold text-xs">
                                         {{ number_format($totActW, 1) }}%
                                     </td>
-                                    <td class="py-3 px-3 text-right text-slate-700 font-bold">
+                                    <td class="py-2.5 px-3 text-right text-slate-700 font-bold text-xs">
                                         3.3%
                                     </td>
-                                    <td class="py-3 px-3 text-right text-slate-500 font-normal text-[11px]">
+                                    <td class="py-2.5 px-3 text-right text-slate-500 font-normal text-[11px]">
                                         100% Selesai
                                     </td>
                                 </tr>
@@ -816,7 +816,7 @@
                             <tbody class="divide-y divide-slate-100 bg-white">
                                 @foreach($weeklyWeightMatrix as $row)
                                     <tr class="hover:bg-slate-50/80 transition">
-                                        <td class="py-2.5 px-3.5 font-semibold text-emerald-800">
+                                        <td class="py-2.5 px-3.5 font-semibold text-slate-800">
                                             {{ $row['title'] }}
                                         </td>
                                         <td class="py-2.5 px-2.5 text-center font-bold text-slate-700">
@@ -832,7 +832,7 @@
                                             {{ number_format($row['weight'], 1) }}%
                                         </td>
                                         @for($w = 1; $w <= $totalWeeks; $w++)
-                                            <td class="py-2.5 px-3 text-right font-mono {{ ($row['weeks'][$w] ?? 0) > 0 ? 'font-bold text-blue-700 bg-blue-50/30' : 'text-slate-400' }}">
+                                            <td class="py-2.5 px-3 text-right text-xs {{ ($row['weeks'][$w] ?? 0) > 0 ? 'font-bold text-blue-700 bg-blue-50/30' : 'text-slate-400' }}">
                                                 {{ number_format($row['weeks'][$w] ?? 0.0, 1) }}%
                                             </td>
                                         @endfor
@@ -849,11 +849,11 @@
                                         Plan Weekly (%)
                                     </td>
                                     <td colspan="3" class="py-2.5 px-2.5"></td>
-                                    <td class="py-2.5 px-3 text-right font-black text-slate-900">
+                                    <td class="py-2.5 px-3 text-right font-bold text-slate-800 text-xs">
                                         100.0%
                                     </td>
                                     @for($w = 1; $w <= $totalWeeks; $w++)
-                                        <td class="py-2.5 px-3 text-right font-bold text-slate-900">
+                                        <td class="py-2.5 px-3 text-right font-bold text-slate-800 text-xs">
                                             {{ number_format($totalWeeklyWeightPlan[$w] ?? 0.0, 1) }}%
                                         </td>
                                     @endfor
@@ -866,7 +866,7 @@
                                     </td>
                                     <td colspan="4" class="py-2.5 px-2.5"></td>
                                     @for($w = 1; $w <= $totalWeeks; $w++)
-                                        <td class="py-2.5 px-3 text-right font-black text-blue-800">
+                                        <td class="py-2.5 px-3 text-right font-bold text-blue-800 text-xs">
                                             {{ number_format($totalWeeklyWeightCum[$w] ?? 0.0, 1) }}%
                                         </td>
                                     @endfor
@@ -920,7 +920,7 @@
                                 <tbody class="divide-y divide-slate-100 bg-white">
                                     @foreach($actualProgressInputMatrix as $row)
                                         <tr class="hover:bg-slate-50/80 transition">
-                                            <td class="py-2.5 px-4 font-semibold text-emerald-800">
+                                            <td class="py-2.5 px-4 font-semibold text-slate-800">
                                                 {{ $row['title'] }}
                                             </td>
                                             <td class="py-2.5 px-3 text-right font-bold text-slate-900">
@@ -945,12 +945,12 @@
                                 </tbody>
                                 <tfoot class="border-t-2 border-slate-300 font-bold text-xs bg-slate-100">
                                     <tr>
-                                        <td class="py-3 px-4 uppercase text-[11px] text-slate-800 font-bold">
+                                        <td class="py-2.5 px-4 uppercase text-[11px] text-slate-800 font-bold">
                                             Week reported? (1 = yes)
                                         </td>
-                                        <td class="py-3 px-3"></td>
+                                        <td class="py-2.5 px-3"></td>
                                         @for($w = 1; $w <= $totalWeeks; $w++)
-                                            <td class="py-3 px-3 text-center font-black text-slate-900 text-sm">
+                                            <td class="py-2.5 px-3 text-center font-bold text-slate-800 text-xs">
                                                 {{ $weekReportedFlags[$w] ?? 0 }}
                                             </td>
                                         @endfor
@@ -993,7 +993,7 @@
                                                 {{ number_format($row['weight'], 1) }}%
                                             </td>
                                             @for($w = 1; $w <= $totalWeeks; $w++)
-                                                <td class="py-2.5 px-3 text-right font-mono {{ ($row['weeks'][$w] ?? 0) > 0 ? 'font-bold text-slate-900' : 'text-slate-400' }}">
+                                                <td class="py-2.5 px-3 text-right text-xs {{ ($row['weeks'][$w] ?? 0) > 0 ? 'font-bold text-slate-800' : 'text-slate-400' }}">
                                                     {{ number_format($row['weeks'][$w] ?? 0.0, 0) }}%
                                                 </td>
                                             @endfor
@@ -1002,12 +1002,12 @@
                                 </tbody>
                                 <tfoot class="border-t-2 border-slate-300 font-bold text-xs bg-slate-200/90">
                                     <tr class="text-slate-900">
-                                        <td class="py-3 px-4 uppercase text-[11px] font-bold">
+                                        <td class="py-2.5 px-4 uppercase text-[11px] font-bold text-slate-800">
                                             Actual Cumulative (%)
                                         </td>
-                                        <td class="py-3 px-3"></td>
+                                        <td class="py-2.5 px-3"></td>
                                         @for($w = 1; $w <= $totalWeeks; $w++)
-                                            <td class="py-3 px-3 text-right font-black text-[#8F0A0D] text-sm">
+                                            <td class="py-2.5 px-3 text-right font-bold text-slate-800 text-xs">
                                                 {{ number_format($actualCumulativePerWeek[$w] ?? 0.0, 1) }}%
                                             </td>
                                         @endfor
@@ -1075,15 +1075,15 @@
                                             <td class="py-2.5 px-3 text-right font-medium text-slate-800">
                                                 {{ $rec['actual_weekly'] !== null ? number_format($rec['actual_weekly'], 1) . '%' : '' }}
                                             </td>
-                                            <td class="py-2.5 px-3 text-right font-bold text-[#8F0A0D]">
+                                            <td class="py-2.5 px-3 text-right font-bold text-slate-800">
                                                 {{ $rec['actual_percent'] !== null ? number_format($rec['actual_percent'], 1) . '%' : '' }}
                                             </td>
-                                            <td class="py-2.5 px-3 text-right font-bold {{ ($rec['variance'] ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
+                                            <td class="py-2.5 px-3 text-right font-bold {{ ($rec['variance'] ?? 0) < 0 ? 'text-rose-700' : 'text-slate-800' }}">
                                                 @if($rec['variance'] !== null)
                                                     {{ $rec['variance'] > 0 ? '+' : '' }}{{ number_format($rec['variance'], 1) }}%
                                                 @endif
                                             </td>
-                                            <td class="py-2.5 px-3 text-right font-mono {{ $rec['chart_helper'] === '#N/A' ? 'text-slate-400 italic' : 'font-bold text-amber-800' }}">
+                                            <td class="py-2.5 px-3 text-right text-xs {{ $rec['chart_helper'] === '#N/A' ? 'text-slate-400 italic' : 'font-bold text-slate-800' }}">
                                                 {{ $rec['chart_helper'] !== '#N/A' ? number_format($rec['chart_helper'], 1) . '%' : '#N/A' }}
                                             </td>
                                         </tr>
