@@ -1395,6 +1395,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/projects', [\App\Http\Controllers\ManagedServiceController::class, 'projects'])->name('ms.projects.index');
         Route::post('/projects', [\App\Http\Controllers\ManagedServiceController::class, 'storeProject'])->name('ms.projects.store');
         Route::get('/projects/{project}', [\App\Http\Controllers\ManagedServiceController::class, 'showProject'])->name('ms.projects.show');
+        Route::put('/projects/{project}', [\App\Http\Controllers\ManagedServiceController::class, 'updateProject'])->name('ms.projects.update');
         Route::post('/projects/{project}/documents', [\App\Http\Controllers\ManagedServiceController::class, 'updateProjectDocuments'])->name('ms.projects.documents.update');
         Route::put('/projects/{project}/sla-params', [\App\Http\Controllers\ManagedServiceController::class, 'updateProjectSlaParams'])->name('ms.projects.sla.update');
 

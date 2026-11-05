@@ -1842,6 +1842,109 @@ class ManagedServiceController extends Controller
     }
 
     /**
+     * Perbarui Seluruh Data Kontrak Managed Service (Edit Modal)
+     */
+    public function updateProject(Request $request, $id)
+    {
+        $project = Project::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'                      => 'required|string|max:255',
+            'client'                    => 'required|string|max:255',
+            'customer_pic'              => 'nullable|string|max:255',
+            'customer_pic_phone'        => 'nullable|string|max:50',
+            'customer_pic_email'        => 'nullable|string|max:100',
+            'location'                  => 'nullable|string|max:255',
+            'sales_name'                => 'nullable|string|max:255',
+            'po_spk_number'             => 'nullable|string|max:100',
+            'contract_value'            => 'nullable',
+            'service_start_date'        => 'required|date',
+            'service_end_date'          => 'required|date|after_or_equal:service_start_date',
+            'sla_tier'                  => 'required|string|in:Platinum,Gold,Silver,Bronze',
+            'sla_target_percentage'     => 'nullable|numeric|between:80,100',
+            'mttr_hours'                => 'nullable|numeric|min:1',
+            'call_response_time'        => 'nullable|string|max:50',
+            'pm_frequency_type'         => 'required|string',
+            'pm_total_cycles'           => 'nullable|integer|min:1',
+            'cm_quota'                  => 'nullable|integer|min:0',
+            'status'                    => 'nullable|string|max:50',
+            'description'               => 'nullable|string',
+        ]);
+
+        $rawVal = preg_replace('/[^\d]/', '', (string) ($request->contract_value ?? '0'));
+        $contractValue = ($rawVal !== '' && $rawVal !== '0') ? (float) $rawVal : null;
+
+        $hd = is_array($project->handover_data) ? $project->handover_data : [];
+        if (isset($validated['customer_pic'])) {
+            $hd['customer_pic'] = $validated['customer_pic'];
+        }
+        if (isset($validated['customer_pic_phone'])) {
+            $hd['customer_pic_phone'] = $validated['customer_pic_phone'];
+        }
+        if (isset($validated['customer_pic_email'])) {
+            $hd['customer_pic_email'] = $validated['customer_pic_email'];
+        }
+        if (isset($validated['po_spk_number'])) {
+            $hd['po_spk_number'] = $validated['po_spk_number'];
+        }
+        if (isset($validated['description'])) {
+            $hd['notes'] = $validated['description'];
+        }
+
+        $oldCycles = $project->pm_total_cycles;
+        $totalCycles = !empty($validated['pm_total_cycles']) ? (int) $validated['pm_total_cycles'] : $oldCycles;
+
+        $project->update([
+            'name'                      => $validated['name'],
+            'client'                    => $validated['client'],
+            'customer_pic_technical'    => $validated['customer_pic'] ?? null,
+            'customer_pic_business'     => $validated['customer_pic_phone'] ?? null,
+            'customer_pic_finance'      => $validated['customer_pic_email'] ?? null,
+            'location'                  => $validated['location'] ?? null,
+            'sales_name'                => $validated['sales_name'] ?? $project->sales_name,
+            'po_spk_number'             => $validated['po_spk_number'] ?? null,
+            'po_number'                 => $validated['po_spk_number'] ?? null,
+            'contract_value'            => $contractValue,
+            'service_start_date'        => $validated['service_start_date'],
+            'service_end_date'          => $validated['service_end_date'],
+            'start_date'                => $validated['service_start_date'],
+            'deadline'                  => $validated['service_end_date'],
+            'sla_tier'                  => $validated['sla_tier'],
+            'sla_target_percentage'     => $validated['sla_target_percentage'] ?? $project->sla_target_percentage,
+            'mttr_hours'                => $validated['mttr_hours'] ?? $project->mttr_hours,
+            'call_response_time'        => $validated['call_response_time'] ?? $project->call_response_time,
+            'incident_resolution_hours' => $validated['mttr_hours'] ?? $project->incident_resolution_hours,
+            'pm_frequency_type'         => $validated['pm_frequency_type'],
+            'pm_total_cycles'           => $totalCycles,
+            'cm_quota'                  => $validated['cm_quota'] ?? $project->cm_quota,
+            'status'                    => $validated['status'] ?? $project->status,
+            'description'               => $validated['description'] ?? null,
+            'handover_data'             => $hd,
+        ]);
+
+        if ($oldCycles != $totalCycles) {
+            $existingCycles = ManagedServicePmCycle::where('project_id', $project->id)->orderBy('cycle_number')->get();
+            if ($existingCycles->count() < $totalCycles) {
+                $startNum = $existingCycles->count() + 1;
+                $lastDate = $existingCycles->last()?->scheduled_date ? Carbon::parse($existingCycles->last()->scheduled_date) : now();
+                for ($i = $startNum; $i <= $totalCycles; $i++) {
+                    ManagedServicePmCycle::create([
+                        'project_id'        => $project->id,
+                        'cycle_number'      => $i,
+                        'cycle_label'       => 'PM ' . $i,
+                        'scheduled_date'    => $lastDate->copy()->addMonths(3)->toDateString(),
+                        'activity_status'   => 'Scheduled',
+                        'report_status'     => 'Pending',
+                        'billing_ba_status' => 'Pending',
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->back()->with('success', 'Kontrak Managed Service berhasil diperbarui.');
+    }
+
+    /**
      * Helper Ekstraksi & Resolusi 6 Berkas Dokumen Kontrak & Legal Proyek
      */
     public static function getProjectDocuments($project)
