@@ -783,7 +783,7 @@ Route::get('/clean-maintenance-data', function () {
             }
         }
 
-        // 2. Hapus SEMUA proyek bertipe Managed Service / Pemeliharaan / Handover MS
+        // 2. Hapus SEMUA proyek dummy bertipe Managed Service / Pemeliharaan (Kecuali proyek implementasi PMO PPATK)
         if (\Illuminate\Support\Facades\Schema::hasTable('projects')) {
             $msDummyProjects = \App\Models\Project::where(function($q) {
                 $q->where('name', 'like', '%Managed Service%')
@@ -791,13 +791,15 @@ Route::get('/clean-maintenance-data', function () {
                   ->orWhere('project_type', 'like', '%Managed%')
                   ->orWhere('project_type', 'like', '%Maintenance%')
                   ->orWhere('handover_target', 'managed_service')
-                  ->orWhere('handover_target', 'both')
                   ->orWhere('stage', 'Operate')
                   ->orWhere('po_spk_number', 'KTR/TLK-NET/2026/021')
                   ->orWhere('po_spk_number', 'SPK/IPNET/BRY/2026/014')
                   ->orWhere('po_spk_number', 'SO-2026-MS-MNDR01')
                   ->orWhere('id', 15);
-            })->get();
+            })
+            ->where('name', 'not like', '%PPAT%')
+            ->where('name', 'not like', '%Peremajaan Router%')
+            ->get();
 
             $deletedProjectNames = [];
             foreach ($msDummyProjects as $dp) {

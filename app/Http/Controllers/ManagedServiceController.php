@@ -337,20 +337,25 @@ class ManagedServiceController extends Controller
             'count_cm'   => $countCm,
         ];
 
-        // 8. Incoming Service Handovers (Dari Sales Tipe 2 & Pasca-Implementasi PMO) - Hanya yang Pending
+        // 8. Incoming Service Handovers (Dari Sales Tipe 2 & Pasca-Implementasi PMO) - Hanya yang Pending & bukan proyek Deliver/Implementasi
         $incomingQuery = Project::where(function($q) {
                 $q->where('handover_target', 'managed_service')
                   ->orWhere(function($sub) {
                       $sub->where('handover_target', 'both')
+                          ->where('stage', 'Operate')
                           ->where('project_type', 'not like', '%One-Time%');
                   });
             })
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
             ->where(function($q) {
                 $q->whereNull('project_type')
-                  ->orWhere('project_type', 'not like', '%One-Time%');
+                  ->orWhere(function($p) {
+                      $p->where('project_type', 'not like', '%One-Time%')
+                        ->where('project_type', 'not like', '%Implementation%');
+                  });
             })
             ->where('handover_target', '!=', 'pmo')
+            ->where('stage', '!=', 'Deliver')
             ->where(function($q) {
                 $q->whereNull('ms_handover_status')
                   ->orWhere('ms_handover_status', '!=', 'Accepted');
@@ -1454,20 +1459,25 @@ class ManagedServiceController extends Controller
 
         $projects = $query->latest()->paginate($perPage)->withQueryString();
 
-        // 2. Query Serah Terima Kontrak Layanan Masuk (Incoming Service Handovers) - Hanya yang Pending / Menunggu Aktivasi
+        // 2. Query Serah Terima Kontrak Layanan Masuk (Incoming Service Handovers) - Hanya yang Pending / Menunggu Aktivasi & bukan proyek Deliver/Implementasi
         $incomingQuery = Project::where(function($q) {
                 $q->where('handover_target', 'managed_service')
                   ->orWhere(function($sub) {
                       $sub->where('handover_target', 'both')
+                          ->where('stage', 'Operate')
                           ->where('project_type', 'not like', '%One-Time%');
                   });
             })
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
             ->where(function($q) {
                 $q->whereNull('project_type')
-                  ->orWhere('project_type', 'not like', '%One-Time%');
+                  ->orWhere(function($p) {
+                      $p->where('project_type', 'not like', '%One-Time%')
+                        ->where('project_type', 'not like', '%Implementation%');
+                  });
             })
             ->where('handover_target', '!=', 'pmo')
+            ->where('stage', '!=', 'Deliver')
             ->where(function($q) {
                 $q->whereNull('ms_handover_status')
                   ->orWhere('ms_handover_status', '!=', 'Accepted');
