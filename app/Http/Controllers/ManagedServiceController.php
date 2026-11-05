@@ -1235,7 +1235,7 @@ class ManagedServiceController extends Controller
             }
         }
         if (!$assignedEngId) {
-            $assignedEngId = $project->pm_id ?: ($project->created_by ?: auth()->id());
+            $assignedEngId = null;
         }
 
         for ($i = 1; $i <= $totalCycles; $i++) {
@@ -2346,6 +2346,14 @@ class ManagedServiceController extends Controller
                     ->where('cycle_number', '>', $project->pm_total_cycles)
                     ->delete();
             }
+        }
+
+        // Pastikan assigned_engineer_id tidak terisi ID PM (Eris adalah PM / PIC MS, bukan Engineer Lapangan)
+        if ($project->pm_id) {
+            ManagedServicePmCycle::where('project_id', $project->id)
+                ->where('assigned_engineer_id', $project->pm_id)
+                ->whereNull('assigned_engineers')
+                ->update(['assigned_engineer_id' => null]);
         }
 
         $pmCycles = $project->pmCycles()->orderBy('cycle_number')->get();

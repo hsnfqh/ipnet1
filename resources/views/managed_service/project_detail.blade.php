@@ -930,9 +930,9 @@
                                         </td>
                                         <td class="py-3.5 px-4 font-medium">
                                             @if($cycle->actual_date)
-                                                <span class="text-emerald-700 font-bold">{{ date('d M Y', strtotime($cycle->actual_date)) }}</span>
+                                                <span class="text-emerald-700 font-bold text-[12px]">{{ date('d M Y', strtotime($cycle->actual_date)) }}</span>
                                             @else
-                                                <span class="text-slate-400 italic">Belum terlaksana</span>
+                                                <span class="text-slate-300 font-bold text-sm select-none">&mdash;</span>
                                             @endif
                                         </td>
                                         {{-- Kolom 4: PIC Managed Service (Koordinator Layanan, misal Eris) --}}
@@ -952,14 +952,21 @@
                                             </div>
                                         </td>
 
-                                        {{-- Kolom 5: Engineer Lapangan (Hanya Nama Depan) --}}
+                                        {{-- Kolom 5: Engineer Lapangan (Hanya Nama Depan; Jika belum ada dikosongi / strip rapi) --}}
                                         <td class="py-3.5 px-4 text-[#334155] font-medium">
                                             @php
                                                 $engList = is_array($cycle->assigned_engineers) ? $cycle->assigned_engineers : [];
+                                                $filteredEngList = array_filter($engList, function($eng) use ($picMsName, $project) {
+                                                    $eName = trim($eng['name'] ?? '');
+                                                    if (empty($eName)) return false;
+                                                    if ($eName === $picMsName) return false;
+                                                    if (!empty($project->pm_id) && isset($eng['id']) && $eng['id'] == $project->pm_id) return false;
+                                                    return true;
+                                                });
                                             @endphp
-                                            @if(!empty($engList))
+                                            @if(!empty($filteredEngList))
                                                 <div class="flex flex-wrap gap-1 items-center">
-                                                    @foreach($engList as $ae)
+                                                    @foreach($filteredEngList as $ae)
                                                         @php
                                                             $fullName = trim($ae['name'] ?? '');
                                                             $firstName = explode(' ', $fullName)[0] ?: '-';
@@ -973,7 +980,7 @@
                                                         </div>
                                                     @endforeach
                                                 </div>
-                                            @elseif($cycle->assignedEngineer)
+                                            @elseif($cycle->assignedEngineer && $cycle->assigned_engineer_id != $project->pm_id && trim($cycle->assignedEngineer->name) !== $picMsName)
                                                 @php
                                                     $fullName = trim($cycle->assignedEngineer->name);
                                                     $firstName = explode(' ', $fullName)[0] ?: '-';
@@ -986,25 +993,35 @@
                                                     <span>{{ $firstName }}</span>
                                                 </div>
                                             @else
-                                                <span class="text-slate-400 italic text-[11px]">Belum ditugaskan</span>
+                                                <span class="text-slate-300 font-bold text-sm select-none">&mdash;</span>
                                             @endif
                                         </td>
                                         <td class="py-3.5 px-4 text-center">
-                                            @if($cycle->activity_status === 'Completed')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                    Completed
+                                            @php
+                                                $actStatus = strtolower($cycle->activity_status ?? 'scheduled');
+                                                $repStatus = strtolower($cycle->report_status ?? '');
+                                                $isDone = in_array($actStatus, ['completed', 'solved']) 
+                                                    || in_array($repStatus, ['approved', 'submitted', 'signed', 'invoiced']) 
+                                                    || !empty($cycle->actual_date);
+                                                $isInProg = !$isDone && (in_array($actStatus, ['in progress', 'assigned', 'on progress']) || $repStatus === 'draft');
+                                            @endphp
+                                            @if($isDone)
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    <span>Completed</span>
                                                 </span>
-                                            @elseif($cycle->activity_status === 'In Progress')
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                                    In Progress
+                                            @elseif($isInProg)
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                    <span>In Progress</span>
                                                 </span>
                                             @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
                                                     Scheduled
                                                 </span>
                                             @endif
                                         </td>
-                                        {{-- Laporan PM (Bisa Lebih Dari 1 File & Bisa Dilihat) --}}
+                                        {{-- Laporan PM (Bisa Lebih Dari 1 File & Bisa Dilihat; Jika belum ada laporan tampilkan strip bersih) --}}
                                         <td class="py-3.5 px-4 text-center">
                                             @php
                                                 $allReports = $cycle->all_report_files;
@@ -1032,17 +1049,15 @@
                                                     </div>
                                                 </div>
                                             @else
-                                                <button type="button" @click="openPmModal({{ json_encode($cycle) }})" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold border border-slate-300 transition cursor-pointer">
-                                                    <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span>Upload</span>
-                                                </button>
+                                                <span class="text-slate-300 font-bold text-sm select-none">&mdash;</span>
                                             @endif
                                         </td>
                                         <td class="py-3.5 px-4 text-right">
                                             <button type="button" 
                                                     @click="openPmModal({{ json_encode($cycle) }})"
-                                                    class="px-2.5 py-1 rounded-lg bg-white border border-[#CBD5E1] hover:border-[#8F0A0D] text-[#1E293B] hover:text-[#8F0A0D] text-[11px] font-bold transition shadow-2xs cursor-pointer">
-                                                Update Realisasi
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#CBD5E1] hover:border-[#8F0A0D] text-[#1E293B] hover:text-[#8F0A0D] hover:bg-rose-50/50 text-[11px] font-bold transition shadow-2xs cursor-pointer">
+                                                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                <span>Update Realisasi</span>
                                             </button>
                                         </td>
                                     </tr>
@@ -1781,9 +1796,8 @@
                         {{-- UPLOAD LAPORAN PM: Multi-File + List Dokumen Sebelumnya yang Bisa Dilihat --}}
                         <div class="space-y-2.5">
                             <div>
-                                <div class="flex items-center justify-between mb-1">
+                                <div class="mb-1">
                                     <label class="block text-xs font-semibold text-[#334155]">Upload Berkas Laporan PM</label>
-                                    <span class="text-[10.5px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Bisa pilih &gt; 1 file</span>
                                 </div>
                                 <input type="file" name="report_files[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D] file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100 cursor-pointer">
                                 <p class="text-[10.5px] text-slate-400 mt-1">Dukung multi-file: PDF, Word, Excel, Gambar laporan inspeksi</p>
