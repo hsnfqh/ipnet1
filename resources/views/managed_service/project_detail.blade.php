@@ -900,7 +900,7 @@
                                     <th class="py-3 px-4">Engineer</th>
                                     <th class="py-3 px-4 text-center">Status Visit</th>
                                     <th class="py-3 px-4 text-center">Laporan PM</th>
-                                    <th class="py-3 px-4 text-right">Aksi</th>
+                                    <th class="py-3 px-4 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#F1F5F9]">
@@ -1052,7 +1052,7 @@
                                                 <span class="text-slate-300 font-bold text-sm select-none">&mdash;</span>
                                             @endif
                                         </td>
-                                        <td class="py-3.5 px-4 text-right">
+                                        <td class="py-3.5 px-4 text-center">
                                             <button type="button" 
                                                     @click="openPmModal({{ json_encode($cycle) }})"
                                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#CBD5E1] hover:border-[#8F0A0D] text-[#1E293B] hover:text-[#8F0A0D] hover:bg-rose-50/50 text-[11px] font-bold transition shadow-2xs cursor-pointer">
