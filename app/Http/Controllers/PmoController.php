@@ -978,21 +978,52 @@ class PmoController extends Controller
         $totalActualProgressSum = round($totalActualProgressSum, 1);
         $actualEV = $totalActualProgressSum;
 
-        // Distribusi Kurva S Mingguan
-        $actualCumulativePerWeek = array_fill(1, $totalWeeks, 0.0);
+        // 3. Hitung Progres Aktual Mingguan (Actual Weekly) dari pembobotan task WBS yang selesai
+        // Mengikuti distribusi bobot mingguan task (Weekly Weight) x % progres task aktual
+        $actualWeeklyCalculated = array_fill(1, $totalWeeks, 0.0);
+        foreach ($weeklyWeightMatrix as $row) {
+            $tId = $row['id'];
+            $ptMatch = collect($parsedTasks)->firstWhere('id', $tId);
+            $tProg = $ptMatch ? ($ptMatch['progress'] / 100.0) : 0.0;
+            
+            for ($w = 1; $w <= $totalWeeks; $w++) {
+                $wPlan = $row['weeks'][$w] ?? 0.0;
+                if ($wPlan > 0 && $tProg > 0) {
+                    $actualWeeklyCalculated[$w] += ($wPlan * $tProg);
+                }
+            }
+        }
+        for ($w = 1; $w <= $totalWeeks; $w++) {
+            $actualWeeklyCalculated[$w] = round($actualWeeklyCalculated[$w], 1);
+        }
+
+        // Tentukan minggu aktif tertinggi yang memiliki capaian progres riil
+        $maxActiveWeek = 0;
+        for ($w = 1; $w <= $totalWeeks; $w++) {
+            if ($actualWeeklyCalculated[$w] > 0) {
+                $maxActiveWeek = $w;
+            }
+        }
+
+        // Distribusi Kurva S Mingguan (Actual Cumulative per Week)
+        $actualCumulativePerWeek = [];
         $weekReportedFlags = array_fill(1, $totalWeeks, 0);
+        $savedWeekly = $handoverData['s_curve_weekly'] ?? [];
+        $accumActual = 0.0;
 
-        // Minggu 1 selalu dilaporkan berdasarkan progres riil aktual task saat ini (26.7%)
-        $actualCumulativePerWeek[1] = $actualEV;
-        $weekReportedFlags[1] = ($actualEV > 0) ? 1 : 1;
-
-        // Untuk minggu-minggu berikutnya (Minggu 2..5), cek apakah ada laporan spesifik
-        $savedActualInputs = $handoverData['actual_progress_inputs'] ?? [];
-        for ($w = 2; $w <= $totalWeeks; $w++) {
-            if (isset($savedActualInputs['week_' . $w]) && $savedActualInputs['week_' . $w] !== null && $savedActualInputs['week_' . $w] !== '') {
-                $actualCumulativePerWeek[$w] = (float) $savedActualInputs['week_' . $w];
+        for ($w = 1; $w <= $totalWeeks; $w++) {
+            $accumActual = round($accumActual + $actualWeeklyCalculated[$w], 1);
+            
+            // Cek apakah ada manual override dari PM untuk minggu ini
+            if (isset($savedWeekly[$w]['actual']) && $savedWeekly[$w]['actual'] !== null && $savedWeekly[$w]['actual'] !== '') {
+                $actualCumulativePerWeek[$w] = (float) $savedWeekly[$w]['actual'];
+                $weekReportedFlags[$w] = 1;
+            } elseif ($w <= $maxActiveWeek || ($w == 1 && $actualEV > 0)) {
+                // Minggu aktif berjalan yang sudah memiliki progres
+                $actualCumulativePerWeek[$w] = min(100.0, $accumActual);
                 $weekReportedFlags[$w] = 1;
             } else {
+                // Minggu masa depan yang belum dilaporkan / belum berjalan
                 $actualCumulativePerWeek[$w] = null;
                 $weekReportedFlags[$w] = 0;
             }

@@ -897,9 +897,8 @@
                         return sum.toFixed(1);
                     },
                     onProgressChanged() {
-                        const total = parseFloat(this.calcTotalActual());
                         if (window.updateLiveSCurveActual) {
-                            window.updateLiveSCurveActual(total);
+                            window.updateLiveSCurveActual(this.taskProgress);
                         }
                     }
                  }">
@@ -2478,36 +2477,89 @@
                 sCurveChartInstance.update();
             };
 
-            window.updateLiveSCurveActual = function(newTotal) {
-                if (sCurveChartInstance && sCurveChartInstance.data.datasets[1]) {
-                    sCurveChartInstance.data.datasets[1].data[1] = newTotal;
-                    sCurveChartInstance.update();
+            const taskWeeklyMatrix = {!! json_encode($weeklyWeightMatrix ?? []) !!};
+            const totalWeeksCount = {{ (int) ($totalWeeks ?? 5) }};
+            const planCumulativeMap = {!! json_encode($totalWeeklyWeightCum ?? []) !!};
+
+            window.updateLiveSCurveActual = function(taskProgressMap) {
+                if (!taskProgressMap) return;
+
+                let weeklyActual = {};
+                for (let w = 1; w <= totalWeeksCount; w++) {
+                    weeklyActual[w] = 0.0;
                 }
-                const planW1 = {{ (float) ($totalWeeklyWeightCum[1] ?? 23.3) }};
-                const devW1 = (newTotal - planW1).toFixed(1);
-                const devStr = (devW1 > 0 ? '+' : '') + devW1 + '%';
 
-                const elActWeekly = document.getElementById('scurve-actual-weekly-w1');
-                if (elActWeekly) elActWeekly.textContent = newTotal.toFixed(1) + '%';
+                let overallSum = 0.0;
+                taskWeeklyMatrix.forEach(row => {
+                    const p = taskProgressMap[row.id] !== undefined ? parseFloat(taskProgressMap[row.id]) : 0;
+                    const progRatio = isNaN(p) ? 0 : Math.max(0, Math.min(100, p)) / 100.0;
+                    const taskWeight = parseFloat(row.weight) || 0;
+                    overallSum += (taskWeight * progRatio);
 
-                const elActCum = document.getElementById('scurve-actual-cum-w1');
-                if (elActCum) elActCum.textContent = newTotal.toFixed(1) + '%';
+                    if (progRatio > 0 && row.weeks) {
+                        for (let w = 1; w <= totalWeeksCount; w++) {
+                            const wWeight = parseFloat(row.weeks[w]) || 0;
+                            if (wWeight > 0) {
+                                weeklyActual[w] += (wWeight * progRatio);
+                            }
+                        }
+                    }
+                });
 
-                const elDev = document.getElementById('scurve-variance-w1');
-                if (elDev) {
-                    elDev.textContent = devStr;
-                    if (parseFloat(devW1) < 0) {
-                        elDev.className = 'py-2.5 px-3 text-right font-bold text-rose-700';
-                    } else {
-                        elDev.className = 'py-2.5 px-3 text-right font-bold text-slate-800';
+                let maxActWeek = 0;
+                for (let w = 1; w <= totalWeeksCount; w++) {
+                    weeklyActual[w] = Math.round(weeklyActual[w] * 10) / 10;
+                    if (weeklyActual[w] > 0) {
+                        maxActWeek = w;
                     }
                 }
 
-                const elHlp = document.getElementById('scurve-helper-w1');
-                if (elHlp) elHlp.textContent = newTotal.toFixed(1) + '%';
+                let accum = 0.0;
+                let chartActualData = [0.0]; // Week 0 Baseline
+
+                for (let w = 1; w <= totalWeeksCount; w++) {
+                    accum = Math.round((accum + weeklyActual[w]) * 10) / 10;
+                    const planCum = planCumulativeMap[w] !== undefined ? parseFloat(planCumulativeMap[w]) : 0.0;
+
+                    const elActWeekly = document.getElementById(`scurve-actual-weekly-w${w}`);
+                    const elActCum = document.getElementById(`scurve-actual-cum-w${w}`);
+                    const elDev = document.getElementById(`scurve-variance-w${w}`);
+                    const elHlp = document.getElementById(`scurve-helper-w${w}`);
+
+                    if (w <= maxActWeek || (w === 1 && overallSum > 0)) {
+                        const dev = Math.round((accum - planCum) * 10) / 10;
+                        const devStr = (dev > 0 ? '+' : '') + dev.toFixed(1) + '%';
+
+                        if (elActWeekly) elActWeekly.textContent = weeklyActual[w].toFixed(1) + '%';
+                        if (elActCum) elActCum.textContent = accum.toFixed(1) + '%';
+                        if (elDev) {
+                            elDev.textContent = devStr;
+                            elDev.className = dev < 0 ? 'py-2.5 px-3 text-right font-bold text-rose-700' : 'py-2.5 px-3 text-right font-bold text-slate-800';
+                        }
+                        if (elHlp) {
+                            elHlp.textContent = accum.toFixed(1) + '%';
+                            elHlp.className = 'py-2.5 px-3 text-right text-xs font-bold text-slate-800';
+                        }
+                        chartActualData.push(accum);
+                    } else {
+                        if (elActWeekly) elActWeekly.textContent = '';
+                        if (elActCum) elActCum.textContent = '';
+                        if (elDev) elDev.textContent = '';
+                        if (elHlp) {
+                            elHlp.textContent = '#N/A';
+                            elHlp.className = 'py-2.5 px-3 text-right text-xs text-slate-400 italic';
+                        }
+                        chartActualData.push(null);
+                    }
+                }
+
+                if (sCurveChartInstance && sCurveChartInstance.data.datasets[1]) {
+                    sCurveChartInstance.data.datasets[1].data = chartActualData;
+                    sCurveChartInstance.update();
+                }
 
                 const tab3Badge = document.getElementById('tab-actual-progress-badge');
-                if (tab3Badge) tab3Badge.textContent = newTotal.toFixed(1) + '%';
+                if (tab3Badge) tab3Badge.textContent = overallSum.toFixed(1) + '%';
             };
         }
 
