@@ -802,12 +802,7 @@
                                     <th class="py-3 px-2.5 text-center whitespace-nowrap">Finish Day</th>
                                     <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
                                     @for($w = 1; $w <= $totalWeeks; $w++)
-                                        <th class="py-2.5 px-3 text-right whitespace-nowrap">
-                                            <div class="font-bold text-slate-700">Week {{ $w }}</div>
-                                            <div class="text-[9.5px] font-normal text-slate-400 tracking-normal leading-tight mt-0.5 whitespace-nowrap">
-                                                {{ $weekDateRanges[$w] ?? '' }}
-                                            </div>
-                                        </th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Week {{ $w }}</th>
                                     @endfor
                                     <th class="py-3 px-3 text-right whitespace-nowrap">Check (=weight)</th>
                                 </tr>
@@ -1094,10 +1089,7 @@
                                     @foreach($weeklyRecords as $rec)
                                         <tr class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
                                             <td class="py-2.5 px-3 text-center font-bold text-slate-800">
-                                                <div>Week {{ $rec['week'] }}</div>
-                                                @if(!empty($rec['date_range']))
-                                                    <div class="text-[9.5px] font-normal text-slate-400 mt-0.5 leading-tight">{{ $rec['date_range'] }}</div>
-                                                @endif
+                                                {{ $rec['week'] }}
                                             </td>
                                             <td class="py-2.5 px-3 text-right font-medium text-slate-700">
                                                 {{ number_format($rec['plan_weekly'], 1) }}%
