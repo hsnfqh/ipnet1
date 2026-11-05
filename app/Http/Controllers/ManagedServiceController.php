@@ -1460,6 +1460,24 @@ class ManagedServiceController extends Controller
 
         $projects = $query->latest()->paginate($perPage)->withQueryString();
 
+        // Sinkronisasi otomatis progress riil proyek berdasarkan siklus PM yang telah selesai/disetujui/dilakukan
+        foreach ($projects as $proj) {
+            if ($proj->pmCycles && $proj->pmCycles->isNotEmpty()) {
+                $pTotal = $proj->pm_total_cycles ?: $proj->pmCycles->count();
+                $pDone = $proj->pmCycles->filter(function($c) {
+                    $act = strtolower($c->activity_status ?? '');
+                    $rep = strtolower($c->report_status ?? '');
+                    return in_array($act, ['completed', 'solved']) 
+                        || in_array($rep, ['approved', 'submitted', 'signed', 'invoiced']) 
+                        || !empty($c->actual_date);
+                })->count();
+                $calcProg = $pTotal > 0 ? round(($pDone / $pTotal) * 100) : 0;
+                if ($proj->progress !== $calcProg) {
+                    $proj->update(['progress' => $calcProg]);
+                }
+            }
+        }
+
         // 2. Query Serah Terima Kontrak Layanan Masuk (Incoming Service Handovers) - Hanya yang Pending / Menunggu Aktivasi & bukan proyek Deliver/Implementasi
         $incomingQuery = Project::where(function($q) {
                 $q->where('handover_target', 'managed_service')

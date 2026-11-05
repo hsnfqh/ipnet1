@@ -273,7 +273,13 @@
                                     @php
                                         $pDocs = $p->resolved_documents ?? \App\Http\Controllers\ManagedServiceController::getProjectDocuments($p);
                                         $pmCyclesCount = $p->pm_total_cycles ?: ($p->pmCycles->count() ?: 4);
-                                        $pmCompletedCount = $p->pmCycles->where('activity_status', 'Completed')->count();
+                                        $pmCompletedCount = $p->pmCycles->filter(function($c) {
+                                            $act = strtolower($c->activity_status ?? '');
+                                            $rep = strtolower($c->report_status ?? '');
+                                            return in_array($act, ['completed', 'solved']) 
+                                                || in_array($rep, ['approved', 'submitted', 'signed', 'invoiced']) 
+                                                || !empty($c->actual_date);
+                                        })->count();
                                         $progressPct = $pmCyclesCount > 0 ? round(($pmCompletedCount / $pmCyclesCount) * 100) : 0;
                                         
                                         $deadlineDate = $p->service_end_date ?: $p->deadline;

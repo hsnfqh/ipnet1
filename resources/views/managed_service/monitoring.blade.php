@@ -312,8 +312,12 @@
                                         <!-- PM Cycle Nodes -->
                                         @foreach($pmCycles as $c)
                                             @php
-                                                $isDone = ($c->activity_status === 'Completed');
-                                                $isInProg = ($c->activity_status === 'In Progress');
+                                                $actStatus = strtolower($c->activity_status ?? 'scheduled');
+                                                $repStatus = strtolower($c->report_status ?? '');
+                                                $isDone = in_array($actStatus, ['completed', 'solved']) 
+                                                    || in_array($repStatus, ['approved', 'submitted', 'signed', 'invoiced']) 
+                                                    || !empty($c->actual_date);
+                                                $isInProg = !$isDone && (in_array($actStatus, ['in progress', 'assigned', 'on progress']) || $repStatus === 'draft');
                                             @endphp
                                             <div class="flex flex-col items-center cursor-pointer group" @click="openPmModal({{ json_encode($c) }})">
                                                 <div class="w-10 h-10 rounded-full flex items-center justify-center text-[12.5px] font-black transition-all shadow-md {{ $isDone ? 'bg-[#8F0A0D] text-white ring-4 ring-rose-100' : ($isInProg ? 'bg-amber-500 text-white ring-4 ring-amber-100 animate-pulse' : 'bg-white text-[#64748B] border border-[#CBD5E1] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
@@ -433,8 +437,12 @@
                                 <tbody class="divide-y divide-[#F1F5F9]">
                                     @forelse($pmCycles as $cycle)
                                         @php
-                                            $isDone = ($cycle->activity_status === 'Completed');
-                                            $isInProg = ($cycle->activity_status === 'In Progress');
+                                            $actStatus = strtolower($cycle->activity_status ?? 'scheduled');
+                                            $repStatus = strtolower($cycle->report_status ?? '');
+                                            $isDone = in_array($actStatus, ['completed', 'solved']) 
+                                                || in_array($repStatus, ['approved', 'submitted', 'signed', 'invoiced']) 
+                                                || !empty($cycle->actual_date);
+                                            $isInProg = !$isDone && (in_array($actStatus, ['in progress', 'assigned', 'on progress']) || $repStatus === 'draft');
                                         @endphp
                                         <tr class="hover:bg-[#F8FAFC]/80 transition-colors duration-150">
                                             {{-- Siklus --}}
