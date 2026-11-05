@@ -160,13 +160,7 @@
                             </button>
                         </div>
 
-                        <div x-show="activeTab === 'cm'">
-                            <button type="button" @click="isCmModalOpen = true" 
-                                    class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>Catat Tiket CM Baru</span>
-                            </button>
-                        </div>
+
 
 
                     </div>

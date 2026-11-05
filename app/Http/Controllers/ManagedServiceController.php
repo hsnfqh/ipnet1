@@ -1857,6 +1857,7 @@ class ManagedServiceController extends Controller
             'location'                  => 'nullable|string|max:255',
             'sales_name'                => 'nullable|string|max:255',
             'po_spk_number'             => 'nullable|string|max:100',
+            'billing_terms'             => 'nullable|string|max:255',
             'contract_value'            => 'nullable',
             'service_start_date'        => 'required|date',
             'service_end_date'          => 'required|date|after_or_equal:service_start_date',
@@ -1867,8 +1868,15 @@ class ManagedServiceController extends Controller
             'pm_frequency_type'         => 'required|string',
             'pm_total_cycles'           => 'nullable|integer|min:1',
             'cm_quota'                  => 'nullable|integer|min:0',
+            'pm_id'                     => 'nullable',
             'status'                    => 'nullable|string|max:50',
+            'bast_handover_type'        => 'nullable|string|max:50',
             'description'               => 'nullable|string',
+            'file_bast'                 => 'nullable|file|max:51200',
+            'file_spk'                  => 'nullable|file|max:51200',
+            'file_boq'                  => 'nullable|file|max:51200',
+            'file_tor'                  => 'nullable|file|max:51200',
+            'file_tech'                 => 'nullable|file|max:51200',
         ]);
 
         $rawVal = preg_replace('/[^\d]/', '', (string) ($request->contract_value ?? '0'));
@@ -1921,6 +1929,85 @@ class ManagedServiceController extends Controller
             'description'               => $validated['description'] ?? null,
             'handover_data'             => $hd,
         ]);
+
+        if (!empty($validated['pm_id'])) {
+            $pmUser = User::find($validated['pm_id']);
+            if ($pmUser) {
+                $project->pm_id = $pmUser->id;
+                $hd['pm_id'] = $pmUser->id;
+                $hd['pm_name'] = $pmUser->name;
+                $hd['project_manager'] = $pmUser->name;
+            }
+        }
+        if (!empty($validated['bast_handover_type'])) {
+            $hd['bast_handover_type'] = $validated['bast_handover_type'];
+        }
+        $project->handover_data = $hd;
+        $project->save();
+
+        // Upload berkas dokumen baru jika ada yang dilampirkan
+        $bastType = $validated['bast_handover_type'] ?? ($hd['bast_handover_type'] ?? 'am_to_ms');
+        $bastDocTitle = ($bastType === 'implementation_to_ms')
+            ? 'Berita Acara Handover Implementasi ke Managed Service'
+            : 'Berita Acara Handover Account Manager ke Managed Service';
+
+        $docMapping = [
+            'file_bast' => ['key' => 'ba',          'column' => 'bast_file',     'title' => $bastDocTitle],
+            'file_spk'  => ['key' => 'spk',         'column' => 'po_spk_file',   'title' => 'Surat Perintah Kerja (SPK)'],
+            'file_boq'  => ['key' => 'boq',         'column' => 'boq_file',      'title' => 'Bill of Quantity (BOQ)'],
+            'file_tor'  => ['key' => 'tor',         'column' => 'tor_file',      'title' => 'Terms of Reference (TOR)'],
+            'file_tech' => ['key' => 'project_doc', 'column' => 'proposal_file', 'title' => 'Dokumen Teknis & Topologi Proyek'],
+        ];
+
+        $uploadedPaths = [];
+        $checklist = is_array($project->documents_checklist) ? $project->documents_checklist : [];
+
+        foreach ($docMapping as $inputName => $meta) {
+            if ($request->hasFile($inputName) && $request->file($inputName)->isValid()) {
+                $file = $request->file($inputName);
+                $originalName = $file->getClientOriginalName();
+                $fileSize = 0;
+                try {
+                    $fileSize = $file->getSize() ?: 0;
+                } catch (\Throwable $e) {
+                    $fileSize = 0;
+                }
+
+                $filePath = FileUploadHelper::storePublicly($file, 'managed_service_documents');
+                if ($fileSize === 0 && $filePath) {
+                    $savedFullPath = storage_path('app/public/' . $filePath);
+                    if (file_exists($savedFullPath)) {
+                        $fileSize = filesize($savedFullPath) ?: 0;
+                    }
+                }
+
+                $uploadedPaths[$meta['column']] = $filePath;
+                $checklist[$meta['key']] = true;
+
+                if (Schema::hasTable('project_documents')) {
+                    ProjectDocument::updateOrCreate(
+                        [
+                            'project_id'   => $project->id,
+                            'document_key' => $meta['key'],
+                        ],
+                        [
+                            'document_title' => $meta['title'],
+                            'file_path'      => $filePath,
+                            'file_name'      => $originalName,
+                            'file_size'      => $fileSize,
+                            'mime_type'      => $file->getClientMimeType(),
+                            'uploaded_by'    => auth()->id(),
+                            'status'         => 'Verified',
+                        ]
+                    );
+                }
+            }
+        }
+
+        if (!empty($uploadedPaths)) {
+            $uploadedPaths['documents_checklist'] = $checklist;
+            $project->update($uploadedPaths);
+        }
 
         if ($oldCycles != $totalCycles) {
             $existingCycles = ManagedServicePmCycle::where('project_id', $project->id)->orderBy('cycle_number')->get();
