@@ -475,7 +475,7 @@
                         </svg>
                         <span>Actual Progress</span>
                         <span id="tab-actual-progress-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                              :class="activeMainTab === 'actual_progress' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'">
+                              :class="activeMainTab === 'actual_progress' ? 'bg-white/20 text-white' : 'bg-red-50 text-[#8F0A0D] border border-red-200'">
                             {{ number_format($currentProgressPercent, 1) }}%
                         </span>
                     </button>
