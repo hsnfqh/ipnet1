@@ -179,48 +179,10 @@
                                 <span>Buka Proyek PPATK (Peremajaan Router)</span>
                             </a>
                         @endif
-                        @if($healthStatus === 'Healthy')
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                On-Track
-                            </span>
-                        @elseif($healthStatus === 'At-Risk')
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                At-Risk
-                            </span>
-                        @else
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                Delayed
-                            </span>
-                        @endif
+
                     </div>
 
-                    {{-- Right Action Buttons (SINGLE Project Switcher & Daftar Proyek Button) --}}
-                    <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
-                        @if(!empty($allPmoProjects) && $allPmoProjects->count() > 0)
-                            <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
-                                <label class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Pilih Proyek:</label>
-                                <select onchange="window.location.href='/pmo/projects/' + this.value"
-                                        class="bg-transparent border-0 text-xs font-bold text-slate-800 focus:outline-hidden cursor-pointer max-w-[200px] sm:max-w-[260px] truncate">
-                                    @foreach($allPmoProjects as $pItem)
-                                        <option value="{{ $pItem->id }}" {{ $pItem->id == $project->id ? 'selected' : '' }}>
-                                            {{ $pItem->client ? $pItem->client . ' - ' : '' }}{{ Str::limit($pItem->name, 40) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endif
-                        <a href="{{ route('pmo.implementations.index') }}" 
-                           class="px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold transition shadow-2xs flex items-center gap-2 active:scale-95">
-                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                            </svg>
-                            <span>Daftar Proyek</span>
-                            <span>&rarr;</span>
-                        </a>
-                    </div>
+
                 </div>
 
                 {{-- Full-Width Title --}}
@@ -539,12 +501,7 @@
                     </button>
                 </div>
 
-                {{-- Status Chip Active Tab --}}
-                <div class="hidden md:flex items-center gap-2 text-xs text-slate-500 font-medium">
-                    <span>Active Sheet:</span>
-                    <span class="font-extrabold text-[#8F0A0D] uppercase" 
-                          x-text="activeMainTab === 'schedule' ? 'Schedule' : (activeMainTab === 'weekly_weight' ? 'Weekly Weight (plan)' : (activeMainTab === 'actual_progress' ? 'Actual Progress' : (activeMainTab === 'scurve' ? 'S-Curve Progress Proyek' : 'Expenses & Budget')))"></span>
-                </div>
+
             </div>
 
             {{-- ========================================================== --}}
