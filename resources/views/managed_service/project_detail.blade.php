@@ -916,29 +916,22 @@
                                             @endif
                                         </td>
                                         <td class="py-3.5 px-4 text-[#334155] font-medium">
-                                            @if($cycle->assignedEngineer)
-                                                <div class="flex items-center gap-1.5">
-                                                    <div class="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[9px] flex items-center justify-center border border-slate-200">
-                                                        {{ strtoupper(substr($cycle->assignedEngineer->name, 0, 1)) }}
-                                                    </div>
-                                                    <span class="font-semibold text-slate-800 text-[12px]">{{ $cycle->assignedEngineer->name }}</span>
+                                            @php
+                                                $picUser = $cycle->assignedEngineer 
+                                                    ?: (!empty($project->handover_data['assigned_engineers'][0]['id']) ? \App\Models\User::find($project->handover_data['assigned_engineers'][0]['id']) : null)
+                                                    ?: ($project->pm ?: $project->creator);
+                                                $picName = $picUser?->name 
+                                                    ?: ($project->handover_data['coordinator_name'] 
+                                                        ?? ($project->handover_data['pic_ms_name'] 
+                                                        ?? ($project->handover_data['project_manager'] ?? 'Eris')));
+                                                $picInitial = strtoupper(substr(trim($picName), 0, 1)) ?: 'E';
+                                            @endphp
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-6 h-6 rounded-full bg-red-50 text-[#8F0A0D] font-bold text-[10.5px] flex items-center justify-center border border-red-200 shadow-2xs shrink-0">
+                                                    {{ $picInitial }}
                                                 </div>
-                                            @elseif(!empty($project->handover_data['assigned_engineers']))
-                                                <div class="flex items-center gap-1.5">
-                                                    <div class="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[9px] flex items-center justify-center border border-slate-200">
-                                                        {{ strtoupper(substr($project->handover_data['assigned_engineers'][0]['name'] ?? 'T', 0, 1)) }}
-                                                    </div>
-                                                    <div>
-                                                        <span class="font-semibold text-slate-800 text-[12px]">{{ $project->handover_data['assigned_engineers'][0]['name'] ?? 'Tim Lapangan' }}</span>
-                                                        <span class="text-[9.5px] text-emerald-600 block font-normal">Dari Lead Engineer</span>
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <span class="text-amber-600 font-medium text-[11px] inline-flex items-center gap-1">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                    Menunggu Lead
-                                                </span>
-                                            @endif
+                                                <span class="font-semibold text-slate-800 text-[12px]">{{ $picName }}</span>
+                                            </div>
                                         </td>
                                         <td class="py-3.5 px-4 text-center">
                                             @if($cycle->activity_status === 'Completed')
@@ -1629,7 +1622,7 @@
 
                         <div>
                             <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Managed Service</label>
-                            <select name="assigned_engineer_id" :value="activeCycle ? activeCycle.assigned_engineer_id : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                            <select name="assigned_engineer_id" :value="activeCycle ? (activeCycle.assigned_engineer_id || '{{ $project->pm_id }}') : '{{ $project->pm_id }}'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
                                 <option value="">Pilih PIC Managed Service</option>
                                 @foreach($engineers as $eng)
                                     <option value="{{ $eng->id }}">{{ $eng->name }}</option>

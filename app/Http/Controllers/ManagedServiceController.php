@@ -1226,13 +1226,16 @@ class ManagedServiceController extends Controller
             $project->update(['pm_total_cycles' => $totalCycles]);
         }
 
-        // Personil teknisi yang sudah didelegasikan oleh Lead Engineer (jika ada)
+        // Personil teknisi / PIC yang bertugas: Prioritaskan penugasan assigned_engineers atau Project Manager (PM) proyek
         $assignedEngId = null;
         if (is_array($project->handover_data)) {
             $assigned = $project->handover_data['assigned_engineers'] ?? [];
             if (!empty($assigned) && isset($assigned[0]['id'])) {
                 $assignedEngId = (int) $assigned[0]['id'];
             }
+        }
+        if (!$assignedEngId) {
+            $assignedEngId = $project->pm_id ?: ($project->created_by ?: auth()->id());
         }
 
         for ($i = 1; $i <= $totalCycles; $i++) {
