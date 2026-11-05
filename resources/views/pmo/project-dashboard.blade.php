@@ -350,7 +350,7 @@
                     </div>
                     <div class="text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-500 font-normal">Rentang WBS :</span>
+                            <span class="text-slate-500 font-normal">Rentang WBS:</span>
                             <strong class="text-slate-800 font-bold">{{ $wbsStartDate->format('d M') }} - {{ $wbsEndDate->format('d M Y') }}</strong>
                         </div>
                         <div class="flex items-center justify-between">
@@ -379,7 +379,7 @@
                     </div>
                     <div class="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-[#64748B] font-medium space-y-1">
                         <div class="flex items-center justify-between">
-                            <span>Task In Progress :</span>
+                            <span>Task In Progress:</span>
                             <strong class="text-blue-700 font-bold">{{ $tasksInProgressCount }} task</strong>
                         </div>
                         <div class="flex items-center justify-between">
@@ -540,37 +540,37 @@
                             <tbody class="divide-y divide-slate-200 bg-white">
                                 <tr class="bg-slate-50/70">
                                     <td class="w-64 py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Project Name</td>
-                                    <td class="py-2 px-4 font-medium text-slate-900">: {{ $project->name }}</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $project->name }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Customer</td>
-                                    <td class="py-2 px-4 font-medium text-slate-900">: {{ $project->client ?: 'PPAT - Pusat Pelaporan dan Analisa Transaksi Keuangan' }}</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $project->client ?: 'PPAT - Pusat Pelaporan dan Analisa Transaksi Keuangan' }}</td>
                                 </tr>
                                 <tr class="bg-slate-50/70">
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Customer's PIC</td>
-                                    <td class="py-2 px-4 font-medium text-slate-900">: {{ $handoverData['customer_pic'] ?? $project->customer_pic_technical ?? 'Richi Michael' }}</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $handoverData['customer_pic'] ?? $project->customer_pic_technical ?? 'Richi Michael' }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Contract/SPK/PO Number</td>
-                                    <td class="py-2 px-4 font-mono font-bold text-slate-900">: {{ $project->po_spk_number ?: ($handoverData['contract_spk_number'] ?? 'EP-01KYREAFEJH89MWPVDQ6W20NXV') }}</td>
+                                    <td class="py-2 px-4 font-mono font-bold text-slate-900">{{ $project->po_spk_number ?: ($handoverData['contract_spk_number'] ?? 'EP-01KYREAFEJH89MWPVDQ6W20NXV') }}</td>
                                 </tr>
                                 <tr class="bg-slate-50/70">
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Start Date ( by Contract/SPK/PO)</td>
-                                    <td class="py-2 px-4 font-medium text-slate-900">: {{ $startDate->format('d-M-y') }}</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $startDate->format('d-M-y') }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Finish Date ( by Contract/SPK/PO)</td>
-                                    <td class="py-2 px-4 font-medium text-slate-900">: {{ $deadlineDate->format('d-M-y') }}</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $deadlineDate->format('d-M-y') }}</td>
                                 </tr>
                                 <tr class="bg-slate-50/70">
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Planned Execution (WBS Start - Finish)</td>
-                                    <td class="py-2 px-4 font-semibold text-slate-900">: {{ $wbsStartDate->format('d-M-y') }} s/d {{ $wbsEndDate->format('d-M-y') }} ({{ $totalWeeks }} Minggu)</td>
+                                    <td class="py-2 px-4 font-semibold text-slate-900">{{ $wbsStartDate->format('d-M-y') }} s/d {{ $wbsEndDate->format('d-M-y') }} ({{ $totalWeeks }} Minggu)</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Estimate Project Duration</td>
                                     <td class="py-2 px-4 font-bold text-[#8F0A0D]">
                                         <div class="flex items-center justify-between">
-                                            <span>: {{ $totalProjectDays }} Hari Pelaksanaan</span>
+                                            <span>{{ $totalProjectDays }} Hari Pelaksanaan</span>
                                             <button type="button" @click="showTimelineModal = true" class="text-blue-600 hover:text-blue-800 text-[11px] font-semibold underline cursor-pointer">
                                                 Edit Timeline &amp; Durasi
                                             </button>
