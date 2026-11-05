@@ -2060,59 +2060,11 @@ class ManagedServiceController extends Controller
             $activeTab = 'documents';
         }
 
-        // Jika Bank Mandiri belum memiliki tiket insiden, buatkan tiket contoh agar tabel SLA langsung terisi
-        if ($cmTickets->isEmpty() && (stripos($project->client, 'Mandiri') !== false || stripos($project->name, 'Mandiri') !== false) && Schema::hasTable('managed_service_tickets')) {
-            $fieldTech = User::where('name', 'like', '%Mario%')->first() 
-                ?? User::whereHas('roles', fn($r) => $r->whereIn('name', ['Field Support', 'Field Support (EOS)', 'Maintenance']))->first() 
-                ?? User::first();
-            $leadMs = User::whereHas('roles', fn($r) => $r->whereIn('name', ['Lead Maintenance', 'Maintenance', 'Managed Service']))->first() ?? User::first();
-
-            $incDate1 = now()->startOfMonth()->addDays(2)->setHour(8)->setMinute(30)->setSecond(0);
-            $resDate1 = now()->startOfMonth()->addDays(2)->setHour(10)->setMinute(0)->setSecond(0); // 1.5 jam down
-
-            ManagedServiceTicket::create([
-                'ticket_number'    => 'CM-MDR-' . date('Y') . '-001',
-                'project_id'       => $project->id,
-                'client_name'      => $project->client,
-                'title'            => 'Flapping Port Uplink Core Switch Catalyst 3850',
-                'description'      => 'Terjadi penurunan kualitas sinyal optik pada modul SFP 10G link gateway distribusi.',
-                'incident_date'    => $incDate1,
-                'resolved_at'      => $resDate1,
-                'type'             => 'Corrective Maintenance',
-                'category'         => 'Switch',
-                'priority'         => 'High',
-                'status'           => 'Resolved',
-                'source'           => 'Internal Monitoring',
-                'reported_by'      => 'NOC Bank Mandiri (Bpk. Aris)',
-                'assigned_to'      => $fieldTech?->id,
-                'sla_deadline'     => $incDate1->copy()->addHours(4),
-                'sla_met'          => true,
-                'root_cause'       => 'Transceiver optik SFP mengalami degradasi redaman dBm',
-                'resolution_notes' => 'Pembersihan konektor patchcord LC dan penggantian spare SFP module port 1/1/1.',
-                'created_by'       => $leadMs?->id ?: 1,
-            ]);
-
-            $cmTickets = $project->managedServiceTickets()
-                ->where(function($q) {
-                    $q->where('type', 'like', '%Corrective%')
-                      ->orWhere('type', 'like', '%Incident%');
-                })->orderBy('created_at', 'asc')->orderBy('id', 'asc')->get();
-        }
-
         $cmQuota = $project->cm_quota ?: 12;
         $cmUsed = $cmTickets->count();
         $cmRemaining = max(0, $cmQuota - $cmUsed);
 
         $pmCycles = $project->pmCycles()->orderBy('cycle_number')->get();
-        if ($pmCycles->where('activity_status', 'Completed')->count() === 0 && (stripos($project->client, 'Mandiri') !== false || stripos($project->name, 'Mandiri') !== false)) {
-            // Update cycle 1 & 2 ke Completed agar progress berjalan realistis (50%)
-            $c1 = $pmCycles->where('cycle_number', 1)->first();
-            if ($c1) { $c1->activity_status = 'Completed'; $c1->save(); }
-            $c2 = $pmCycles->where('cycle_number', 2)->first();
-            if ($c2) { $c2->activity_status = 'Completed'; $c2->save(); }
-            $pmCycles = $project->pmCycles()->orderBy('cycle_number')->get();
-        }
-
         $pmCompleted = $pmCycles->where('activity_status', 'Completed')->count();
         $pmTotal = $pmCycles->count() ?: ($project->pm_total_cycles ?: 4);
         $pmProgress = $pmTotal > 0 ? round(($pmCompleted / $pmTotal) * 100) : 0;

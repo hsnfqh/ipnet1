@@ -720,8 +720,8 @@
                             $pmNodeItems->push([
                                 'is_milestone' => true,
                                 'type'         => 'end',
-                                'label'        => 'End',
-                                'sub'          => ($pmCompleted == $pmTotal && $project->service_end_date) ? date('d/m/Y', strtotime($project->service_end_date)) : 'Akhir Kontrak',
+                                'label'        => 'Finish',
+                                'sub'          => $project->service_end_date ? date('d/m/Y', strtotime($project->service_end_date)) : 'Akhir Kontrak',
                                 'icon'         => 'check',
                             ]);
 
@@ -1044,7 +1044,7 @@
 
                     {{-- Visual Kuota Stepper Sesuai Template: Berkelok seperti Ular (Snake Flow) --}}
                     @php
-                        $displayQuota = ($cmQuota >= 999) ? max(6, $cmUsed + 2) : min(24, max(1, (int)$cmQuota));
+                        $displayQuota = ($cmQuota >= 999) ? max(6, $cmUsed + 2) : max(1, (int)$cmQuota);
                         $isSnakeCm = $displayQuota > 6;
                         $cmChunkSize = 6; // 6 slot tiket per baris
 

@@ -281,9 +281,9 @@
 
                                 $mNodeItems->push([
                                     'is_milestone' => true,
-                                    'label'        => 'End',
-                                    'sub'          => ($pmCompleted == $pmTotal && $project->service_end_date) ? \Carbon\Carbon::parse($project->service_end_date)->format('d/m/Y') : 'Akhir Kontrak',
-                                    'char'         => 'E',
+                                    'label'        => 'Finish',
+                                    'sub'          => $project->service_end_date ? \Carbon\Carbon::parse($project->service_end_date)->format('d/m/Y') : 'Akhir Kontrak',
+                                    'char'         => 'F',
                                 ]);
 
                                 $isMonitoringSnake = $pmTotal > 6;
@@ -335,9 +335,9 @@
                                         <!-- End Node -->
                                         <div class="flex flex-col items-center">
                                             <div class="w-9 h-9 rounded-full bg-[#E2E8F0] text-[#64748B] flex items-center justify-center text-[11px] font-black shadow-xs">
-                                                E
+                                                F
                                             </div>
-                                            <span class="text-[11.5px] font-bold text-[#64748B] mt-2">End</span>
+                                            <span class="text-[11.5px] font-bold text-[#64748B] mt-2">Finish</span>
                                             <span class="text-[10.5px] text-[#94A3B8]">{{ $project->service_end_date ? \Carbon\Carbon::parse($project->service_end_date)->format('d/m/Y') : 'Akhir' }}</span>
                                         </div>
                                     </div>
