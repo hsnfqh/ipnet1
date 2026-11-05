@@ -907,7 +907,7 @@ class PmoController extends Controller
                 $wVal = 0.0;
                 if ($isPpatkProject && isset($ppatkWeeklyDistMap[$tTitle][$w])) {
                     $wVal = (float) $ppatkWeeklyDistMap[$tTitle][$w];
-                } elseif (!$isPpatkProject) {
+                } else {
                     $tStartDay = $pt['starting_day'] ?? 0;
                     $tFinishDay = $pt['finish_day'] ?? ($tStartDay + $pt['duration']);
                     $wStartDay = ($w - 1) * 7;
@@ -1092,8 +1092,9 @@ class PmoController extends Controller
             $tasksInThisWeek = [];
             if ($isPpatkProject && isset($ppatkWeeklyTaskMap[$w])) {
                 $tasksInThisWeek = $ppatkWeeklyTaskMap[$w];
-            } else {
-                foreach ($parsedTasks as $pt) {
+            }
+            foreach ($parsedTasks as $pt) {
+                if (!in_array($pt['title'], $tasksInThisWeek)) {
                     $tStart = $pt['start_date'];
                     $tEnd = $pt['deadline'];
                     $tWeek = $pt['week'];
@@ -2644,6 +2645,8 @@ class PmoController extends Controller
         $validated = $request->validate([
             'title'         => 'required|string|max:255',
             'duration_days' => 'nullable|integer|min:1|max:365',
+            'starting_day'  => 'nullable|integer|min:0|max:365',
+            'finish_day'    => 'nullable|integer|min:0|max:365',
             'start_date'    => 'nullable|date',
             'deadline'      => 'nullable|date',
             'bobot'         => 'nullable|numeric|min:0|max:100',
@@ -2655,25 +2658,35 @@ class PmoController extends Controller
         ]);
 
         $duration = (int) ($validated['duration_days'] ?? 1);
-        $startDate = !empty($validated['start_date']) ? Carbon::parse($validated['start_date']) : now();
+        $startingDay = $request->filled('starting_day') ? (int) $request->input('starting_day') : 0;
+        $finishDay = $request->filled('finish_day') ? (int) $request->input('finish_day') : ($startingDay + $duration);
+        $duration = max(1, $finishDay - $startingDay);
+        $week = max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7));
+
+        $projStart = $project->start_date ? Carbon::parse($project->start_date)->startOfDay() : now()->startOfDay();
+        $startDate = !empty($validated['start_date']) ? Carbon::parse($validated['start_date']) : $projStart->copy()->addDays($startingDay);
         if (!empty($validated['deadline'])) {
             $deadline = Carbon::parse($validated['deadline']);
         } else {
-            $deadline = $startDate->copy()->addDays(max(0, $duration - 1));
+            $deadline = $startDate->copy()->addDays(max(0, $duration - 1))->endOfDay();
         }
 
         $progress = isset($validated['progress']) ? (int) $validated['progress'] : 0;
         $status = $validated['status'] ?? ($progress >= 100 ? 'Completed' : ($progress > 0 ? 'In Progress' : 'Not Started'));
 
+        $bobotVal = isset($validated['bobot']) && is_numeric($validated['bobot']) ? (float) $validated['bobot'] : 0.0;
+        $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 1) : 0.0;
+
         $desc = $validated['description'] ?? '';
-        if (isset($validated['bobot']) && is_numeric($validated['bobot'])) {
-            $bobotVal = number_format((float) $validated['bobot'], 2);
-            if (preg_match('/\[Bobot:\s*[\d\.]+%/i', $desc)) {
-                $desc = preg_replace('/\[Bobot:\s*[\d\.]+%/i', "[Bobot: {$bobotVal}%", $desc);
-            } else {
-                $desc = trim("[Bobot: {$bobotVal}%] " . $desc);
-            }
-        }
+        $metaParts = [
+            "Bobot: " . number_format($bobotVal, 1) . "%",
+            "StartingDay: {$startingDay}",
+            "FinishDay: {$finishDay}",
+            "Week: {$week}",
+            "DailyWeight: {$dailyWeight}%"
+        ];
+        $cleanDesc = trim(preg_replace('/\[[^\]]+\]/i', '', $desc));
+        $desc = ($cleanDesc ? $cleanDesc . ' ' : '') . '[' . implode(' | ', $metaParts) . ']';
 
         $engineerId = $validated['engineer_id'] ?? null;
         if (!$engineerId) {
@@ -2716,6 +2729,8 @@ class PmoController extends Controller
         $validated = $request->validate([
             'title'         => 'required|string|max:255',
             'duration_days' => 'nullable|integer|min:1|max:365',
+            'starting_day'  => 'nullable|integer|min:0|max:365',
+            'finish_day'    => 'nullable|integer|min:0|max:365',
             'start_date'    => 'nullable|date',
             'deadline'      => 'nullable|date',
             'bobot'         => 'nullable|numeric|min:0|max:100',
@@ -2726,43 +2741,38 @@ class PmoController extends Controller
             'description'   => 'nullable|string|max:2000',
         ]);
 
+        $oldDesc = $task->description ?? '';
+        $defaultStartDay = preg_match('/StartingDay:\s*(\d+)/i', $oldDesc, $sdm) ? (int)$sdm[1] : 0;
+        $startingDay = $request->filled('starting_day') ? (int) $request->input('starting_day') : $defaultStartDay;
+        
         $duration = (int) ($validated['duration_days'] ?? 1);
+        $finishDay = $request->filled('finish_day') ? (int) $request->input('finish_day') : ($startingDay + $duration);
+        $duration = max(1, $finishDay - $startingDay);
+        $week = max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7));
+
         $startDate = !empty($validated['start_date']) ? Carbon::parse($validated['start_date']) : ($task->start_date ? Carbon::parse($task->start_date) : now());
         if (!empty($validated['deadline'])) {
             $deadline = Carbon::parse($validated['deadline']);
         } else {
-            $deadline = $startDate->copy()->addDays(max(0, $duration - 1));
+            $deadline = $startDate->copy()->addDays(max(0, $duration - 1))->endOfDay();
         }
 
         $progress = isset($validated['progress']) ? (int) $validated['progress'] : (int) $task->progress;
         $status = $validated['status'] ?? ($progress >= 100 ? 'Completed' : ($progress > 0 ? 'In Progress' : 'Not Started'));
 
-        $oldDesc = $task->description ?? '';
-        $startingDayMeta = preg_match('/StartingDay:\s*\d+/i', $oldDesc, $sdm) ? $sdm[0] : null;
-        $finishDayMeta   = preg_match('/FinishDay:\s*\d+/i', $oldDesc, $fdm) ? $fdm[0] : null;
-        $weekMeta        = preg_match('/Week:\s*\d+/i', $oldDesc, $wm) ? $wm[0] : null;
-        $dailyWeightMeta = preg_match('/DailyWeight:\s*[\d\.]+\%/i', $oldDesc, $dwm) ? $dwm[0] : null;
+        $bobotVal = (isset($validated['bobot']) && is_numeric($validated['bobot'])) ? (float) $validated['bobot'] : (preg_match('/Bobot:\s*([\d\.]+)%/i', $oldDesc, $bm) ? (float)$bm[1] : 0.0);
+        $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 1) : 0.0;
 
         $desc = $validated['description'] ?? ($task->description ?? '');
-        $bobotVal = (isset($validated['bobot']) && is_numeric($validated['bobot'])) ? number_format((float) $validated['bobot'], 1) : null;
-
-        $metaParts = [];
-        if ($bobotVal !== null) {
-            $metaParts[] = "Bobot: {$bobotVal}%";
-        } elseif (preg_match('/Bobot:\s*[\d\.]+\%/i', $oldDesc, $bm)) {
-            $metaParts[] = $bm[0];
-        }
-        if ($startingDayMeta) $metaParts[] = $startingDayMeta;
-        if ($finishDayMeta)   $metaParts[] = $finishDayMeta;
-        if ($weekMeta)        $metaParts[] = $weekMeta;
-        if ($dailyWeightMeta) $metaParts[] = $dailyWeightMeta;
-
+        $metaParts = [
+            "Bobot: " . number_format($bobotVal, 1) . "%",
+            "StartingDay: {$startingDay}",
+            "FinishDay: {$finishDay}",
+            "Week: {$week}",
+            "DailyWeight: {$dailyWeight}%"
+        ];
         $cleanText = trim(preg_replace('/\[[^\]]+\]/i', '', $desc));
-        if (!empty($metaParts)) {
-            $desc = ($cleanText ? $cleanText . ' ' : '') . '[' . implode(' | ', $metaParts) . ']';
-        } else {
-            $desc = $cleanText;
-        }
+        $desc = ($cleanText ? $cleanText . ' ' : '') . '[' . implode(' | ', $metaParts) . ']';
 
         $updateData = [
             'title'       => $validated['title'],

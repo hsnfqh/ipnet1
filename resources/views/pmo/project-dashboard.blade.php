@@ -93,10 +93,15 @@
          showQuickTaskModal: false,
          showImportExcelModal: false,
          selectedEngineerId: '',
+         newTaskStartingDay: {{ $maxTaskFinishDay ?? 0 }},
+         newTaskDuration: 1,
+         newTaskFinishDay: {{ ($maxTaskFinishDay ?? 0) + 1 }},
          showEditTaskModal: false,
          editTaskId: null,
          editTaskTitle: '',
          editTaskDuration: 1,
+         editTaskStartingDay: 0,
+         editTaskFinishDay: 1,
          editTaskBobot: 0,
          editTaskProgress: 0,
          editTaskStatus: 'In Progress',
@@ -107,6 +112,8 @@
              this.editTaskId = task.id;
              this.editTaskTitle = task.title;
              this.editTaskDuration = task.duration_days ? parseInt(task.duration_days, 10) : 1;
+             this.editTaskStartingDay = task.starting_day !== undefined ? parseInt(task.starting_day, 10) : 0;
+             this.editTaskFinishDay = task.finish_day !== undefined ? parseInt(task.finish_day, 10) : (this.editTaskStartingDay + this.editTaskDuration);
              this.editTaskBobot = task.bobot;
              this.editTaskProgress = task.progress;
              this.editTaskStatus = task.status;
@@ -653,6 +660,8 @@
                                                                 id: {{ $t->id }},
                                                                 title: '{{ addslashes($t->title) }}',
                                                                 duration_days: {{ $row['duration'] }},
+                                                                starting_day: {{ $row['starting_day'] }},
+                                                                finish_day: {{ $row['finish_day'] }},
                                                                 start_date: '{{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '' }}',
                                                                 deadline: '{{ $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '' }}',
                                                                 bobot: {{ $row['weight'] }},
@@ -1821,27 +1830,52 @@
                     </div>
                 </div>
 
-                {{-- Row 2: Durasi & Bobot (2 Kolom Sejajar & Simetris) --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {{-- Row 2: Starting Day, Durasi & Finish Day (3 Kolom Otomatis Sinkron) --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Starting Day (Hari ke-)</label>
+                        <input type="number" 
+                               name="starting_day" 
+                               x-model.number="newTaskStartingDay"
+                               @input="newTaskFinishDay = newTaskStartingDay + newTaskDuration"
+                               min="0" 
+                               max="365" 
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
                         <input type="number" 
                                name="duration_days" 
-                               value="1" 
+                               x-model.number="newTaskDuration"
+                               @input="newTaskFinishDay = newTaskStartingDay + newTaskDuration"
                                min="1" 
                                max="365" 
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Bobot (%)</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Finish Day (Hari ke-)</label>
                         <input type="number" 
-                               name="bobot" 
-                               value="0" 
-                               step="0.01" 
-                               min="0" 
-                               max="100" 
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
+                               name="finish_day" 
+                               x-model.number="newTaskFinishDay"
+                               @input="newTaskDuration = Math.max(1, newTaskFinishDay - newTaskStartingDay)"
+                               min="1" 
+                               max="365" 
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
+                </div>
+
+                {{-- Row 3: Bobot (%) --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Activity Weight / Bobot (%)</label>
+                    <input type="number" 
+                           name="bobot" 
+                           value="10.0" 
+                           step="0.1" 
+                           min="0" 
+                           max="100" 
+                           placeholder="Contoh: 10.0"
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
+                    <span class="text-[10.5px] text-slate-400 mt-1 block">Persentase bobot deliverable terhadap total proyek (0 - 100%).</span>
                 </div>
 
                 <div>
@@ -1912,14 +1946,38 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Starting Day</label>
+                        <input type="number" 
+                               name="starting_day" 
+                               x-model.number="editTaskStartingDay" 
+                               @input="editTaskFinishDay = editTaskStartingDay + editTaskDuration"
+                               min="0" 
+                               max="365" 
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
                         <input type="number" 
                                name="duration_days" 
                                x-model.number="editTaskDuration" 
+                               @input="editTaskFinishDay = editTaskStartingDay + editTaskDuration"
                                min="1" 
                                max="365" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Finish Day</label>
+                        <input type="number" 
+                               name="finish_day" 
+                               x-model.number="editTaskFinishDay" 
+                               @input="editTaskDuration = Math.max(1, editTaskFinishDay - editTaskStartingDay)"
+                               min="1" 
+                               max="365" 
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Bobot (%)</label>
                         <input type="number" 
