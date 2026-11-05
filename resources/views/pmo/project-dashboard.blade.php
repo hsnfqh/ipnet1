@@ -159,26 +159,10 @@
                             </svg>
                             <span>Kembali ke Portofolio PMO</span>
                         </a>
-                        <span class="text-slate-300">&bull;</span>
                         @php
                             $estDuration = $project->handover_data['estimate_project_duration'] ?? null;
                             $isPpatkBadge = ($estDuration == 30) || str_contains(strtolower($project->name), 'ppat') || str_contains(strtolower($project->client ?? ''), 'ppat');
                         @endphp
-                        @if($isPpatkBadge)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                Total {{ $totalProjectDays ?? 30 }} Hari ({{ $totalProjectWeeks ?? 5 }} Minggu Pelaksanaan) &bull; Kontrak s/d {{ \Carbon\Carbon::parse($project->deadline)->format('d M Y') }}
-                            </span>
-                        @else
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                Total {{ $totalProjectDays ?? $daysSpan }} Hari ({{ $totalProjectWeeks ?? 8 }} Minggu)
-                            </span>
-                            <a href="{{ route('pmo.projects.ppatk') }}" 
-                               class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition shadow-2xs" 
-                               title="Buka Proyek PPATK">
-                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                <span>Buka Proyek PPATK (Peremajaan Router)</span>
-                            </a>
-                        @endif
 
                     </div>
 
