@@ -1395,170 +1395,8 @@ class ManagedServiceController extends Controller
      */
     public function ensureSampleProjectExists(): void
     {
-        if (!Schema::hasTable('projects')) {
-            return;
-        }
-
-        try {
-            // Cek apakah sudah ada proyek operate/maintenance yang aktif
-            $exists = Project::where('ms_handover_status', 'Accepted')
-                ->orWhere(function($q) {
-                    $q->where('stage', 'Operate')->where(function($sub) {
-                        $sub->whereNull('handover_target')->orWhere('handover_target', '!=', 'pmo');
-                    });
-                })->exists();
-
-            if ($exists) {
-                return;
-            }
-
-            // Temukan user teknisi/lead untuk penugasan
-            $leadMs = User::whereHas('roles', fn($r) => $r->whereIn('name', ['Lead Maintenance', 'Maintenance', 'Managed Service']))->first() ?? User::first();
-            $fieldTech = User::where('name', 'like', '%Mario%')->first() 
-                ?? User::whereHas('roles', fn($r) => $r->whereIn('name', ['Field Support', 'Field Support (EOS)', 'Maintenance']))->first() 
-                ?? User::first();
-            $salesUser = User::whereHas('roles', fn($r) => $r->where('name', 'Sales'))->first() ?? User::first();
-
-            // 1. Buat 1 Proyek Aktif di Maintenance (HANYA UNTUK MODUL MAINTENANCE / MANAGED SERVICE)
-            $project = Project::create([
-                'name'                  => 'Managed Service Pemeliharaan Jaringan & Router WAN',
-                'client'                => 'PT Bank Mandiri (Persero) Tbk',
-                'contract_value'        => 750000000,
-                'stage'                 => 'Operate',
-                'status'                => 'Active',
-                'ms_handover_status'    => 'Accepted',
-                'ms_accepted_by'        => $leadMs?->id,
-                'ms_accepted_at'        => now()->subMonths(3),
-                'handover_target'       => 'managed_service',
-                'project_type'          => 'Managed Service SLA',
-                'sla_tier'              => 'Gold',
-                'sla_target_percentage' => 99.50,
-                'mttr_hours'            => 4,
-                'call_response_time'    => '15 Menit',
-                'incident_resolution_hours' => 4,
-                'pm_frequency_type'     => 'per_3_bulan',
-                'pm_total_cycles'       => 4,
-                'cm_quota'              => 12,
-                'service_start_date'    => now()->startOfYear()->toDateString(),
-                'service_end_date'      => now()->endOfYear()->toDateString(),
-                'location'              => 'Plaza Mandiri Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta',
-                'sales_name'            => $salesUser?->name ?: 'Direct Sales',
-                'created_by'            => $salesUser?->id ?: 1,
-                'handover_data'         => [
-                    'so_number'              => 'SO-2026-MS-MNDR01',
-                    'coordinator_name'       => $leadMs?->name ?: 'Tim Maintenance',
-                    'lead_engineer_name'     => 'Lead Engineer',
-                    'team_delegated_by_name' => 'Lead Engineer',
-                    'pic_ms_name'            => 'Doris (Tim Maintenance)',
-                    'assigned_engineers'     => [
-                        [
-                            'id'       => $fieldTech?->id ?: 1,
-                            'name'     => $fieldTech?->name ?: 'Teknisi Lapangan',
-                            'role'     => 'PIC Utama Lapangan',
-                            'position' => 'Maintenance Engineer',
-                        ]
-                    ]
-                ]
-            ]);
-
-            // 2. Inisialisasi 4 Siklus Preventive Maintenance (PM)
-            if (Schema::hasTable('managed_service_pm_cycles')) {
-                // Siklus 1: Q1 Selesai
-                ManagedServicePmCycle::create([
-                    'project_id'           => $project->id,
-                    'cycle_number'         => 1,
-                    'cycle_name'           => 'Siklus 1 (Kunjungan Q1 - Jan-Mar)',
-                    'scheduled_date'       => now()->startOfYear()->addMonths(1)->toDateString(),
-                    'execution_date'       => now()->startOfYear()->addMonths(1)->toDateString(),
-                    'activity_status'      => 'Completed',
-                    'assigned_engineer_id' => $fieldTech?->id,
-                    'activity_notes'       => 'Pemeriksaan rutin triwulan pertama: pengecekan suhu rack, power supply redundancy, dan pembersihan perangkat switch/router.',
-                    'report_status'        => 'Approved',
-                ]);
-
-                // Siklus 2: Q2 Selesai
-                ManagedServicePmCycle::create([
-                    'project_id'           => $project->id,
-                    'cycle_number'         => 2,
-                    'cycle_name'           => 'Siklus 2 (Kunjungan Q2 - Apr-Jun)',
-                    'scheduled_date'       => now()->startOfYear()->addMonths(4)->toDateString(),
-                    'execution_date'       => now()->startOfYear()->addMonths(4)->toDateString(),
-                    'activity_status'      => 'Completed',
-                    'assigned_engineer_id' => $fieldTech?->id,
-                    'activity_notes'       => 'Pemeriksaan triwulan kedua: backup konfigurasi router WAN Cisco, cek kabel fiber optic dan pengujian failover.',
-                    'report_status'        => 'Approved',
-                ]);
-
-                // Siklus 3: Q3 Terjadwal Bulan Ini
-                ManagedServicePmCycle::create([
-                    'project_id'           => $project->id,
-                    'cycle_number'         => 3,
-                    'cycle_name'           => 'Siklus 3 (Kunjungan Q3 - Jul-Sep / Bulan Ini)',
-                    'scheduled_date'       => now()->addDays(3)->toDateString(),
-                    'activity_status'      => 'Scheduled',
-                    'assigned_engineer_id' => $fieldTech?->id,
-                    'activity_notes'       => 'Pemeriksaan triwulan ketiga: audit kapasitas bandwidth, log memory firewall, dan firmware inspection.',
-                    'report_status'        => 'Pending',
-                ]);
-
-                // Siklus 4: Q4 Mendatang
-                ManagedServicePmCycle::create([
-                    'project_id'           => $project->id,
-                    'cycle_number'         => 4,
-                    'cycle_name'           => 'Siklus 4 (Kunjungan Q4 - Okt-Des)',
-                    'scheduled_date'       => now()->endOfYear()->subMonths(1)->toDateString(),
-                    'activity_status'      => 'Pending',
-                    'assigned_engineer_id' => $fieldTech?->id,
-                    'activity_notes'       => 'Pemeriksaan akhir tahun dan persiapan evaluasi tahunan layanan SLA.',
-                    'report_status'        => 'Pending',
-                ]);
-            }
-
-            // 3. Buat 1 Jadwal Kunjungan di tabel schedules agar muncul di widget jadwal PM
-            if (Schema::hasTable('schedules')) {
-                Schedule::create([
-                    'project_id'  => $project->id,
-                    'user_id'     => $fieldTech?->id,
-                    'title'       => 'Kunjungan Preventive Maintenance (PM) - ' . $project->client,
-                    'description' => 'Pelaksanaan agenda kunjungan rutin siklus ke-3 pemeliharaan perangkat jaringan.',
-                    'date'        => now()->addDays(3)->toDateString(),
-                    'start_time'  => '09:00:00',
-                    'end_time'    => '14:00:00',
-                    'status'      => 'Scheduled',
-                ]);
-            }
-
-            // 4. Buat 1 Tiket CM (Gangguan) yang sudah Resolved dengan Downtime Tercatat
-            if (Schema::hasTable('managed_service_tickets')) {
-                $incDate = now()->subDays(2)->setHour(8)->setMinute(30)->setSecond(0);
-                $resDate = now()->subDays(2)->setHour(10)->setMinute(0)->setSecond(0); // 1.5 Jam down
-
-                ManagedServiceTicket::create([
-                    'ticket_number'    => 'CM-MNDR-' . date('Ym') . '-0001',
-                    'project_id'       => $project->id,
-                    'client_name'      => $project->client,
-                    'title'            => 'Flapping Port Uplink Core Switch Catalyst 3850',
-                    'description'      => 'Terjadi penurunan kualitas sinyal optik pada modul SFP 10G link distribusi ke server gateway.',
-                    'incident_date'    => $incDate,
-                    'resolved_at'      => $resDate,
-                    'type'             => 'Corrective Maintenance',
-                    'category'         => 'Switch',
-                    'priority'         => 'P2 - Major',
-                    'status'           => 'Resolved',
-                    'source'           => 'Internal Monitoring',
-                    'reported_by'      => 'NOC Bank Mandiri (Bpk. Aris)',
-                    'assigned_to'      => $fieldTech?->id,
-                    'sla_deadline'     => $incDate->copy()->addHours(4),
-                    'sla_met'          => true,
-                    'root_cause'       => 'Transceiver optik mengalami degradasi redaman dBm',
-                    'resolution_notes' => 'Pembersihan konektor patchcord LC dan penggantian spare SFP module port 1/1/1.',
-                    'created_by'       => $leadMs?->id ?: 1,
-                ]);
-            }
-
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('ensureSampleProjectExists error: ' . $e->getMessage());
-        }
+        // Dinonaktifkan: Data proyek Maintenance hanya bersumber dari serah terima resmi atau penambahan manual
+        return;
     }
 
     /**
@@ -2556,10 +2394,12 @@ class ManagedServiceController extends Controller
         if ($selectedProjectId) {
             $project = Project::find($selectedProjectId);
         } else {
-            $project = Project::where('stage', 'Operate')
-                ->orWhere('project_type', 'like', '%Managed%')
-                ->latest()
-                ->first() ?: Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->first();
+            $project = Project::where(function($q) {
+                $q->where('stage', 'Operate')
+                  ->orWhere('ms_handover_status', 'Accepted')
+                  ->orWhere('handover_target', 'managed_service')
+                  ->orWhere('project_type', 'like', '%Managed%');
+            })->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])->latest()->first();
         }
 
         if ($project) {
