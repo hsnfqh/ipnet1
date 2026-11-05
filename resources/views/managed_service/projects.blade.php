@@ -818,19 +818,12 @@
                         
                         {{-- Modal Header --}}
                         <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-[#F8FAFC]">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center font-bold shadow-2xs">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-[#8F0A0D]">Operate Stage</span>
+                                    <span class="text-[11px] font-semibold text-slate-500">Inisialisasi Portofolio Managed Service</span>
                                 </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-[#8F0A0D]">Operate Stage</span>
-                                        <span class="text-[11px] font-semibold text-slate-500">Inisialisasi Portofolio Managed Service</span>
-                                    </div>
-                                    <h3 class="text-base sm:text-lg font-bold text-[#1E293B]">Buat Kontrak Managed Service Baru</h3>
-                                </div>
+                                <h3 class="text-base sm:text-lg font-bold text-[#1E293B]">Buat Kontrak Managed Service Baru</h3>
                             </div>
                             <button type="button" @click="showCreateContractModal = false" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-200 transition cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -1284,19 +1277,12 @@
                         
                         {{-- Modal Header (Persis 100% seperti Gambar 1) --}}
                         <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-[#F8FAFC]">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center font-bold shadow-2xs">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-[#8F0A0D]">Operate Stage</span>
+                                    <span class="text-[11px] font-semibold text-slate-500">Pembaruan Kontrak Managed Service</span>
                                 </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-[#8F0A0D]">Operate Stage</span>
-                                        <span class="text-[11px] font-semibold text-slate-500">Pembaruan Kontrak Managed Service</span>
-                                    </div>
-                                    <h3 class="text-base sm:text-lg font-bold text-[#1E293B]">Ubah Kontrak Managed Service</h3>
-                                </div>
+                                <h3 class="text-base sm:text-lg font-bold text-[#1E293B]">Ubah Kontrak Managed Service</h3>
                             </div>
                             <button type="button" @click="showEditContractModal = false" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-200 transition cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
