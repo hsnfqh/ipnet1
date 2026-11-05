@@ -2437,17 +2437,47 @@ class ManagedServiceController extends Controller
 
         $allProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
 
-        $engineers = User::where(function($q) {
-            $q->where('division_id', 3)
-              ->orWhereHas('roles', fn($r) => $r->whereIn('name', [
-                  'Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)'
-              ]));
-        })->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Lead Engineer', 'Team Leader', 'Director', 'Direktur', 'PMO']))
-          ->orderBy('name')->get(['id', 'name']);
+        $allEngineers = User::where('status', 'Active')
+            ->with(['division', 'roles'])
+            ->where(function($q) {
+                $q->whereNotNull('division_id')
+                  ->orWhereHas('roles', fn($r) => $r->whereIn('name', [
+                      'Network Engineer', 'Security Engineer', 'Engineer', 'Field Support',
+                      'Field Support (EOS)', 'Maintenance', 'Lead Maintenance', 'Managed Service',
+                      'Lead Engineer', 'System Engineer', 'Technical Support'
+                  ]));
+            })
+            ->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Director', 'Direktur', 'Finance', 'Finance / Accounting', 'Admin Support']))
+            ->orderBy('name')
+            ->get(['id', 'name', 'division_id', 'position']);
+
+        if ($allEngineers->isEmpty()) {
+            $allEngineers = User::where('status', 'Active')->orderBy('name')->get(['id', 'name', 'division_id', 'position']);
+        }
+
+        $engineers = $allEngineers;
+
+        $groupedEngineers = $allEngineers->groupBy(function($user) {
+            $divName = $user->division?->name;
+            if ($divName) {
+                if (stripos($divName, 'Network') !== false) return 'Divisi Network';
+                if (stripos($divName, 'Security') !== false) return 'Divisi Security';
+                if (stripos($divName, 'Maintenance') !== false || stripos($divName, 'Helpdesk') !== false || stripos($divName, 'Managed') !== false) return 'Divisi Maintenance & Managed Service';
+                return $divName;
+            }
+            $roles = method_exists($user, 'roles') ? $user->roles->pluck('name')->toArray() : [];
+            $pos = strtolower($user->position ?? '');
+            if (in_array('Security Engineer', $roles) || str_contains($pos, 'security')) return 'Divisi Security';
+            if (in_array('Network Engineer', $roles) || str_contains($pos, 'network')) return 'Divisi Network';
+            if (in_array('Lead Maintenance', $roles) || in_array('Maintenance', $roles) || in_array('Field Support', $roles) || in_array('Field Support (EOS)', $roles) || in_array('Managed Service', $roles) || str_contains($pos, 'maintenance') || str_contains($pos, 'field')) {
+                return 'Divisi Maintenance & Managed Service';
+            }
+            return 'Tim Teknis & Lapangan';
+        });
 
         return view('managed_service.project_detail', compact(
             'project', 'allProjects', 'documents', 'additionalDocs', 'availableDocCount', 'cmQuota', 'cmUsed', 'cmRemaining', 'cmTickets',
-            'pmCycles', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers', 'activeTab',
+            'pmCycles', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers', 'groupedEngineers', 'allEngineers', 'activeTab',
             'daysInMonth', 'totalPeriodHours', 'targetSla', 'totalProjDowntimeHours', 'downtimeDeviceList',
             'projectSlaUptime', 'maxAllowedDowntimeHours', 'remainingBufferHours', 'isSlaMet'
         ));
@@ -2753,22 +2783,82 @@ class ManagedServiceController extends Controller
         $cycle = ManagedServicePmCycle::findOrFail($cycleId);
 
         $validated = $request->validate([
-            'scheduled_date'       => 'nullable|date',
-            'activity_status'      => 'required|string|in:Scheduled,In Progress,Completed',
-            'actual_date'          => 'nullable|date',
-            'activity_notes'       => 'nullable|string',
-            'assigned_engineer_id' => 'nullable|exists:users,id',
-            'report_status'        => 'required|string|in:Pending,Draft,Submitted,Approved',
-            'billing_ba_status'    => 'required|string|in:Pending,Draft,Submitted,Signed,Invoiced',
-            'report_file'          => 'nullable|file|max:51200',
-            'billing_ba_file'      => 'nullable|file|max:51200',
+            'scheduled_date'          => 'nullable|date',
+            'activity_status'         => 'required|string|in:Scheduled,In Progress,Completed',
+            'actual_date'             => 'nullable|date',
+            'activity_notes'          => 'nullable|string',
+            'notes'                   => 'nullable|string',
+            'assigned_engineer_id'    => 'nullable',
+            'assigned_engineer_ids'   => 'nullable|array',
+            'assigned_engineer_ids.*' => 'nullable',
+            'report_status'           => 'nullable|string|in:Pending,Draft,Submitted,Approved',
+            'billing_ba_status'       => 'nullable|string',
+            'report_file'             => 'nullable|file|max:51200',
+            'report_files'            => 'nullable|array',
+            'report_files.*'          => 'nullable|file|max:51200',
+            'billing_ba_file'         => 'nullable|file|max:51200',
         ]);
+
+        if (isset($validated['notes'])) {
+            $validated['activity_notes'] = $validated['notes'];
+        }
+
+        // Multi-engineer assignment
+        $engineerIds = $request->input('assigned_engineer_ids', []);
+        if (empty($engineerIds) && !empty($validated['assigned_engineer_id'])) {
+            $engineerIds = [$validated['assigned_engineer_id']];
+        }
+        if (!empty($engineerIds)) {
+            $assignedUsers = User::whereIn('id', $engineerIds)->get(['id', 'name', 'position']);
+            $assignedArray = $assignedUsers->map(fn($u) => [
+                'id'       => $u->id,
+                'name'     => $u->name,
+                'position' => $u->position,
+            ])->toArray();
+
+            $validated['assigned_engineers'] = $assignedArray;
+            $validated['assigned_engineer_id'] = $engineerIds[0];
+        }
+
+        // Multi-report files handling
+        $existingFiles = is_array($cycle->report_files) ? $cycle->report_files : [];
+        if (empty($existingFiles) && !empty($cycle->report_file)) {
+            $existingFiles[] = [
+                'path'        => $cycle->report_file,
+                'filename'    => $cycle->report_filename ?: basename($cycle->report_file),
+                'uploaded_at' => $cycle->updated_at ? $cycle->updated_at->format('d/m/Y H:i') : date('d/m/Y H:i'),
+            ];
+        }
 
         if ($request->hasFile('report_file')) {
             $file = $request->file('report_file');
-            $validated['report_file'] = FileUploadHelper::storePublicly($file, 'ms_pm_reports');
-            $validated['report_filename'] = $file->getClientOriginalName();
-            if ($validated['report_status'] === 'Pending') {
+            $path = FileUploadHelper::storePublicly($file, 'ms_pm_reports');
+            $existingFiles[] = [
+                'path'        => $path,
+                'filename'    => $file->getClientOriginalName(),
+                'uploaded_at' => date('d/m/Y H:i'),
+            ];
+        }
+
+        if ($request->hasFile('report_files')) {
+            foreach ($request->file('report_files') as $file) {
+                if ($file) {
+                    $path = FileUploadHelper::storePublicly($file, 'ms_pm_reports');
+                    $existingFiles[] = [
+                        'path'        => $path,
+                        'filename'    => $file->getClientOriginalName(),
+                        'uploaded_at' => date('d/m/Y H:i'),
+                    ];
+                }
+            }
+        }
+
+        if (!empty($existingFiles)) {
+            $validated['report_files'] = $existingFiles;
+            $latest = end($existingFiles);
+            $validated['report_file'] = $latest['path'];
+            $validated['report_filename'] = $latest['filename'];
+            if (empty($validated['report_status']) || $validated['report_status'] === 'Pending') {
                 $validated['report_status'] = 'Submitted';
             }
         }
@@ -2777,10 +2867,12 @@ class ManagedServiceController extends Controller
             $file = $request->file('billing_ba_file');
             $validated['billing_ba_file'] = FileUploadHelper::storePublicly($file, 'ms_pm_billing');
             $validated['billing_ba_filename'] = $file->getClientOriginalName();
-            if ($validated['billing_ba_status'] === 'Pending') {
+            if (($validated['billing_ba_status'] ?? 'Pending') === 'Pending') {
                 $validated['billing_ba_status'] = 'Submitted';
             }
         }
+
+        $validated['billing_ba_status'] = $validated['billing_ba_status'] ?? ($cycle->billing_ba_status ?: 'Pending');
 
         if ($validated['activity_status'] === 'Completed' && empty($validated['actual_date'])) {
             $validated['actual_date'] = now()->toDateString();

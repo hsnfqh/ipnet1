@@ -45,6 +45,22 @@
         isSlaModalOpen: false,
         isPmModalOpen: false,
         activeCycle: null,
+        isSavingPm: false,
+        selectedEngineers: [],
+        engineerDropdownOpen: false,
+        allEngineerMap: {{ json_encode($allEngineers->pluck('name', 'id')) }},
+        openPmModal(cycle) {
+            this.activeCycle = cycle;
+            this.selectedEngineers = [];
+            if (cycle && cycle.assigned_engineers && Array.isArray(cycle.assigned_engineers)) {
+                this.selectedEngineers = cycle.assigned_engineers.map(e => typeof e === 'object' ? Number(e.id) : Number(e));
+            } else if (cycle && cycle.assigned_engineer_id) {
+                this.selectedEngineers = [Number(cycle.assigned_engineer_id)];
+            }
+            this.engineerDropdownOpen = false;
+            this.isSavingPm = false;
+            this.isPmModalOpen = true;
+        },
         isCmModalOpen: false,
         isCmDetailModalOpen: false,
         activeCmTicket: null,
@@ -749,7 +765,7 @@
                                             $isInProg = $node['status'] === 'In Progress';
                                         @endphp
                                         <div class="relative z-10 flex flex-col items-center text-center cursor-pointer group"
-                                             @if(isset($node['cycle']->id)) @click="activeCycle = {{ json_encode($node['cycle']) }}; isPmModalOpen = true" @endif>
+                                             @if(isset($node['cycle']->id)) @click="openPmModal({{ json_encode($node['cycle']) }})" @endif>
                                             <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all group-hover:scale-110
                                                 {{ $isDone ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' : ($isInProg ? 'bg-amber-500 border-amber-500 text-white animate-pulse' : 'bg-white border-[#CBD5E1] text-[#64748B] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
                                                 @if($isDone)
@@ -819,7 +835,7 @@
                                                             $isInProg = $node['status'] === 'In Progress';
                                                         @endphp
                                                         <div class="cursor-pointer group flex flex-col items-center"
-                                                             @if(isset($node['cycle']->id)) @click="activeCycle = {{ json_encode($node['cycle']) }}; isPmModalOpen = true" @endif>
+                                                             @if(isset($node['cycle']->id)) @click="openPmModal({{ json_encode($node['cycle']) }})" @endif>
                                                             <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all group-hover:scale-110
                                                                 {{ $isDone ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' : ($isInProg ? 'bg-amber-500 border-amber-500 text-white animate-pulse' : 'bg-white border-[#CBD5E1] text-[#64748B] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
                                                                 @if($isDone)
@@ -885,7 +901,7 @@
                                         {{-- Jadwal Target (Bisa Diubah oleh Tim Managed Service) --}}
                                         <td class="py-3.5 px-4 font-medium">
                                             <button type="button" 
-                                                    @click="activeCycle = {{ json_encode($cycle) }}; isPmModalOpen = true" 
+                                                    @click="openPmModal({{ json_encode($cycle) }})" 
                                                     class="group inline-flex items-center gap-1.5 text-[#334155] hover:text-[#8F0A0D] transition cursor-pointer text-left" 
                                                     title="Klik untuk ubah jadwal target kunjungan PM">
                                                 <span class="font-semibold text-[12px] group-hover:underline">
@@ -909,21 +925,37 @@
                                         </td>
                                         <td class="py-3.5 px-4 text-[#334155] font-medium">
                                             @php
+                                                $engList = is_array($cycle->assigned_engineers) ? $cycle->assigned_engineers : [];
                                                 $picUser = $cycle->assignedEngineer 
                                                     ?: (!empty($project->handover_data['assigned_engineers'][0]['id']) ? \App\Models\User::find($project->handover_data['assigned_engineers'][0]['id']) : null)
                                                     ?: ($project->pm ?: $project->creator);
-                                                $picName = $picUser?->name 
+                                                $fallbackName = $picUser?->name 
                                                     ?: ($project->handover_data['coordinator_name'] 
                                                         ?? ($project->handover_data['pic_ms_name'] 
                                                         ?? ($project->handover_data['project_manager'] ?? 'Eris')));
-                                                $picInitial = strtoupper(substr(trim($picName), 0, 1)) ?: 'E';
                                             @endphp
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-6 h-6 rounded-full bg-red-50 text-[#8F0A0D] font-bold text-[10.5px] flex items-center justify-center border border-red-200 shadow-2xs shrink-0">
-                                                    {{ $picInitial }}
+                                            @if(!empty($engList))
+                                                <div class="flex flex-col gap-1">
+                                                    @foreach(array_slice($engList, 0, 2) as $ae)
+                                                        <div class="flex items-center gap-1.5">
+                                                            <div class="w-5 h-5 rounded-full bg-red-50 text-[#8F0A0D] font-bold text-[9.5px] flex items-center justify-center border border-red-200 shrink-0">
+                                                                {{ strtoupper(substr(trim($ae['name'] ?? 'E'), 0, 1)) }}
+                                                            </div>
+                                                            <span class="font-semibold text-slate-800 text-[11.5px] truncate max-w-[140px]">{{ $ae['name'] ?? '-' }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                    @if(count($engList) > 2)
+                                                        <span class="text-[10px] text-slate-500 font-semibold pl-6">+{{ count($engList) - 2 }} engineer lainnya</span>
+                                                    @endif
                                                 </div>
-                                                <span class="font-semibold text-slate-800 text-[12px]">{{ $picName }}</span>
-                                            </div>
+                                            @else
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-6 h-6 rounded-full bg-red-50 text-[#8F0A0D] font-bold text-[10.5px] flex items-center justify-center border border-red-200 shadow-2xs shrink-0">
+                                                        {{ strtoupper(substr(trim($fallbackName), 0, 1)) ?: 'E' }}
+                                                    </div>
+                                                    <span class="font-semibold text-slate-800 text-[12px]">{{ $fallbackName }}</span>
+                                                </div>
+                                            @endif
                                         </td>
                                         <td class="py-3.5 px-4 text-center">
                                             @if($cycle->activity_status === 'Completed')
@@ -940,18 +972,35 @@
                                                 </span>
                                             @endif
                                         </td>
-                                        {{-- Laporan PM (Bukan Strips: Tombol Lihat Laporan Resmi / Upload) --}}
+                                        {{-- Laporan PM (Bisa Lebih Dari 1 File & Bisa Dilihat) --}}
                                         <td class="py-3.5 px-4 text-center">
                                             @php
-                                                $reportFileVal = $cycle->report_file ?: ($cycle->report_file_path ?? null);
+                                                $allReports = $cycle->all_report_files;
+                                                $reportCount = count($allReports);
                                             @endphp
-                                            @if($reportFileVal)
-                                                <a href="{{ asset('storage/' . $reportFileVal) }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold border border-emerald-200 transition shadow-2xs" title="Lihat Berkas Laporan PM Asli">
+                                            @if($reportCount === 1)
+                                                <a href="{{ asset('storage/' . $allReports[0]['path']) }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold border border-emerald-200 transition shadow-2xs" title="Lihat Berkas Laporan PM">
                                                     <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                     <span>Lihat Laporan</span>
                                                 </a>
+                                            @elseif($reportCount > 1)
+                                                <div class="relative inline-block text-left" x-data="{ openDocs: false }">
+                                                    <button type="button" @click="openDocs = !openDocs" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-bold border border-emerald-200 transition shadow-2xs cursor-pointer">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                        <span>{{ $reportCount }} Berkas</span>
+                                                        <svg class="w-3 h-3 text-emerald-600 transition-transform" :class="openDocs ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                                    </button>
+                                                    <div x-show="openDocs" @click.outside="openDocs = false" x-cloak class="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 bg-white border border-[#CBD5E1] rounded-xl shadow-xl z-50 min-w-[210px] py-1 text-left text-xs">
+                                                        <div class="px-3 py-1 font-bold text-[10px] uppercase text-slate-400 bg-slate-50 border-b border-slate-100">Daftar Berkas Laporan</div>
+                                                        @foreach($allReports as $rIdx => $rf)
+                                                            <a href="{{ asset('storage/' . $rf['path']) }}" target="_blank" class="block px-3 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition text-[11.5px] truncate border-b border-slate-50 last:border-b-0">
+                                                                <span class="font-bold text-emerald-700">#{{ $rIdx + 1 }}.</span> {{ $rf['filename'] }}
+                                                            </a>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
                                             @else
-                                                <button type="button" @click="activeCycle = {{ json_encode($cycle) }}; isPmModalOpen = true" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold border border-slate-300 transition cursor-pointer">
+                                                <button type="button" @click="openPmModal({{ json_encode($cycle) }})" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold border border-slate-300 transition cursor-pointer">
                                                     <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                                     <span>Upload</span>
                                                 </button>
@@ -969,7 +1018,7 @@
                                         </td>
                                         <td class="py-3.5 px-4 text-right">
                                             <button type="button" 
-                                                    @click="activeCycle = {{ json_encode($cycle) }}; isPmModalOpen = true"
+                                                    @click="openPmModal({{ json_encode($cycle) }})"
                                                     class="px-2.5 py-1 rounded-lg bg-white border border-[#CBD5E1] hover:border-[#8F0A0D] text-[#1E293B] hover:text-[#8F0A0D] text-[11px] font-bold transition shadow-2xs cursor-pointer">
                                                 Update Realisasi
                                             </button>
@@ -1569,7 +1618,7 @@
     <!-- ========================================================== -->
     <template x-teleport="body">
         <div x-show="isPmModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden" @click.away="isPmModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden" @click.away="if (!engineerDropdownOpen) isPmModalOpen = false">
                 <div class="flex items-center justify-between border-b border-[#E2E8F0] px-6 py-4 shrink-0 bg-white">
                     <div>
                         <p class="text-[10.5px] font-bold text-emerald-700 uppercase tracking-wider">Update Realisasi PM</p>
@@ -1578,8 +1627,15 @@
                     <button @click="isPmModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold leading-none">&times;</button>
                 </div>
 
-                <form :action="'/managed-service/monitoring/pm-cycles/' + (activeCycle ? activeCycle.id : '')" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                <form :action="'/managed-service/monitoring/pm-cycles/' + (activeCycle ? activeCycle.id : '')" 
+                      method="POST" 
+                      enctype="multipart/form-data" 
+                      @submit="isSavingPm = true" 
+                      class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
+
+                    {{-- Hidden Status BA (dihide sesuai instruksi user) --}}
+                    <input type="hidden" name="billing_ba_status" :value="activeCycle ? (activeCycle.billing_ba_status || 'Pending') : 'Pending'">
 
                     <div class="p-6 overflow-y-auto space-y-4 flex-1">
                         <div>
@@ -1608,9 +1664,10 @@
                             </div>
                         </div>
 
+                        {{-- PIC Managed Service --}}
                         <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Managed Service</label>
-                            <select name="assigned_engineer_id" :value="activeCycle ? (activeCycle.assigned_engineer_id || '{{ $project->pm_id }}') : '{{ $project->pm_id }}'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                            <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Managed Service (Koordinator)</label>
+                            <select name="assigned_engineer_id" :value="activeCycle ? (activeCycle.assigned_engineer_id || '{{ $project->pm_id }}') : '{{ $project->pm_id }}'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer font-semibold">
                                 <option value="">Pilih PIC Managed Service</option>
                                 @foreach($engineers as $eng)
                                     <option value="{{ $eng->id }}">{{ $eng->name }}</option>
@@ -1618,40 +1675,137 @@
                             </select>
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Upload Laporan PM (PDF)</label>
-                            <input type="file" name="report_file" accept=".pdf" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
+                        {{-- KOLOM ENGINEER: Dikelompokkan (Network, Security, dll), Bentuk Dropdown Frekuensi, Multi-Select --}}
+                        <div class="relative">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-semibold text-[#334155]">
+                                    Engineer Pelaksana Lapangan <span class="text-[10.5px] font-normal text-slate-400">(Dapat pilih lebih dari 1)</span>
+                                </label>
+                                <span class="text-[10.5px] font-bold text-[#8F0A0D]" x-show="selectedEngineers.length > 0" x-text="selectedEngineers.length + ' Dipilih'"></span>
+                            </div>
+
+                            {{-- Dropdown Trigger Button --}}
+                            <button type="button" 
+                                    @click="engineerDropdownOpen = !engineerDropdownOpen" 
+                                    class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-[#1E293B] flex items-center justify-between text-left focus:border-[#8F0A0D] transition shadow-2xs cursor-pointer">
+                                <span class="truncate" x-text="
+                                    selectedEngineers.length === 0 
+                                        ? '-- Pilih Engineer Lapangan (Dapat > 1) --' 
+                                        : (selectedEngineers.length === 1 
+                                            ? (allEngineerMap[selectedEngineers[0]] || '1 Engineer Dipilih') 
+                                            : selectedEngineers.length + ' Engineer Dipilih (' + selectedEngineers.map(id => allEngineerMap[id]).filter(Boolean).slice(0, 2).join(', ') + (selectedEngineers.length > 2 ? ' +' + (selectedEngineers.length - 2) : '') + ')')
+                                "></span>
+                                <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1 transition-transform" :class="engineerDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            {{-- Menu Dropdown Dikelompokkan Berdasarkan Divisi / Bidang Keahlian --}}
+                            <div x-show="engineerDropdownOpen" 
+                                 @click.outside="engineerDropdownOpen = false" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="opacity-0 translate-y-1"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="opacity-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 translate-y-1"
+                                 class="absolute left-0 right-0 top-full mt-1 bg-white border border-[#CBD5E1] rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto py-1 text-xs">
+                                
+                                @foreach($groupedEngineers as $groupName => $groupUsers)
+                                    <div class="px-3 py-1.5 font-bold text-[10px] uppercase tracking-wider text-slate-400 bg-slate-50 border-y border-slate-100 first:border-t-0">
+                                        {{ $groupName }}
+                                    </div>
+                                    @foreach($groupUsers as $eng)
+                                        <div @click="
+                                                if (selectedEngineers.includes({{ $eng->id }})) {
+                                                    selectedEngineers = selectedEngineers.filter(id => id !== {{ $eng->id }});
+                                                } else {
+                                                    selectedEngineers.push({{ $eng->id }});
+                                                }
+                                             "
+                                             :class="selectedEngineers.includes({{ $eng->id }}) ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'"
+                                             class="px-3 py-2 cursor-pointer transition flex items-center justify-between border-b border-slate-50 last:border-b-0">
+                                            <div class="flex items-center gap-2.5">
+                                                <input type="checkbox" :checked="selectedEngineers.includes({{ $eng->id }})" class="w-3.5 h-3.5 rounded text-[#8F0A0D] focus:ring-[#8F0A0D] cursor-pointer pointer-events-none">
+                                                <span class="text-xs">{{ $eng->name }}</span>
+                                            </div>
+                                            @if($eng->position)
+                                                <span class="text-[10px] text-slate-400 font-normal">{{ $eng->position }}</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                @endforeach
+                            </div>
+
+                            {{-- Badge / Tag Engineer Terpilih --}}
+                            <div class="flex flex-wrap gap-1.5 mt-2" x-show="selectedEngineers.length > 0">
+                                <template x-for="id in selectedEngineers" :key="id">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200 shadow-2xs">
+                                        <span x-text="allEngineerMap[id] || ('Engineer #' + id)"></span>
+                                        <button type="button" @click.stop="selectedEngineers = selectedEngineers.filter(x => x !== id)" class="hover:text-red-900 text-xs font-bold leading-none cursor-pointer p-0.5">&times;</button>
+                                    </span>
+                                </template>
+                            </div>
+
+                            {{-- Hidden Inputs --}}
+                            <template x-for="id in selectedEngineers" :key="id">
+                                <input type="hidden" name="assigned_engineer_ids[]" :value="id">
+                            </template>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        {{-- UPLOAD LAPORAN PM: Multi-File + List Dokumen Sebelumnya yang Bisa Dilihat --}}
+                        <div class="space-y-2.5">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-semibold text-[#334155]">Upload Berkas Laporan PM</label>
+                                    <span class="text-[10.5px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Bisa pilih &gt; 1 file</span>
+                                </div>
+                                <input type="file" name="report_files[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D] file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100 cursor-pointer">
+                                <p class="text-[10.5px] text-slate-400 mt-1">Dukung multi-file: PDF, Word, Excel, Gambar laporan inspeksi</p>
+                            </div>
+
+                            {{-- View Dokumen Laporan yang Sudah Tersimpan --}}
+                            <template x-if="activeCycle && ((activeCycle.all_report_files && activeCycle.all_report_files.length > 0) || activeCycle.report_file)">
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            <span>Berkas Laporan Tersimpan</span>
+                                        </span>
+                                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded-full" x-text="(activeCycle.all_report_files ? activeCycle.all_report_files.length : (activeCycle.report_file ? 1 : 0)) + ' Berkas'"></span>
+                                    </div>
+
+                                    <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                                        <template x-for="(file, fIdx) in (activeCycle.all_report_files || (activeCycle.report_file ? [{path: activeCycle.report_file, filename: activeCycle.report_filename || 'Laporan_PM.pdf', uploaded_at: ''}] : []))" :key="fIdx">
+                                            <div class="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 text-xs">
+                                                <div class="flex items-center gap-2 min-w-0 pr-2">
+                                                    <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                                    <div class="truncate">
+                                                        <p class="font-bold text-slate-800 text-[11px] truncate" x-text="file.filename"></p>
+                                                        <p class="text-[9.5px] text-slate-400" x-text="file.uploaded_at ? ('Diupload: ' + file.uploaded_at) : 'Tersimpan'"></p>
+                                                    </div>
+                                                </div>
+                                                <a :href="'/storage/' + file.path" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-md text-[10.5px] font-bold border border-emerald-200 transition shrink-0">
+                                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                    <span>Lihat Dokumen</span>
+                                                </a>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
                             <div>
                                 <label class="block text-xs font-semibold text-[#334155] mb-1">Status Laporan PM</label>
-                                <select name="report_status" :value="activeCycle ? activeCycle.report_status : 'Pending'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                <select name="report_status" :value="activeCycle ? activeCycle.report_status : 'Pending'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer font-semibold">
                                     <option value="Pending">Pending (Belum Diupload)</option>
                                     <option value="Submitted">Submitted (Menunggu Review)</option>
                                     <option value="Approved">Approved (Disetujui Klien)</option>
                                 </select>
                             </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-[#334155] mb-1">Status BA / Milestone Penagihan</label>
-                                <select name="billing_ba_status" :value="activeCycle ? activeCycle.billing_ba_status : 'Pending'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                    <option value="Pending">Pending</option>
-                                    <option value="Submitted">Submitted</option>
-                                    <option value="Signed">Signed (Ditandatangani)</option>
-                                    <option value="Invoiced">Invoiced (Ditagihkan)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">Upload Berita Acara (BA / Milestone)</label>
-                            <input type="file" name="billing_ba_file" accept=".pdf,.doc,.docx" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D]">
                         </div>
 
                         <div>
                             <label class="block text-xs font-semibold text-[#334155] mb-1">Catatan Pelaksanaan Inspeksi</label>
-                            <textarea name="notes" rows="2" :value="activeCycle ? activeCycle.notes : ''" placeholder="Catatan temuan teknis saat kunjungan..." class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]"></textarea>
+                            <textarea name="notes" rows="2" :value="activeCycle ? (activeCycle.activity_notes || activeCycle.notes) : ''" placeholder="Catatan temuan teknis saat kunjungan..." class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]"></textarea>
                         </div>
                     </div>
 
@@ -1660,11 +1814,34 @@
                         <button type="button" @click="isPmModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-200 transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white cursor-pointer">
+                        <button type="submit" :disabled="isSavingPm" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white cursor-pointer disabled:opacity-50">
                             Simpan Realisasi PM
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </template>
+
+    {{-- POP UP LOADING SEDANG MENYIMPAN (Sesuai Permintaan User: Muter rapih seperti digital signature) --}}
+    <template x-teleport="body">
+        <div x-show="isSavingPm" x-cloak class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl p-7 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4">
+                <div class="relative w-16 h-16 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-[#8F0A0D] border-t-transparent animate-spin"></div>
+                    <svg class="w-7 h-7 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h4 class="text-sm font-bold text-[#1E293B]">Sedang Menyimpan Realisasi PM...</h4>
+                    <p class="text-xs text-[#64748B]">Mohon tunggu sebentar, sistem sedang memproses data siklus dan mengunggah berkas laporan.</p>
+                </div>
+                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-[#8F0A0D] bg-red-50 px-3 py-1 rounded-full border border-red-200">
+                    <span class="w-2 h-2 rounded-full bg-[#8F0A0D] animate-ping"></span>
+                    <span>Sinkronisasi Data Realisasi</span>
+                </div>
             </div>
         </div>
     </template>
