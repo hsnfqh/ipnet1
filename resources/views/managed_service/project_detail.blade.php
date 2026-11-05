@@ -144,30 +144,12 @@
                             </select>
                         </div>@endif
 
-                        {{-- Ubah Parameter SLA --}}
+                        {{-- Ubah Parameter SLA (Hanya tombol ini di header agar rapi dan tidak dobel) --}}
                         <button type="button" @click="isSlaModalOpen = true" 
                                 class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-[#334155] text-xs font-bold rounded-xl shadow-2xs transition cursor-pointer">
                             <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             <span>Edit Parameter SLA</span>
                         </button>
-
-                        {{-- Tombol Action Tab PM --}}
-                        <div x-show="activeTab === 'pm'">
-                            <button type="button" @click="activeCycle = null; isPmModalOpen = true" 
-                                    class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>Update Siklus PM</span>
-                            </button>
-                        </div>
-
-                        {{-- Tombol Action Tab CM --}}
-                        <div x-show="activeTab === 'cm'">
-                            <button type="button" @click="isCmModalOpen = true" 
-                                    class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>+ Catat Tiket CM Baru</span>
-                            </button>
-                        </div>
 
 
 
@@ -1927,19 +1909,61 @@
                     @csrf
                     @method('PUT')
 
+                    {{-- Tanggal Mulai (Start) & Tanggal Berakhir (Finish) Kontrak Layanan --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <div>
+                            <label class="block text-xs font-bold text-[#1E293B] mb-1 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span>Tanggal Mulai Layanan (Start)</span> <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <input type="date" name="service_start_date" 
+                                   value="{{ $project->service_start_date ? \Carbon\Carbon::parse($project->service_start_date)->format('Y-m-d') : ($project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : '') }}" 
+                                   required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-[#1E293B] mb-1 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                                <span>Tanggal Berakhir Layanan (Finish)</span> <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <input type="date" name="service_end_date" 
+                                   value="{{ $project->service_end_date ? \Carbon\Carbon::parse($project->service_end_date)->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : '') }}" 
+                                   required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        {{-- Kuota CM: List lengkap 1 Tahun, 2 Tahun, 3 Tahun --}}
                         <div>
                             <label class="block text-xs font-semibold text-[#334155] mb-1">Kuota Corrective Maintenance (CM) <span class="text-[#8F0A0D]">*</span></label>
                             <select name="cm_quota" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="4" {{ ($project->cm_quota ?? 18) == 4 ? 'selected' : '' }}>4 Tiket / Tahun</option>
-                                <option value="6" {{ ($project->cm_quota ?? 18) == 6 ? 'selected' : '' }}>6 Tiket / Tahun</option>
-                                <option value="8" {{ ($project->cm_quota ?? 18) == 8 ? 'selected' : '' }}>8 Tiket / Tahun</option>
-                                <option value="12" {{ ($project->cm_quota ?? 18) == 12 ? 'selected' : '' }}>12 Tiket / Tahun</option>
-                                <option value="18" {{ ($project->cm_quota ?? 18) == 18 ? 'selected' : '' }}>18 Tiket / Tahun (Standar)</option>
-                                <option value="999" {{ ($project->cm_quota ?? 18) == 999 ? 'selected' : '' }}>Unlimited Tiket</option>
+                                <optgroup label="Periode Kontrak 1 Tahun">
+                                    <option value="4" {{ ($project->cm_quota ?? 18) == 4 ? 'selected' : '' }}>4 Tiket / 1 Tahun</option>
+                                    <option value="6" {{ ($project->cm_quota ?? 18) == 6 ? 'selected' : '' }}>6 Tiket / 1 Tahun</option>
+                                    <option value="8" {{ ($project->cm_quota ?? 18) == 8 ? 'selected' : '' }}>8 Tiket / 1 Tahun</option>
+                                    <option value="12" {{ ($project->cm_quota ?? 18) == 12 ? 'selected' : '' }}>12 Tiket / 1 Tahun</option>
+                                    <option value="18" {{ ($project->cm_quota ?? 18) == 18 ? 'selected' : '' }}>18 Tiket / 1 Tahun (Standar)</option>
+                                </optgroup>
+                                <optgroup label="Periode Kontrak 2 Tahun">
+                                    <option value="8" {{ ($project->cm_quota ?? 18) == 8 ? 'selected' : '' }}>8 Tiket / 2 Tahun</option>
+                                    <option value="12" {{ ($project->cm_quota ?? 18) == 12 ? 'selected' : '' }}>12 Tiket / 2 Tahun</option>
+                                    <option value="16" {{ ($project->cm_quota ?? 18) == 16 ? 'selected' : '' }}>16 Tiket / 2 Tahun</option>
+                                    <option value="24" {{ ($project->cm_quota ?? 18) == 24 ? 'selected' : '' }}>24 Tiket / 2 Tahun</option>
+                                    <option value="36" {{ ($project->cm_quota ?? 18) == 36 ? 'selected' : '' }}>36 Tiket / 2 Tahun (Standar 2 Tahun)</option>
+                                </optgroup>
+                                <optgroup label="Periode Kontrak 3 Tahun">
+                                    <option value="12" {{ ($project->cm_quota ?? 18) == 12 ? 'selected' : '' }}>12 Tiket / 3 Tahun</option>
+                                    <option value="18" {{ ($project->cm_quota ?? 18) == 18 ? 'selected' : '' }}>18 Tiket / 3 Tahun</option>
+                                    <option value="24" {{ ($project->cm_quota ?? 18) == 24 ? 'selected' : '' }}>24 Tiket / 3 Tahun</option>
+                                    <option value="36" {{ ($project->cm_quota ?? 18) == 36 ? 'selected' : '' }}>36 Tiket / 3 Tahun (12 Tiket/Tahun)</option>
+                                    <option value="54" {{ ($project->cm_quota ?? 18) == 54 ? 'selected' : '' }}>54 Tiket / 3 Tahun (Standar 3 Tahun)</option>
+                                </optgroup>
+                                <optgroup label="Paket Khusus">
+                                    <option value="999" {{ ($project->cm_quota ?? 18) == 999 ? 'selected' : '' }}>Unlimited Tiket</option>
+                                </optgroup>
                             </select>
                         </div>
 
+                        {{-- Frekuensi PM --}}
                         <div>
                             <label class="block text-xs font-semibold text-[#334155] mb-1">Frekuensi Preventive Maintenance (PM) <span class="text-[#8F0A0D]">*</span></label>
                             <select name="pm_frequency_type" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">

@@ -2525,15 +2525,51 @@ class ManagedServiceController extends Controller
     {
         $project = Project::findOrFail($id);
 
+        $cycleMap = [
+            '1_thn_1_bln' => 12, 'per_bulan' => 12,
+            '1_thn_2_bln' => 6,  'per_2_bulan' => 6,
+            '1_thn_3_bln' => 4,  'per_3_bulan' => 4,
+            '1_thn_4_bln' => 3,  'per_4_bulan' => 3,
+            '1_thn_6_bln' => 2,  'per_6_bulan' => 2,
+            '1_thn_12_bln' => 1, 'tahunan' => 1,
+            '2_thn_1_bln' => 24,
+            '2_thn_2_bln' => 12,
+            '2_thn_3_bln' => 8,
+            '2_thn_4_bln' => 6,
+            '2_thn_6_bln' => 4,
+            '2_thn_12_bln' => 2,
+            '3_thn_1_bln' => 36,
+            '3_thn_2_bln' => 18,
+            '3_thn_3_bln' => 12,
+            '3_thn_4_bln' => 9,
+            '3_thn_6_bln' => 6,
+            '3_thn_12_bln' => 3,
+        ];
+
+        // Otomatis hitung pm_total_cycles jika kosong
+        if (!$request->filled('pm_total_cycles') && $request->filled('pm_frequency_type')) {
+            $request->merge(['pm_total_cycles' => $cycleMap[$request->pm_frequency_type] ?? 12]);
+        }
+        if (!$request->filled('incident_resolution_hours')) {
+            $request->merge(['incident_resolution_hours' => (int) ($request->input('mttr_hours') ?: 4)]);
+        }
+        if (!$request->filled('sla_coverage_hours')) {
+            $request->merge(['sla_coverage_hours' => '24x7']);
+        }
+        if (!$request->filled('call_response_time')) {
+            $request->merge(['call_response_time' => '15 Menit']);
+        }
+
         $validated = $request->validate([
-            'cm_quota'                  => 'required|integer|in:4,6,8,12,18,999',
+            'cm_quota'                  => 'required|integer|min:1',
             'pm_frequency_type'         => 'required|string',
-            'pm_total_cycles'           => 'required|integer|min:1|max:120',
-            'sla_target_percentage'     => 'required|numeric|min:80|max:100',
-            'mttr_hours'                => 'required|integer|min:1|max:72',
-            'sla_coverage_hours'        => 'required|string',
-            'call_response_time'        => 'required|string',
-            'incident_resolution_hours' => 'required|integer|min:1',
+            'pm_total_cycles'           => 'nullable|integer|min:1|max:120',
+            'sla_target_percentage'     => 'nullable|numeric|min:80|max:100',
+            'sla_tier'                  => 'nullable|string',
+            'mttr_hours'                => 'nullable|integer|min:1|max:72',
+            'sla_coverage_hours'        => 'nullable|string',
+            'call_response_time'        => 'nullable|string',
+            'incident_resolution_hours' => 'nullable|integer|min:1',
             'service_start_date'        => 'nullable|date',
             'service_end_date'          => 'nullable|date',
             'customer_pic_technical'    => 'nullable|string|max:255',
@@ -2543,20 +2579,25 @@ class ManagedServiceController extends Controller
             'presales_name'             => 'nullable|string|max:255',
         ]);
 
+        if (empty($validated['pm_total_cycles']) && !empty($validated['pm_frequency_type'])) {
+            $validated['pm_total_cycles'] = $cycleMap[$validated['pm_frequency_type']] ?? 12;
+        }
+
         $oldCycles = $project->pm_total_cycles;
         $project->update($validated);
 
-        if ($oldCycles != $validated['pm_total_cycles']) {
+        $targetCycles = $validated['pm_total_cycles'] ?? $project->pm_total_cycles;
+        if ($targetCycles && $oldCycles != $targetCycles) {
             $existingCycles = ManagedServicePmCycle::where('project_id', $project->id)->orderBy('cycle_number')->get();
-            if ($existingCycles->count() < $validated['pm_total_cycles']) {
+            if ($existingCycles->count() < $targetCycles) {
                 $startNum = $existingCycles->count() + 1;
                 $lastDate = $existingCycles->last()?->scheduled_date ? Carbon::parse($existingCycles->last()->scheduled_date) : now();
-                for ($i = $startNum; $i <= $validated['pm_total_cycles']; $i++) {
+                for ($i = $startNum; $i <= $targetCycles; $i++) {
                     ManagedServicePmCycle::create([
                         'project_id'        => $project->id,
                         'cycle_number'      => $i,
                         'cycle_label'       => 'PM ' . $i,
-                        'scheduled_date'    => $lastDate->copy()->addMonths(3)->toDateString(),
+                        'scheduled_date'    => $lastDate->copy()->addMonths(2)->toDateString(),
                         'activity_status'   => 'Scheduled',
                         'report_status'     => 'Pending',
                         'billing_ba_status' => 'Pending',
