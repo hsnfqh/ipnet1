@@ -2349,7 +2349,13 @@ class ManagedServiceController extends Controller
         }
 
         $pmCycles = $project->pmCycles()->orderBy('cycle_number')->get();
-        $pmCompleted = $pmCycles->where('activity_status', 'Completed')->count();
+        $pmCompleted = $pmCycles->filter(function($c) {
+            $act = strtolower($c->activity_status ?? '');
+            $rep = strtolower($c->report_status ?? '');
+            return in_array($act, ['completed', 'solved']) 
+                || in_array($rep, ['approved', 'submitted', 'signed', 'invoiced']) 
+                || !empty($c->actual_date);
+        })->count();
         $pmTotal = $project->pm_total_cycles ?: ($pmCycles->count() ?: 4);
         $pmProgress = $pmTotal > 0 ? round(($pmCompleted / $pmTotal) * 100) : 0;
 
@@ -2878,6 +2884,11 @@ class ManagedServiceController extends Controller
             $validated['actual_date'] = now()->toDateString();
         }
 
+        // Jika laporan sudah disetujui klien (Approved) atau actual_date terisi & status masih Scheduled, otomatis set activity_status ke Completed
+        if ((($validated['report_status'] ?? '') === 'Approved' || !empty($validated['actual_date'])) && ($validated['activity_status'] ?? '') === 'Scheduled') {
+            $validated['activity_status'] = 'Completed';
+        }
+
         $cycle->update($validated);
 
         // Otomatis sinkronisasi ke Jadwal Kerja Tim (Schedule)
@@ -2887,8 +2898,15 @@ class ManagedServiceController extends Controller
 
         $project = $cycle->project;
         if ($project) {
-            $total = $project->pmCycles()->count();
-            $completed = $project->pmCycles()->where('activity_status', 'Completed')->count();
+            $allCycles = $project->pmCycles;
+            $total = $allCycles->count();
+            $completed = $allCycles->filter(function($c) {
+                $act = strtolower($c->activity_status ?? '');
+                $rep = strtolower($c->report_status ?? '');
+                return in_array($act, ['completed', 'solved']) 
+                    || in_array($rep, ['approved', 'submitted', 'signed', 'invoiced']) 
+                    || !empty($c->actual_date);
+            })->count();
             if ($total > 0) {
                 $newProgress = round(($completed / $total) * 100);
                 $project->update(['progress' => $newProgress]);

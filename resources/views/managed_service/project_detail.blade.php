@@ -706,10 +706,20 @@
                             });
 
                             foreach($cyclesCollection as $cycle) {
+                                $actStatus = strtolower($cycle->activity_status ?? 'scheduled');
+                                $repStatus = strtolower($cycle->report_status ?? '');
+                                $hasActual = !empty($cycle->actual_date);
+
+                                // Berubah hijau (done) jika status Completed/Solved, atau Laporan Approved/Submitted, atau sudah ada inputan realisasi visit
+                                $isCycleDone = in_array($actStatus, ['completed', 'solved'])
+                                    || in_array($repStatus, ['approved', 'submitted', 'signed', 'invoiced'])
+                                    || $hasActual;
+                                $isCycleInProg = !$isCycleDone && (in_array($actStatus, ['in progress', 'assigned', 'on progress']) || $repStatus === 'draft');
+
                                 // Tanggal hanya tampil jika sudah ada inputan realisasi visit (actual_date terisi)
-                                $subText = !empty($cycle->actual_date) 
+                                $subText = $hasActual 
                                     ? date('d/m/Y', strtotime($cycle->actual_date)) 
-                                    : (!empty($cycle->scheduled_date) ? date('d/m/Y', strtotime($cycle->scheduled_date)) : ($cycle->activity_status === 'In Progress' ? 'In Progress' : 'Set Jadwal'));
+                                    : (!empty($cycle->scheduled_date) ? date('d/m/Y', strtotime($cycle->scheduled_date)) : ($isCycleInProg ? 'In Progress' : 'Set Jadwal'));
 
                                 $pmNodeItems->push([
                                     'is_milestone' => false,
@@ -719,8 +729,10 @@
                                     'label'        => 'PM ' . $cycle->cycle_number,
                                     'full_label'   => $cycle->cycle_label ?? ('PM ' . $cycle->cycle_number),
                                     'sub'          => $subText,
-                                    'has_date'     => !empty($cycle->actual_date),
+                                    'has_date'     => $hasActual,
                                     'status'       => $cycle->activity_status ?? 'Scheduled',
+                                    'is_done'      => $isCycleDone,
+                                    'is_in_prog'   => $isCycleInProg,
                                 ]);
                             }
 
@@ -761,8 +773,8 @@
                                         </div>
                                     @else
                                         @php
-                                            $isDone = in_array($node['status'], ['Completed', 'Solved', 'Resolved', 'Closed']);
-                                            $isInProg = $node['status'] === 'In Progress';
+                                            $isDone = $node['is_done'] ?? ($node['status'] === 'Completed');
+                                            $isInProg = $node['is_in_prog'] ?? ($node['status'] === 'In Progress');
                                         @endphp
                                         <div class="relative z-10 flex flex-col items-center text-center cursor-pointer group"
                                              @if(isset($node['cycle']->id)) @click="openPmModal({{ json_encode($node['cycle']) }})" @endif>
@@ -831,8 +843,8 @@
                                                         <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
                                                     @else
                                                         @php
-                                                            $isDone = in_array($node['status'], ['Completed', 'Solved', 'Resolved', 'Closed']);
-                                                            $isInProg = $node['status'] === 'In Progress';
+                                                            $isDone = $node['is_done'] ?? ($node['status'] === 'Completed');
+                                                            $isInProg = $node['is_in_prog'] ?? ($node['status'] === 'In Progress');
                                                         @endphp
                                                         <div class="cursor-pointer group flex flex-col items-center"
                                                              @if(isset($node['cycle']->id)) @click="openPmModal({{ json_encode($node['cycle']) }})" @endif>
@@ -885,9 +897,9 @@
                                     <th class="py-3 px-4">Jadwal Target</th>
                                     <th class="py-3 px-4">Realisasi Visit</th>
                                     <th class="py-3 px-4">PIC Managed Service</th>
+                                    <th class="py-3 px-4">Engineer</th>
                                     <th class="py-3 px-4 text-center">Status Visit</th>
                                     <th class="py-3 px-4 text-center">Laporan PM</th>
-                                    <th class="py-3 px-4 text-center">BA / Penagihan</th>
                                     <th class="py-3 px-4 text-right">Aksi</th>
                                 </tr>
                             </thead>
@@ -923,38 +935,58 @@
                                                 <span class="text-slate-400 italic">Belum terlaksana</span>
                                             @endif
                                         </td>
+                                        {{-- Kolom 4: PIC Managed Service (Koordinator Layanan, misal Eris) --}}
+                                        <td class="py-3.5 px-4 text-[#334155] font-medium">
+                                            @php
+                                                $picMsName = $project->pm?->name 
+                                                    ?: ($project->handover_data['coordinator_name'] 
+                                                    ?? ($project->handover_data['pic_ms_name'] 
+                                                    ?? ($project->handover_data['project_manager'] ?? 'Eris')));
+                                                $picMsInitial = strtoupper(substr(trim($picMsName), 0, 1)) ?: 'E';
+                                            @endphp
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] flex items-center justify-center border border-slate-300 shadow-2xs shrink-0">
+                                                    {{ $picMsInitial }}
+                                                </div>
+                                                <span class="font-semibold text-slate-800 text-[12px] truncate max-w-[120px]">{{ $picMsName }}</span>
+                                            </div>
+                                        </td>
+
+                                        {{-- Kolom 5: Engineer Lapangan (Hanya Nama Depan) --}}
                                         <td class="py-3.5 px-4 text-[#334155] font-medium">
                                             @php
                                                 $engList = is_array($cycle->assigned_engineers) ? $cycle->assigned_engineers : [];
-                                                $picUser = $cycle->assignedEngineer 
-                                                    ?: (!empty($project->handover_data['assigned_engineers'][0]['id']) ? \App\Models\User::find($project->handover_data['assigned_engineers'][0]['id']) : null)
-                                                    ?: ($project->pm ?: $project->creator);
-                                                $fallbackName = $picUser?->name 
-                                                    ?: ($project->handover_data['coordinator_name'] 
-                                                        ?? ($project->handover_data['pic_ms_name'] 
-                                                        ?? ($project->handover_data['project_manager'] ?? 'Eris')));
                                             @endphp
                                             @if(!empty($engList))
-                                                <div class="flex flex-col gap-1">
-                                                    @foreach(array_slice($engList, 0, 2) as $ae)
-                                                        <div class="flex items-center gap-1.5">
-                                                            <div class="w-5 h-5 rounded-full bg-red-50 text-[#8F0A0D] font-bold text-[9.5px] flex items-center justify-center border border-red-200 shrink-0">
-                                                                {{ strtoupper(substr(trim($ae['name'] ?? 'E'), 0, 1)) }}
-                                                            </div>
-                                                            <span class="font-semibold text-slate-800 text-[11.5px] truncate max-w-[140px]">{{ explode(' ', $ae['name'] ?? '-')[0] }}</span>
+                                                <div class="flex flex-wrap gap-1 items-center">
+                                                    @foreach($engList as $ae)
+                                                        @php
+                                                            $fullName = trim($ae['name'] ?? '');
+                                                            $firstName = explode(' ', $fullName)[0] ?: '-';
+                                                            $engInitial = strtoupper(substr($firstName, 0, 1)) ?: 'E';
+                                                        @endphp
+                                                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-[#8F0A0D] border border-red-200 text-[11px] font-semibold" title="{{ $fullName }}">
+                                                            <span class="w-3.5 h-3.5 rounded-full bg-[#8F0A0D] text-white text-[8px] font-bold flex items-center justify-center shrink-0">
+                                                                {{ $engInitial }}
+                                                            </span>
+                                                            <span>{{ $firstName }}</span>
                                                         </div>
                                                     @endforeach
-                                                    @if(count($engList) > 2)
-                                                        <span class="text-[10px] text-slate-500 font-semibold pl-6">+{{ count($engList) - 2 }} engineer lainnya</span>
-                                                    @endif
+                                                </div>
+                                            @elseif($cycle->assignedEngineer)
+                                                @php
+                                                    $fullName = trim($cycle->assignedEngineer->name);
+                                                    $firstName = explode(' ', $fullName)[0] ?: '-';
+                                                    $engInitial = strtoupper(substr($firstName, 0, 1)) ?: 'E';
+                                                @endphp
+                                                <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-[#8F0A0D] border border-red-200 text-[11px] font-semibold" title="{{ $fullName }}">
+                                                    <span class="w-3.5 h-3.5 rounded-full bg-[#8F0A0D] text-white text-[8px] font-bold flex items-center justify-center shrink-0">
+                                                        {{ $engInitial }}
+                                                    </span>
+                                                    <span>{{ $firstName }}</span>
                                                 </div>
                                             @else
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-6 h-6 rounded-full bg-red-50 text-[#8F0A0D] font-bold text-[10.5px] flex items-center justify-center border border-red-200 shadow-2xs shrink-0">
-                                                        {{ strtoupper(substr(trim($fallbackName), 0, 1)) ?: 'E' }}
-                                                    </div>
-                                                    <span class="font-semibold text-slate-800 text-[12px]">{{ explode(' ', $fallbackName ?? '-')[0] }}</span>
-                                                </div>
+                                                <span class="text-slate-400 italic text-[11px]">Belum ditugaskan</span>
                                             @endif
                                         </td>
                                         <td class="py-3.5 px-4 text-center">
@@ -1004,16 +1036,6 @@
                                                     <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                                     <span>Upload</span>
                                                 </button>
-                                            @endif
-                                        </td>
-                                        <td class="py-3.5 px-4 text-center">
-                                            @if($cycle->billing_ba_file_path)
-                                                <a href="{{ asset('storage/' . $cycle->billing_ba_file_path) }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                    <span>{{ $cycle->billing_ba_status ?: 'BA File' }}</span>
-                                                </a>
-                                            @else
-                                                <span class="text-slate-400 text-[11px]">{{ $cycle->billing_ba_status ?: 'Pending' }}</span>
                                             @endif
                                         </td>
                                         <td class="py-3.5 px-4 text-right">
@@ -1084,7 +1106,10 @@
                         for ($slotIndex = 1; $slotIndex <= $displayQuota; $slotIndex++) {
                             $ticket = $sortedTickets->get($slotIndex - 1);
                             $isUsed = ($ticket !== null) || ($slotIndex <= $cmUsed);
-                            $ticketStatus = $ticket ? $ticket->status : ($isUsed ? 'Resolved' : 'Available');
+                            $ticketStatus = $ticket ? ($ticket->status ?: 'Resolved') : ($isUsed ? 'Resolved' : 'Available');
+                            $rawStatus = strtolower($ticketStatus);
+                            $isResolved = in_array($rawStatus, ['resolved', 'closed', 'solved', 'completed', 'submitted']) || ($ticket && !empty($ticket->resolved_at));
+                            $isInProg = !$isResolved && in_array($rawStatus, ['in progress', 'assigned', 'open', 'investigating']);
 
                             // Format tanggal d/m/Y seperti pada PM jika ada tanggal insiden / pelaksanaan
                             if ($ticket) {
@@ -1098,6 +1123,8 @@
                                 'slot_number' => $slotIndex,
                                 'is_used'     => $isUsed,
                                 'status'      => $ticketStatus,
+                                'is_resolved' => $isResolved,
+                                'is_in_prog'  => $isInProg,
                                 'ticket'      => $ticket,
                                 'label'       => 'Tiket #' . $slotIndex,
                                 'sub'         => $subText,
@@ -1122,8 +1149,8 @@
 
                                 @foreach($cmSlots as $slot)
                                     @php
-                                        $isResolved = in_array($slot['status'], ['Resolved', 'Closed']);
-                                        $isInProg = in_array($slot['status'], ['In Progress', 'Assigned']);
+                                        $isResolved = $slot['is_resolved'] ?? in_array($slot['status'], ['Resolved', 'Closed', 'Solved', 'Completed', 'Submitted']);
+                                        $isInProg = $slot['is_in_prog'] ?? in_array($slot['status'], ['In Progress', 'Assigned']);
                                         $isNext = $slot['is_next'] ?? false;
                                         $ticketObj = $slot['ticket'];
                                     @endphp
@@ -1199,8 +1226,8 @@
                                         <div class="flex items-start justify-between relative z-10 px-2 {{ $isRtl ? 'flex-row-reverse' : '' }}">
                                             @foreach($rowSlots as $slot)
                                                 @php
-                                                    $isResolved = in_array($slot['status'], ['Resolved', 'Closed']);
-                                                    $isInProg = in_array($slot['status'], ['In Progress', 'Assigned']);
+                                                    $isResolved = $slot['is_resolved'] ?? in_array($slot['status'], ['Resolved', 'Closed', 'Solved', 'Completed', 'Submitted']);
+                                                    $isInProg = $slot['is_in_prog'] ?? in_array($slot['status'], ['In Progress', 'Assigned']);
                                                     $isNext = $slot['is_next'] ?? false;
                                                     $ticketObj = $slot['ticket'];
                                                 @endphp
@@ -1837,10 +1864,6 @@
                 <div class="space-y-1">
                     <h4 class="text-sm font-bold text-[#1E293B]">Sedang Menyimpan Realisasi PM...</h4>
                     <p class="text-xs text-[#64748B]">Mohon tunggu sebentar, sistem sedang memproses data siklus dan mengunggah berkas laporan.</p>
-                </div>
-                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-[#8F0A0D] bg-red-50 px-3 py-1 rounded-full border border-red-200">
-                    <span class="w-2 h-2 rounded-full bg-[#8F0A0D] animate-ping"></span>
-                    <span>Sinkronisasi Data Realisasi</span>
                 </div>
             </div>
         </div>
