@@ -267,7 +267,7 @@
                                 foreach($pmCycles as $c) {
                                     $subText = !empty($c->actual_date) 
                                         ? \Carbon\Carbon::parse($c->actual_date)->format('d/m/Y') 
-                                        : ($c->activity_status === 'In Progress' ? 'In Progress' : 'Terjadwal');
+                                        : (!empty($c->scheduled_date) ? \Carbon\Carbon::parse($c->scheduled_date)->format('d/m/Y') : 'Set Jadwal');
 
                                     $mNodeItems->push([
                                         'is_milestone' => false,
@@ -327,7 +327,7 @@
                                                     PM {{ $c->cycle_number }}
                                                 </span>
                                                 <span class="text-[10.5px] {{ $isDone ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#94A3B8]') }}">
-                                                    {{ !empty($c->actual_date) ? \Carbon\Carbon::parse($c->actual_date)->format('d/m/Y') : ($isInProg ? 'In Progress' : 'Terjadwal') }}
+                                                    {{ !empty($c->actual_date) ? \Carbon\Carbon::parse($c->actual_date)->format('d/m/Y') : (!empty($c->scheduled_date) ? \Carbon\Carbon::parse($c->scheduled_date)->format('d/m/Y') : 'Set Jadwal') }}
                                                 </span>
                                             </div>
                                         @endforeach

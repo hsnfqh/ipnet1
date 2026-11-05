@@ -702,7 +702,7 @@
                                 // Tanggal hanya tampil jika sudah ada inputan realisasi visit (actual_date terisi)
                                 $subText = !empty($cycle->actual_date) 
                                     ? date('d/m/Y', strtotime($cycle->actual_date)) 
-                                    : (!empty($cycle->scheduled_date) ? date('d/m/Y', strtotime($cycle->scheduled_date)) : ($cycle->activity_status === 'In Progress' ? 'In Progress' : 'Terjadwal'));
+                                    : (!empty($cycle->scheduled_date) ? date('d/m/Y', strtotime($cycle->scheduled_date)) : ($cycle->activity_status === 'In Progress' ? 'In Progress' : 'Set Jadwal'));
 
                                 $pmNodeItems->push([
                                     'is_milestone' => false,
@@ -900,7 +900,7 @@
                                                     @if($cycle->scheduled_date)
                                                         <span class="text-slate-800 font-semibold">{{ date('d M Y', strtotime($cycle->scheduled_date)) }}</span>
                                                     @else
-                                                        <span class="text-slate-400 italic font-normal">Set Jadwal</span>
+                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Set Jadwal</span>
                                                     @endif
                                                 </span>
                                                 <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#8F0A0D] transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">

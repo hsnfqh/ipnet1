@@ -1236,19 +1236,17 @@ class ManagedServiceController extends Controller
         }
 
         for ($i = 1; $i <= $totalCycles; $i++) {
-            $schedDate = $startDate->copy()->addMonths(($i - 1) * $monthsInterval + $monthsInterval);
-            $isFirstCompleted = ($i === 1) && ($project->progress >= 25);
             $cycle = ManagedServicePmCycle::create([
                 'project_id'           => $project->id,
                 'cycle_number'         => $i,
-                'cycle_label'          => 'PM ' . $i . ' (Bulan ke-' . (($i - 1) * $monthsInterval + $monthsInterval) . ')',
-                'scheduled_date'       => $schedDate->toDateString(),
+                'cycle_label'          => 'PM ' . $i,
+                'scheduled_date'       => null,
                 'assigned_engineer_id' => $assignedEngId,
-                'activity_status'      => $isFirstCompleted ? 'Completed' : 'Scheduled',
-                'actual_date'          => $isFirstCompleted ? $schedDate->copy()->subDays(2)->toDateString() : null,
-                'activity_notes'       => $isFirstCompleted ? 'Preventive maintenance berkala selesai dilaksanakan sesuai checklist inspeksi.' : null,
-                'report_status'        => $isFirstCompleted ? 'Approved' : 'Pending',
-                'billing_ba_status'    => $isFirstCompleted ? 'Signed' : 'Pending',
+                'activity_status'      => 'Scheduled',
+                'actual_date'          => null,
+                'activity_notes'       => null,
+                'report_status'        => 'Pending',
+                'billing_ba_status'    => 'Pending',
             ]);
         }
     }
