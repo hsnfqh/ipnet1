@@ -1537,19 +1537,22 @@ class ManagedServiceController extends Controller
             ->get(['id', 'name']);
 
         
+        // Batasi penugasan PM/Koordinator di modul Maintenance hanya untuk personil Tim Maintenance (Eris, Doris, Mario)
         $pmUsers = User::where('status', 'Active')
             ->where(function($q) {
-                $q->whereHas('roles', fn($r) => $r->whereIn('name', ['Project Manager', 'PM', 'Maintenance', 'Lead Maintenance', 'Managed Service']))
-                  ->orWhere('position', 'like', '%PM%')
-                  ->orWhere('position', 'like', '%Project Manager%')
-                  ->orWhere('position', 'like', '%Maintenance%');
+                $q->whereHas('roles', fn($r) => $r->whereIn('name', ['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support (EOS)']))
+                  ->orWhereHas('division', fn($d) => $d->where('name', 'like', '%Maintenance%')->orWhere('name', 'like', '%Helpdesk%'))
+                  ->orWhereIn('name', ['Doris', 'Mario', 'Eris']);
             })
             ->where('name', 'not like', '%Lead Engineer%')
             ->orderBy('name')
             ->get(['id', 'name', 'position']);
 
         if ($pmUsers->isEmpty()) {
-            $pmUsers = User::where('status', 'Active')->orderBy('name')->get(['id', 'name', 'position']);
+            $pmUsers = User::where('status', 'Active')
+                ->whereIn('name', ['Doris', 'Mario', 'Eris'])
+                ->orderBy('name')
+                ->get(['id', 'name', 'position']);
         }
 
         return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage', 'leadMsName', 'currentUserName', 'fieldEngineers', 'salesUsers', 'pmUsers'));
