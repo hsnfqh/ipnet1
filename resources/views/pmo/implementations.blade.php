@@ -223,25 +223,7 @@
 
                                     {{-- Kolom 4: Tenggat --}}
                                     <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                        <div class="space-y-1.5">
-                                            <div class="flex items-center gap-2">
-                                                <span class="font-semibold text-slate-700 text-xs" x-text="project.deadline ? project.deadline : '30 Okt 2027'"></span>
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                                      :class="{
-                                                          'bg-emerald-50 text-emerald-700 border border-emerald-200': project.health_status === 'On-Track' || !project.health_status,
-                                                          'bg-rose-50 text-rose-700 border border-rose-200': project.health_status === 'Delayed',
-                                                          'bg-amber-50 text-amber-800 border border-amber-200': project.health_status === 'At-Risk'
-                                                      }">
-                                                    <span class="w-1.5 h-1.5 rounded-full"
-                                                          :class="{
-                                                              'bg-emerald-500': project.health_status === 'On-Track' || !project.health_status,
-                                                              'bg-rose-500': project.health_status === 'Delayed',
-                                                              'bg-amber-500 animate-pulse': project.health_status === 'At-Risk'
-                                                          }"></span>
-                                                    <span x-text="project.health_status === 'Delayed' ? 'Melewati Tenggat' : (project.health_status === 'At-Risk' ? 'Mendekati Tenggat' : 'Sesuai Jadwal')"></span>
-                                                </span>
-                                            </div>
-                                        </div>
+                                        <span class="font-semibold text-slate-700 text-xs" x-text="project.deadline ? project.deadline : '30 Okt 2027'"></span>
                                     </td>
 
                                     {{-- Kolom 5: Tindakan --}}
@@ -365,14 +347,6 @@
                                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                             <span x-text="project.deadline || '-'"></span>
                                         </div>
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border"
-                                              :class="{
-                                                  'bg-emerald-50 text-emerald-700 border-emerald-200': project.health_status === 'On-Track',
-                                                  'bg-rose-50 text-rose-700 border-rose-200': project.health_status === 'Delayed',
-                                                  'bg-amber-50 text-amber-800 border-amber-200': project.health_status === 'At-Risk'
-                                              }">
-                                            <span x-text="project.health_status === 'On-Track' ? 'Sesuai Jadwal' : (project.health_status === 'Delayed' ? 'Melewati Tenggat' : 'Mendekati Tenggat')"></span>
-                                        </span>
                                     </div>
 
 
