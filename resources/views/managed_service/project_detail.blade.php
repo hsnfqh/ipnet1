@@ -151,6 +151,24 @@
                             <span>Edit Parameter SLA</span>
                         </button>
 
+                        {{-- Tombol Action Tab PM --}}
+                        <div x-show="activeTab === 'pm'">
+                            <button type="button" @click="activeCycle = null; isPmModalOpen = true" 
+                                    class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                <span>Update Siklus PM</span>
+                            </button>
+                        </div>
+
+                        {{-- Tombol Action Tab CM --}}
+                        <div x-show="activeTab === 'cm'">
+                            <button type="button" @click="isCmModalOpen = true" 
+                                    class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                <span>+ Catat Tiket CM Baru</span>
+                            </button>
+                        </div>
+
 
 
 
@@ -669,8 +687,15 @@
                     {{-- Visual Stepper: Memanjang jika <= 6, Berkelok seperti Ular (Snake Flow) jika > 6 --}}
                     <div class="py-3 px-2 overflow-x-auto">
                         @php
-                            // Siapkan koleksi seluruh node PM konsisten (hanya siklus PM, tanpa milestone Start/Finish, per baris 6 PM)
+                            // Siapkan koleksi seluruh node PM lengkap dengan Start (Bendera) dan Finish, per baris konsisten 6 bulatan
                             $pmNodeItems = collect();
+                            $pmNodeItems->push([
+                                'is_milestone' => true,
+                                'type'         => 'start',
+                                'label'        => 'Start',
+                                'sub'          => $project->service_start_date ? date('d/m/Y', strtotime($project->service_start_date)) : 'Awal',
+                                'icon'         => 'flag',
+                            ]);
 
                             $cyclesCollection = $pmCycles->count() ? $pmCycles : collect(range(1, $pmTotal))->map(function($n) {
                                 return (object)[
@@ -701,8 +726,17 @@
                                 ]);
                             }
 
-                            $isSnakePm = $pmTotal > 6;
-                            $chunkSize = 6; // Konsisten 6 PM per baris (6 - 6 - 6)
+                            $pmNodeItems->push([
+                                'is_milestone' => true,
+                                'type'         => 'end',
+                                'label'        => 'Finish',
+                                'sub'          => $project->service_end_date ? date('d/m/Y', strtotime($project->service_end_date)) : 'Akhir Kontrak',
+                                'icon'         => 'check',
+                            ]);
+
+                            // Konsisten 6 bulatan per baris (Start + PM 1..5 = 6 bulatan di baris pertama)
+                            $chunkSize = 6; 
+                            $isSnakePm = $pmNodeItems->count() > $chunkSize;
                             $pmRows = $isSnakePm ? $pmNodeItems->chunk($chunkSize) : collect([$pmNodeItems]);
                         @endphp
 
