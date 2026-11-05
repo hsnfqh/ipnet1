@@ -166,7 +166,7 @@
                         @endphp
                         @if($isPpatkBadge)
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                Total 30 Hari (5 Minggu Pelaksanaan) &bull; Kontrak s/d {{ \Carbon\Carbon::parse($project->deadline)->format('d M Y') }}
+                                Total {{ $totalProjectDays ?? 30 }} Hari ({{ $totalProjectWeeks ?? 5 }} Minggu Pelaksanaan) &bull; Kontrak s/d {{ \Carbon\Carbon::parse($project->deadline)->format('d M Y') }}
                             </span>
                         @else
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
@@ -206,6 +206,12 @@
                             <div class="min-w-0">
                                 <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Klien Proyek</span>
                                 <span class="font-bold text-slate-800 truncate block" title="{{ $project->client ?: 'Client IPNET' }}">{{ $project->client ?: 'Client IPNET' }}</span>
+                                @php
+                                    $picDisplay = $project->customer_pic_technical ?: ($project->customer_pic_business ?: ($project->handover_data['customer_pic'] ?? null));
+                                @endphp
+                                @if($picDisplay)
+                                    <span class="text-[10px] text-slate-500 font-medium truncate block" title="{{ $picDisplay }}">PIC: {{ $picDisplay }}</span>
+                                @endif
                             </div>
                         </div>
                         <button type="button" 
@@ -544,11 +550,11 @@
                                 </tr>
                                 <tr>
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Customer</td>
-                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $project->client ?: 'PPAT - Pusat Pelaporan dan Analisa Transaksi Keuangan' }}</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $project->client ?: '-' }}</td>
                                 </tr>
                                 <tr class="bg-slate-50/70">
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Customer's PIC</td>
-                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $handoverData['customer_pic'] ?? $project->customer_pic_technical ?? 'Richi Michael' }}</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $project->customer_pic_technical ?: ($project->customer_pic_business ?: ($handoverData['customer_pic'] ?? '-')) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Contract/SPK/PO Number</td>

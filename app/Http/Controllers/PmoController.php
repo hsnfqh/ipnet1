@@ -137,18 +137,23 @@ class PmoController extends Controller
      */
     protected function ensurePpatkProjectData(Project $project): void
     {
+        // Jika proyek sudah memiliki task WBS atau sudah pernah diinisialisasi, JANGAN PERNAH timpa perubahan user/PM!
+        if ($project->tasks()->count() > 0) {
+            return;
+        }
+
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $projectUpdated = false;
 
-        if ($project->client !== 'PPAT - Pusat Pelaporan dan Analisa Transaksi Keuangan') {
+        if (empty($project->client)) {
             $project->client = 'PPAT - Pusat Pelaporan dan Analisa Transaksi Keuangan';
             $projectUpdated = true;
         }
-        if ($project->po_spk_number !== 'EP-01KYREAFEJH89MWPVDQ6W20NXV') {
+        if (empty($project->po_spk_number)) {
             $project->po_spk_number = 'EP-01KYREAFEJH89MWPVDQ6W20NXV';
             $projectUpdated = true;
         }
-        if ($project->customer_pic_technical !== 'Richi Michael (PPATK)') {
+        if (empty($project->customer_pic_technical)) {
             $project->customer_pic_technical = 'Richi Michael (PPATK)';
             $project->customer_pic_business  = 'Richi Michael (PPATK)';
             $projectUpdated = true;
@@ -163,26 +168,29 @@ class PmoController extends Controller
             $projectUpdated = true;
         }
         if (empty($handoverData['customer_pic'])) {
-            $handoverData['customer_pic'] = 'Richi Michael';
+            $handoverData['customer_pic'] = $project->customer_pic_technical ?: 'Richi Michael';
             $projectUpdated = true;
         }
         if (empty($handoverData['contract_spk_number'])) {
-            $handoverData['contract_spk_number'] = 'EP-01KYREAFEJH89MWPVDQ6W20NXV';
+            $handoverData['contract_spk_number'] = $project->po_spk_number ?: 'EP-01KYREAFEJH89MWPVDQ6W20NXV';
             $projectUpdated = true;
         }
 
-        // S-Curve Weekly Breakdown: Baseline Inisialisasi Plan & Actual Sesuai Gambar 3 & 4
-        $handoverData['s_curve_weekly'] = [
-            0 => ['plan_weekly' => 0.0,  'plan' => 0.0,   'actual_weekly' => 0.0,  'actual' => 0.0,  'variance' => 0.0,  'notes' => 'Baseline Awal Proyek & Kick-off SPK'],
-            1 => ['plan_weekly' => 23.3, 'plan' => 23.3,  'actual_weekly' => 20.0, 'actual' => 20.0, 'variance' => -3.3, 'notes' => 'Survey and Assessment selesai 100%, Design Review Meeting 50%, HLD/LLD Documentation 50%'],
-            2 => ['plan_weekly' => 23.3, 'plan' => 46.7,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
-            3 => ['plan_weekly' => 23.3, 'plan' => 70.0,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
-            4 => ['plan_weekly' => 23.3, 'plan' => 93.3,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
-            5 => ['plan_weekly' => 6.7,  'plan' => 100.0, 'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
-        ];
+        // S-Curve Weekly Breakdown: Hanya isi baseline jika masih kosong
+        if (empty($handoverData['s_curve_weekly'])) {
+            $handoverData['s_curve_weekly'] = [
+                0 => ['plan_weekly' => 0.0,  'plan' => 0.0,   'actual_weekly' => 0.0,  'actual' => 0.0,  'variance' => 0.0,  'notes' => 'Baseline Awal Proyek & Kick-off SPK'],
+                1 => ['plan_weekly' => 23.3, 'plan' => 23.3,  'actual_weekly' => 20.0, 'actual' => 20.0, 'variance' => -3.3, 'notes' => 'Survey and Assessment selesai 100%, Design Review Meeting 50%, HLD/LLD Documentation 50%'],
+                2 => ['plan_weekly' => 23.3, 'plan' => 46.7,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+                3 => ['plan_weekly' => 23.3, 'plan' => 70.0,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+                4 => ['plan_weekly' => 23.3, 'plan' => 93.3,  'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+                5 => ['plan_weekly' => 6.7,  'plan' => 100.0, 'actual_weekly' => null, 'actual' => null, 'variance' => null, 'notes' => ''],
+            ];
+            $projectUpdated = true;
+        }
 
-        // Matriks Input Aktual Sesuai Gambar 3
-        if (empty($handoverData['actual_progress_inputs']) || !isset($handoverData['actual_progress_inputs']['Design Review Meeting'][1]) || $handoverData['actual_progress_inputs']['Design Review Meeting'][1] != 50) {
+        // Matriks Input Aktual Sesuai Gambar 3: Hanya isi jika kosong
+        if (empty($handoverData['actual_progress_inputs'])) {
             $handoverData['actual_progress_inputs'] = [
                 'Survey and Assessment'     => [1 => 100],
                 'Design Review Meeting'     => [1 => 50],
@@ -191,29 +199,7 @@ class PmoController extends Controller
             $projectUpdated = true;
         }
 
-        // Sinkronisasi status & progress 3 task berjalan di Week 1
-        $drmTask = $project->tasks()->where('title', 'like', '%Design Review%')->first();
-        if ($drmTask && ($drmTask->progress != 50 || $drmTask->status !== 'In Progress')) {
-            $drmTask->progress = 50;
-            $drmTask->status = 'In Progress';
-            $drmTask->saveQuietly();
-        }
-
-        $saTask = $project->tasks()->where('title', 'like', '%Survey and Assessment%')->first();
-        if ($saTask && ($saTask->progress != 100 || $saTask->status !== 'Completed')) {
-            $saTask->progress = 100;
-            $saTask->status = 'Completed';
-            $saTask->saveQuietly();
-        }
-
-        $hldTask = $project->tasks()->where('title', 'like', '%HLD and LLD%')->first();
-        if ($hldTask && ($hldTask->progress != 50 || $hldTask->status !== 'In Progress')) {
-            $hldTask->progress = 50;
-            $hldTask->status = 'In Progress';
-            $hldTask->saveQuietly();
-        }
-
-        if ((float) $project->progress != 20.0) {
+        if ($project->progress === null) {
             $project->progress = 20.0;
             $projectUpdated = true;
         }
@@ -526,7 +512,7 @@ class PmoController extends Controller
         ->orderBy('id')
         ->get(['id', 'name', 'client', 'status']);
 
-        if ($isPpatkProject) {
+        if ($isPpatkProject && $project->tasks()->count() === 0) {
             $this->ensurePpatkProjectData($project);
             $project->load([
                 'pm:id,name,email',
@@ -1601,14 +1587,16 @@ class PmoController extends Controller
 
         $project->client = trim($validated['client']);
         $pic = !empty($validated['customer_pic']) ? trim($validated['customer_pic']) : null;
-        if ($pic !== null) {
-            $project->customer_pic_technical = $pic;
-            $project->customer_pic_business  = $pic;
+        $project->customer_pic_technical = $pic;
+        $project->customer_pic_business  = $pic;
 
-            $hd = is_array($project->handover_data) ? $project->handover_data : [];
+        $hd = is_array($project->handover_data) ? $project->handover_data : [];
+        if ($pic !== null) {
             $hd['customer_pic'] = $pic;
-            $project->handover_data = $hd;
+        } else {
+            unset($hd['customer_pic']);
         }
+        $project->handover_data = $hd;
         $project->save();
 
         return back()->with('success', 'Informasi Klien & PIC berhasil diperbarui!');
