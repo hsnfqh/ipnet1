@@ -723,6 +723,24 @@
                             </tfoot>
                         </table>
                     </div>
+
+                    {{-- Quick Action: Tambah Baris Langsung di Bawah Tabel --}}
+                    <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/60 p-3.5 rounded-xl border border-slate-200/70">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-lg bg-red-100 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            </div>
+                            <span class="text-xs text-slate-600 font-medium">
+                                Ingin menambah baris deliverable / pekerjaan baru? Baris akan otomatis tersinkronisasi ke Sheet Weekly Weight, Actual Progress, &amp; Kurva S.
+                            </span>
+                        </div>
+                        <button type="button" 
+                                @click="showQuickTaskModal = true" 
+                                class="px-3.5 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold shadow-xs transition inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <span>Tambah Baris Pekerjaan</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -824,6 +842,24 @@
                                 </tr>
                             </tfoot>
                         </table>
+                    </div>
+
+                    {{-- Quick Action: Tambah Baris Langsung di Bawah Tabel --}}
+                    <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/60 p-3.5 rounded-xl border border-slate-200/70">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-lg bg-red-100 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            </div>
+                            <span class="text-xs text-slate-600 font-medium">
+                                Ingin menambah baris deliverable / pekerjaan baru? Baris akan otomatis tersinkronisasi ke Sheet Weekly Weight, Actual Progress, &amp; Kurva S.
+                            </span>
+                        </div>
+                        <button type="button" 
+                                @click="showQuickTaskModal = true" 
+                                class="px-3.5 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold shadow-xs transition inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <span>Tambah Baris Pekerjaan</span>
+                        </button>
                     </div>
                 </div>
             </div>
