@@ -1754,7 +1754,22 @@ class ManagedServiceController extends Controller
         foreach ($docMapping as $inputName => $meta) {
             if ($request->hasFile($inputName) && $request->file($inputName)->isValid()) {
                 $file = $request->file($inputName);
+                $originalName = $file->getClientOriginalName();
+                $fileSize = 0;
+                try {
+                    $fileSize = $file->getSize() ?: 0;
+                } catch (\Throwable $e) {
+                    $fileSize = 0;
+                }
+
                 $filePath = FileUploadHelper::storePublicly($file, 'managed_service_documents');
+                if ($fileSize === 0 && $filePath) {
+                    $savedFullPath = storage_path('app/public/' . $filePath);
+                    if (file_exists($savedFullPath)) {
+                        $fileSize = filesize($savedFullPath) ?: 0;
+                    }
+                }
+
                 $uploadedPaths[$meta['column']] = $filePath;
                 $checklist[$meta['key']] = true;
 
@@ -1767,8 +1782,8 @@ class ManagedServiceController extends Controller
                         [
                             'document_title' => $meta['title'],
                             'file_path'      => $filePath,
-                            'file_name'      => $file->getClientOriginalName(),
-                            'file_size'      => $file->getSize() ?: 0,
+                            'file_name'      => $originalName,
+                            'file_size'      => $fileSize,
                             'status'         => 'Uploaded',
                             'uploaded_by'    => $currentUser?->id,
                             'uploaded_at'    => now(),
@@ -2203,7 +2218,21 @@ class ManagedServiceController extends Controller
         ]);
 
         $file = $request->file('doc_file');
+        $originalName = $file->getClientOriginalName();
+        $fileSize = 0;
+        try {
+            $fileSize = $file->getSize() ?: 0;
+        } catch (\Throwable $e) {
+            $fileSize = 0;
+        }
+
         $filePath = FileUploadHelper::storePublicly($file, 'managed_service_documents');
+        if ($fileSize === 0 && $filePath) {
+            $savedFullPath = storage_path('app/public/' . $filePath);
+            if (file_exists($savedFullPath)) {
+                $fileSize = filesize($savedFullPath) ?: 0;
+            }
+        }
 
         match($validated['doc_type']) {
             'spk' => $project->update([
@@ -2254,8 +2283,8 @@ class ManagedServiceController extends Controller
                 [
                     'document_title' => $docTitles[$validated['doc_type']] ?? 'Dokumen Proyek',
                     'file_path'      => $filePath,
-                    'file_name'      => $file->getClientOriginalName(),
-                    'file_size'      => $file->getSize() ?: 0,
+                    'file_name'      => $originalName,
+                    'file_size'      => $fileSize,
                     'status'         => 'Uploaded',
                     'uploaded_by'    => auth()->id(),
                     'uploaded_at'    => now(),
