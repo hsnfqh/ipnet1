@@ -700,27 +700,13 @@ class PmoController extends Controller
             'colors' => $taskShareColors,
         ];
 
-        // 1. Rentang Tanggal & Durasi Lengkap Proyek
-        $startDate = $project->start_date ? \Carbon\Carbon::parse($project->start_date) : ($project->created_at ? \Carbon\Carbon::parse($project->created_at) : now());
-        $deadlineDate = $project->deadline ? \Carbon\Carbon::parse($project->deadline) : $startDate->copy()->addWeeks(8);
+        // 1. Rentang Tanggal & Durasi Lengkap Proyek (Kontrak SPK & Tanggal Mulai)
+        $startDate = $project->start_date ? \Carbon\Carbon::parse($project->start_date)->startOfDay() : ($project->created_at ? \Carbon\Carbon::parse($project->created_at)->startOfDay() : now()->startOfDay());
+        $deadlineDate = $project->deadline ? \Carbon\Carbon::parse($project->deadline)->endOfDay() : $startDate->copy()->addWeeks(8)->endOfDay();
         
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $estimateDuration = $handoverData['estimate_project_duration'] ?? null;
         $executionWeeks = $handoverData['execution_weeks'] ?? null;
-
-        if ($estimateDuration) {
-            $totalProjectDays = (int) $estimateDuration;
-            $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
-            $projectTimelineText = $startDate->format('d M Y') . ' s/d ' . $startDate->copy()->addDays($totalProjectDays - 1)->format('d M Y') . ' (Kontrak SPK s/d ' . $deadlineDate->format('d M Y') . ')';
-        } elseif ($isPpatkProject) {
-            $totalProjectDays = 30;
-            $totalProjectWeeks = 5;
-            $projectTimelineText = $startDate->format('d M Y') . ' s/d ' . $startDate->copy()->addDays(29)->format('d M Y') . ' (Kontrak SPK s/d ' . $deadlineDate->format('d M Y') . ')';
-        } else {
-            $totalProjectDays = max(1, (int) round($startDate->diffInDays($deadlineDate)));
-            $totalProjectWeeks = max(1, (int) ceil($startDate->diffInWeeks($deadlineDate)));
-            $projectTimelineText = $startDate->format('d M Y') . ' s/d ' . $deadlineDate->format('d M Y');
-        }
 
         // Parse Activity List Tasks (WBS Breakdown) & Hubungkan ke Kurva S
         $tasksList = $project->tasks()->orderBy('id')->get();
@@ -728,6 +714,8 @@ class PmoController extends Controller
 
         $parsedTasks = [];
         $totalTaskBobotSum = 0.0;
+        $maxTaskFinishDay = 0;
+        $minTaskStartDay = null;
 
         foreach ($tasksList as $t) {
             $bobotVal = 0.0;
@@ -739,10 +727,16 @@ class PmoController extends Controller
             $startingDay = null;
             if (preg_match('/StartingDay:\s*(\d+)/i', $t->description ?? '', $sdm)) {
                 $startingDay = (int) $sdm[1];
+                if ($minTaskStartDay === null || $startingDay < $minTaskStartDay) {
+                    $minTaskStartDay = $startingDay;
+                }
             }
             $finishDay = null;
             if (preg_match('/FinishDay:\s*(\d+)/i', $t->description ?? '', $fdm)) {
                 $finishDay = (int) $fdm[1];
+                if ($finishDay > $maxTaskFinishDay) {
+                    $maxTaskFinishDay = $finishDay;
+                }
             }
             $wbsWeek = null;
             if (preg_match('/Week:\s*(\d+)/i', $t->description ?? '', $wm)) {
@@ -791,6 +785,53 @@ class PmoController extends Controller
             return $sdA <=> $sdB;
         });
 
+        // Hitung batas tanggal WBS berdasarkan task jika ada
+        $earliestTaskDate = null;
+        $latestTaskDate = null;
+        foreach ($parsedTasks as $pt) {
+            if ($pt['start_date']) {
+                if (!$earliestTaskDate || $pt['start_date']->lt($earliestTaskDate)) {
+                    $earliestTaskDate = $pt['start_date']->copy();
+                }
+            }
+            if ($pt['deadline']) {
+                if (!$latestTaskDate || $pt['deadline']->gt($latestTaskDate)) {
+                    $latestTaskDate = $pt['deadline']->copy();
+                }
+            }
+        }
+
+        // Tentukan Rentang Pelaksanaan WBS (Berdasarkan PM Execution Timeline dari Task WBS)
+        $wbsStartDate = $startDate->copy()->startOfDay();
+        if ($estimateDuration) {
+            $totalProjectDays = (int) $estimateDuration;
+            $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
+            $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
+        } elseif ($isPpatkProject) {
+            $totalProjectDays = 30;
+            $totalProjectWeeks = 5;
+            $wbsEndDate = $wbsStartDate->copy()->addDays(29)->endOfDay();
+        } elseif ($maxTaskFinishDay > 0) {
+            // Berdasarkan finish day terbesar dari WBS task (misal Day 30 -> 30 Hari = 5 Minggu)
+            $totalProjectDays = $maxTaskFinishDay;
+            $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
+            $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
+        } elseif ($earliestTaskDate && $latestTaskDate) {
+            $totalProjectDays = max(1, (int) round($earliestTaskDate->diffInDays($latestTaskDate)) + 1);
+            $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
+            $wbsStartDate = $earliestTaskDate->copy()->startOfDay();
+            $wbsEndDate = $latestTaskDate->copy()->endOfDay();
+        } else {
+            // Fallback jika belum ada task WBS
+            $totalProjectDays = max(1, (int) round($startDate->diffInDays($deadlineDate)));
+            $totalProjectWeeks = max(1, (int) ceil($startDate->diffInWeeks($deadlineDate)));
+            $wbsEndDate = $deadlineDate->copy()->endOfDay();
+        }
+
+        // Pastikan totalWeeks dan teks timeline selaras dengan WBS
+        $totalWeeks = max(1, $totalProjectWeeks);
+        $projectTimelineText = $wbsStartDate->format('d M Y') . ' s/d ' . $wbsEndDate->format('d M Y') . ' (' . $totalProjectDays . ' Hari Pelaksanaan, Kontrak SPK s/d ' . $deadlineDate->format('d M Y') . ')';
+
         // Jika bobot belum diisi sama sekali pada task, distribusikan rata 100% / totalTask
         if ($totalTaskCount > 0 && $totalTaskBobotSum <= 0) {
             $equalBobot = round(100.0 / $totalTaskCount, 2);
@@ -802,33 +843,41 @@ class PmoController extends Controller
         }
 
         // Pastikan setiap task memiliki start_date dan deadline yang valid secara sekuensial
-        $taskPointer = $startDate->copy()->startOfDay();
+        $taskPointer = $wbsStartDate->copy()->startOfDay();
         foreach ($parsedTasks as &$pt) {
             if (!$pt['start_date']) {
-                $pt['start_date'] = $taskPointer->copy();
-                $pt['deadline'] = $taskPointer->copy()->addDays(max(0, $pt['duration'] - 1))->endOfDay();
-                $taskPointer = $pt['deadline']->copy()->startOfDay()->addDay();
+                if ($pt['starting_day'] !== null) {
+                    $pt['start_date'] = $wbsStartDate->copy()->addDays($pt['starting_day'])->startOfDay();
+                    $ptFinish = $pt['finish_day'] !== null ? $pt['finish_day'] : ($pt['starting_day'] + $pt['duration']);
+                    $pt['deadline'] = $wbsStartDate->copy()->addDays(max(0, $ptFinish - 1))->endOfDay();
+                } else {
+                    $pt['start_date'] = $taskPointer->copy();
+                    $pt['deadline'] = $taskPointer->copy()->addDays(max(0, $pt['duration'] - 1))->endOfDay();
+                    $taskPointer = $pt['deadline']->copy()->startOfDay()->addDay();
+                }
             }
         }
         unset($pt);
 
-        // Sesuaikan durasi total minggu proyek jika task melampaui deadline awal
-        if (!empty($parsedTasks)) {
-            $maxTaskDeadline = null;
-            foreach ($parsedTasks as $pt) {
-                if ($pt['deadline'] && (!$maxTaskDeadline || $pt['deadline']->gt($maxTaskDeadline))) {
-                    $maxTaskDeadline = $pt['deadline']->copy();
-                }
+        // Array rentang tanggal per minggu (untuk header tabel Sheet 2 & Kurva S Sheet 4)
+        $weekDateRanges = [];
+        for ($w = 1; $w <= $totalWeeks; $w++) {
+            $wStart = $wbsStartDate->copy()->addWeeks($w - 1)->startOfDay();
+            if ($w == $totalWeeks) {
+                $wEnd = $wbsEndDate->copy()->endOfDay();
+            } else {
+                $wEnd = $wbsStartDate->copy()->addWeeks($w)->subDay()->endOfDay();
             }
-            if ($maxTaskDeadline && $maxTaskDeadline->gt($deadlineDate)) {
-                $deadlineDate = $maxTaskDeadline->copy();
-                $totalProjectWeeks = max(1, (int) ceil($startDate->diffInDays($deadlineDate) / 7));
-                $projectTimelineText = $startDate->format('d M Y') . ' s/d ' . $deadlineDate->format('d M Y');
+            if ($wStart->format('Y') === $wEnd->format('Y')) {
+                if ($wStart->format('M') === $wEnd->format('M')) {
+                    $weekDateRanges[$w] = $wStart->format('d') . ' - ' . $wEnd->format('d M');
+                } else {
+                    $weekDateRanges[$w] = $wStart->format('d M') . ' - ' . $wEnd->format('d M');
+                }
+            } else {
+                $weekDateRanges[$w] = $wStart->format('d M y') . ' - ' . $wEnd->format('d M y');
             }
         }
-
-        // S-Curve Weeks: Sesuaikan dinamis dengan durasi riil proyek
-        $totalWeeks = max(1, $totalProjectWeeks);
 
         // 1. Hitung total bobot dan earned EV aktual dari parsedTasks secara dinamis
         // Rumus Sesuai Gambar 4: Actual Cumulative = sum of (task completion % x activity weight)
@@ -1015,12 +1064,13 @@ class PmoController extends Controller
         ];
 
         for ($w = 1; $w <= $totalWeeks; $w++) {
-            $wStart = $startDate->copy()->addWeeks($w - 1)->startOfDay();
-            $wEnd = $startDate->copy()->addWeeks($w)->subDay()->endOfDay();
-            if ($w == $totalWeeks && $deadlineDate->gt($wEnd)) {
-                $wEnd = ($estimateDuration || $isPpatkProject) ? $startDate->copy()->addDays($totalProjectDays - 1)->endOfDay() : $deadlineDate->copy()->endOfDay();
+            $wStart = $wbsStartDate->copy()->addWeeks($w - 1)->startOfDay();
+            if ($w == $totalWeeks) {
+                $wEnd = $wbsEndDate->copy()->endOfDay();
+            } else {
+                $wEnd = $wbsStartDate->copy()->addWeeks($w)->subDay()->endOfDay();
             }
-            $dateRange = $wStart->format('d M') . ' - ' . $wEnd->format('d M Y');
+            $dateRange = $weekDateRanges[$w] ?? ($wStart->format('d M') . ' - ' . $wEnd->format('d M Y'));
 
             $tasksInThisWeek = [];
             if ($isPpatkProject && isset($ppatkWeeklyTaskMap[$w])) {
@@ -1308,6 +1358,9 @@ class PmoController extends Controller
             'teamDelegatedByName',
             'startDate',
             'deadlineDate',
+            'wbsStartDate',
+            'wbsEndDate',
+            'weekDateRanges',
             'tasksInProgressCount',
             'tasksCompletedCount',
             'tasksNotStartedCount',

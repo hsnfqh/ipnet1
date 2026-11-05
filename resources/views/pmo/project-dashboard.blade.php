@@ -388,11 +388,11 @@
                     </div>
                     <div class="text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-500 font-normal">Start Date :</span>
-                            <strong class="text-slate-800 font-bold">{{ $startDate->format('d M Y') }}</strong>
+                            <span class="text-slate-500 font-normal">Rentang WBS :</span>
+                            <strong class="text-slate-800 font-bold">{{ $wbsStartDate->format('d M') }} - {{ $wbsEndDate->format('d M Y') }}</strong>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-slate-500 font-normal">End Date Bases on Contract/SPK:</span>
+                            <span class="text-slate-500 font-normal">Batas Kontrak SPK:</span>
                             <strong class="text-slate-800 font-bold">{{ $deadlineDate->format('d M Y') }}</strong>
                         </div>
                     </div>
@@ -606,11 +606,15 @@
                                     <td class="py-2 px-4 font-medium text-slate-900">: {{ $deadlineDate->format('d-M-y') }}</td>
                                 </tr>
                                 <tr class="bg-slate-50/70">
+                                    <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Planned Execution (WBS Start - Finish)</td>
+                                    <td class="py-2 px-4 font-semibold text-slate-900">: {{ $wbsStartDate->format('d-M-y') }} s/d {{ $wbsEndDate->format('d-M-y') }} ({{ $totalWeeks }} Minggu)</td>
+                                </tr>
+                                <tr>
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Estimate Project Duration</td>
                                     <td class="py-2 px-4 font-bold text-[#8F0A0D]">
                                         <div class="flex items-center justify-between">
-                                            <span>: {{ $totalProjectDays }}</span>
-                                            <button type="button" @click="showDurationModal = true" class="text-blue-600 hover:text-blue-800 text-[11px] font-semibold underline cursor-pointer">
+                                            <span>: {{ $totalProjectDays }} Hari Pelaksanaan</span>
+                                            <button type="button" @click="showTimelineModal = true" class="text-blue-600 hover:text-blue-800 text-[11px] font-semibold underline cursor-pointer">
                                                 Edit Timeline &amp; Durasi
                                             </button>
                                         </div>
@@ -777,7 +781,9 @@
                                 <span class="ipnet-badge-dot"></span> SHEET 2: WEEKLY WEIGHT (PLAN)
                             </p>
                             <h3 class="text-base font-bold text-[#1E293B]">Weekly Weight (plan) per task</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Distribusi rencana bobot mingguan per task WBS sesuai rentang pelaksanaan</p>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Rentang Pelaksanaan WBS: <span class="font-semibold text-slate-700">{{ $wbsStartDate->format('d M Y') }} s/d {{ $wbsEndDate->format('d M Y') }}</span> ({{ $totalProjectDays }} Hari / {{ $totalWeeks }} Minggu) &bull; <span class="text-slate-400">Batas Akhir Kontrak SPK: {{ $deadlineDate->format('d M Y') }}</span>
+                            </p>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold">
@@ -796,7 +802,12 @@
                                     <th class="py-3 px-2.5 text-center whitespace-nowrap">Finish Day</th>
                                     <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
                                     @for($w = 1; $w <= $totalWeeks; $w++)
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Week {{ $w }}</th>
+                                        <th class="py-2.5 px-3 text-right whitespace-nowrap">
+                                            <div class="font-bold text-slate-700">Week {{ $w }}</div>
+                                            <div class="text-[9.5px] font-normal text-slate-400 tracking-normal leading-tight mt-0.5 whitespace-nowrap">
+                                                {{ $weekDateRanges[$w] ?? '' }}
+                                            </div>
+                                        </th>
                                     @endfor
                                     <th class="py-3 px-3 text-right whitespace-nowrap">Check (=weight)</th>
                                 </tr>
@@ -1083,7 +1094,10 @@
                                     @foreach($weeklyRecords as $rec)
                                         <tr class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
                                             <td class="py-2.5 px-3 text-center font-bold text-slate-800">
-                                                {{ $rec['week'] }}
+                                                <div>Week {{ $rec['week'] }}</div>
+                                                @if(!empty($rec['date_range']))
+                                                    <div class="text-[9.5px] font-normal text-slate-400 mt-0.5 leading-tight">{{ $rec['date_range'] }}</div>
+                                                @endif
                                             </td>
                                             <td class="py-2.5 px-3 text-right font-medium text-slate-700">
                                                 {{ number_format($rec['plan_weekly'], 1) }}%
