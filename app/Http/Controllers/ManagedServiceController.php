@@ -1900,7 +1900,29 @@ class ManagedServiceController extends Controller
         }
 
         $oldCycles = $project->pm_total_cycles;
-        $totalCycles = !empty($validated['pm_total_cycles']) ? (int) $validated['pm_total_cycles'] : $oldCycles;
+        $cycleMap = [
+            '1_thn_1_bln'  => 12, 'per_bulan'   => 12,
+            '1_thn_2_bln'  => 6,  'per_2_bulan' => 6,
+            '1_thn_3_bln'  => 4,  'per_3_bulan' => 4,
+            '1_thn_4_bln'  => 3,  'per_4_bulan' => 3,
+            '1_thn_6_bln'  => 2,  'per_6_bulan' => 2,
+            '1_thn_12_bln' => 1,  'tahunan'     => 1,
+            '2_thn_1_bln'  => 24,
+            '2_thn_2_bln'  => 12,
+            '2_thn_3_bln'  => 8,
+            '2_thn_4_bln'  => 6,
+            '2_thn_6_bln'  => 4,
+            '2_thn_12_bln' => 2,
+            '3_thn_1_bln'  => 36,
+            '3_thn_2_bln'  => 18,
+            '3_thn_3_bln'  => 12,
+            '3_thn_4_bln'  => 9,
+            '3_thn_6_bln'  => 6,
+            '3_thn_12_bln' => 3,
+        ];
+        $totalCycles = !empty($validated['pm_total_cycles']) 
+            ? (int) $validated['pm_total_cycles'] 
+            : ($cycleMap[$validated['pm_frequency_type'] ?? ''] ?? ($oldCycles ?: 12));
 
         $project->update([
             'name'                      => $validated['name'],
@@ -2009,22 +2031,34 @@ class ManagedServiceController extends Controller
             $project->update($uploadedPaths);
         }
 
-        if ($oldCycles != $totalCycles) {
-            $existingCycles = ManagedServicePmCycle::where('project_id', $project->id)->orderBy('cycle_number')->get();
-            if ($existingCycles->count() < $totalCycles) {
-                $startNum = $existingCycles->count() + 1;
-                $lastDate = $existingCycles->last()?->scheduled_date ? Carbon::parse($existingCycles->last()->scheduled_date) : now();
-                for ($i = $startNum; $i <= $totalCycles; $i++) {
-                    ManagedServicePmCycle::create([
-                        'project_id'        => $project->id,
-                        'cycle_number'      => $i,
-                        'cycle_label'       => 'PM ' . $i,
-                        'scheduled_date'    => $lastDate->copy()->addMonths(3)->toDateString(),
-                        'activity_status'   => 'Scheduled',
-                        'report_status'     => 'Pending',
-                        'billing_ba_status' => 'Pending',
-                    ]);
-                }
+        $existingCycles = ManagedServicePmCycle::where('project_id', $project->id)->orderBy('cycle_number')->get();
+        if ($existingCycles->count() > $totalCycles) {
+            ManagedServicePmCycle::where('project_id', $project->id)
+                ->where('cycle_number', '>', $totalCycles)
+                ->delete();
+        } elseif ($existingCycles->count() < $totalCycles) {
+            $intervalMonths = match(true) {
+                str_contains($validated['pm_frequency_type'] ?? '', '12_bln') => 12,
+                str_contains($validated['pm_frequency_type'] ?? '', '6_bln')  => 6,
+                str_contains($validated['pm_frequency_type'] ?? '', '4_bln')  => 4,
+                str_contains($validated['pm_frequency_type'] ?? '', '3_bln')  => 3,
+                str_contains($validated['pm_frequency_type'] ?? '', '2_bln')  => 2,
+                default => 1,
+            };
+            $startNum = $existingCycles->count() + 1;
+            $startDate = $project->service_start_date ? Carbon::parse($project->service_start_date) : now();
+            $lastDate = $existingCycles->last()?->scheduled_date ? Carbon::parse($existingCycles->last()->scheduled_date) : $startDate;
+            for ($i = $startNum; $i <= $totalCycles; $i++) {
+                $lastDate = $lastDate->copy()->addMonths($intervalMonths);
+                ManagedServicePmCycle::create([
+                    'project_id'        => $project->id,
+                    'cycle_number'      => $i,
+                    'cycle_label'       => 'PM ' . $i,
+                    'scheduled_date'    => $lastDate->toDateString(),
+                    'activity_status'   => 'Scheduled',
+                    'report_status'     => 'Pending',
+                    'billing_ba_status' => 'Pending',
+                ]);
             }
         }
 
@@ -2302,9 +2336,21 @@ class ManagedServiceController extends Controller
         $cmUsed = $cmTickets->count();
         $cmRemaining = max(0, $cmQuota - $cmUsed);
 
+        // Auto-heal / sinkronisasi jika siklus di DB melebihi target pm_total_cycles proyek
+        if ($project->pm_total_cycles && $project->pm_total_cycles > 0) {
+            $excessCount = ManagedServicePmCycle::where('project_id', $project->id)
+                ->where('cycle_number', '>', $project->pm_total_cycles)
+                ->count();
+            if ($excessCount > 0) {
+                ManagedServicePmCycle::where('project_id', $project->id)
+                    ->where('cycle_number', '>', $project->pm_total_cycles)
+                    ->delete();
+            }
+        }
+
         $pmCycles = $project->pmCycles()->orderBy('cycle_number')->get();
         $pmCompleted = $pmCycles->where('activity_status', 'Completed')->count();
-        $pmTotal = $pmCycles->count() ?: ($project->pm_total_cycles ?: 4);
+        $pmTotal = $project->pm_total_cycles ?: ($pmCycles->count() ?: 4);
         $pmProgress = $pmTotal > 0 ? round(($pmCompleted / $pmTotal) * 100) : 0;
 
         // Normalisasi handover_data: PIC Maintenance vs Delegasi Lead Engineer
@@ -2583,21 +2629,36 @@ class ManagedServiceController extends Controller
             $validated['pm_total_cycles'] = $cycleMap[$validated['pm_frequency_type']] ?? 12;
         }
 
-        $oldCycles = $project->pm_total_cycles;
+        $targetCycles = (int) ($validated['pm_total_cycles'] ?? ($cycleMap[$validated['pm_frequency_type'] ?? ''] ?? ($project->pm_total_cycles ?: 12)));
+        $validated['pm_total_cycles'] = $targetCycles;
         $project->update($validated);
 
-        $targetCycles = $validated['pm_total_cycles'] ?? $project->pm_total_cycles;
-        if ($targetCycles && $oldCycles != $targetCycles) {
+        if ($targetCycles > 0) {
             $existingCycles = ManagedServicePmCycle::where('project_id', $project->id)->orderBy('cycle_number')->get();
-            if ($existingCycles->count() < $targetCycles) {
+            if ($existingCycles->count() > $targetCycles) {
+                // Hapus siklus PM yang berlebih ketika frekuensi dikurangi
+                ManagedServicePmCycle::where('project_id', $project->id)
+                    ->where('cycle_number', '>', $targetCycles)
+                    ->delete();
+            } elseif ($existingCycles->count() < $targetCycles) {
+                $intervalMonths = match(true) {
+                    str_contains($validated['pm_frequency_type'] ?? '', '12_bln') => 12,
+                    str_contains($validated['pm_frequency_type'] ?? '', '6_bln')  => 6,
+                    str_contains($validated['pm_frequency_type'] ?? '', '4_bln')  => 4,
+                    str_contains($validated['pm_frequency_type'] ?? '', '3_bln')  => 3,
+                    str_contains($validated['pm_frequency_type'] ?? '', '2_bln')  => 2,
+                    default => 1,
+                };
                 $startNum = $existingCycles->count() + 1;
-                $lastDate = $existingCycles->last()?->scheduled_date ? Carbon::parse($existingCycles->last()->scheduled_date) : now();
+                $startDate = $project->service_start_date ? Carbon::parse($project->service_start_date) : now();
+                $lastDate = $existingCycles->last()?->scheduled_date ? Carbon::parse($existingCycles->last()->scheduled_date) : $startDate;
                 for ($i = $startNum; $i <= $targetCycles; $i++) {
+                    $lastDate = $lastDate->copy()->addMonths($intervalMonths);
                     ManagedServicePmCycle::create([
                         'project_id'        => $project->id,
                         'cycle_number'      => $i,
                         'cycle_label'       => 'PM ' . $i,
-                        'scheduled_date'    => $lastDate->copy()->addMonths(2)->toDateString(),
+                        'scheduled_date'    => $lastDate->toDateString(),
                         'activity_status'   => 'Scheduled',
                         'report_status'     => 'Pending',
                         'billing_ba_status' => 'Pending',

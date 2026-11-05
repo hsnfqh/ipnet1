@@ -272,7 +272,7 @@
                                 @forelse($projects as $p)
                                     @php
                                         $pDocs = $p->resolved_documents ?? \App\Http\Controllers\ManagedServiceController::getProjectDocuments($p);
-                                        $pmCyclesCount = $p->pmCycles->count() ?: ($p->pm_total_cycles ?: 4);
+                                        $pmCyclesCount = $p->pm_total_cycles ?: ($p->pmCycles->count() ?: 4);
                                         $pmCompletedCount = $p->pmCycles->where('activity_status', 'Completed')->count();
                                         $progressPct = $pmCyclesCount > 0 ? round(($pmCompletedCount / $pmCyclesCount) * 100) : 0;
                                         
