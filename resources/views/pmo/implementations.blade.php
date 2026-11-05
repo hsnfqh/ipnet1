@@ -24,45 +24,8 @@
                         <p class="text-[13px] text-[#64748B] mt-0.5 leading-relaxed">Kelola pelaksanaan proyek aktif, verifikasi serah terima (handover) dari Sales, dan kontrol implementasi lapangan</p>
                     </div>
 
-                    {{-- Tab Switcher & Action Button (Aligned in a Single Row, Pixel-Perfect Matching Heights) --}}
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 shrink-0 self-start lg:self-center">
-                        <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0 h-10 items-center">
-                            {{-- Tab 1: Projek Aktif (Deliver & Selesai) --}}
-                            <button type="button" 
-                                    @click="activeTab = 'all'; currentPage = 1;" 
-                                    :class="(activeTab !== 'pending_handover') 
-                                        ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
-                                        : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
-                                    class="h-8 px-3.5 sm:px-4 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                                </svg>
-                                <span>Projek Aktif</span>
-                                <span :class="(activeTab !== 'pending_handover') ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
-                                      class="px-2 py-0.5 rounded-full text-[10.5px] font-bold"
-                                      x-text="(stageCounts.Deliver || 0) + (stageCounts.Operate || 0)">
-                                </span>
-                            </button>
-
-                            {{-- Tab 2: Serah Terima Masuk (Incoming Handover) --}}
-                            <button type="button" 
-                                    @click="activeTab = 'pending_handover'; currentPage = 1;" 
-                                    :class="(activeTab === 'pending_handover') 
-                                        ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
-                                        : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
-                                    class="h-8 px-3.5 sm:px-4 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                </svg>
-                                <span>Incoming Handover</span>
-                                <span :class="(activeTab === 'pending_handover') ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 font-bold'" 
-                                      class="px-2 py-0.5 rounded-full text-[10.5px] font-bold"
-                                      x-text="handoverPendingCount + handoverConditionalCount">
-                                </span>
-                            </button>
-                        </div>
-
-                        {{-- Tombol Buat Proyek Baru (PMO Direct / Canvas Kosong) --}}
+                    {{-- Action Button (Buat Proyek Baru) --}}
+                    <div class="flex items-center gap-3 shrink-0 self-start lg:self-center">
                         <button type="button" 
                                 @click="showCreateProjectModal = true"
                                 class="h-10 px-4 rounded-xl btn-ipnet-primary text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95 whitespace-nowrap shrink-0">
@@ -87,13 +50,10 @@
                                class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
                     </div>
                     
-                    <select x-model="statusFilter" @change="currentPage = 1" 
+                    <select x-model="activeTab" @change="currentPage = 1" 
                             class="w-full sm:w-56 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="Semua">Semua Status Proyek</option>
-                        <option value="Deliver">Tahap Deliver (Aktif Lapangan)</option>
-                        <option value="ReadyMS">Siap Transisi ke MS (100%)</option>
-                        <option value="Operate">Operasional / Transisi Selesai</option>
-                        <option value="Pending">Menunggu Review PMO</option>
+                        <option value="all">Projek Aktif</option>
+                        <option value="pending_handover">Incoming Handover</option>
                     </select>
 
                     <select x-model="selectedDivision" @change="currentPage = 1" 
@@ -114,8 +74,8 @@
 
                     {{-- Reset Button --}}
                     <button type="button"
-                            x-show="search || statusFilter !== 'Semua' || selectedDivision !== 'all' || selectedPm !== 'all'"
-                            @click="search = ''; statusFilter = 'Semua'; selectedDivision = 'all'; selectedPm = 'all'; currentPage = 1;"
+                            x-show="search || activeTab !== 'all' || selectedDivision !== 'all' || selectedPm !== 'all'"
+                            @click="search = ''; activeTab = 'all'; selectedDivision = 'all'; selectedPm = 'all'; currentPage = 1;"
                             class="px-3.5 py-2.5 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
                         Reset Filter
                     </button>
@@ -213,7 +173,7 @@
                                 <th class="py-3.5 px-4 sm:px-6 w-[28%]">PROYEK</th>
                                 <th class="py-3.5 px-4 w-[26%]">KLIEN &amp; PIC KLIEN</th>
                                 <th class="py-3.5 px-4 w-[18%]">TIM TEKNIS</th>
-                                <th class="py-3.5 px-4 w-[16%]">TENGGAT &amp; PROGRES</th>
+                                <th class="py-3.5 px-4 w-[16%]">TENGGAT</th>
                                 <th class="py-3.5 px-4 sm:px-6 text-right w-[12%]">TINDAKAN</th>
                             </tr>
                         </thead>
@@ -261,7 +221,7 @@
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 4: Tenggat & Progres --}}
+                                    {{-- Kolom 4: Tenggat --}}
                                     <td class="py-3.5 px-4 align-middle whitespace-nowrap">
                                         <div class="space-y-1.5">
                                             <div class="flex items-center gap-2">
@@ -280,17 +240,6 @@
                                                           }"></span>
                                                     <span x-text="project.health_status === 'Delayed' ? 'Melewati Tenggat' : (project.health_status === 'At-Risk' ? 'Mendekati Tenggat' : 'Sesuai Jadwal')"></span>
                                                 </span>
-                                            </div>
-                                            <div class="w-36">
-                                                <div class="flex items-center justify-between text-[11px] font-bold text-slate-900 mb-0.5">
-                                                    <span x-text="(project.progress || 0) + '%'"></span>
-                                                    <span class="text-[9.5px] text-slate-400 font-semibold" x-text="(project.completed_tasks || 0) + '/' + (project.total_tasks || 0) + ' Task'"></span>
-                                                </div>
-                                                <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                                                    <div class="h-full rounded-full transition-all duration-300"
-                                                         :class="(project.progress >= 100) ? 'bg-emerald-500' : 'bg-[#8F0A0D]'"
-                                                         :style="'width: ' + (project.progress || 0) + '%'"></div>
-                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -426,18 +375,7 @@
                                         </span>
                                     </div>
 
-                                    {{-- Progress Bar --}}
-                                    <div>
-                                        <div class="flex items-center justify-between text-xs font-bold text-slate-900 mb-1">
-                                            <span>Progres Fisik</span>
-                                            <span x-text="project.progress + '%'"></span>
-                                        </div>
-                                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                                            <div class="h-full rounded-full transition-all duration-300"
-                                                 :class="project.progress >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-red-600 to-[#8F0A0D]'"
-                                                 :style="'width: ' + project.progress + '%'"></div>
-                                        </div>
-                                    </div>
+
                                 </div>
 
                                 {{-- Card Footer Actions --}}
