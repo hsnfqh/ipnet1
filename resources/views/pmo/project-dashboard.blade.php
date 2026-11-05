@@ -1032,7 +1032,7 @@
                             </div>
                             <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
                                 <span class="w-3.5 h-1 rounded-full bg-[#C2410C]"></span>
-                                <span>Chart helper (Actual)</span>
+                                <span>Actual Cumulative (%)</span>
                             </div>
                         </div>
                     </div>
@@ -1050,7 +1050,7 @@
                                         <th class="py-3 px-3 text-right whitespace-nowrap">Actual Weekly (%)</th>
                                         <th class="py-3 px-3 text-right whitespace-nowrap">Actual Cumulative (%)</th>
                                         <th class="py-3 px-3 text-right whitespace-nowrap">Deviation (Actual - Plan)</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Chart helper (hidden pts = not reported)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap">Actual Cumulative (Plot %)</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -1090,7 +1090,7 @@
                             <p class="font-bold text-slate-800">Notes</p>
                             <p>• Plan Weekly comes from the 'Weekly Weight' sheet (task weight spread over the days each task overlaps a week).</p>
                             <p>• Actual Cumulative = sum of (task completion % x activity weight) from the Actual Progress sheet. A week shows only once at least one task is filled in for it.</p>
-                            <p>• Column G returns NA() on purpose so the chart skips unreported weeks instead of drawing 0%. Week 0 = baseline (0%).</p>
+                            <p>• Column G (Actual Cumulative Plot) returns NA() on purpose so the chart skips unreported weeks instead of drawing 0%. Week 0 = baseline (0%).</p>
                         </div>
                     </div>
 
@@ -1114,7 +1114,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="w-3.5 h-3.5 rounded-sm bg-[#C2410C]"></span>
-                                <span class="font-semibold text-slate-700">Chart helper (hidden pts = not reported)</span>
+                                <span class="font-semibold text-slate-700">Actual Cumulative (%)</span>
                             </div>
                         </div>
                     </div>
@@ -2365,7 +2365,7 @@
                             spanGaps: false
                         },
                         {
-                            label: 'Chart helper (hidden pts = not reported)',
+                            label: 'Actual Cumulative (%)',
                             data: sCurveActual,
                             borderColor: '#C2410C', // Orange helper line
                             backgroundColor: 'transparent',
