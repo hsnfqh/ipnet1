@@ -794,11 +794,11 @@ class PmoController extends Controller
             $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
             $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
         } elseif ($isPpatkProject) {
-            $totalProjectDays = 30;
-            $totalProjectWeeks = 5;
-            $wbsEndDate = $wbsStartDate->copy()->addDays(29)->endOfDay();
+            $totalProjectDays = 20;
+            $totalProjectWeeks = 3;
+            $wbsEndDate = $wbsStartDate->copy()->addDays(19)->endOfDay();
         } elseif ($maxTaskFinishDay > 0) {
-            // Berdasarkan finish day terbesar dari WBS task (misal Day 30 -> 30 Hari = 5 Minggu)
+            // Berdasarkan finish day terbesar dari WBS task (misal Day 20 -> 20 Hari = 3 Minggu)
             $totalProjectDays = $maxTaskFinishDay;
             $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
             $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
@@ -818,14 +818,42 @@ class PmoController extends Controller
         $totalWeeks = max(1, $totalProjectWeeks);
         $projectTimelineText = $wbsStartDate->format('d M Y') . ' s/d ' . $wbsEndDate->format('d M Y') . ' (' . $totalProjectDays . ' Hari Pelaksanaan, Kontrak SPK s/d ' . $deadlineDate->format('d M Y') . ')';
 
-        // Jika bobot belum diisi sama sekali pada task, distribusikan rata 100% / totalTask
-        if ($totalTaskCount > 0 && $totalTaskBobotSum <= 0) {
-            $equalBobot = round(100.0 / $totalTaskCount, 2);
-            foreach ($parsedTasks as &$pt) {
-                $pt['bobot'] = $equalBobot;
+        // Hitung total durasi WBS dari seluruh task
+        $totalTaskDuration = array_sum(array_column($parsedTasks, 'duration'));
+
+        // Jika total bobot task tidak sama dengan 100% (misal seeder lama/parsial 66.7% atau 70.1% atau 0%),
+        // hitung Activity Weight secara proporsional berdasarkan durasi sesuai rumus resmi Excel:
+        // Activity Weight (%) = (Duration / Total Duration) * 100%
+        // Daily Weight (%) = Activity Weight (%) / Duration
+        if ($totalTaskCount > 0 && abs($totalTaskBobotSum - 100.0) > 0.5) {
+            $runningBobotSum = 0.0;
+            $countPt = count($parsedTasks);
+            foreach ($parsedTasks as $idx => &$pt) {
+                if ($totalTaskDuration > 0) {
+                    $calcedBobot = round(($pt['duration'] / $totalTaskDuration) * 100.0, 1);
+                } else {
+                    $calcedBobot = round(100.0 / $countPt, 1);
+                }
+
+                // Pada item terakhir, pastikan akumulasi tepat 100.0%
+                if ($idx === $countPt - 1) {
+                    $calcedBobot = round(100.0 - $runningBobotSum, 1);
+                }
+                $runningBobotSum += $calcedBobot;
+
+                $pt['bobot'] = $calcedBobot;
+                $pt['daily_weight'] = $pt['duration'] > 0 ? round($pt['bobot'] / $pt['duration'], 1) : 0.0;
             }
             unset($pt);
             $totalTaskBobotSum = 100.0;
+        } else {
+            // Pastikan daily_weight terisi sesuai rumus = Bobot / Durasi
+            foreach ($parsedTasks as &$pt) {
+                if ($pt['duration'] > 0 && empty($pt['daily_weight'])) {
+                    $pt['daily_weight'] = round($pt['bobot'] / $pt['duration'], 1);
+                }
+            }
+            unset($pt);
         }
 
         // Pastikan setiap task memiliki start_date dan deadline yang valid secara sekuensial
@@ -881,19 +909,18 @@ class PmoController extends Controller
 
         $currentProgressPercent = $actualEV > 0 ? $actualEV : (float) ($project->progress ?: 0.0);
 
-        // Weekly Weight distribution per task untuk PPATK sesuai Gambar 3 Excel
+        // Weekly Weight distribution per task untuk PPATK sesuai Gambar Excel Resmi (3 Minggu / 20 Hari)
         $ppatkWeeklyDistMap = [
-            'Survey and Assessment'          => [1 => 6.7, 2 => 0.0, 3 => 0.0, 4 => 0.0, 5 => 0.0],
-            'Design Review Meeting'          => [1 => 13.3, 2 => 0.0, 3 => 0.0, 4 => 0.0, 5 => 0.0],
-            'HLD and LLD Documentation'      => [1 => 3.3, 2 => 10.0, 3 => 0.0, 4 => 0.0, 5 => 0.0],
-            'Stagging'                       => [1 => 0.0, 2 => 3.3, 3 => 0.0, 4 => 0.0, 5 => 0.0],
-            'Installation and Configuration' => [1 => 0.0, 2 => 10.0, 3 => 6.7, 4 => 0.0, 5 => 0.0],
-            'Integration'                    => [1 => 0.0, 2 => 0.0, 3 => 10.0, 4 => 0.0, 5 => 0.0],
-            'Migration'                      => [1 => 0.0, 2 => 0.0, 3 => 6.7, 4 => 3.3, 5 => 0.0],
-            'Testing and Commisioning'       => [1 => 0.0, 2 => 0.0, 3 => 0.0, 4 => 6.7, 5 => 0.0],
-            'Monitoring'                     => [1 => 0.0, 2 => 0.0, 3 => 0.0, 4 => 3.3, 5 => 0.0],
-            'Documentation'                  => [1 => 0.0, 2 => 0.0, 3 => 0.0, 4 => 10.0, 5 => 0.0],
-            'BAST'                           => [1 => 0.0, 2 => 0.0, 3 => 0.0, 4 => 0.0, 5 => 6.7],
+            'MOS - Material On Site'         => [1 => 5.0, 2 => 0.0, 3 => 0.0],
+            'Stagging'                       => [1 => 25.0, 2 => 0.0, 3 => 0.0],
+            'Installation and Configuration' => [1 => 0.0, 2 => 10.0, 3 => 0.0],
+            'Integrasi'                      => [1 => 0.0, 2 => 10.0, 3 => 0.0],
+            'Migrasi'                        => [1 => 0.0, 2 => 10.0, 3 => 0.0],
+            'User Acceptance'                => [1 => 0.0, 2 => 10.0, 3 => 0.0],
+            'Monitoring'                     => [1 => 0.0, 2 => 0.0, 3 => 10.0],
+            'Project Documentation'          => [1 => 0.0, 2 => 0.0, 3 => 10.0],
+            'Documentation'                  => [1 => 0.0, 2 => 0.0, 3 => 10.0],
+            'BAST'                           => [1 => 0.0, 2 => 0.0, 3 => 10.0],
         ];
 
         // 1. Matriks Weekly Weight (plan) per task (Gambar 3)
@@ -907,6 +934,8 @@ class PmoController extends Controller
                 $wVal = 0.0;
                 if ($isPpatkProject && isset($ppatkWeeklyDistMap[$tTitle][$w])) {
                     $wVal = (float) $ppatkWeeklyDistMap[$tTitle][$w];
+                } elseif (!empty($pt['week']) && (int) $pt['week'] === $w) {
+                    $wVal = (float) $pt['bobot'];
                 } else {
                     $tStartDay = $pt['starting_day'] ?? 0;
                     $tFinishDay = $pt['finish_day'] ?? ($tStartDay + $pt['duration']);
@@ -1073,11 +1102,9 @@ class PmoController extends Controller
 
         // Mapping WBS tasks per week
         $ppatkWeeklyTaskMap = [
-            1 => ['Survey and Assessment', 'Design Review Meeting', 'HLD and LLD Documentation'],
-            2 => ['HLD and LLD Documentation', 'Stagging', 'Installation and Configuration'],
-            3 => ['Installation and Configuration', 'Integration', 'Migration'],
-            4 => ['Migration', 'Testing and Commisioning', 'Monitoring', 'Documentation'],
-            5 => ['BAST'],
+            1 => ['MOS - Material On Site', 'Stagging'],
+            2 => ['Installation and Configuration', 'Integrasi', 'Migrasi', 'User Acceptance'],
+            3 => ['Monitoring', 'Project Documentation', 'Documentation', 'BAST'],
         ];
 
         for ($w = 1; $w <= $totalWeeks; $w++) {

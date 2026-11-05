@@ -647,10 +647,10 @@
                                             </span>
                                         </td>
                                         <td class="py-2.5 px-3 text-right font-bold text-blue-700">
-                                            {{ $isPpatkBadge ? round($row['weight']) . '%' : number_format($row['weight'], 1) . '%' }}
+                                            {{ number_format($row['weight'], 1) }}%
                                         </td>
                                         <td class="py-2.5 px-3 text-right font-medium text-slate-700">
-                                            {{ $isPpatkBadge ? '3%' : number_format($dWeight, 1) . '%' }}
+                                            {{ number_format($dWeight, 1) }}%
                                         </td>
                                         <td class="py-2.5 px-3 text-right whitespace-nowrap">
                                             @if($t)
@@ -714,7 +714,7 @@
                                         {{ number_format($totActW, 1) }}%
                                     </td>
                                     <td class="py-2.5 px-3 text-right text-slate-700 font-bold text-xs">
-                                        3.3%
+                                        {{ $totDur > 0 ? number_format($totActW / $totDur, 1) : '0.0' }}%
                                     </td>
                                     <td class="py-2.5 px-3 text-right text-slate-500 font-normal text-[11px]">
                                         100% Selesai
@@ -756,7 +756,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold">
-                                Total Bobot: 100.0%
+                                Total Bobot: {{ number_format(array_sum(array_column($weeklyWeightMatrix, 'weight')), 1) }}%
                             </span>
                         </div>
                     </div>
@@ -813,14 +813,16 @@
                                     </td>
                                     <td colspan="3" class="py-2.5 px-2.5"></td>
                                     <td class="py-2.5 px-3 text-right font-bold text-slate-800 text-xs">
-                                        100.0%
+                                        {{ number_format(array_sum(array_column($weeklyWeightMatrix, 'weight')), 1) }}%
                                     </td>
                                     @for($w = 1; $w <= $totalWeeks; $w++)
                                         <td class="py-2.5 px-3 text-right font-bold text-slate-800 text-xs">
                                             {{ number_format($totalWeeklyWeightPlan[$w] ?? 0.0, 1) }}%
                                         </td>
                                     @endfor
-                                    <td class="py-2.5 px-3"></td>
+                                    <td class="py-2.5 px-3 text-right font-bold text-slate-800 text-xs bg-slate-200/50">
+                                        {{ number_format(array_sum(array_column($weeklyWeightMatrix, 'check')), 1) }}%
+                                    </td>
                                 </tr>
                                 {{-- Row 2: Plan Cumulative (%) --}}
                                 <tr class="bg-slate-200/80 text-blue-900">
