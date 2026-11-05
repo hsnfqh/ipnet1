@@ -1004,11 +1004,7 @@
                             <h3 class="text-[15px] font-bold text-[#1E293B]">Penggunaan Kuota Tiket Penanganan Masalah & Incident</h3>
                             <p class="text-[12px] text-[#64748B] mt-0.5">Pilihan kuota kontrak: 4, 6, 8, 12, 18 tiket, atau unlimited per periode kontrak.</p>
                         </div>
-                        <button type="button" @click="isCmModalOpen = true" 
-                                class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-4 py-2.5 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer self-start sm:self-auto">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>Catat Tiket CM Baru</span>
-                        </button>
+
                     </div>
 
                     {{-- Linear Quota Progress Bar --}}
@@ -1895,7 +1891,7 @@
     <!-- MODAL 4: UBAH PARAMETER SLA & KUOTA                        -->
     <!-- ========================================================== -->
     <template x-teleport="body">
-        <div x-show="isSlaModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div x-show="isSlaModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-start justify-center p-4 pt-6 sm:pt-10 overflow-y-auto">
             <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-[#E2E8F0] max-h-[90vh] overflow-y-auto" @click.away="isSlaModalOpen = false">
                 <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
                     <div>
@@ -1931,67 +1927,156 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        {{-- Kuota CM: List lengkap 1 Tahun, 2 Tahun, 3 Tahun --}}
-                        <div>
+                    @php
+                        $cmLabels = [
+                            '4'   => '4 Tiket / 1 Tahun',
+                            '6'   => '6 Tiket / 1 Tahun',
+                            '8'   => '8 Tiket / 1 Tahun',
+                            '12'  => '12 Tiket / 1 Tahun',
+                            '18'  => '18 Tiket / 1 Tahun (Standar)',
+                            '16'  => '16 Tiket / 2 Tahun',
+                            '24'  => '24 Tiket / 2 Tahun',
+                            '36'  => '36 Tiket / 2 Tahun (Standar 2 Tahun)',
+                            '54'  => '54 Tiket / 3 Tahun (Standar 3 Tahun)',
+                            '999' => 'Unlimited Tiket',
+                        ];
+                        $initialCmVal = (string)($project->cm_quota ?? '18');
+                        $initialCmText = $cmLabels[$initialCmVal] ?? ($initialCmVal . ' Tiket');
+
+                        $pmLabels = [
+                            '1_thn_1_bln'  => '1 Tahun - Setiap Bulan (12x)',
+                            'per_bulan'    => '1 Tahun - Setiap Bulan (12x)',
+                            '1_thn_2_bln'  => '1 Tahun - Per 2 Bulan (6x)',
+                            'per_2_bulan'  => '1 Tahun - Per 2 Bulan (6x)',
+                            '1_thn_3_bln'  => '1 Tahun - Per 3 Bulan (4x)',
+                            'per_3_bulan'  => '1 Tahun - Per 3 Bulan (4x)',
+                            '1_thn_4_bln'  => '1 Tahun - Per 4 Bulan (3x)',
+                            'per_4_bulan'  => '1 Tahun - Per 4 Bulan (3x)',
+                            '1_thn_6_bln'  => '1 Tahun - Per 6 Bulan (2x)',
+                            'per_6_bulan'  => '1 Tahun - Per 6 Bulan (2x)',
+                            '1_thn_12_bln' => '1 Tahun - Per 12 Bulan (1x)',
+                            'tahunan'      => '1 Tahun - Per 12 Bulan (1x)',
+                            '2_thn_1_bln'  => '2 Tahun - Setiap Bulan (24x)',
+                            '2_thn_2_bln'  => '2 Tahun - Per 2 Bulan (12x)',
+                            '2_thn_3_bln'  => '2 Tahun - Per 3 Bulan (8x)',
+                            '2_thn_4_bln'  => '2 Tahun - Per 4 Bulan (6x)',
+                            '2_thn_6_bln'  => '2 Tahun - Per 6 Bulan (4x)',
+                            '2_thn_12_bln' => '2 Tahun - Per 12 Bulan (2x)',
+                            '3_thn_1_bln'  => '3 Tahun - Setiap Bulan (36x)',
+                            '3_thn_2_bln'  => '3 Tahun - Per 2 Bulan (18x)',
+                            '3_thn_3_bln'  => '3 Tahun - Per 3 Bulan (12x)',
+                            '3_thn_4_bln'  => '3 Tahun - Per 4 Bulan (9x)',
+                            '3_thn_6_bln'  => '3 Tahun - Per 6 Bulan (6x)',
+                            '3_thn_12_bln' => '3 Tahun - Per 12 Bulan (3x)',
+                        ];
+                        $initialPmVal = $project->pm_frequency_type ?? '1_thn_3_bln';
+                        $initialPmText = $pmLabels[$initialPmVal] ?? '1 Tahun - Per 3 Bulan (4x)';
+                    @endphp
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"
+                         x-data="{
+                             cmOpen: false,
+                             selectedCm: '{{ $initialCmVal }}',
+                             selectedCmText: '{{ $initialCmText }}',
+                             pmOpen: false,
+                             selectedPm: '{{ $initialPmVal }}',
+                             selectedPmText: '{{ $initialPmText }}'
+                         }">
+
+                        {{-- Kuota CM Custom Dropdown: Buka ke BAWAH selalu --}}
+                        <div class="relative">
                             <label class="block text-xs font-semibold text-[#334155] mb-1">Kuota Corrective Maintenance (CM) <span class="text-[#8F0A0D]">*</span></label>
-                            <select name="cm_quota" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <optgroup label="Periode Kontrak 1 Tahun">
-                                    <option value="4" {{ ($project->cm_quota ?? 18) == 4 ? 'selected' : '' }}>4 Tiket / 1 Tahun</option>
-                                    <option value="6" {{ ($project->cm_quota ?? 18) == 6 ? 'selected' : '' }}>6 Tiket / 1 Tahun</option>
-                                    <option value="8" {{ ($project->cm_quota ?? 18) == 8 ? 'selected' : '' }}>8 Tiket / 1 Tahun</option>
-                                    <option value="12" {{ ($project->cm_quota ?? 18) == 12 ? 'selected' : '' }}>12 Tiket / 1 Tahun</option>
-                                    <option value="18" {{ ($project->cm_quota ?? 18) == 18 ? 'selected' : '' }}>18 Tiket / 1 Tahun (Standar)</option>
-                                </optgroup>
-                                <optgroup label="Periode Kontrak 2 Tahun">
-                                    <option value="8" {{ ($project->cm_quota ?? 18) == 8 ? 'selected' : '' }}>8 Tiket / 2 Tahun</option>
-                                    <option value="12" {{ ($project->cm_quota ?? 18) == 12 ? 'selected' : '' }}>12 Tiket / 2 Tahun</option>
-                                    <option value="16" {{ ($project->cm_quota ?? 18) == 16 ? 'selected' : '' }}>16 Tiket / 2 Tahun</option>
-                                    <option value="24" {{ ($project->cm_quota ?? 18) == 24 ? 'selected' : '' }}>24 Tiket / 2 Tahun</option>
-                                    <option value="36" {{ ($project->cm_quota ?? 18) == 36 ? 'selected' : '' }}>36 Tiket / 2 Tahun (Standar 2 Tahun)</option>
-                                </optgroup>
-                                <optgroup label="Periode Kontrak 3 Tahun">
-                                    <option value="12" {{ ($project->cm_quota ?? 18) == 12 ? 'selected' : '' }}>12 Tiket / 3 Tahun</option>
-                                    <option value="18" {{ ($project->cm_quota ?? 18) == 18 ? 'selected' : '' }}>18 Tiket / 3 Tahun</option>
-                                    <option value="24" {{ ($project->cm_quota ?? 18) == 24 ? 'selected' : '' }}>24 Tiket / 3 Tahun</option>
-                                    <option value="36" {{ ($project->cm_quota ?? 18) == 36 ? 'selected' : '' }}>36 Tiket / 3 Tahun (12 Tiket/Tahun)</option>
-                                    <option value="54" {{ ($project->cm_quota ?? 18) == 54 ? 'selected' : '' }}>54 Tiket / 3 Tahun (Standar 3 Tahun)</option>
-                                </optgroup>
-                                <optgroup label="Paket Khusus">
-                                    <option value="999" {{ ($project->cm_quota ?? 18) == 999 ? 'selected' : '' }}>Unlimited Tiket</option>
-                                </optgroup>
-                            </select>
+                            <input type="hidden" name="cm_quota" :value="selectedCm">
+                            <button type="button" 
+                                    @click="cmOpen = !cmOpen; pmOpen = false" 
+                                    class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] flex items-center justify-between text-left focus:border-[#8F0A0D] transition shadow-2xs cursor-pointer">
+                                <span class="truncate" x-text="selectedCmText"></span>
+                                <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1 transition-transform" :class="cmOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            {{-- Menu Dropdown Selalu Muncul di Bawah (top-full mt-1.5) --}}
+                            <div x-show="cmOpen" 
+                                 @click.outside="cmOpen = false" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="opacity-0 translate-y-1"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="opacity-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 translate-y-1"
+                                 class="absolute left-0 right-0 top-full mt-1 bg-white border border-[#CBD5E1] rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto py-1 text-xs">
+                                
+                                <div class="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-slate-400 bg-slate-50">Periode Kontrak 1 Tahun</div>
+                                <div @click="selectedCm = 4; selectedCmText = '4 Tiket / 1 Tahun'; cmOpen = false" :class="selectedCm == 4 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">4 Tiket / 1 Tahun</div>
+                                <div @click="selectedCm = 6; selectedCmText = '6 Tiket / 1 Tahun'; cmOpen = false" :class="selectedCm == 6 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">6 Tiket / 1 Tahun</div>
+                                <div @click="selectedCm = 8; selectedCmText = '8 Tiket / 1 Tahun'; cmOpen = false" :class="selectedCm == 8 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">8 Tiket / 1 Tahun</div>
+                                <div @click="selectedCm = 12; selectedCmText = '12 Tiket / 1 Tahun'; cmOpen = false" :class="selectedCm == 12 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">12 Tiket / 1 Tahun</div>
+                                <div @click="selectedCm = 18; selectedCmText = '18 Tiket / 1 Tahun (Standar)'; cmOpen = false" :class="selectedCm == 18 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">18 Tiket / 1 Tahun (Standar)</div>
+
+                                <div class="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-slate-400 bg-slate-50 mt-1">Periode Kontrak 2 Tahun</div>
+                                <div @click="selectedCm = 8; selectedCmText = '8 Tiket / 2 Tahun'; cmOpen = false" :class="selectedCm == 8 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">8 Tiket / 2 Tahun</div>
+                                <div @click="selectedCm = 12; selectedCmText = '12 Tiket / 2 Tahun'; cmOpen = false" :class="selectedCm == 12 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">12 Tiket / 2 Tahun</div>
+                                <div @click="selectedCm = 16; selectedCmText = '16 Tiket / 2 Tahun'; cmOpen = false" :class="selectedCm == 16 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">16 Tiket / 2 Tahun</div>
+                                <div @click="selectedCm = 24; selectedCmText = '24 Tiket / 2 Tahun'; cmOpen = false" :class="selectedCm == 24 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">24 Tiket / 2 Tahun</div>
+                                <div @click="selectedCm = 36; selectedCmText = '36 Tiket / 2 Tahun (Standar 2 Tahun)'; cmOpen = false" :class="selectedCm == 36 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">36 Tiket / 2 Tahun (Standar 2 Tahun)</div>
+
+                                <div class="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-slate-400 bg-slate-50 mt-1">Periode Kontrak 3 Tahun</div>
+                                <div @click="selectedCm = 12; selectedCmText = '12 Tiket / 3 Tahun'; cmOpen = false" :class="selectedCm == 12 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">12 Tiket / 3 Tahun</div>
+                                <div @click="selectedCm = 18; selectedCmText = '18 Tiket / 3 Tahun'; cmOpen = false" :class="selectedCm == 18 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">18 Tiket / 3 Tahun</div>
+                                <div @click="selectedCm = 24; selectedCmText = '24 Tiket / 3 Tahun'; cmOpen = false" :class="selectedCm == 24 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">24 Tiket / 3 Tahun</div>
+                                <div @click="selectedCm = 36; selectedCmText = '36 Tiket / 3 Tahun (12 Tiket/Tahun)'; cmOpen = false" :class="selectedCm == 36 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">36 Tiket / 3 Tahun (12 Tiket/Tahun)</div>
+                                <div @click="selectedCm = 54; selectedCmText = '54 Tiket / 3 Tahun (Standar 3 Tahun)'; cmOpen = false" :class="selectedCm == 54 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">54 Tiket / 3 Tahun (Standar 3 Tahun)</div>
+
+                                <div class="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-slate-400 bg-slate-50 mt-1">Paket Khusus</div>
+                                <div @click="selectedCm = 999; selectedCmText = 'Unlimited Tiket'; cmOpen = false" :class="selectedCm == 999 ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">Unlimited Tiket</div>
+                            </div>
                         </div>
 
-                        {{-- Frekuensi PM --}}
-                        <div>
+                        {{-- Frekuensi PM Custom Dropdown: Buka ke BAWAH selalu --}}
+                        <div class="relative">
                             <label class="block text-xs font-semibold text-[#334155] mb-1">Frekuensi Preventive Maintenance (PM) <span class="text-[#8F0A0D]">*</span></label>
-                            <select name="pm_frequency_type" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <optgroup label="Periode Kontrak 1 Tahun">
-                                    <option value="1_thn_1_bln" {{ in_array($project->pm_frequency_type ?? '', ['1_thn_1_bln', 'per_bulan']) ? 'selected' : '' }}>1 Tahun - Setiap Bulan (12x)</option>
-                                    <option value="1_thn_2_bln" {{ in_array($project->pm_frequency_type ?? '', ['1_thn_2_bln', 'per_2_bulan']) ? 'selected' : '' }}>1 Tahun - Per 2 Bulan (6x)</option>
-                                    <option value="1_thn_3_bln" {{ in_array($project->pm_frequency_type ?? '1_thn_3_bln', ['1_thn_3_bln', 'per_3_bulan']) ? 'selected' : '' }}>1 Tahun - Per 3 Bulan (4x)</option>
-                                    <option value="1_thn_4_bln" {{ in_array($project->pm_frequency_type ?? '', ['1_thn_4_bln', 'per_4_bulan']) ? 'selected' : '' }}>1 Tahun - Per 4 Bulan (3x)</option>
-                                    <option value="1_thn_6_bln" {{ in_array($project->pm_frequency_type ?? '', ['1_thn_6_bln', 'per_6_bulan']) ? 'selected' : '' }}>1 Tahun - Per 6 Bulan (2x)</option>
-                                    <option value="1_thn_12_bln" {{ in_array($project->pm_frequency_type ?? '', ['1_thn_12_bln', 'tahunan']) ? 'selected' : '' }}>1 Tahun - Per 12 Bulan (1x)</option>
-                                </optgroup>
-                                <optgroup label="Periode Kontrak 2 Tahun">
-                                    <option value="2_thn_1_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_1_bln' ? 'selected' : '' }}>2 Tahun - Setiap Bulan (24x)</option>
-                                    <option value="2_thn_2_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_2_bln' ? 'selected' : '' }}>2 Tahun - Per 2 Bulan (12x)</option>
-                                    <option value="2_thn_3_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_3_bln' ? 'selected' : '' }}>2 Tahun - Per 3 Bulan (8x)</option>
-                                    <option value="2_thn_4_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_4_bln' ? 'selected' : '' }}>2 Tahun - Per 4 Bulan (6x)</option>
-                                    <option value="2_thn_6_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_6_bln' ? 'selected' : '' }}>2 Tahun - Per 6 Bulan (4x)</option>
-                                    <option value="2_thn_12_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_12_bln' ? 'selected' : '' }}>2 Tahun - Per 12 Bulan (2x)</option>
-                                </optgroup>
-                                <optgroup label="Periode Kontrak 3 Tahun">
-                                    <option value="3_thn_1_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_1_bln' ? 'selected' : '' }}>3 Tahun - Setiap Bulan (36x)</option>
-                                    <option value="3_thn_2_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_2_bln' ? 'selected' : '' }}>3 Tahun - Per 2 Bulan (18x)</option>
-                                    <option value="3_thn_3_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_3_bln' ? 'selected' : '' }}>3 Tahun - Per 3 Bulan (12x)</option>
-                                    <option value="3_thn_4_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_4_bln' ? 'selected' : '' }}>3 Tahun - Per 4 Bulan (9x)</option>
-                                    <option value="3_thn_6_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_6_bln' ? 'selected' : '' }}>3 Tahun - Per 6 Bulan (6x)</option>
-                                    <option value="3_thn_12_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_12_bln' ? 'selected' : '' }}>3 Tahun - Per 12 Bulan (3x)</option>
-                                </optgroup>
-                            </select>
+                            <input type="hidden" name="pm_frequency_type" :value="selectedPm">
+                            <button type="button" 
+                                    @click="pmOpen = !pmOpen; cmOpen = false" 
+                                    class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] flex items-center justify-between text-left focus:border-[#8F0A0D] transition shadow-2xs cursor-pointer">
+                                <span class="truncate" x-text="selectedPmText"></span>
+                                <svg class="w-4 h-4 text-slate-400 shrink-0 ml-1 transition-transform" :class="pmOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            {{-- Menu Dropdown Selalu Muncul di Bawah (top-full mt-1.5) --}}
+                            <div x-show="pmOpen" 
+                                 @click.outside="pmOpen = false" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="opacity-0 translate-y-1"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="opacity-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 translate-y-1"
+                                 class="absolute left-0 right-0 top-full mt-1 bg-white border border-[#CBD5E1] rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto py-1 text-xs">
+                                
+                                <div class="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-slate-400 bg-slate-50">Periode Kontrak 1 Tahun</div>
+                                <div @click="selectedPm = '1_thn_1_bln'; selectedPmText = '1 Tahun - Setiap Bulan (12x)'; pmOpen = false" :class="selectedPm == '1_thn_1_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">1 Tahun - Setiap Bulan (12x)</div>
+                                <div @click="selectedPm = '1_thn_2_bln'; selectedPmText = '1 Tahun - Per 2 Bulan (6x)'; pmOpen = false" :class="selectedPm == '1_thn_2_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">1 Tahun - Per 2 Bulan (6x)</div>
+                                <div @click="selectedPm = '1_thn_3_bln'; selectedPmText = '1 Tahun - Per 3 Bulan (4x)'; pmOpen = false" :class="selectedPm == '1_thn_3_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">1 Tahun - Per 3 Bulan (4x)</div>
+                                <div @click="selectedPm = '1_thn_4_bln'; selectedPmText = '1 Tahun - Per 4 Bulan (3x)'; pmOpen = false" :class="selectedPm == '1_thn_4_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">1 Tahun - Per 4 Bulan (3x)</div>
+                                <div @click="selectedPm = '1_thn_6_bln'; selectedPmText = '1 Tahun - Per 6 Bulan (2x)'; pmOpen = false" :class="selectedPm == '1_thn_6_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">1 Tahun - Per 6 Bulan (2x)</div>
+                                <div @click="selectedPm = '1_thn_12_bln'; selectedPmText = '1 Tahun - Per 12 Bulan (1x)'; pmOpen = false" :class="selectedPm == '1_thn_12_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">1 Tahun - Per 12 Bulan (1x)</div>
+
+                                <div class="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-slate-400 bg-slate-50 mt-1">Periode Kontrak 2 Tahun</div>
+                                <div @click="selectedPm = '2_thn_1_bln'; selectedPmText = '2 Tahun - Setiap Bulan (24x)'; pmOpen = false" :class="selectedPm == '2_thn_1_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">2 Tahun - Setiap Bulan (24x)</div>
+                                <div @click="selectedPm = '2_thn_2_bln'; selectedPmText = '2 Tahun - Per 2 Bulan (12x)'; pmOpen = false" :class="selectedPm == '2_thn_2_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">2 Tahun - Per 2 Bulan (12x)</div>
+                                <div @click="selectedPm = '2_thn_3_bln'; selectedPmText = '2 Tahun - Per 3 Bulan (8x)'; pmOpen = false" :class="selectedPm == '2_thn_3_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">2 Tahun - Per 3 Bulan (8x)</div>
+                                <div @click="selectedPm = '2_thn_4_bln'; selectedPmText = '2 Tahun - Per 4 Bulan (6x)'; pmOpen = false" :class="selectedPm == '2_thn_4_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">2 Tahun - Per 4 Bulan (6x)</div>
+                                <div @click="selectedPm = '2_thn_6_bln'; selectedPmText = '2 Tahun - Per 6 Bulan (4x)'; pmOpen = false" :class="selectedPm == '2_thn_6_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">2 Tahun - Per 6 Bulan (4x)</div>
+                                <div @click="selectedPm = '2_thn_12_bln'; selectedPmText = '2 Tahun - Per 12 Bulan (2x)'; pmOpen = false" :class="selectedPm == '2_thn_12_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">2 Tahun - Per 12 Bulan (2x)</div>
+
+                                <div class="px-3 py-1 font-bold text-[10px] uppercase tracking-wider text-slate-400 bg-slate-50 mt-1">Periode Kontrak 3 Tahun</div>
+                                <div @click="selectedPm = '3_thn_1_bln'; selectedPmText = '3 Tahun - Setiap Bulan (36x)'; pmOpen = false" :class="selectedPm == '3_thn_1_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">3 Tahun - Setiap Bulan (36x)</div>
+                                <div @click="selectedPm = '3_thn_2_bln'; selectedPmText = '3 Tahun - Per 2 Bulan (18x)'; pmOpen = false" :class="selectedPm == '3_thn_2_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">3 Tahun - Per 2 Bulan (18x)</div>
+                                <div @click="selectedPm = '3_thn_3_bln'; selectedPmText = '3 Tahun - Per 3 Bulan (12x)'; pmOpen = false" :class="selectedPm == '3_thn_3_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">3 Tahun - Per 3 Bulan (12x)</div>
+                                <div @click="selectedPm = '3_thn_4_bln'; selectedPmText = '3 Tahun - Per 4 Bulan (9x)'; pmOpen = false" :class="selectedPm == '3_thn_4_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">3 Tahun - Per 4 Bulan (9x)</div>
+                                <div @click="selectedPm = '3_thn_6_bln'; selectedPmText = '3 Tahun - Per 6 Bulan (6x)'; pmOpen = false" :class="selectedPm == '3_thn_6_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">3 Tahun - Per 6 Bulan (6x)</div>
+                                <div @click="selectedPm = '3_thn_12_bln'; selectedPmText = '3 Tahun - Per 12 Bulan (3x)'; pmOpen = false" :class="selectedPm == '3_thn_12_bln' ? 'bg-red-50 text-[#8F0A0D] font-bold' : 'text-slate-700 hover:bg-slate-50'" class="px-3 py-2 cursor-pointer transition">3 Tahun - Per 12 Bulan (3x)</div>
+                            </div>
                         </div>
                     </div>
 
