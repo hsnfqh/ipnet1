@@ -67,6 +67,7 @@
              pm_id: '',
              bast_handover_type: 'am_to_ms',
              status: 'Active',
+             docs: {},
              description: ''
          },
 
@@ -113,6 +114,7 @@
 
          openEditModal(p) {
              this.editProject = Object.assign({}, p);
+             this.editProject.docs = p.docs || {};
              const cleanVal = (p.contract_value_raw || p.contract_value || '').toString().replace(/\D/g, '');
              this.editContractValueRaw = cleanVal;
              this.editContractValueFormatted = cleanVal ? new Intl.NumberFormat('id-ID').format(cleanVal) : '';
@@ -269,6 +271,7 @@
                             <tbody class="divide-y divide-[#F1F5F9]">
                                 @forelse($projects as $p)
                                     @php
+                                        $pDocs = $p->resolved_documents ?? \App\Http\Controllers\ManagedServiceController::getProjectDocuments($p);
                                         $pmCyclesCount = $p->pmCycles->count() ?: ($p->pm_total_cycles ?: 4);
                                         $pmCompletedCount = $p->pmCycles->where('activity_status', 'Completed')->count();
                                         $progressPct = $pmCyclesCount > 0 ? round(($pmCompletedCount / $pmCyclesCount) * 100) : 0;
@@ -439,6 +442,13 @@
                                                             'bast_handover_type' => $p->handover_data['bast_handover_type'] ?? 'am_to_ms',
                                                             'status' => $p->status ?: 'Active',
                                                             'description' => $p->description ?: ($p->handover_data['notes'] ?? ''),
+                                                            'docs' => [
+                                                                'ba'   => ['title' => $pDocs['ba']['title'] ?? 'Berita Acara Handover', 'file_url' => $pDocs['ba']['file_url'] ?? null],
+                                                                'spk'  => ['title' => $pDocs['spk']['title'] ?? 'Surat Perintah Kerja (SPK)', 'file_url' => $pDocs['spk']['file_url'] ?? null],
+                                                                'boq'  => ['title' => $pDocs['boq']['title'] ?? 'Bill of Quantity (BOQ)', 'file_url' => $pDocs['boq']['file_url'] ?? null],
+                                                                'tor'  => ['title' => $pDocs['tor']['title'] ?? 'Terms of Reference (TOR)', 'file_url' => $pDocs['tor']['file_url'] ?? null],
+                                                                'tech' => ['title' => $pDocs['project_doc']['title'] ?? 'Dokumen Teknis & Topologi', 'file_url' => $pDocs['project_doc']['file_url'] ?? null],
+                                                            ],
                                                         ]) }})"
                                                         title="Ubah Data Proyek" 
                                                         class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer">
@@ -1559,7 +1569,20 @@
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0 flex-1 space-y-1.5">
-                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Berita Acara Serah Terima (Handover)</h5>
+                                                    <div class="flex items-center justify-between gap-1.5">
+                                                        <h5 class="text-xs font-bold text-slate-800 leading-tight">Berita Acara Serah Terima (Handover)</h5>
+                                                        <template x-if="editProject.docs && editProject.docs.ba && editProject.docs.ba.file_url">
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                                                Tersedia
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="!editProject.docs || !editProject.docs.ba || !editProject.docs.ba.file_url">
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
+                                                                Belum Ada
+                                                            </span>
+                                                        </template>
+                                                    </div>
                                                     <p class="text-[11px] text-slate-500 leading-normal">Pilih jenis serah terima dan perbarui berkas jika ada.</p>
                                                     <select name="bast_handover_type" x-model="editProject.bast_handover_type" class="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg focus:border-[#8F0A0D] outline-none bg-white font-semibold text-slate-800">
                                                         <option value="am_to_ms">Handover Account Manager ke Managed Service</option>
@@ -1567,13 +1590,26 @@
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
-                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
-                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas Baru'">Upload Berkas Baru</span>
-                                                    <input type="file" name="file_bast" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
-                                                </label>
-                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Kosongkan jika tidak ada perubahan'">Kosongkan jika tidak ada perubahan</span>
+                                            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60">
+                                                <div class="flex items-center gap-2">
+                                                    <template x-if="editProject.docs && editProject.docs.ba && editProject.docs.ba.file_url">
+                                                        <a :href="editProject.docs.ba.file_url" target="_blank" 
+                                                           class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition shadow-2xs shrink-0 cursor-pointer"
+                                                           title="Lihat / Buka Berkas yang sudah di-upload">
+                                                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                            </svg>
+                                                            <span>Lihat Berkas</span>
+                                                        </a>
+                                                    </template>
+                                                    <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                        <span x-text="fileName ? 'Ganti Berkas' : (editProject.docs && editProject.docs.ba && editProject.docs.ba.file_url ? 'Ganti Berkas' : 'Upload Berkas Baru')">Upload Berkas Baru</span>
+                                                        <input type="file" name="file_bast" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                    </label>
+                                                </div>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium max-w-[200px]" x-text="fileName ? ('File: ' + fileName) : (editProject.docs && editProject.docs.ba && editProject.docs.ba.file_url ? 'Sudah ada berkas' : 'Belum ada berkas')">Kosongkan jika tidak ada perubahan</span>
                                             </div>
                                         </div>
 
@@ -1587,17 +1623,43 @@
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0 flex-1">
-                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Surat Perintah Kerja (SPK / PO)</h5>
+                                                    <div class="flex items-center justify-between gap-1.5">
+                                                        <h5 class="text-xs font-bold text-slate-800 leading-tight">Surat Perintah Kerja (SPK / PO)</h5>
+                                                        <template x-if="editProject.docs && editProject.docs.spk && editProject.docs.spk.file_url">
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                                                Tersedia
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="!editProject.docs || !editProject.docs.spk || !editProject.docs.spk.file_url">
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
+                                                                Belum Ada
+                                                            </span>
+                                                        </template>
+                                                    </div>
                                                     <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Dokumen acuan perintah kerja resmi dari klien.</p>
                                                 </div>
                                             </div>
-                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
-                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
-                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas Baru'">Upload Berkas Baru</span>
-                                                    <input type="file" name="file_spk" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
-                                                </label>
-                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Kosongkan jika tidak ada perubahan'">Kosongkan jika tidak ada perubahan</span>
+                                            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60">
+                                                <div class="flex items-center gap-2">
+                                                    <template x-if="editProject.docs && editProject.docs.spk && editProject.docs.spk.file_url">
+                                                        <a :href="editProject.docs.spk.file_url" target="_blank" 
+                                                           class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition shadow-2xs shrink-0 cursor-pointer"
+                                                           title="Lihat / Buka Berkas yang sudah di-upload">
+                                                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                            </svg>
+                                                            <span>Lihat Berkas</span>
+                                                        </a>
+                                                    </template>
+                                                    <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                        <span x-text="fileName ? 'Ganti Berkas' : (editProject.docs && editProject.docs.spk && editProject.docs.spk.file_url ? 'Ganti Berkas' : 'Upload Berkas Baru')">Upload Berkas Baru</span>
+                                                        <input type="file" name="file_spk" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                    </label>
+                                                </div>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium max-w-[200px]" x-text="fileName ? ('File: ' + fileName) : (editProject.docs && editProject.docs.spk && editProject.docs.spk.file_url ? 'Sudah ada berkas' : 'Belum ada berkas')">Kosongkan jika tidak ada perubahan</span>
                                             </div>
                                         </div>
 
@@ -1611,17 +1673,43 @@
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0 flex-1">
-                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Bill of Quantity (BOQ &amp; Spesifikasi Layanan)</h5>
+                                                    <div class="flex items-center justify-between gap-1.5">
+                                                        <h5 class="text-xs font-bold text-slate-800 leading-tight">Bill of Quantity (BOQ &amp; Spesifikasi Layanan)</h5>
+                                                        <template x-if="editProject.docs && editProject.docs.boq && editProject.docs.boq.file_url">
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                                                Tersedia
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="!editProject.docs || !editProject.docs.boq || !editProject.docs.boq.file_url">
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
+                                                                Belum Ada
+                                                            </span>
+                                                        </template>
+                                                    </div>
                                                     <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Daftar rincian perangkat keras, lisensi, dan mandays.</p>
                                                 </div>
                                             </div>
-                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
-                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
-                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas Baru'">Upload Berkas Baru</span>
-                                                    <input type="file" name="file_boq" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
-                                                </label>
-                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Kosongkan jika tidak ada perubahan'">Kosongkan jika tidak ada perubahan</span>
+                                            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60">
+                                                <div class="flex items-center gap-2">
+                                                    <template x-if="editProject.docs && editProject.docs.boq && editProject.docs.boq.file_url">
+                                                        <a :href="editProject.docs.boq.file_url" target="_blank" 
+                                                           class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition shadow-2xs shrink-0 cursor-pointer"
+                                                           title="Lihat / Buka Berkas yang sudah di-upload">
+                                                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                            </svg>
+                                                            <span>Lihat Berkas</span>
+                                                        </a>
+                                                    </template>
+                                                    <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                        <span x-text="fileName ? 'Ganti Berkas' : (editProject.docs && editProject.docs.boq && editProject.docs.boq.file_url ? 'Ganti Berkas' : 'Upload Berkas Baru')">Upload Berkas Baru</span>
+                                                        <input type="file" name="file_boq" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                    </label>
+                                                </div>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium max-w-[200px]" x-text="fileName ? ('File: ' + fileName) : (editProject.docs && editProject.docs.boq && editProject.docs.boq.file_url ? 'Sudah ada berkas' : 'Belum ada berkas')">Kosongkan jika tidak ada perubahan</span>
                                             </div>
                                         </div>
 
@@ -1635,17 +1723,43 @@
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0 flex-1">
-                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Terms of Reference (TOR)</h5>
+                                                    <div class="flex items-center justify-between gap-1.5">
+                                                        <h5 class="text-xs font-bold text-slate-800 leading-tight">Terms of Reference (TOR)</h5>
+                                                        <template x-if="editProject.docs && editProject.docs.tor && editProject.docs.tor.file_url">
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                                                Tersedia
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="!editProject.docs || !editProject.docs.tor || !editProject.docs.tor.file_url">
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
+                                                                Belum Ada
+                                                            </span>
+                                                        </template>
+                                                    </div>
                                                     <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Kerangka acuan kerja, ruang lingkup &amp; spesifikasi teknis.</p>
                                                 </div>
                                             </div>
-                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
-                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
-                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas Baru'">Upload Berkas Baru</span>
-                                                    <input type="file" name="file_tor" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
-                                                </label>
-                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Kosongkan jika tidak ada perubahan'">Kosongkan jika tidak ada perubahan</span>
+                                            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60">
+                                                <div class="flex items-center gap-2">
+                                                    <template x-if="editProject.docs && editProject.docs.tor && editProject.docs.tor.file_url">
+                                                        <a :href="editProject.docs.tor.file_url" target="_blank" 
+                                                           class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition shadow-2xs shrink-0 cursor-pointer"
+                                                           title="Lihat / Buka Berkas yang sudah di-upload">
+                                                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                            </svg>
+                                                            <span>Lihat Berkas</span>
+                                                        </a>
+                                                    </template>
+                                                    <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                        <span x-text="fileName ? 'Ganti Berkas' : (editProject.docs && editProject.docs.tor && editProject.docs.tor.file_url ? 'Ganti Berkas' : 'Upload Berkas Baru')">Upload Berkas Baru</span>
+                                                        <input type="file" name="file_tor" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                    </label>
+                                                </div>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium max-w-[200px]" x-text="fileName ? ('File: ' + fileName) : (editProject.docs && editProject.docs.tor && editProject.docs.tor.file_url ? 'Sudah ada berkas' : 'Belum ada berkas')">Kosongkan jika tidak ada perubahan</span>
                                             </div>
                                         </div>
 
@@ -1659,17 +1773,43 @@
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0 flex-1">
-                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Dokumen Teknis &amp; Topologi Proyek</h5>
+                                                    <div class="flex items-center justify-between gap-1.5">
+                                                        <h5 class="text-xs font-bold text-slate-800 leading-tight">Dokumen Teknis &amp; Topologi Proyek</h5>
+                                                        <template x-if="editProject.docs && editProject.docs.tech && editProject.docs.tech.file_url">
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                                                Tersedia
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="!editProject.docs || !editProject.docs.tech || !editProject.docs.tech.file_url">
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 shrink-0">
+                                                                Belum Ada
+                                                            </span>
+                                                        </template>
+                                                    </div>
                                                     <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Diagram jaringan, desain arsitektur, IP addressing, dan NDA.</p>
                                                 </div>
                                             </div>
-                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
-                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
-                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas Baru'">Upload Berkas Baru</span>
-                                                    <input type="file" name="file_tech" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
-                                                </label>
-                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Kosongkan jika tidak ada perubahan'">Kosongkan jika tidak ada perubahan</span>
+                                            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60">
+                                                <div class="flex items-center gap-2">
+                                                    <template x-if="editProject.docs && editProject.docs.tech && editProject.docs.tech.file_url">
+                                                        <a :href="editProject.docs.tech.file_url" target="_blank" 
+                                                           class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition shadow-2xs shrink-0 cursor-pointer"
+                                                           title="Lihat / Buka Berkas yang sudah di-upload">
+                                                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                            </svg>
+                                                            <span>Lihat Berkas</span>
+                                                        </a>
+                                                    </template>
+                                                    <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
+                                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                        <span x-text="fileName ? 'Ganti Berkas' : (editProject.docs && editProject.docs.tech && editProject.docs.tech.file_url ? 'Ganti Berkas' : 'Upload Berkas Baru')">Upload Berkas Baru</span>
+                                                        <input type="file" name="file_tech" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
+                                                    </label>
+                                                </div>
+                                                <span class="text-[11px] text-slate-500 truncate font-medium max-w-[200px]" x-text="fileName ? ('File: ' + fileName) : (editProject.docs && editProject.docs.tech && editProject.docs.tech.file_url ? 'Sudah ada berkas' : 'Belum ada berkas')">Kosongkan jika tidak ada perubahan</span>
                                             </div>
                                         </div>
                                     </div>
