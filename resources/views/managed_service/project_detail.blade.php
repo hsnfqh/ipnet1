@@ -669,15 +669,8 @@
                     {{-- Visual Stepper: Memanjang jika <= 6, Berkelok seperti Ular (Snake Flow) jika > 6 --}}
                     <div class="py-3 px-2 overflow-x-auto">
                         @php
-                            // Siapkan koleksi seluruh node milestone PM
+                            // Siapkan koleksi seluruh node PM konsisten (hanya siklus PM, tanpa milestone Start/Finish, per baris 6 PM)
                             $pmNodeItems = collect();
-                            $pmNodeItems->push([
-                                'is_milestone' => true,
-                                'type'         => 'start',
-                                'label'        => 'Start',
-                                'sub'          => $project->service_start_date ? date('d/m/Y', strtotime($project->service_start_date)) : 'Awal',
-                                'icon'         => 'flag',
-                            ]);
 
                             $cyclesCollection = $pmCycles->count() ? $pmCycles : collect(range(1, $pmTotal))->map(function($n) {
                                 return (object)[
@@ -708,16 +701,8 @@
                                 ]);
                             }
 
-                            $pmNodeItems->push([
-                                'is_milestone' => true,
-                                'type'         => 'end',
-                                'label'        => 'Finish',
-                                'sub'          => $project->service_end_date ? date('d/m/Y', strtotime($project->service_end_date)) : 'Akhir Kontrak',
-                                'icon'         => 'check',
-                            ]);
-
                             $isSnakePm = $pmTotal > 6;
-                            $chunkSize = 5; // 5 node per baris agar lekukan ular simetris dan lega
+                            $chunkSize = 6; // Konsisten 6 PM per baris (6 - 6 - 6)
                             $pmRows = $isSnakePm ? $pmNodeItems->chunk($chunkSize) : collect([$pmNodeItems]);
                         @endphp
 
