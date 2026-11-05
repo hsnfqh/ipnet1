@@ -756,6 +756,29 @@ Route::get('/seed-ppatk-project', function () {
         ], 500);
     }
 });
+Route::get('/debug-dashboard-as-eris', function() {
+    $eris = \App\Models\User::where('name', 'like', '%Eris%')->first();
+    auth()->login($eris);
+    
+    $controller = app(\App\Http\Controllers\ManagedServiceController::class);
+    $view = $controller->dashboard(request());
+    $data = $view->getData();
+    
+    return response()->json([
+        'user'                    => auth()->user()->name,
+        'operate_projects_count'  => $data['operateProjects']->count(),
+        'tickets_count'           => $data['tickets']->count(),
+        'assets_count'            => $data['assets']->count(),
+        'client_health_count'     => count($data['clientHealthList']),
+        'total_pm_schedules'      => $data['totalPmSchedulesCount'],
+        'open_tickets'            => $data['openTickets'],
+        'resolved_tickets'        => $data['resolvedTickets'],
+        'sla_score'               => $data['slaScore'],
+        'total_downtime_hours'    => $data['totalDowntimeHours'],
+        'sla_uptime_score'        => $data['slaUptimeScore'],
+    ]);
+});
+
 Route::get('/debug-ms-projects', function() {
     $projects = \App\Models\Project::withTrashed()->get(['id', 'name', 'client', 'stage', 'status', 'handover_target', 'ms_handover_status', 'project_type', 'deleted_at']);
     $tickets = \App\Models\ManagedServiceTicket::all(['id', 'ticket_number', 'project_id', 'type', 'status']);
