@@ -199,7 +199,7 @@
                             </span>
                         </div>
                         <p class="text-[15px] font-bold text-[#1E293B]">{{ $pmCompleted }} / {{ $pmTotal }} Visit Selesai</p>
-                        <p class="text-[11.5px] text-[#64748B]">Siklus: {{ str_replace('_', ' ', $project->pm_frequency_type ?: 'per 3 bulan') }}</p>
+                        <p class="text-[11.5px] text-[#64748B]">Siklus: {{ $project->pm_frequency_label }}</p>
                     </div>
 
                     {{-- KPI 3: Corrective Maintenance --}}
@@ -431,63 +431,69 @@
 
                         <!-- Customer Contacts & Lokasi -->
                         @php
+                            $hd = is_array($project->handover_data) ? $project->handover_data : [];
+
                             // 1. Resolve Customer PIC Name
                             $customerPicName = null;
-                            if (!empty($project->clientRecord?->pic_name)) {
-                                $customerPicName = $project->clientRecord->pic_name;
-                            } elseif (!empty($project->customer_pic_name)) {
-                                $customerPicName = $project->customer_pic_name;
-                            } elseif (!empty($project->customer_pic_technical) && !str_contains($project->customer_pic_technical, '@') && !preg_match('/^[0-9+\-\s()]{7,}$/', $project->customer_pic_technical)) {
-                                $customerPicName = $project->customer_pic_technical;
-                            } elseif (!empty($project->customer_pic_business) && !str_contains($project->customer_pic_business, '@') && !preg_match('/^[0-9+\-\s()]{7,}$/', $project->customer_pic_business)) {
-                                $customerPicName = $project->customer_pic_business;
-                            } elseif (!empty($project->customer_pic_finance) && !str_contains($project->customer_pic_finance, '@') && !preg_match('/^[0-9+\-\s()]{7,}$/', $project->customer_pic_finance)) {
-                                $customerPicName = $project->customer_pic_finance;
-                            }
-
-                            if (empty($customerPicName)) {
-                                $anyEmail = ($project->customer_pic_technical ?: '') . ' ' . ($project->customer_pic_finance ?: '');
-                                if (stripos($anyEmail, 'ahmad') !== false) {
-                                    $customerPicName = 'Ahmad';
-                                } else {
-                                    $customerPicName = 'Ahmad';
+                            $candidateNames = [
+                                $hd['customer_pic'] ?? null,
+                                $project->customer_pic_name,
+                                $project->clientRecord?->pic_name,
+                                $project->customer_pic_technical,
+                                $project->customer_pic_business,
+                                $project->customer_pic_finance,
+                            ];
+                            foreach ($candidateNames as $cand) {
+                                if (!empty($cand)) {
+                                    $cTrim = trim($cand);
+                                    // Make sure it is not an email and not digits only
+                                    if (!str_contains($cTrim, '@') && !preg_match('/^[0-9+\-\s().]{7,25}$/', $cTrim)) {
+                                        $customerPicName = $cTrim;
+                                        break;
+                                    }
                                 }
                             }
+                            if (empty($customerPicName)) {
+                                $customerPicName = '—';
+                            }
 
-                            // 2. Resolve Customer Phone
+                            // 2. Resolve Customer Phone (Strictly Digits / Numeric Only)
                             $customerPhone = null;
-                            $possiblePhones = [
+                            $candidatePhones = [
+                                $hd['customer_pic_phone'] ?? null,
                                 $project->clientRecord?->phone,
                                 $project->customer_pic_business,
                                 $project->customer_pic_technical,
                                 $project->customer_pic_finance,
                             ];
-                            foreach ($possiblePhones as $pVal) {
-                                if (!empty($pVal) && preg_match('/^[0-9+\-\s().]{7,25}$/', trim($pVal)) && !str_contains($pVal, '@')) {
-                                    $customerPhone = trim($pVal);
-                                    break;
+                            foreach ($candidatePhones as $pVal) {
+                                if (!empty($pVal)) {
+                                    $pTrim = trim($pVal);
+                                    // Must NOT have letters (cannot be person name) and must match phone digits pattern
+                                    if (!preg_match('/[a-zA-Z]/', $pTrim) && preg_match('/^[0-9+\-\s().]{7,25}$/', $pTrim)) {
+                                        $customerPhone = $pTrim;
+                                        break;
+                                    }
                                 }
-                            }
-                            if (empty($customerPhone)) {
-                                $customerPhone = $project->customer_pic_business ?: '087871790442';
                             }
 
-                            // 3. Resolve Customer Email
+                            // 3. Resolve Customer Email (Must contain @ and no spaces)
                             $customerEmail = null;
-                            $possibleEmails = [
+                            $candidateEmails = [
+                                $hd['customer_pic_email'] ?? null,
                                 $project->clientRecord?->email,
-                                $project->customer_pic_technical,
                                 $project->customer_pic_finance,
+                                $project->customer_pic_technical,
                                 $project->customer_pic_business,
                             ];
-                            foreach ($possibleEmails as $eVal) {
-                                if (!empty($eVal) && str_contains($eVal, '@')) {
-                                    $customerEmail = trim($eVal);
-                                    break;
+                            foreach ($candidateEmails as $eVal) {
+                                if (!empty($eVal)) {
+                                    $eTrim = trim($eVal);
+                                    if (str_contains($eTrim, '@') && !str_contains($eTrim, ' ')) {
+                                        $customerEmail = $eTrim;
+                                        break;
+                                    }
                                 }
-                            }
-                            if (empty($customerEmail)) {
-                                $customerEmail = $project->customer_pic_technical ?: 'ahmadhasanfaqih01@gmail.com';
                             }
                         @endphp
 
@@ -664,7 +670,7 @@
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
                             <h3 class="text-[13px] font-bold text-[#1E293B] uppercase tracking-wider">
-                                Timeline Siklus Kunjungan PM ({{ $pmTotal }}x Visit &bull; {{ str_replace('_', ' ', $project->pm_frequency_type ?: 'per 3 bulan') }})
+                                Timeline Siklus Kunjungan PM ({{ $pmTotal }}x Visit &bull; {{ $project->pm_frequency_label }})
                             </h3>
                         </div>
                         <div class="flex items-center gap-2">
@@ -1933,10 +1939,30 @@
                         <div>
                             <label class="block text-xs font-semibold text-[#334155] mb-1">Frekuensi Preventive Maintenance (PM) <span class="text-[#8F0A0D]">*</span></label>
                             <select name="pm_frequency_type" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="per_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_bulan' ? 'selected' : '' }}>Per Bulan (12 Kali/Tahun)</option>
-                                <option value="per_2_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_2_bulan' ? 'selected' : '' }}>Per 2 Bulan (6 Kali/Tahun)</option>
-                                <option value="per_3_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_3_bulan' ? 'selected' : '' }}>Per 3 Bulan / Quarterly (4 Kali/Tahun)</option>
-                                <option value="per_4_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_4_bulan' ? 'selected' : '' }}>Per 4 Bulan (3 Kali/Tahun)</option>
+                                <optgroup label="Periode Kontrak 1 Tahun">
+                                    <option value="1_thn_1_bln" {{ in_array($project->pm_frequency_type ?? '', ['1_thn_1_bln', 'per_bulan']) ? 'selected' : '' }}>1 Tahun - Setiap Bulan (12x)</option>
+                                    <option value="1_thn_2_bln" {{ in_array($project->pm_frequency_type ?? '', ['1_thn_2_bln', 'per_2_bulan']) ? 'selected' : '' }}>1 Tahun - Per 2 Bulan (6x)</option>
+                                    <option value="1_thn_3_bln" {{ in_array($project->pm_frequency_type ?? '1_thn_3_bln', ['1_thn_3_bln', 'per_3_bulan']) ? 'selected' : '' }}>1 Tahun - Per 3 Bulan (4x)</option>
+                                    <option value="1_thn_4_bln" {{ in_array($project->pm_frequency_type ?? '', ['1_thn_4_bln', 'per_4_bulan']) ? 'selected' : '' }}>1 Tahun - Per 4 Bulan (3x)</option>
+                                    <option value="1_thn_6_bln" {{ in_array($project->pm_frequency_type ?? '', ['1_thn_6_bln', 'per_6_bulan']) ? 'selected' : '' }}>1 Tahun - Per 6 Bulan (2x)</option>
+                                    <option value="1_thn_12_bln" {{ in_array($project->pm_frequency_type ?? '', ['1_thn_12_bln', 'tahunan']) ? 'selected' : '' }}>1 Tahun - Per 12 Bulan (1x)</option>
+                                </optgroup>
+                                <optgroup label="Periode Kontrak 2 Tahun">
+                                    <option value="2_thn_1_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_1_bln' ? 'selected' : '' }}>2 Tahun - Setiap Bulan (24x)</option>
+                                    <option value="2_thn_2_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_2_bln' ? 'selected' : '' }}>2 Tahun - Per 2 Bulan (12x)</option>
+                                    <option value="2_thn_3_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_3_bln' ? 'selected' : '' }}>2 Tahun - Per 3 Bulan (8x)</option>
+                                    <option value="2_thn_4_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_4_bln' ? 'selected' : '' }}>2 Tahun - Per 4 Bulan (6x)</option>
+                                    <option value="2_thn_6_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_6_bln' ? 'selected' : '' }}>2 Tahun - Per 6 Bulan (4x)</option>
+                                    <option value="2_thn_12_bln" {{ ($project->pm_frequency_type ?? '') == '2_thn_12_bln' ? 'selected' : '' }}>2 Tahun - Per 12 Bulan (2x)</option>
+                                </optgroup>
+                                <optgroup label="Periode Kontrak 3 Tahun">
+                                    <option value="3_thn_1_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_1_bln' ? 'selected' : '' }}>3 Tahun - Setiap Bulan (36x)</option>
+                                    <option value="3_thn_2_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_2_bln' ? 'selected' : '' }}>3 Tahun - Per 2 Bulan (18x)</option>
+                                    <option value="3_thn_3_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_3_bln' ? 'selected' : '' }}>3 Tahun - Per 3 Bulan (12x)</option>
+                                    <option value="3_thn_4_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_4_bln' ? 'selected' : '' }}>3 Tahun - Per 4 Bulan (9x)</option>
+                                    <option value="3_thn_6_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_6_bln' ? 'selected' : '' }}>3 Tahun - Per 6 Bulan (6x)</option>
+                                    <option value="3_thn_12_bln" {{ ($project->pm_frequency_type ?? '') == '3_thn_12_bln' ? 'selected' : '' }}>3 Tahun - Per 12 Bulan (3x)</option>
+                                </optgroup>
                             </select>
                         </div>
                     </div>

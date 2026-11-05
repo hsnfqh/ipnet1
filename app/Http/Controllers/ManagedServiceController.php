@@ -1579,6 +1579,8 @@ class ManagedServiceController extends Controller
             'client'                    => 'required|string|max:255',
             'customer_pic'              => 'nullable|string|max:255',
             'customer_pic_phone'        => 'nullable|string|max:50',
+            'customer_pic_email'        => 'nullable|string|max:100',
+            'bast_handover_type'        => 'nullable|string|max:50',
             'location'                  => 'nullable|string|max:255',
             'sales_name'                => 'nullable|string|max:255',
             'po_spk_number'             => 'nullable|string|max:100',
@@ -1627,13 +1629,28 @@ class ManagedServiceController extends Controller
         // PM Total Cycles Default
         $freq = $validated['pm_frequency_type'];
         $freqCycles = match($freq) {
-            'per_bulan'   => 12,
-            'per_2_bulan' => 6,
-            'per_3_bulan' => 4,
-            'per_4_bulan' => 3,
-            'per_6_bulan' => 2,
-            'tahunan'     => 1,
-            default       => 4,
+            // Kontrak 1 Tahun
+            '1_thn_1_bln', 'per_bulan'   => 12,
+            '1_thn_2_bln', 'per_2_bulan' => 6,
+            '1_thn_3_bln', 'per_3_bulan' => 4,
+            '1_thn_4_bln', 'per_4_bulan' => 3,
+            '1_thn_6_bln', 'per_6_bulan' => 2,
+            '1_thn_12_bln', 'tahunan'    => 1,
+            // Kontrak 2 Tahun
+            '2_thn_1_bln'                => 24,
+            '2_thn_2_bln'                => 12,
+            '2_thn_3_bln'                => 8,
+            '2_thn_4_bln'                => 6,
+            '2_thn_6_bln'                => 4,
+            '2_thn_12_bln'               => 2,
+            // Kontrak 3 Tahun
+            '3_thn_1_bln'                => 36,
+            '3_thn_2_bln'                => 18,
+            '3_thn_3_bln'                => 12,
+            '3_thn_4_bln'                => 9,
+            '3_thn_6_bln'                => 6,
+            '3_thn_12_bln'               => 3,
+            default                      => 4,
         };
         $totalCycles = !empty($validated['pm_total_cycles']) ? (int) $validated['pm_total_cycles'] : $freqCycles;
 
@@ -1701,6 +1718,8 @@ class ManagedServiceController extends Controller
             'assigned_teams'         => $cleanTeams,
             'customer_pic'           => $validated['customer_pic'] ?? null,
             'customer_pic_phone'     => $validated['customer_pic_phone'] ?? null,
+            'customer_pic_email'     => $validated['customer_pic_email'] ?? null,
+            'bast_handover_type'     => $validated['bast_handover_type'] ?? 'am_to_ms',
             'notes'                  => $validated['description'] ?? null,
             'assigned_engineers'     => [],
             'ms_signature'           => [
@@ -1716,7 +1735,8 @@ class ManagedServiceController extends Controller
             'name'                      => $validated['name'],
             'client'                    => $validated['client'],
             'customer_pic_technical'    => $validated['customer_pic'] ?? null,
-            'customer_pic_business'     => $validated['customer_pic'] ?? null,
+            'customer_pic_business'     => $validated['customer_pic_phone'] ?? null,
+            'customer_pic_finance'      => $validated['customer_pic_email'] ?? null,
             'location'                  => $validated['location'] ?? null,
             'sales_name'                => $salesName,
             'pm_id'                     => $pmId,
@@ -1751,8 +1771,13 @@ class ManagedServiceController extends Controller
         ]);
 
         // Upload berkas dokumen kontrak / legalitas / teknis jika dilampirkan
+        $bastType = $validated['bast_handover_type'] ?? 'am_to_ms';
+        $bastDocTitle = ($bastType === 'implementation_to_ms')
+            ? 'Berita Acara Handover Implementasi ke Managed Service'
+            : 'Berita Acara Handover Account Manager ke Managed Service';
+
         $docMapping = [
-            'file_bast'     => ['key' => 'ba',          'column' => 'bast_file',     'title' => 'Berita Acara Serah Terima (BAST)'],
+            'file_bast'     => ['key' => 'ba',          'column' => 'bast_file',     'title' => $bastDocTitle],
             'file_spk'      => ['key' => 'spk',         'column' => 'po_spk_file',   'title' => 'Surat Perintah Kerja (SPK)'],
             'file_contract' => ['key' => 'contract',    'column' => 'contract_file', 'title' => 'Kontrak Layanan Managed Service'],
             'file_boq'      => ['key' => 'boq',         'column' => 'boq_file',      'title' => 'Bill of Quantity (BOQ)'],
@@ -1924,11 +1949,17 @@ class ManagedServiceController extends Controller
 
         $checklist = is_array($project->documents_checklist) ? $project->documents_checklist : [];
 
+        $hd = is_array($project->handover_data) ? $project->handover_data : [];
+        $bastType = $hd['bast_handover_type'] ?? null;
+        $bastTitle = ($bastType === 'implementation_to_ms')
+            ? 'Berita Acara Handover Implementasi ke Managed Service'
+            : 'Berita Acara Handover Account Manager ke Managed Service';
+
         return [
             'ba' => [
                 'key'         => 'ba',
-                'title'       => 'Berita Acara Serah Terima (BA / BAST / BAP)',
-                'description' => 'Bukti serah terima operasional dan milestone penagihan berkala.',
+                'title'       => $bastTitle,
+                'description' => 'Bukti serah terima operasional dan alih kelola layanan.',
                 'file_path'   => $baFilePath,
                 'file_url'    => $baFileUrl ?: ($baFilePath ? asset('storage/' . $baFilePath) : null),
                 'number'      => $baNumber,
@@ -1945,16 +1976,7 @@ class ManagedServiceController extends Controller
                 'date'        => $spkDate,
                 'verified'    => !empty($checklist['spk']) || !empty($spkFilePath) || $isHandedOver,
             ],
-            'contract' => [
-                'key'         => 'contract',
-                'title'       => 'Kontrak Perjanjian Layanan (PKS / Contract)',
-                'description' => 'Perjanjian kerja sama SLA dan pemeliharaan jangka panjang.',
-                'file_path'   => $contractFilePath,
-                'file_url'    => $contractFilePath ? asset('storage/' . $contractFilePath) : null,
-                'number'      => $contractNumber,
-                'date'        => $contractDate,
-                'verified'    => !empty($checklist['contract']) || !empty($contractFilePath) || $isHandedOver,
-            ],
+            // PKS / Kontrak di-hide sesuai permintaan: 'pks dihide aja ya jd gaus ayupload pks dan yg ud berjalan pks ny dihde saja ya'
             'boq' => [
                 'key'         => 'boq',
                 'title'       => 'Bill of Quantity (BOQ & Spesifikasi Layanan)',
@@ -2315,7 +2337,7 @@ class ManagedServiceController extends Controller
 
         $validated = $request->validate([
             'cm_quota'                  => 'required|integer|in:4,6,8,12,18,999',
-            'pm_frequency_type'         => 'required|string|in:per_bulan,per_2_bulan,per_3_bulan,per_4_bulan,per_6_bulan,tahunan,custom',
+            'pm_frequency_type'         => 'required|string',
             'pm_total_cycles'           => 'required|integer|min:1|max:120',
             'sla_target_percentage'     => 'required|numeric|min:80|max:100',
             'mttr_hours'                => 'required|integer|min:1|max:72',

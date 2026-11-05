@@ -152,7 +152,7 @@
                                 </span>
                             </div>
                             <p class="text-[15px] font-black text-[#1E293B]">{{ $pmCompleted }} / {{ $pmTotal }} Visit Selesai</p>
-                            <p class="text-[11.5px] text-[#64748B]">Frekuensi: <strong class="text-[#1E293B]">{{ str_replace('_', ' ', $project->pm_frequency_type ?: 'per 3 bulan') }}</strong></p>
+                            <p class="text-[11.5px] text-[#64748B]">Frekuensi: <strong class="text-[#1E293B]">{{ $project->pm_frequency_label }}</strong></p>
                         </div>
 
                         {{-- Card 3: Utilisasi Tiket CM --}}
@@ -244,7 +244,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
                                 <h3 class="text-[14px] font-bold text-[#1E293B] uppercase tracking-wider">
-                                    Timeline Siklus Kunjungan Proyek Ini ({{ $pmTotal }}x Visit — {{ str_replace('_', ' ', $project->pm_frequency_type ?: 'per 3 bulan') }})
+                                    Timeline Siklus Kunjungan Proyek Ini ({{ $pmTotal }}x Visit — {{ $project->pm_frequency_label }})
                                 </h3>
                             </div>
                             <div class="flex items-center gap-2">

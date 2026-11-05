@@ -185,6 +185,38 @@ class Project extends Model
         return (float) $this->expenses_list->sum('amount');
     }
 
+    public function getPmFrequencyLabelAttribute(): string
+    {
+        $map = [
+            '1_thn_1_bln'  => '1 Tahun - Setiap Bulan',
+            'per_bulan'    => '1 Tahun - Setiap Bulan',
+            '1_thn_2_bln'  => '1 Tahun - Per 2 Bulan',
+            'per_2_bulan'  => '1 Tahun - Per 2 Bulan',
+            '1_thn_3_bln'  => '1 Tahun - Per 3 Bulan',
+            'per_3_bulan'  => '1 Tahun - Per 3 Bulan',
+            '1_thn_4_bln'  => '1 Tahun - Per 4 Bulan',
+            'per_4_bulan'  => '1 Tahun - Per 4 Bulan',
+            '1_thn_6_bln'  => '1 Tahun - Per 6 Bulan',
+            'per_6_bulan'  => '1 Tahun - Per 6 Bulan',
+            '1_thn_12_bln' => '1 Tahun - Per 12 Bulan',
+            'tahunan'      => '1 Tahun - Per 12 Bulan',
+            '2_thn_1_bln'  => '2 Tahun - Setiap Bulan',
+            '2_thn_2_bln'  => '2 Tahun - Per 2 Bulan',
+            '2_thn_3_bln'  => '2 Tahun - Per 3 Bulan',
+            '2_thn_4_bln'  => '2 Tahun - Per 4 Bulan',
+            '2_thn_6_bln'  => '2 Tahun - Per 6 Bulan',
+            '2_thn_12_bln' => '2 Tahun - Per 12 Bulan',
+            '3_thn_1_bln'  => '3 Tahun - Setiap Bulan',
+            '3_thn_2_bln'  => '3 Tahun - Per 2 Bulan',
+            '3_thn_3_bln'  => '3 Tahun - Per 3 Bulan',
+            '3_thn_4_bln'  => '3 Tahun - Per 4 Bulan',
+            '3_thn_6_bln'  => '3 Tahun - Per 6 Bulan',
+            '3_thn_12_bln' => '3 Tahun - Per 12 Bulan',
+        ];
+
+        return $map[$this->pm_frequency_type] ?? ucwords(str_replace('_', ' ', $this->pm_frequency_type ?? 'Per 3 Bulan'));
+    }
+
     public function getRemainingBudgetAttribute(): float
     {
         $contract = (float) ($this->contract_value ?? $this->quotation_amount ?? 0);

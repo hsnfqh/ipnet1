@@ -194,7 +194,7 @@
                                                 @if($p->pm_frequency_type)
                                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]">
                                                         <svg class="w-3 h-3 text-[#4F46E5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                                        <span>PM: {{ str_replace('_', ' ', $p->pm_frequency_type) }}</span>
+                                                        <span>PM: {{ $p->pm_frequency_label }}</span>
                                                     </span>
                                                 @endif
                                                 @if($p->project_type && !in_array($p->project_type, ['Managed Service SLA', 'Managed Service']))
@@ -580,7 +580,7 @@
                              slaPercentage: 99.50,
                              mttrHours: 4,
                              callResponseTime: '30 Menit',
-                             pmFrequency: 'per_3_bulan',
+                             pmFrequency: '1_thn_3_bln',
                              pmCycles: 4,
                              cmQuota: 12,
                              startDate: '{{ now()->format('Y-m-d') }}',
@@ -631,12 +631,27 @@
 
                              updateFrequencyCycles() {
                                  const map = {
-                                     'per_bulan': 12,
-                                     'per_2_bulan': 6,
-                                     'per_3_bulan': 4,
-                                     'per_4_bulan': 3,
-                                     'per_6_bulan': 2,
-                                     'tahunan': 1
+                                     // Kontrak 1 Tahun
+                                     '1_thn_1_bln': 12, 'per_bulan': 12,
+                                     '1_thn_2_bln': 6,  'per_2_bulan': 6,
+                                     '1_thn_3_bln': 4,  'per_3_bulan': 4,
+                                     '1_thn_4_bln': 3,  'per_4_bulan': 3,
+                                     '1_thn_6_bln': 2,  'per_6_bulan': 2,
+                                     '1_thn_12_bln': 1, 'tahunan': 1,
+                                     // Kontrak 2 Tahun
+                                     '2_thn_1_bln': 24,
+                                     '2_thn_2_bln': 12,
+                                     '2_thn_3_bln': 8,
+                                     '2_thn_4_bln': 6,
+                                     '2_thn_6_bln': 4,
+                                     '2_thn_12_bln': 2,
+                                     // Kontrak 3 Tahun
+                                     '3_thn_1_bln': 36,
+                                     '3_thn_2_bln': 18,
+                                     '3_thn_3_bln': 12,
+                                     '3_thn_4_bln': 9,
+                                     '3_thn_6_bln': 6,
+                                     '3_thn_12_bln': 3
                                  };
                                  if (map[this.pmFrequency]) {
                                      this.pmCycles = map[this.pmFrequency];
@@ -718,17 +733,22 @@
 
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Nama PIC Klien (Customer PIC)</label>
-                                            <input type="text" name="customer_pic" placeholder="Contoh: Bapak Irwan (Head of IT Ops)" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                            <input type="text" name="customer_pic" placeholder="Contoh: Bapak Irwan (Head of IT Ops)" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
                                         </div>
 
                                         <div class="space-y-1">
-                                            <label class="block text-xs font-bold text-slate-700">Kontak / No. Telp PIC Klien</label>
-                                            <input type="text" name="customer_pic_phone" placeholder="Contoh: 0812-3456-7890" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                            <label class="block text-xs font-bold text-slate-700">Kontak / No. Telp PIC Klien <span class="text-slate-400 font-normal">(Angka)</span></label>
+                                            <input type="tel" name="customer_pic_phone" @input="$event.target.value = $event.target.value.replace(/[^0-9+\-\s()]/g, '')" placeholder="Contoh: 0812-3456-7890" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
                                         </div>
 
-                                        <div class="space-y-1 md:col-span-2">
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Email PIC Klien</label>
+                                            <input type="email" name="customer_pic_email" placeholder="Contoh: irwan@bankmandiri.co.id" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
+                                        </div>
+
+                                        <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Lokasi / Kantor / Data Center Layanan</label>
-                                            <input type="text" name="location" placeholder="Contoh: Plaza Mandiri Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta Selatan" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                            <input type="text" name="location" placeholder="Contoh: Plaza Mandiri Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta Selatan" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
                                         </div>
                                     </div>
                                 </div>
@@ -822,7 +842,7 @@
 
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Max MTTR (Jam)</label>
-                                            <input type="number" name="mttr_hours" x-model="mttrHours" min="1" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
+                                            <input type="number" name="mttr_hours" x-model="mttrHours" min="1" max="720" @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '')" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
                                         </div>
 
                                         <div class="space-y-1">
@@ -830,26 +850,44 @@
                                             <input type="text" name="call_response_time" x-model="callResponseTime" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-semibold text-slate-800">
                                         </div>
 
-                                        <div class="space-y-1">
+                                        <div class="space-y-1 md:col-span-2">
                                             <label class="block text-xs font-bold text-slate-700">Frekuensi Kunjungan PM <span class="text-red-500">*</span></label>
-                                            <select name="pm_frequency_type" x-model="pmFrequency" @change="updateFrequencyCycles()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white">
-                                                <option value="per_bulan">Bulanan (Setiap Bulan - 12x)</option>
-                                                <option value="per_2_bulan">Bi-Monthly (Setiap 2 Bulan - 6x)</option>
-                                                <option value="per_3_bulan">Triwulan / Q-Cycle (Per 3 Bulan - 4x)</option>
-                                                <option value="per_4_bulan">Caturwulan (Per 4 Bulan - 3x)</option>
-                                                <option value="per_6_bulan">Semesteran (Per 6 Bulan - 2x)</option>
-                                                <option value="tahunan">Tahunan (Annual - 1x)</option>
+                                            <select name="pm_frequency_type" x-model="pmFrequency" @change="updateFrequencyCycles()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white font-semibold text-slate-800">
+                                                <optgroup label="Periode Kontrak 1 Tahun">
+                                                    <option value="1_thn_1_bln">1 Tahun - Setiap Bulan (12x)</option>
+                                                    <option value="1_thn_2_bln">1 Tahun - Per 2 Bulan (6x)</option>
+                                                    <option value="1_thn_3_bln">1 Tahun - Per 3 Bulan (4x)</option>
+                                                    <option value="1_thn_4_bln">1 Tahun - Per 4 Bulan (3x)</option>
+                                                    <option value="1_thn_6_bln">1 Tahun - Per 6 Bulan (2x)</option>
+                                                    <option value="1_thn_12_bln">1 Tahun - Per 12 Bulan (1x)</option>
+                                                </optgroup>
+                                                <optgroup label="Periode Kontrak 2 Tahun">
+                                                    <option value="2_thn_1_bln">2 Tahun - Setiap Bulan (24x)</option>
+                                                    <option value="2_thn_2_bln">2 Tahun - Per 2 Bulan (12x)</option>
+                                                    <option value="2_thn_3_bln">2 Tahun - Per 3 Bulan (8x)</option>
+                                                    <option value="2_thn_4_bln">2 Tahun - Per 4 Bulan (6x)</option>
+                                                    <option value="2_thn_6_bln">2 Tahun - Per 6 Bulan (4x)</option>
+                                                    <option value="2_thn_12_bln">2 Tahun - Per 12 Bulan (2x)</option>
+                                                </optgroup>
+                                                <optgroup label="Periode Kontrak 3 Tahun">
+                                                    <option value="3_thn_1_bln">3 Tahun - Setiap Bulan (36x)</option>
+                                                    <option value="3_thn_2_bln">3 Tahun - Per 2 Bulan (18x)</option>
+                                                    <option value="3_thn_3_bln">3 Tahun - Per 3 Bulan (12x)</option>
+                                                    <option value="3_thn_4_bln">3 Tahun - Per 4 Bulan (9x)</option>
+                                                    <option value="3_thn_6_bln">3 Tahun - Per 6 Bulan (6x)</option>
+                                                    <option value="3_thn_12_bln">3 Tahun - Per 12 Bulan (3x)</option>
+                                                </optgroup>
                                             </select>
                                         </div>
 
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Total Siklus PM Otomatis</label>
-                                            <input type="number" name="pm_total_cycles" x-model="pmCycles" min="1" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
+                                            <input type="number" name="pm_total_cycles" x-model="pmCycles" min="1" max="120" @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '')" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800 bg-slate-50">
                                         </div>
 
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Kuota Tiket Insiden (CM Quota)</label>
-                                            <input type="number" name="cm_quota" x-model="cmQuota" min="0" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
+                                            <input type="number" name="cm_quota" x-model="cmQuota" min="0" max="999" @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '')" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
                                         </div>
                                     </div>
                                 </div>
@@ -940,7 +978,7 @@
                                     </div>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                                        {{-- 1. BA / BAST / BAP --}}
+                                        {{-- 1. Berita Acara Serah Terima Handover --}}
                                         <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
                                              x-data="{ fileName: '' }">
                                             <div class="flex items-start gap-2.5">
@@ -949,9 +987,13 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                     </svg>
                                                 </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Berita Acara Serah Terima (BA / BAST / BAP)</h5>
-                                                    <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Bukti serah terima operasional dan milestone penagihan berkala.</p>
+                                                <div class="min-w-0 flex-1 space-y-1.5">
+                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Berita Acara Serah Terima (Handover)</h5>
+                                                    <p class="text-[11px] text-slate-500 leading-normal">Pilih jenis serah terima dan unggah berkas bukti serah terima.</p>
+                                                    <select name="bast_handover_type" class="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg focus:border-[#8F0A0D] outline-none bg-white font-semibold text-slate-800">
+                                                        <option value="am_to_ms">Handover Account Manager ke Managed Service</option>
+                                                        <option value="implementation_to_ms">Handover Implementasi ke Managed Service</option>
+                                                    </select>
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
@@ -988,29 +1030,7 @@
                                             </div>
                                         </div>
 
-                                        {{-- 3. Kontrak Perjanjian Layanan (PKS / Contract) --}}
-                                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
-                                             x-data="{ fileName: '' }">
-                                            <div class="flex items-start gap-2.5">
-                                                <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                                    </svg>
-                                                </div>
-                                                <div class="min-w-0 flex-1">
-                                                    <h5 class="text-xs font-bold text-slate-800 leading-tight">Kontrak Perjanjian Layanan (PKS / Contract)</h5>
-                                                    <p class="text-[11px] text-slate-500 leading-normal mt-0.5">Perjanjian kerja sama SLA dan pemeliharaan jangka panjang.</p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center gap-2 pt-1 border-t border-slate-200/60">
-                                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition shadow-2xs shrink-0">
-                                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span x-text="fileName ? 'Ganti Berkas' : 'Upload Berkas'">Upload Berkas</span>
-                                                    <input type="file" name="file_contract" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''">
-                                                </label>
-                                                <span class="text-[11px] text-slate-500 truncate font-medium" x-text="fileName || 'Belum ada file dipilih'">Belum ada file dipilih</span>
-                                            </div>
-                                        </div>
+{{-- PKS Card di-hide sesuai permintaan user --}}
 
                                         {{-- 4. Bill of Quantity (BOQ & Spesifikasi Layanan) --}}
                                         <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col justify-between gap-3"
