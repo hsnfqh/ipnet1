@@ -1451,7 +1451,7 @@ class PmoController extends Controller
             $project->handover_data = $handoverData;
             $project->save();
 
-            return redirect()->route('pmo.projects.dashboard', ['project' => $project->id, 'tab' => 'actual_progress'])
+            return redirect()->route('pmo.projects.show', ['project' => $project->id, 'tab' => 'actual_progress'])
                 ->with('success', 'Progres aktual per task berhasil disimpan!');
         }
 
@@ -1484,7 +1484,7 @@ class PmoController extends Controller
 
         $project->save();
 
-        return redirect()->route('pmo.projects.dashboard', ['project' => $project->id, 'tab' => 'actual_progress'])
+        return redirect()->route('pmo.projects.show', ['project' => $project->id, 'tab' => 'actual_progress'])
             ->with('success', 'Actual Progress matrix berhasil diperbarui dan disinkronkan ke Kurva S!');
     }
 

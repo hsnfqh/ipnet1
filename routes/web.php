@@ -1174,6 +1174,7 @@ Route::middleware(['auth'])->group(function () {
             return redirect()->route('pmo.implementations.index')->with('error', 'Proyek PPATK tidak ditemukan.');
         })->name('pmo.projects.ppatk');
         Route::get('/projects/{project}', [PmoController::class, 'projectDashboard'])->name('pmo.projects.show');
+        Route::get('/projects/{project}/dashboard', [PmoController::class, 'projectDashboard'])->name('pmo.projects.dashboard');
         Route::post('/projects/create-manual', [PmoController::class, 'storeManualProject'])->name('pmo.projects.store_manual');
         Route::post('/projects/{project}/expenses', [PmoController::class, 'storeExpense'])->name('pmo.projects.expenses.store');
         Route::delete('/projects/{project}/expenses/{expenseId}', [PmoController::class, 'destroyExpense'])->name('pmo.projects.expenses.destroy');
