@@ -761,7 +761,7 @@
                                         </div>
                                     @else
                                         @php
-                                            $isDone = $node['status'] === 'Completed';
+                                            $isDone = in_array($node['status'], ['Completed', 'Solved', 'Resolved', 'Closed']);
                                             $isInProg = $node['status'] === 'In Progress';
                                         @endphp
                                         <div class="relative z-10 flex flex-col items-center text-center cursor-pointer group"
@@ -831,7 +831,7 @@
                                                         <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
                                                     @else
                                                         @php
-                                                            $isDone = $node['status'] === 'Completed';
+                                                            $isDone = in_array($node['status'], ['Completed', 'Solved', 'Resolved', 'Closed']);
                                                             $isInProg = $node['status'] === 'In Progress';
                                                         @endphp
                                                         <div class="cursor-pointer group flex flex-col items-center"
@@ -941,7 +941,7 @@
                                                             <div class="w-5 h-5 rounded-full bg-red-50 text-[#8F0A0D] font-bold text-[9.5px] flex items-center justify-center border border-red-200 shrink-0">
                                                                 {{ strtoupper(substr(trim($ae['name'] ?? 'E'), 0, 1)) }}
                                                             </div>
-                                                            <span class="font-semibold text-slate-800 text-[11.5px] truncate max-w-[140px]">{{ $ae['name'] ?? '-' }}</span>
+                                                            <span class="font-semibold text-slate-800 text-[11.5px] truncate max-w-[140px]">{{ explode(' ', $ae['name'] ?? '-')[0] }}</span>
                                                         </div>
                                                     @endforeach
                                                     @if(count($engList) > 2)
@@ -953,7 +953,7 @@
                                                     <div class="w-6 h-6 rounded-full bg-red-50 text-[#8F0A0D] font-bold text-[10.5px] flex items-center justify-center border border-red-200 shadow-2xs shrink-0">
                                                         {{ strtoupper(substr(trim($fallbackName), 0, 1)) ?: 'E' }}
                                                     </div>
-                                                    <span class="font-semibold text-slate-800 text-[12px]">{{ $fallbackName }}</span>
+                                                    <span class="font-semibold text-slate-800 text-[12px]">{{ explode(' ', $fallbackName ?? '-')[0] }}</span>
                                                 </div>
                                             @endif
                                         </td>
