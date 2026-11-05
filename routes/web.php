@@ -756,6 +756,19 @@ Route::get('/seed-ppatk-project', function () {
         ], 500);
     }
 });
+Route::get('/debug-ms-projects', function() {
+    $projects = \App\Models\Project::withTrashed()->get(['id', 'name', 'client', 'stage', 'status', 'handover_target', 'ms_handover_status', 'project_type', 'deleted_at']);
+    $tickets = \App\Models\ManagedServiceTicket::all(['id', 'ticket_number', 'project_id', 'type', 'status']);
+    $cycles = \App\Models\ManagedServicePmCycle::all(['id', 'cycle_number', 'project_id', 'activity_status']);
+    $assets = \App\Models\ManagedServiceAsset::all(['id', 'device_name', 'project_id']);
+    return response()->json([
+        'projects' => $projects,
+        'tickets'  => $tickets,
+        'cycles'   => $cycles,
+        'assets'   => $assets,
+    ]);
+});
+
 // Route Helper untuk membersihkan seluruh data operasional & dummy di modul Maintenance / Managed Service
 Route::get('/clean-maintenance-data', function () {
     try {
