@@ -1756,11 +1756,11 @@
                             </div>
                         </div>
 
-                        {{-- KOLOM ENGINEER: Dikelompokkan (Network, Security, dll), Bentuk Dropdown Frekuensi, Multi-Select --}}
+                        {{-- KOLOM ENGINEER: Dikelompokkan (Tim Network & Tim Security), Bentuk Dropdown, Multi-Select --}}
                         <div class="relative">
                             <div class="flex items-center justify-between mb-1">
                                 <label class="block text-xs font-semibold text-[#334155]">
-                                    Engineer Pelaksana Lapangan <span class="text-[10.5px] font-normal text-slate-400">(Dapat pilih lebih dari 1)</span>
+                                    Engineer Pelaksana Lapangan
                                 </label>
                                 <span class="text-[10.5px] font-bold text-[#8F0A0D]" x-show="selectedEngineers.length > 0" x-text="selectedEngineers.length + ' Dipilih'"></span>
                             </div>
@@ -1771,7 +1771,7 @@
                                     class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-[#1E293B] flex items-center justify-between text-left focus:border-[#8F0A0D] transition shadow-2xs cursor-pointer">
                                 <span class="truncate" x-text="
                                     selectedEngineers.length === 0 
-                                        ? '-- Pilih Engineer Lapangan (Dapat > 1) --' 
+                                        ? 'Pilih Engineer Lapangan' 
                                         : (selectedEngineers.length === 1 
                                             ? (allEngineerMap[selectedEngineers[0]] || '1 Engineer Dipilih') 
                                             : selectedEngineers.length + ' Engineer Dipilih (' + selectedEngineers.map(id => allEngineerMap[id]).filter(Boolean).slice(0, 2).join(', ') + (selectedEngineers.length > 2 ? ' +' + (selectedEngineers.length - 2) : '') + ')')

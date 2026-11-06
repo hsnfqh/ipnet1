@@ -2551,23 +2551,31 @@ class ManagedServiceController extends Controller
 
         $engineers = $allEngineers;
 
-        $groupedEngineers = $allEngineers->groupBy(function($user) {
-            $divName = $user->division?->name;
-            if ($divName) {
-                if (stripos($divName, 'Network') !== false) return 'Divisi Network';
-                if (stripos($divName, 'Security') !== false) return 'Divisi Security';
-                if (stripos($divName, 'Maintenance') !== false || stripos($divName, 'Helpdesk') !== false || stripos($divName, 'Managed') !== false) return 'Divisi Maintenance & Managed Service';
-                return $divName;
-            }
+        // Filter personil teknis lapangan: Hanya Tim Network dan Tim Security (Maintenance ditiadakan dari pilihan ini sesuai request user)
+        $groupedEngineers = $allEngineers->filter(function($user) {
+            $divName = $user->division?->name ?? '';
             $roles = method_exists($user, 'roles') ? $user->roles->pluck('name')->toArray() : [];
             $pos = strtolower($user->position ?? '');
-            if (in_array('Security Engineer', $roles) || str_contains($pos, 'security')) return 'Divisi Security';
-            if (in_array('Network Engineer', $roles) || str_contains($pos, 'network')) return 'Divisi Network';
+
+            // Abaikan divisi maintenance / helpdesk / field support / managed service
             if (in_array('Lead Maintenance', $roles) || in_array('Maintenance', $roles) || in_array('Field Support', $roles) || in_array('Field Support (EOS)', $roles) || in_array('Managed Service', $roles) || str_contains($pos, 'maintenance') || str_contains($pos, 'field')) {
-                return 'Divisi Maintenance & Managed Service';
+                return false;
             }
-            return 'Tim Teknis & Lapangan';
-        });
+            if (stripos($divName, 'Maintenance') !== false || stripos($divName, 'Helpdesk') !== false || stripos($divName, 'Managed') !== false) {
+                return false;
+            }
+
+            return true;
+        })->groupBy(function($user) {
+            $divName = $user->division?->name ?? '';
+            $roles = method_exists($user, 'roles') ? $user->roles->pluck('name')->toArray() : [];
+            $pos = strtolower($user->position ?? '');
+
+            if (stripos($divName, 'Security') !== false || in_array('Security Engineer', $roles) || str_contains($pos, 'security')) {
+                return 'Tim Security';
+            }
+            return 'Tim Network';
+        })->sortKeys();
 
         // PIC Managed Service resmi: Eris, Mario, Doris
         $picMsUsers = User::where('status', 'Active')
@@ -2584,21 +2592,31 @@ class ManagedServiceController extends Controller
             $picMsUsers = User::whereIn('name', ['Eris', 'Mario', 'Doris'])->get(['id', 'name', 'position']);
         }
 
-        // Daftar Lead Engineer Resmi: Hanya Nugraha Pratama dan Novan
+        // Daftar Lead Engineer Resmi: Hanya Nugraha Pratama dan Novan (Hanya 1 Novan)
         $leadEngineers = User::where('status', 'Active')
             ->where(function($q) {
-                $q->where('name', 'like', '%Nugraha%')
-                  ->orWhere('name', 'like', '%Novan%')
-                  ->orWhere('email', 'like', '%nugraha%')
-                  ->orWhere('email', 'like', '%novan%');
+                $q->where('name', 'Novan')
+                  ->orWhere('name', 'Nugraha Pratama')
+                  ->orWhere('email', 'novan@ipnetsolusindo.com')
+                  ->orWhere('email', 'nugraha@ipnetsolusindo.com');
             })
+            ->where('name', 'not like', '%Pudjirachmanto%')
+            ->where('email', 'not like', '%pudjirachmanto%')
             ->orderBy('name')
-            ->get(['id', 'name', 'position']);
+            ->get(['id', 'name', 'position'])
+            ->unique('name')
+            ->values();
 
         if ($leadEngineers->isEmpty()) {
-            $leadEngineers = User::where('name', 'like', '%Nugraha%')
-                ->orWhere('name', 'like', '%Novan%')
-                ->get(['id', 'name', 'position']);
+            $leadEngineers = User::where(function($q) {
+                $q->where('name', 'Novan')
+                  ->orWhere('name', 'Nugraha Pratama')
+                  ->orWhere('email', 'novan@ipnetsolusindo.com');
+            })
+            ->where('name', 'not like', '%Pudjirachmanto%')
+            ->get(['id', 'name', 'position'])
+            ->unique('name')
+            ->values();
         }
 
         return view('managed_service.project_detail', compact(
