@@ -72,9 +72,13 @@
         },
         clearPmFile(slot) {
             if (slot === 1) {
+                const inp = document.getElementById('pm_file_input_1');
+                if (inp) inp.value = '';
                 if (this.$refs.pmFileInput1) this.$refs.pmFileInput1.value = '';
                 this.pmFile1 = null;
             } else if (slot === 2) {
+                const inp = document.getElementById('pm_file_input_2');
+                if (inp) inp.value = '';
                 if (this.$refs.pmFileInput2) this.$refs.pmFileInput2.value = '';
                 this.pmFile2 = null;
             }
@@ -93,6 +97,10 @@
             this.isSavingPm = false;
             this.pmFile1 = null;
             this.pmFile2 = null;
+            const inp1 = document.getElementById('pm_file_input_1');
+            if (inp1) inp1.value = '';
+            const inp2 = document.getElementById('pm_file_input_2');
+            if (inp2) inp2.value = '';
             if (this.$refs.pmFileInput1) this.$refs.pmFileInput1.value = '';
             if (this.$refs.pmFileInput2) this.$refs.pmFileInput2.value = '';
             this.isPmModalOpen = true;
@@ -1898,9 +1906,9 @@
                                 <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">Maks. 50 MB / Berkas</span>
                             </div>
 
-                            {{-- Hidden native inputs with dynamic Alpine name binding so empty slots don't send empty files --}}
-                            <input type="file" :name="pmFile1 ? 'report_files[]' : null" x-ref="pmFileInput1" @change="handlePmFile($event, 1)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden">
-                            <input type="file" :name="pmFile2 ? 'report_files[]' : null" x-ref="pmFileInput2" @change="handlePmFile($event, 2)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden">
+                            {{-- Hidden native inputs with unique ID --}}
+                            <input type="file" id="pm_file_input_1" :name="pmFile1 ? 'report_files[]' : null" x-ref="pmFileInput1" @change="handlePmFile($event, 1)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden">
+                            <input type="file" id="pm_file_input_2" :name="pmFile2 ? 'report_files[]' : null" x-ref="pmFileInput2" @change="handlePmFile($event, 2)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden">
 
                             {{-- Symmetrical 2-Column Upload Cards Grid --}}
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1919,16 +1927,16 @@
                                         </span>
                                     </div>
 
-                                    {{-- Slot 1 Empty / Drop state --}}
-                                    <div x-show="!pmFile1" 
-                                         @click="$refs.pmFileInput1.click()" 
-                                         class="h-[84px] border-2 border-dashed border-slate-200 hover:border-[#8F0A0D] rounded-xl p-2.5 flex flex-col items-center justify-center text-center cursor-pointer transition bg-white/80 hover:bg-white group">
-                                        <div class="w-7 h-7 mb-1 rounded-lg bg-red-50 text-[#8F0A0D] group-hover:scale-110 flex items-center justify-center transition shrink-0">
+                                    {{-- Slot 1 Empty / Drop state using native label trigger --}}
+                                    <label for="pm_file_input_1" 
+                                           x-show="!pmFile1" 
+                                           class="h-[84px] border-2 border-dashed border-slate-200 hover:border-[#8F0A0D] rounded-xl p-2.5 flex flex-col items-center justify-center text-center cursor-pointer transition bg-white/80 hover:bg-white group select-none">
+                                        <div class="w-7 h-7 mb-1 rounded-lg bg-red-50 text-[#8F0A0D] group-hover:scale-110 flex items-center justify-center transition shrink-0 pointer-events-none">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                                         </div>
-                                        <p class="text-[11px] font-bold text-slate-700 group-hover:text-[#8F0A0D]">Pilih Berkas 1</p>
-                                        <p class="text-[9.5px] text-slate-400">PDF / Dokumen PM</p>
-                                    </div>
+                                        <p class="text-[11px] font-bold text-slate-700 group-hover:text-[#8F0A0D] pointer-events-none">Pilih Berkas 1</p>
+                                        <p class="text-[9.5px] text-slate-400 pointer-events-none">PDF / Dokumen PM</p>
+                                    </label>
 
                                     {{-- Slot 1 Selected state --}}
                                     <div x-show="pmFile1" class="h-[84px] p-2.5 rounded-xl bg-white border border-emerald-200 shadow-2xs flex items-center justify-between">
@@ -1960,16 +1968,16 @@
                                         </span>
                                     </div>
 
-                                    {{-- Slot 2 Empty / Drop state --}}
-                                    <div x-show="!pmFile2" 
-                                         @click="$refs.pmFileInput2.click()" 
-                                         class="h-[84px] border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-xl p-2.5 flex flex-col items-center justify-center text-center cursor-pointer transition bg-white/80 hover:bg-white group">
-                                        <div class="w-7 h-7 mb-1 rounded-lg bg-blue-50 text-blue-600 group-hover:scale-110 flex items-center justify-center transition shrink-0">
+                                    {{-- Slot 2 Empty / Drop state using native label trigger --}}
+                                    <label for="pm_file_input_2" 
+                                           x-show="!pmFile2" 
+                                           class="h-[84px] border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-xl p-2.5 flex flex-col items-center justify-center text-center cursor-pointer transition bg-white/80 hover:bg-white group select-none">
+                                        <div class="w-7 h-7 mb-1 rounded-lg bg-blue-50 text-blue-600 group-hover:scale-110 flex items-center justify-center transition shrink-0 pointer-events-none">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                                         </div>
-                                        <p class="text-[11px] font-bold text-slate-700 group-hover:text-blue-600">Pilih Berkas 2</p>
-                                        <p class="text-[9.5px] text-slate-400">BAP / Foto / Arsip</p>
-                                    </div>
+                                        <p class="text-[11px] font-bold text-slate-700 group-hover:text-blue-600 pointer-events-none">Pilih Berkas 2</p>
+                                        <p class="text-[9.5px] text-slate-400 pointer-events-none">BAP / Foto / Arsip</p>
+                                    </label>
 
                                     {{-- Slot 2 Selected state --}}
                                     <div x-show="pmFile2" class="h-[84px] p-2.5 rounded-xl bg-white border border-emerald-200 shadow-2xs flex items-center justify-between">
