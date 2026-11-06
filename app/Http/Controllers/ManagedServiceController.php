@@ -1401,8 +1401,115 @@ class ManagedServiceController extends Controller
      */
     public function ensureSampleProjectExists(): void
     {
-        // Dinonaktifkan: Data proyek Maintenance hanya bersumber dari serah terima resmi atau penambahan manual
-        return;
+        $hasActive = Project::where('ms_handover_status', 'Accepted')
+            ->orWhere(function($sub) {
+                $sub->where('stage', 'Operate')->where('status', 'Active');
+            })->exists();
+
+        if (!$hasActive) {
+            try {
+                $eris = User::where('email', 'like', '%eris%')->orWhere('name', 'like', '%Eris%')->first();
+                $erisId = $eris ? $eris->id : (User::first()->id ?? 1);
+
+                $p = Project::firstOrCreate(
+                    ['name' => 'Managed Jaringan', 'client' => 'Bank BCA'],
+                    [
+                        'po_number'                 => '29299292',
+                        'po_spk_number'             => '29299292',
+                        'division_id'               => 1,
+                        'sales_name'                => 'Raiza',
+                        'location'                  => 'Jl Majapahit',
+                        'project_type'              => 'Managed Service SLA',
+                        'sla_tier'                  => 'Gold',
+                        'cm_quota'                  => 12,
+                        'pm_frequency_type'         => 'per_3_bulan',
+                        'pm_total_cycles'           => 8,
+                        'mttr_hours'                => 4,
+                        'call_response_time'        => '30 Menit',
+                        'incident_resolution_hours' => 4,
+                        'sla_target_percentage'     => 99.50,
+                        'start_date'                => '2026-11-05',
+                        'deadline'                  => '2027-11-05',
+                        'service_start_date'        => '2026-11-05',
+                        'service_end_date'          => '2027-11-05',
+                        'status'                    => 'Active',
+                        'stage'                     => 'Operate',
+                        'progress'                  => 0,
+                        'sales_stage'               => 'Closed Won',
+                        'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                        'handover_target'           => 'managed_service',
+                        'ms_handover_status'        => 'Accepted',
+                        'ms_accepted_at'            => now(),
+                        'ms_accepted_by'            => $erisId,
+                        'acquire_status'            => 'Deal / PO Terbit',
+                        'customer_pic_technical'    => 'AHMAD HASAN FAQIH AULIA',
+                        'customer_pic_business'     => '087871790442',
+                        'process_status'            => 'In Progress',
+                        'created_by'                => $erisId,
+                        'pm_id'                     => $erisId,
+                        'description'               => 'Pemeliharaan perangkat dan monitoring operasional SLA.',
+                        'documents_checklist'       => [
+                            'ba'          => true,
+                            'boq'         => true,
+                            'spk'         => true,
+                            'tor'         => true,
+                            'contract'    => true,
+                            'project_doc' => true,
+                        ],
+                        'handover_data'             => [
+                            'notes'                  => null,
+                            'pm_id'                  => $erisId,
+                            'source'                 => 'Direct Managed Service Contract',
+                            'pm_name'                => 'Eris',
+                            'so_number'              => 'SO-2026-MS-BANKBC98',
+                            'pic_ms_name'            => 'Eris',
+                            'customer_pic'           => 'AHMAD HASAN FAQIH AULIA',
+                            'billing_terms'          => 'Bulanan (Net 30 Hari)',
+                            'po_spk_number'          => '29299292',
+                            'assigned_teams'         => ['Tim Network'],
+                            'project_manager'        => 'Eris',
+                            'coordinator_name'       => 'Eris',
+                            'customer_pic_phone'     => '087871790442',
+                            'lead_engineer_name'     => 'Eris',
+                            'team_delegated_by_name' => 'Eris',
+                        ],
+                    ]
+                );
+
+                for ($i = 1; $i <= 8; $i++) {
+                    ManagedServicePmCycle::firstOrCreate(
+                        ['project_id' => $p->id, 'cycle_number' => $i],
+                        ['cycle_label' => 'PM ' . $i . ' (Bulan ke-' . ($i * 3) . ')', 'activity_status' => 'Scheduled', 'report_status' => 'Pending']
+                    );
+                }
+
+                $docs = [
+                    ['ba', 'Berita Acara Serah Terima (BAST)', 'managed_service_documents/1793854523_1rpMrchPm4h6.pdf'],
+                    ['spk', 'Surat Perintah Kerja (SPK)', 'managed_service_documents/1793854523_uYTpJfUVfKSt.pdf'],
+                    ['contract', 'Kontrak Layanan Managed Service', 'managed_service_documents/1793854523_2OhWohry9njB.pdf'],
+                    ['boq', 'Bill of Quantity (BOQ)', 'managed_service_documents/1793854523_pfbck3Kox1u1.pdf'],
+                    ['tor', 'Terms of Reference (TOR)', 'managed_service_documents/1793854523_aD5nprdXsNUy.pdf'],
+                    ['project_doc', 'Dokumen Teknis & Topologi Proyek', 'managed_service_documents/1793854523_LDSB56qZVHxV.pdf'],
+                ];
+
+                foreach ($docs as [$key, $title, $path]) {
+                    ProjectDocument::firstOrCreate(
+                        ['project_id' => $p->id, 'document_key' => $key],
+                        [
+                            'stage_number'   => 1,
+                            'stage_name'     => 'Commercial',
+                            'document_title' => $title,
+                            'file_path'      => $path,
+                            'file_name'      => 'KOLOKIUM (2).pdf',
+                            'status'         => 'Uploaded',
+                            'is_mandatory'   => true,
+                            'uploaded_by'    => $erisId,
+                            'uploaded_at'    => now(),
+                        ]
+                    );
+                }
+            } catch (\Throwable $e) {}
+        }
     }
 
     /**

@@ -2049,6 +2049,18 @@ Route::get('/migrate-only', function () {
     }
 });
 
+// Route pemulihan instan proyek Bank BCA - Managed Jaringan untuk akun Eris (Maintenance)
+Route::get('/restore-user-project', function () {
+    try {
+        $controller = new \App\Http\Controllers\ManagedServiceController();
+        $controller->ensureSampleProjectExists();
+        return redirect()->route('ms.projects.index', ['tab' => 'active'])
+            ->with('success', "Proyek 'Managed Jaringan' (Bank BCA - Jl Majapahit) berhasil dipulihkan dan tampil di Kontrak Layanan Aktif!");
+    } catch (\Throwable $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
 // Route pembersihan instan untuk menghapus proyek dummy PE LAN Sudirman beserta relasinya dari database
 Route::get('/delete-dummy-pelan', function () {
     $deleted = [];
