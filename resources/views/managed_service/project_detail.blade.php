@@ -637,7 +637,7 @@
                         @foreach($documents as $docKey => $doc)
                             @php
                                 $hasDocFile = !empty($doc['file_path']) || !empty($doc['file_url']);
-                                $viewUrl = !empty($doc['file_url']) ? $doc['file_url'] : (!empty($doc['file_path']) ? asset('storage/' . $doc['file_path']) : null);
+                                $viewUrl = !empty($doc['file_url']) ? $doc['file_url'] : (!empty($doc['file_path']) ? (str_starts_with($doc['file_path'], 'assets/') ? asset($doc['file_path']) : asset('storage/' . $doc['file_path'])) : null);
                             @endphp
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-[#E2E8F0] hover:border-[#CBD5E1] bg-white transition shadow-2xs">
                                 <div class="flex items-start gap-3 min-w-0">

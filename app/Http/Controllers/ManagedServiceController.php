@@ -1500,30 +1500,40 @@ class ManagedServiceController extends Controller
                 [
                     'match_key'                 => 'Router Edge LAN (PE LAN) Sudirman',
                     'name'                      => 'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman',
-                    'client'                    => 'PT. Bank Rakyat Indoensia Tbk (BRI)',
-                    'sales_name'                => 'Raiza',
-                    'location'                  => 'Jl. Jenderal Sudirman Kav. 44-46, Jakarta Pusat',
+                    'client'                    => 'PT. Bank Rakyat Indonesia (Persero) Tbk',
+                    'sales_name'                => 'Raiza Maindoka',
+                    'presales_name'             => 'Akbar',
+                    'location'                  => 'DC Sudirman (Gedung BRI 1 Sudirman, Jakarta Pusat)',
                     'project_type'              => 'Managed Service SLA',
                     'sla_tier'                  => 'Gold',
                     'pm_frequency_type'         => '2_thn_1_bln',
                     'pm_total_cycles'           => 24,
-                    'cm_quota'                  => 12,
+                    'cm_quota'                  => 18,
                     'mttr_hours'                => 4,
-                    'call_response_time'        => '30 Menit',
+                    'call_response_time'        => '5 Menit',
                     'incident_resolution_hours' => 4,
-                    'sla_target_percentage'     => 99.50,
-                    'start_date'                => '2024-06-26',
+                    'sla_target_percentage'     => 99.99,
+                    'start_date'                => '2024-06-25',
                     'deadline'                  => '2027-06-25',
-                    'service_start_date'        => '2024-06-26',
+                    'service_start_date'        => '2024-06-25',
                     'service_end_date'          => '2027-06-25',
                     'status'                    => 'Active',
                     'stage'                     => 'Operate',
                     'progress'                  => 4,
                     'sales_stage'               => 'Closed Won',
-                    'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                    'billing_terms'             => 'Per 3 Bulan (Termin 8.3%)',
+                    'contract_value'            => 2600000000,
+                    'po_spk_number'             => '4300004504-PLO/IGP/PTT/09/2024',
+                    'po_spk_date'               => '2024-09-04',
+                    'po_number'                 => '4300004504',
+                    'po_spk_file'               => 'project_documents/SPK_PE_LAN_Sudirman_BRI_4300004504.pdf',
+                    'tor_file'                  => 'project_documents/TOR_PE_LAN_Sudirman_BRI_2024.pdf',
+                    'contract_file'             => 'project_documents/Standar_SLA_Pemeliharaan_Perangkat_BRI_103-INF-2023.pdf',
+                    'proposal_file'             => 'project_documents/Dokumen_Teknis_Topologi_KickOff_PE_LAN_Sudirman.pdf',
+                    'customer_pic_technical'    => 'Kukuh Pradita',
                     'handover_target'           => 'managed_service',
                     'ms_handover_status'        => 'Accepted',
-                    'description'               => 'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman 3 Tahun.',
+                    'description'               => 'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman 2024 selama 3 tahun (25 Juni 2024 - 25 Juni 2027) untuk perangkat Juniper MX-204 (BR1-CO-LN1 SN: CV308 dan BR1-CO-LN2 SN: CV209) di DC Sudirman.',
                     'completed_cycles'          => [1],
                 ],
                 [
@@ -1656,13 +1666,73 @@ class ManagedServiceController extends Controller
                     $item['pm_id'] = $erisId;
                     $proj = Project::create($item);
                 } else {
-                    $proj->update([
+                    $updateData = [
                         'status'             => 'Active',
                         'stage'              => 'Operate',
                         'sales_stage'        => 'Closed Won',
                         'handover_target'    => 'managed_service',
                         'ms_handover_status' => 'Accepted',
-                    ]);
+                    ];
+                    if (!empty($item['po_spk_file'])) {
+                        $updateData['po_spk_file'] = $item['po_spk_file'];
+                        $updateData['tor_file'] = $item['tor_file'] ?? $proj->tor_file;
+                        $updateData['contract_file'] = $item['contract_file'] ?? $proj->contract_file;
+                        $updateData['proposal_file'] = $item['proposal_file'] ?? $proj->proposal_file;
+                        $updateData['po_spk_number'] = $item['po_spk_number'] ?? $proj->po_spk_number;
+                        $updateData['po_spk_date'] = $item['po_spk_date'] ?? $proj->po_spk_date;
+                        $updateData['contract_value'] = $item['contract_value'] ?? $proj->contract_value;
+                        $updateData['client'] = $item['client'] ?? $proj->client;
+                        $updateData['location'] = $item['location'] ?? $proj->location;
+                        $updateData['customer_pic_technical'] = $item['customer_pic_technical'] ?? $proj->customer_pic_technical;
+                        $updateData['description'] = $item['description'] ?? $proj->description;
+                    }
+                    $proj->update($updateData);
+
+                    // Update project_documents jika ada
+                    if (Schema::hasTable('project_documents')) {
+                        \App\Models\ProjectDocument::where('project_id', $proj->id)
+                            ->where('document_key', 'spk')
+                            ->update([
+                                'file_path'      => $item['po_spk_file'],
+                                'file_name'      => basename($item['po_spk_file']),
+                                'document_title' => 'Surat Perintah Kerja (SPK / PO)',
+                                'notes'          => 'SPK No: ' . ($item['po_spk_number'] ?? ''),
+                                'status'         => 'Verified',
+                            ]);
+                        if (!empty($item['tor_file'])) {
+                            \App\Models\ProjectDocument::where('project_id', $proj->id)
+                                ->where('document_key', 'tor')
+                                ->update([
+                                    'file_path'      => $item['tor_file'],
+                                    'file_name'      => basename($item['tor_file']),
+                                    'document_title' => 'Terms of Reference (TOR)',
+                                    'notes'          => 'TOR Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman 2024',
+                                    'status'         => 'Verified',
+                                ]);
+                        }
+                        if (!empty($item['contract_file'])) {
+                            \App\Models\ProjectDocument::where('project_id', $proj->id)
+                                ->where('document_key', 'contract')
+                                ->update([
+                                    'file_path'      => $item['contract_file'],
+                                    'file_name'      => basename($item['contract_file']),
+                                    'document_title' => 'Standar SLA Layanan Pemeliharaan Perangkat BRI (SLA.103-INF/10/2023)',
+                                    'notes'          => 'Dokumen Standar SLA No. SLA.103-INF/10/2023',
+                                    'status'         => 'Verified',
+                                ]);
+                        }
+                        if (!empty($item['proposal_file'])) {
+                            \App\Models\ProjectDocument::where('project_id', $proj->id)
+                                ->where('document_key', 'project_doc')
+                                ->update([
+                                    'file_path'      => $item['proposal_file'],
+                                    'file_name'      => basename($item['proposal_file']),
+                                    'document_title' => 'Dokumen Teknis, Topologi & Kick Off Meeting PE LAN Sudirman',
+                                    'notes'          => 'Kick Off Meeting & Topologi Jaringan BR1-CO-LN',
+                                    'status'         => 'Verified',
+                                ]);
+                        }
+                    }
                 }
 
                 if ($proj) {
@@ -2501,13 +2571,20 @@ class ManagedServiceController extends Controller
             ? 'Berita Acara Handover Implementasi ke Managed Service'
             : 'Berita Acara Handover Account Manager ke Managed Service';
 
+        $buildUrl = function(?string $path) {
+            if (!$path) return null;
+            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) return $path;
+            if (str_starts_with($path, 'assets/')) return asset($path);
+            return asset('storage/' . ltrim($path, '/'));
+        };
+
         return [
             'ba' => [
                 'key'         => 'ba',
                 'title'       => $bastTitle,
                 'description' => 'Bukti serah terima operasional dan alih kelola layanan.',
                 'file_path'   => $baFilePath,
-                'file_url'    => $baFileUrl ?: ($baFilePath ? asset('storage/' . $baFilePath) : null),
+                'file_url'    => $baFileUrl ?: $buildUrl($baFilePath),
                 'number'      => $baNumber,
                 'date'        => $baDate,
                 'verified'    => !empty($checklist['ba']) || !empty($checklist['bast']) || !empty($baFilePath) || $isHandedOver,
@@ -2517,7 +2594,7 @@ class ManagedServiceController extends Controller
                 'title'       => 'Surat Perintah Kerja (SPK / PO)',
                 'description' => 'Dokumen acuan perintah kerja resmi dari klien.',
                 'file_path'   => $spkFilePath,
-                'file_url'    => $spkFilePath ? asset('storage/' . $spkFilePath) : null,
+                'file_url'    => $buildUrl($spkFilePath),
                 'number'      => $spkNumber,
                 'date'        => $spkDate,
                 'verified'    => !empty($checklist['spk']) || !empty($spkFilePath) || $isHandedOver,
@@ -2528,7 +2605,7 @@ class ManagedServiceController extends Controller
                 'title'       => 'Bill of Quantity (BOQ & Spesifikasi Layanan)',
                 'description' => 'Daftar rincian perangkat keras, lisensi software, dan alokasi mandays.',
                 'file_path'   => $boqFilePath,
-                'file_url'    => $boqFilePath ? asset('storage/' . $boqFilePath) : null,
+                'file_url'    => $buildUrl($boqFilePath),
                 'number'      => $boqNumber,
                 'date'        => $boqDate,
                 'verified'    => !empty($checklist['boq']) || !empty($boqFilePath) || $isHandedOver,
@@ -2538,7 +2615,7 @@ class ManagedServiceController extends Controller
                 'title'       => 'Terms of Reference (TOR)',
                 'description' => 'Kerangka acuan kerja, ruang lingkup & spesifikasi teknis layanan.',
                 'file_path'   => $torFilePath,
-                'file_url'    => $torFilePath ? asset('storage/' . $torFilePath) : null,
+                'file_url'    => $buildUrl($torFilePath),
                 'number'      => $torNumber,
                 'date'        => $torDate,
                 'verified'    => !empty($checklist['tor']) || !empty($torFilePath) || $isHandedOver,
@@ -2548,7 +2625,7 @@ class ManagedServiceController extends Controller
                 'title'       => 'Dokumen Teknis & Topologi Proyek',
                 'description' => 'Diagram jaringan, desain arsitektur, IP addressing, dan NDA.',
                 'file_path'   => $techFilePath,
-                'file_url'    => $techFilePath ? asset('storage/' . $techFilePath) : null,
+                'file_url'    => $buildUrl($techFilePath),
                 'number'      => $techNumber,
                 'date'        => $techDate,
                 'verified'    => !empty($checklist['project_doc']) || !empty($checklist['technical']) || !empty($techFilePath) || $isHandedOver,
