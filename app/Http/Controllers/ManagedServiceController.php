@@ -1397,7 +1397,7 @@ class ManagedServiceController extends Controller
 
 
     /**
-     * Pastikan seluruh proyek riil Managed Service resmi aktif dan siap dikelola
+     * Pastikan seluruh 7 proyek riil Managed Service resmi aktif dan siap dikelola persis sesuai data server
      */
     public function ensureSampleProjectExists(): void
     {
@@ -1410,10 +1410,9 @@ class ManagedServiceController extends Controller
                 }
             }
 
-            // Hapus proyek dummy BCA dari seeder lama agar tidak menimpa proyek riil user
+            // Hapus proyek dummy BCA dari seeder lama
             Project::where('name', 'Managed Jaringan')
                 ->where('client', 'Bank BCA')
-                ->where('location', 'Jl Majapahit')
                 ->forceDelete();
 
             // Kembalikan proyek implementasi PMO (PPATK, IGNR, dll) ke PMO agar tidak masuk ke menu Managed Service (Eris)
@@ -1427,304 +1426,249 @@ class ManagedServiceController extends Controller
                     'ms_handover_status' => 'Draft',
                 ]);
 
-            // 2. Hubungkan & aktifkan HANYA proyek riil Managed Service / Maintenance user
-            $existingProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-                ->where(function($q) {
-                    $q->whereNull('project_type')
-                      ->orWhere(function($p) {
-                          $p->where('project_type', 'not like', '%Implementation%')
-                            ->where('project_type', 'not like', '%One-Time%');
-                      });
-                })
-                ->where(function($q) {
-                    $q->whereNull('handover_target')
-                      ->orWhere('handover_target', '!=', 'pmo');
-                })
-                ->get();
-
-            foreach ($existingProjects as $ep) {
-                $ep->update([
-                    'stage'              => 'Operate',
-                    'status'             => 'Active',
-                    'handover_target'    => 'managed_service',
-                    'ms_handover_status' => 'Accepted',
-                ]);
-
-                if ($ep->pmCycles()->count() === 0) {
-                    $cycles = $ep->pm_total_cycles ?: 4;
-                    for ($c = 1; $c <= $cycles; $c++) {
-                        ManagedServicePmCycle::create([
-                            'project_id'      => $ep->id,
-                            'cycle_number'    => $c,
-                            'cycle_label'     => 'PM ' . $c,
-                            'activity_status' => $c === 1 ? 'Completed' : 'Scheduled',
-                            'actual_date'     => $c === 1 ? now()->subMonths(1)->format('Y-m-d') : null,
-                            'report_status'   => $c === 1 ? 'Approved' : 'Pending',
-                        ]);
-                    }
-                }
-            }
-
-            $realProjectsDef = [
-                [
-                    'match_keys'   => ['pe lan', 'router edge', 'sudirman', 'pe lan bri'],
-                    'exclude_keys' => ['wifi'],
-                    'default'      => [
-                        'name'                      => 'PE LAN BRI',
-                        'client'                    => 'PT Bank Rakyat Indonesia (Persero) Tbk',
-                        'location'                  => 'Gedung BRI Sudirman, Jakarta Pusat',
-                        'project_type'              => 'Managed Service SLA',
-                        'sla_tier'                  => 'Gold',
-                        'cm_quota'                  => 12,
-                        'pm_frequency_type'         => 'per_3_bulan',
-                        'pm_total_cycles'           => 4,
-                        'mttr_hours'                => 4,
-                        'call_response_time'        => '30 Menit',
-                        'incident_resolution_hours' => 4,
-                        'sla_target_percentage'     => 99.50,
-                        'start_date'                => '2026-06-26',
-                        'deadline'                  => '2027-06-25',
-                        'service_start_date'        => '2026-06-26',
-                        'service_end_date'          => '2027-06-25',
-                        'status'                    => 'Active',
-                        'stage'                     => 'Operate',
-                        'progress'                  => 25,
-                        'sales_stage'               => 'Closed Won',
-                        'billing_terms'             => 'Bulanan (Net 30 Hari)',
-                        'handover_target'           => 'managed_service',
-                        'ms_handover_status'        => 'Accepted',
-                        'sales_name'                => 'Raiza',
-                        'description'               => 'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) BRI Sudirman & monitoring SLA.',
-                    ]
-                ],
-                [
-                    'match_keys'   => ['externet', 'odc'],
-                    'exclude_keys' => [],
-                    'default'      => [
-                        'name'                      => 'EXTERNET ODC',
-                        'client'                    => 'EXTERNET ODC',
-                        'location'                  => 'ODC Network Distribution Area',
-                        'project_type'              => 'Managed Service SLA',
-                        'sla_tier'                  => 'Platinum',
-                        'cm_quota'                  => 12,
-                        'pm_frequency_type'         => 'per_3_bulan',
-                        'pm_total_cycles'           => 4,
-                        'mttr_hours'                => 2,
-                        'call_response_time'        => '15 Menit',
-                        'incident_resolution_hours' => 2,
-                        'sla_target_percentage'     => 99.90,
-                        'start_date'                => '2026-01-01',
-                        'deadline'                  => '2026-12-31',
-                        'service_start_date'        => '2026-01-01',
-                        'service_end_date'          => '2026-12-31',
-                        'status'                    => 'Active',
-                        'stage'                     => 'Operate',
-                        'progress'                  => 25,
-                        'sales_stage'               => 'Closed Won',
-                        'billing_terms'             => 'Bulanan (Net 30 Hari)',
-                        'handover_target'           => 'managed_service',
-                        'ms_handover_status'        => 'Accepted',
-                        'sales_name'                => 'Raiza',
-                        'description'               => 'Pemeliharaan & SLA Monitoring Jaringan EXTERNET ODC.',
-                    ]
-                ],
-                [
-                    'match_keys'   => ['bp. batam', 'bp batam', 'batam'],
-                    'exclude_keys' => ['batii'],
-                    'default'      => [
-                        'name'                      => 'BP. BATAM',
-                        'client'                    => 'Badan Pengusahaan Batam (BP Batam)',
-                        'location'                  => 'Batam Centre, Kota Batam, Kepulauan Riau',
-                        'project_type'              => 'Managed Service SLA',
-                        'sla_tier'                  => 'Gold',
-                        'cm_quota'                  => 12,
-                        'pm_frequency_type'         => 'per_3_bulan',
-                        'pm_total_cycles'           => 4,
-                        'mttr_hours'                => 4,
-                        'call_response_time'        => '30 Menit',
-                        'incident_resolution_hours' => 4,
-                        'sla_target_percentage'     => 99.50,
-                        'start_date'                => '2026-01-01',
-                        'deadline'                  => '2026-12-31',
-                        'service_start_date'        => '2026-01-01',
-                        'service_end_date'          => '2026-12-31',
-                        'status'                    => 'Active',
-                        'stage'                     => 'Operate',
-                        'progress'                  => 50,
-                        'sales_stage'               => 'Closed Won',
-                        'billing_terms'             => 'Bulanan (Net 30 Hari)',
-                        'handover_target'           => 'managed_service',
-                        'ms_handover_status'        => 'Accepted',
-                        'sales_name'                => 'Raiza',
-                        'description'               => 'Pemeliharaan perangkat network, switch, router operasional site BP. Batam.',
-                    ]
-                ],
-                [
-                    'match_keys'   => ['batii'],
-                    'exclude_keys' => [],
-                    'default'      => [
-                        'name'                      => 'BATII',
-                        'client'                    => 'BATII',
-                        'location'                  => 'Area Operasional Site BATII',
-                        'project_type'              => 'Managed Service SLA',
-                        'sla_tier'                  => 'Gold',
-                        'cm_quota'                  => 12,
-                        'pm_frequency_type'         => 'per_3_bulan',
-                        'pm_total_cycles'           => 4,
-                        'mttr_hours'                => 4,
-                        'call_response_time'        => '30 Menit',
-                        'incident_resolution_hours' => 4,
-                        'sla_target_percentage'     => 99.50,
-                        'start_date'                => '2026-01-01',
-                        'deadline'                  => '2026-12-31',
-                        'service_start_date'        => '2026-01-01',
-                        'service_end_date'          => '2026-12-31',
-                        'status'                    => 'Active',
-                        'stage'                     => 'Operate',
-                        'progress'                  => 25,
-                        'sales_stage'               => 'Closed Won',
-                        'billing_terms'             => 'Bulanan (Net 30 Hari)',
-                        'handover_target'           => 'managed_service',
-                        'ms_handover_status'        => 'Accepted',
-                        'sales_name'                => 'Raiza',
-                        'description'               => 'Pemeliharaan operasional & monitoring SLA untuk proyek BATII.',
-                    ]
-                ],
-                [
-                    'match_keys'   => ['license wifi sudirman', 'wifi sudirman', 'license wifi'],
-                    'exclude_keys' => [],
-                    'default'      => [
-                        'name'                      => 'LICENSE WIFI SUDIRMAN',
-                        'client'                    => 'PT Bank Rakyat Indonesia (Persero) Tbk',
-                        'location'                  => 'Gedung Menara & Parkir BRI Sudirman, Jakarta',
-                        'project_type'              => 'Managed Service SLA',
-                        'sla_tier'                  => 'Gold',
-                        'cm_quota'                  => 12,
-                        'pm_frequency_type'         => 'per_3_bulan',
-                        'pm_total_cycles'           => 4,
-                        'mttr_hours'                => 4,
-                        'call_response_time'        => '30 Menit',
-                        'incident_resolution_hours' => 4,
-                        'sla_target_percentage'     => 99.50,
-                        'start_date'                => '2026-01-01',
-                        'deadline'                  => '2026-12-31',
-                        'service_start_date'        => '2026-01-01',
-                        'service_end_date'          => '2026-12-31',
-                        'status'                    => 'Active',
-                        'stage'                     => 'Operate',
-                        'progress'                  => 25,
-                        'sales_stage'               => 'Closed Won',
-                        'billing_terms'             => 'Bulanan (Net 30 Hari)',
-                        'handover_target'           => 'managed_service',
-                        'ms_handover_status'        => 'Accepted',
-                        'sales_name'                => 'Raiza',
-                        'description'               => 'Pemeliharaan lisensi dan operasional access point Wi-Fi BRI Sudirman.',
-                    ]
-                ],
-                [
-                    'match_keys'   => ['wifi mataram', 'mataram'],
-                    'exclude_keys' => [],
-                    'default'      => [
-                        'name'                      => 'WIFI MATARAM',
-                        'client'                    => 'Kantor Wilayah BRI Mataram',
-                        'location'                  => 'Mataram, NTB',
-                        'project_type'              => 'Managed Service SLA',
-                        'sla_tier'                  => 'Gold',
-                        'cm_quota'                  => 12,
-                        'pm_frequency_type'         => 'per_3_bulan',
-                        'pm_total_cycles'           => 4,
-                        'mttr_hours'                => 4,
-                        'call_response_time'        => '30 Menit',
-                        'incident_resolution_hours' => 4,
-                        'sla_target_percentage'     => 99.50,
-                        'start_date'                => '2026-01-01',
-                        'deadline'                  => '2026-12-31',
-                        'service_start_date'        => '2026-01-01',
-                        'service_end_date'          => '2026-12-31',
-                        'status'                    => 'Active',
-                        'stage'                     => 'Operate',
-                        'progress'                  => 25,
-                        'sales_stage'               => 'Closed Won',
-                        'billing_terms'             => 'Bulanan (Net 30 Hari)',
-                        'handover_target'           => 'managed_service',
-                        'ms_handover_status'        => 'Accepted',
-                        'sales_name'                => 'Raiza',
-                        'description'               => 'Pemeliharaan dan monitoring Wi-Fi kantor wilayah Mataram.',
-                    ]
-                ],
-                [
-                    'match_keys'   => ['wifi jakarta', 'jakarta wifi'],
-                    'exclude_keys' => ['sudirman'],
-                    'default'      => [
-                        'name'                      => 'WIFI JAKARTA',
-                        'client'                    => 'Kantor Wilayah BRI Jakarta',
-                        'location'                  => 'Jakarta',
-                        'project_type'              => 'Managed Service SLA',
-                        'sla_tier'                  => 'Gold',
-                        'cm_quota'                  => 12,
-                        'pm_frequency_type'         => 'per_3_bulan',
-                        'pm_total_cycles'           => 4,
-                        'mttr_hours'                => 4,
-                        'call_response_time'        => '30 Menit',
-                        'incident_resolution_hours' => 4,
-                        'sla_target_percentage'     => 99.50,
-                        'start_date'                => '2026-01-01',
-                        'deadline'                  => '2026-12-31',
-                        'service_start_date'        => '2026-01-01',
-                        'service_end_date'          => '2026-12-31',
-                        'status'                    => 'Active',
-                        'stage'                     => 'Operate',
-                        'progress'                  => 25,
-                        'sales_stage'               => 'Closed Won',
-                        'billing_terms'             => 'Bulanan (Net 30 Hari)',
-                        'handover_target'           => 'managed_service',
-                        'ms_handover_status'        => 'Accepted',
-                        'sales_name'                => 'Raiza',
-                        'description'               => 'Pemeliharaan dan monitoring jaringan Wi-Fi kantor wilayah Jakarta.',
-                    ]
-                ],
-            ];
+            // Hapus proyek nama inisial pendek sementara agar digantikan data resmi lengkap
+            Project::whereIn('name', ['PE LAN BRI', 'EXTERNET ODC', 'BP. BATAM', 'BATII', 'LICENSE WIFI SUDIRMAN', 'WIFI MATARAM', 'WIFI JAKARTA'])
+                ->delete();
 
             $eris = User::where('email', 'like', '%eris%')->orWhere('name', 'like', '%Eris%')->first();
             $erisId = $eris ? $eris->id : (User::first()->id ?? 1);
 
-            foreach ($realProjectsDef as $def) {
-                // Cari proyek yang sudah ada di database (case-insensitive)
-                $proj = Project::where(function($q) use ($def) {
-                    foreach ($def['match_keys'] as $mk) {
-                        $q->orWhere('name', 'like', "%{$mk}%")
-                          ->orWhere('client', 'like', "%{$mk}%");
-                    }
-                })->where(function($q) use ($def) {
-                    foreach ($def['exclude_keys'] as $ek) {
-                        $q->where('name', 'not like', "%{$ek}%");
-                    }
-                })->first();
+            $realOfficialProjects = [
+                [
+                    'match_key'                 => 'ATS Firewall',
+                    'name'                      => 'Perpanjangan ATS Firewall System',
+                    'client'                    => 'BP Batam',
+                    'sales_name'                => 'Widodo',
+                    'location'                  => 'Jl. Sudirman No. 1, Batam Centre, Kota Batam',
+                    'project_type'              => 'Managed Service SLA',
+                    'sla_tier'                  => 'Platinum',
+                    'pm_frequency_type'         => '1_thn_2_bln',
+                    'pm_total_cycles'           => 6,
+                    'cm_quota'                  => 24,
+                    'mttr_hours'                => 2,
+                    'call_response_time'        => '15 Menit',
+                    'incident_resolution_hours' => 2,
+                    'sla_target_percentage'     => 99.90,
+                    'start_date'                => '2026-08-01',
+                    'deadline'                  => '2027-07-31',
+                    'service_start_date'        => '2026-08-01',
+                    'service_end_date'          => '2027-07-31',
+                    'status'                    => 'Active',
+                    'stage'                     => 'Operate',
+                    'progress'                  => 17,
+                    'sales_stage'               => 'Closed Won',
+                    'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                    'handover_target'           => 'managed_service',
+                    'ms_handover_status'        => 'Accepted',
+                    'description'               => 'Perpanjangan ATS Firewall System BP Batam, monitoring SLA 99.9% Platinum, dan preventive maintenance berkala.',
+                    'completed_cycles'          => [1],
+                ],
+                [
+                    'match_key'                 => 'PSC-P3-AS1',
+                    'name'                      => 'Pengadaan Perpanjangan Maintenance Perangkat Network Switch Pihak-3 (PSC-P3-AS1 dan BSC-P3-AS1) di PSCF dan BSCF Tahun 2026 - 2027',
+                    'client'                    => 'PT. Bank Rakyat Indoensia Tbk (BRI)',
+                    'sales_name'                => 'Raiza',
+                    'location'                  => 'DRC BRI Tabanan, Bali',
+                    'project_type'              => 'Managed Service SLA',
+                    'sla_tier'                  => 'Platinum',
+                    'pm_frequency_type'         => '1_thn_1_bln',
+                    'pm_total_cycles'           => 12,
+                    'cm_quota'                  => 24,
+                    'mttr_hours'                => 2,
+                    'call_response_time'        => '15 Menit',
+                    'incident_resolution_hours' => 2,
+                    'sla_target_percentage'     => 99.90,
+                    'start_date'                => '2026-08-09',
+                    'deadline'                  => '2027-08-08',
+                    'service_start_date'        => '2026-08-09',
+                    'service_end_date'          => '2027-08-08',
+                    'status'                    => 'Active',
+                    'stage'                     => 'Operate',
+                    'progress'                  => 0,
+                    'sales_stage'               => 'Closed Won',
+                    'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                    'handover_target'           => 'managed_service',
+                    'ms_handover_status'        => 'Accepted',
+                    'description'               => 'Pengadaan Perpanjangan Maintenance Perangkat Network Switch Pihak-3 (PSC-P3-AS1 dan BSC-P3-AS1) di PSCF dan BSCF Tahun 2026 - 2027.',
+                    'completed_cycles'          => [],
+                ],
+                [
+                    'match_key'                 => 'Router Edge LAN (PE LAN) Sudirman',
+                    'name'                      => 'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman',
+                    'client'                    => 'PT. Bank Rakyat Indoensia Tbk (BRI)',
+                    'sales_name'                => 'Raiza',
+                    'location'                  => 'Jl. Jenderal Sudirman Kav. 44-46, Jakarta Pusat',
+                    'project_type'              => 'Managed Service SLA',
+                    'sla_tier'                  => 'Gold',
+                    'pm_frequency_type'         => '2_thn_1_bln',
+                    'pm_total_cycles'           => 24,
+                    'cm_quota'                  => 12,
+                    'mttr_hours'                => 4,
+                    'call_response_time'        => '30 Menit',
+                    'incident_resolution_hours' => 4,
+                    'sla_target_percentage'     => 99.50,
+                    'start_date'                => '2024-06-26',
+                    'deadline'                  => '2027-06-25',
+                    'service_start_date'        => '2024-06-26',
+                    'service_end_date'          => '2027-06-25',
+                    'status'                    => 'Active',
+                    'stage'                     => 'Operate',
+                    'progress'                  => 4,
+                    'sales_stage'               => 'Closed Won',
+                    'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                    'handover_target'           => 'managed_service',
+                    'ms_handover_status'        => 'Accepted',
+                    'description'               => 'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman 3 Tahun.',
+                    'completed_cycles'          => [1],
+                ],
+                [
+                    'match_key'                 => 'License Wi-Fi Sudirman',
+                    'name'                      => 'Perpanjangan Pemeliharaan License Wi-Fi Sudirman',
+                    'client'                    => 'PT. Bank Rakyat Indoensia Tbk (BRI)',
+                    'sales_name'                => 'Raiza',
+                    'location'                  => 'Gedung Menara & Parkir BRI Sudirman, Jakarta Pusat',
+                    'project_type'              => 'Managed Service SLA',
+                    'sla_tier'                  => 'Gold',
+                    'pm_frequency_type'         => '1_thn_3_bln',
+                    'pm_total_cycles'           => 4,
+                    'cm_quota'                  => 12,
+                    'mttr_hours'                => 4,
+                    'call_response_time'        => '30 Menit',
+                    'incident_resolution_hours' => 4,
+                    'sla_target_percentage'     => 99.50,
+                    'start_date'                => '2026-01-01',
+                    'deadline'                  => '2026-12-31',
+                    'service_start_date'        => '2026-01-01',
+                    'service_end_date'          => '2026-12-31',
+                    'status'                    => 'Active',
+                    'stage'                     => 'Operate',
+                    'progress'                  => 25,
+                    'sales_stage'               => 'Closed Won',
+                    'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                    'handover_target'           => 'managed_service',
+                    'ms_handover_status'        => 'Accepted',
+                    'description'               => 'Perpanjangan Pemeliharaan Lisensi Wi-Fi Sudirman BRI.',
+                    'completed_cycles'          => [1],
+                ],
+                [
+                    'match_key'                 => 'Wi-Fi Kantor Wilayah BRI Mataram',
+                    'name'                      => 'Maintenance & Monitoring Network Wi-Fi Kantor Wilayah BRI Mataram',
+                    'client'                    => 'Kantor Wilayah BRI Mataram',
+                    'sales_name'                => 'Raiza',
+                    'location'                  => 'Mataram, Nusa Tenggara Barat',
+                    'project_type'              => 'Managed Service SLA',
+                    'sla_tier'                  => 'Gold',
+                    'pm_frequency_type'         => '1_thn_3_bln',
+                    'pm_total_cycles'           => 4,
+                    'cm_quota'                  => 12,
+                    'mttr_hours'                => 4,
+                    'call_response_time'        => '30 Menit',
+                    'incident_resolution_hours' => 4,
+                    'sla_target_percentage'     => 99.50,
+                    'start_date'                => '2026-01-01',
+                    'deadline'                  => '2026-12-31',
+                    'service_start_date'        => '2026-01-01',
+                    'service_end_date'          => '2026-12-31',
+                    'status'                    => 'Active',
+                    'stage'                     => 'Operate',
+                    'progress'                  => 25,
+                    'sales_stage'               => 'Closed Won',
+                    'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                    'handover_target'           => 'managed_service',
+                    'ms_handover_status'        => 'Accepted',
+                    'description'               => 'Pemeliharaan dan monitoring Wi-Fi kantor wilayah Mataram.',
+                    'completed_cycles'          => [1],
+                ],
+                [
+                    'match_key'                 => 'Wi-Fi Kantor Wilayah Jakarta',
+                    'name'                      => 'Pemeliharaan dan Monitoring Jaringan Wi-Fi Kantor Wilayah Jakarta',
+                    'client'                    => 'Kantor Wilayah BRI Jakarta',
+                    'sales_name'                => 'Raiza',
+                    'location'                  => 'Jakarta',
+                    'project_type'              => 'Managed Service SLA',
+                    'sla_tier'                  => 'Gold',
+                    'pm_frequency_type'         => '1_thn_3_bln',
+                    'pm_total_cycles'           => 4,
+                    'cm_quota'                  => 12,
+                    'mttr_hours'                => 4,
+                    'call_response_time'        => '30 Menit',
+                    'incident_resolution_hours' => 4,
+                    'sla_target_percentage'     => 99.50,
+                    'start_date'                => '2026-01-01',
+                    'deadline'                  => '2026-12-31',
+                    'service_start_date'        => '2026-01-01',
+                    'service_end_date'          => '2026-12-31',
+                    'status'                    => 'Active',
+                    'stage'                     => 'Operate',
+                    'progress'                  => 25,
+                    'sales_stage'               => 'Closed Won',
+                    'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                    'handover_target'           => 'managed_service',
+                    'ms_handover_status'        => 'Accepted',
+                    'description'               => 'Pemeliharaan dan monitoring jaringan Wi-Fi kantor wilayah Jakarta.',
+                    'completed_cycles'          => [1],
+                ],
+                [
+                    'match_key'                 => 'BATII',
+                    'name'                      => 'Perpanjangan Maintenance SLA Network & Server BATII',
+                    'client'                    => 'BATII',
+                    'sales_name'                => 'Raiza',
+                    'location'                  => 'Area Operasional Site BATII',
+                    'project_type'              => 'Managed Service SLA',
+                    'sla_tier'                  => 'Gold',
+                    'pm_frequency_type'         => '1_thn_3_bln',
+                    'pm_total_cycles'           => 4,
+                    'cm_quota'                  => 12,
+                    'mttr_hours'                => 4,
+                    'call_response_time'        => '30 Menit',
+                    'incident_resolution_hours' => 4,
+                    'sla_target_percentage'     => 99.50,
+                    'start_date'                => '2026-01-01',
+                    'deadline'                  => '2026-12-31',
+                    'service_start_date'        => '2026-01-01',
+                    'service_end_date'          => '2026-12-31',
+                    'status'                    => 'Active',
+                    'stage'                     => 'Operate',
+                    'progress'                  => 25,
+                    'sales_stage'               => 'Closed Won',
+                    'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                    'handover_target'           => 'managed_service',
+                    'ms_handover_status'        => 'Accepted',
+                    'description'               => 'Perpanjangan Maintenance SLA Network & Server BATII.',
+                    'completed_cycles'          => [1],
+                ],
+            ];
 
+            foreach ($realOfficialProjects as $item) {
+                $completed = $item['completed_cycles'];
+                unset($item['completed_cycles']);
+                $match = $item['match_key'];
+                unset($item['match_key']);
+
+                $proj = Project::where('name', 'like', "%{$match}%")->first();
                 if (!$proj) {
-                    $data = $def['default'];
-                    $data['created_by'] = $erisId;
-                    $data['pm_id'] = $erisId;
-                    $proj = Project::create($data);
+                    $item['created_by'] = $erisId;
+                    $item['pm_id'] = $erisId;
+                    $proj = Project::create($item);
                 } else {
-                    $proj->update([
-                        'stage'              => 'Operate',
-                        'status'             => 'Active',
-                        'handover_target'    => 'managed_service',
-                        'ms_handover_status' => 'Accepted',
-                    ]);
+                    $proj->update($item);
                 }
 
-                if ($proj && $proj->pmCycles()->count() === 0) {
-                    for ($c = 1; $c <= 4; $c++) {
-                        ManagedServicePmCycle::create([
-                            'project_id'      => $proj->id,
-                            'cycle_number'    => $c,
-                            'cycle_label'     => 'PM ' . $c,
-                            'activity_status' => $c === 1 ? 'Completed' : 'Scheduled',
-                            'actual_date'     => $c === 1 ? now()->subMonths(1)->format('Y-m-d') : null,
-                            'report_status'   => $c === 1 ? 'Approved' : 'Pending',
-                        ]);
+                if ($proj) {
+                    $tot = $proj->pm_total_cycles ?: 4;
+                    if ($proj->pmCycles()->count() < $tot) {
+                        $proj->pmCycles()->delete();
+                        for ($c = 1; $c <= $tot; $c++) {
+                            $isDone = in_array($c, $completed);
+                            ManagedServicePmCycle::create([
+                                'project_id'      => $proj->id,
+                                'cycle_number'    => $c,
+                                'cycle_label'     => 'PM ' . $c,
+                                'activity_status' => $isDone ? 'Completed' : 'Scheduled',
+                                'actual_date'     => $isDone ? now()->subMonths(1)->format('Y-m-d') : null,
+                                'report_status'   => $isDone ? 'Approved' : 'Pending',
+                            ]);
+                        }
                     }
                 }
             }
