@@ -53,6 +53,23 @@
         allEngineerMap: {{ json_encode($allEngineers->pluck('name', 'id')) }},
         pmFile1: null,
         pmFile2: null,
+        init() {
+            if (window.location.hash === '#lokasi-site') {
+                this.activeTab = 'documents';
+                this.$nextTick(() => {
+                    setTimeout(() => {
+                        const el = document.getElementById('lokasi-site');
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            el.classList.add('ring-2', 'ring-[#8F0A0D]', 'shadow-md');
+                            setTimeout(() => {
+                                el.classList.remove('ring-2', 'ring-[#8F0A0D]', 'shadow-md');
+                            }, 2500);
+                        }
+                    }, 200);
+                });
+            }
+        },
         handlePmFile(event, slot) {
             const file = event.target.files && event.target.files[0];
             if (!file) return;
@@ -542,71 +559,81 @@
                             }
                         @endphp
 
-                        <div class="space-y-2.5 pt-3 border-t border-[#E2E8F0]">
+                        <div class="space-y-3 pt-3 border-t border-[#E2E8F0]">
                             <!-- Nama PIC Customer -->
                             <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3.5">
-                                <div class="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
+                                <div class="w-8 h-8 rounded-xl bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">Nama PIC Customer</span>
-                                    <p class="font-bold text-[#1E293B] text-[12.5px] mt-0.5 truncate">{{ $customerPicName }}</p>
-                                </div>
-                            </div>
-
-                            <!-- No. Telepon / WhatsApp -->
-                            <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3.5">
-                                <div class="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">No. Telepon / WhatsApp</span>
-                                    @if($customerPhone && $customerPhone !== '-')
-                                        <a href="tel:{{ preg_replace('/[^0-9+]/', '', $customerPhone) }}" class="font-bold text-[#1E293B] hover:text-[#8F0A0D] text-[12.5px] mt-0.5 block truncate transition">
-                                            {{ $customerPhone }}
-                                        </a>
+                                    <span class="text-[10.5px] text-[#64748B] font-bold uppercase tracking-wider block">Nama PIC Customer</span>
+                                    @if($customerPicName && $customerPicName !== '—')
+                                        <p class="font-bold text-[#1E293B] text-[12.5px] mt-0.5 truncate">{{ $customerPicName }}</p>
                                     @else
-                                        <p class="font-bold text-[#1E293B] text-[12.5px] mt-0.5 truncate">—</p>
+                                        <span class="text-slate-400 font-normal italic text-[12px] mt-0.5 block">Belum ada data PIC</span>
                                     @endif
                                 </div>
                             </div>
 
-                            <!-- Email PIC Customer -->
-                            <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3.5">
-                                <div class="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            <!-- No. Telepon / WhatsApp & Email PIC Customer (2 Kolom Simetris) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <!-- No. Telepon / WhatsApp -->
+                                <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">No. Telepon / WA</span>
+                                        @if($customerPhone && $customerPhone !== '-')
+                                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', $customerPhone) }}" class="font-bold text-[#1E293B] hover:text-[#8F0A0D] text-[12px] mt-0.5 block truncate transition">
+                                                {{ $customerPhone }}
+                                            </a>
+                                        @else
+                                            <span class="text-slate-400 font-normal italic text-[12px] mt-0.5 block">Belum ada</span>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="min-w-0 flex-1">
-                                    <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">Email PIC Customer</span>
-                                    @if($customerEmail && $customerEmail !== '-')
-                                        <a href="mailto:{{ $customerEmail }}" class="font-bold text-[#1E293B] hover:text-[#8F0A0D] text-[12.5px] mt-0.5 block truncate transition">
-                                            {{ $customerEmail }}
-                                        </a>
-                                    @else
-                                        <p class="font-bold text-[#1E293B] text-[12.5px] mt-0.5 truncate">—</p>
-                                    @endif
+
+                                <!-- Email PIC Customer -->
+                                <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">Email PIC</span>
+                                        @if($customerEmail && $customerEmail !== '-')
+                                            <a href="mailto:{{ $customerEmail }}" class="font-bold text-[#1E293B] hover:text-[#8F0A0D] text-[12px] mt-0.5 block truncate transition">
+                                                {{ $customerEmail }}
+                                            </a>
+                                        @else
+                                            <span class="text-slate-400 font-normal italic text-[12px] mt-0.5 block">Belum ada</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Lokasi Operasional / Site -->
-                            <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3.5">
-                                <div class="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
+                            <!-- Lokasi Operasional / Site (Anchor Target & Highlighted) -->
+                            <div id="lokasi-site" class="p-3.5 rounded-xl bg-rose-50/40 border border-rose-200/70 hover:border-[#8F0A0D]/50 transition-all duration-300 flex items-start gap-3.5 scroll-mt-28">
+                                <div class="w-8 h-8 rounded-xl bg-[#8F0A0D] text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">Lokasi Operasional / Site</span>
-                                    <p class="font-bold text-[#1E293B] text-[12.5px] mt-0.5">{{ $project->location ?: 'On-Site Klien (Data Center / Head Office)' }}</p>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10.5px] text-[#8F0A0D] font-bold uppercase tracking-wider block">Lokasi Operasional / Site</span>
+                                        <span class="text-[10px] font-semibold text-rose-600 bg-rose-100/60 px-1.5 py-0.5 rounded">Site Kunjungan</span>
+                                    </div>
+                                    <p class="font-bold text-[#1E293B] text-[13px] mt-1 leading-snug break-words">{{ $project->location ?: 'On-Site Klien (Data Center / Head Office)' }}</p>
                                 </div>
                             </div>
 
                             <!-- Ruang Lingkup Pekerjaan -->
                             <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-start gap-3.5">
-                                <div class="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                <div class="w-8 h-8 rounded-xl bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">Ruang Lingkup Pekerjaan</span>
-                                    <p class="font-bold text-[#1E293B] text-[12px] mt-0.5 whitespace-pre-line leading-relaxed">{{ $project->description ?: 'Pemeliharaan perangkat dan monitoring operasional SLA.' }}</p>
+                                    <span class="text-[10.5px] text-[#64748B] font-bold uppercase tracking-wider block">Ruang Lingkup Pekerjaan</span>
+                                    <p class="font-medium text-[#334155] text-[12px] mt-0.5 whitespace-pre-line leading-relaxed">{{ $project->description ?: 'Pemeliharaan perangkat dan monitoring operasional SLA.' }}</p>
                                 </div>
                             </div>
 
