@@ -501,11 +501,15 @@
 
                                             {{-- Laporan PM (PDF) --}}
                                             <td class="py-3.5 px-4 whitespace-nowrap">
-                                                <div class="flex items-center gap-2">
+                                                <div class="flex items-center gap-1.5">
                                                     @if($cycle->report_file)
-                                                        <a href="{{ asset('storage/' . $cycle->report_file) }}" target="_blank" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold transition border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
-                                                            <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                            <span>Lihat PDF</span>
+                                                        {{-- 1. Icon View (Lihat) --}}
+                                                        <a href="{{ asset('storage/' . $cycle->report_file) }}" target="_blank" class="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center transition shadow-2xs cursor-pointer" title="Lihat Laporan PM (Preview)">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                        </a>
+                                                        {{-- 2. Icon Download (Unduh) --}}
+                                                        <a href="{{ asset('storage/' . $cycle->report_file) }}" download="Laporan_PM_{{ $cycle->cycle_label }}.pdf" class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 flex items-center justify-center transition shadow-2xs cursor-pointer" title="Unduh Laporan PM (Download)">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                         </a>
                                                     @else
                                                         <button type="button" @click="openPmModal({{ json_encode($cycle) }})" class="text-[11.5px] text-[#8F0A0D] font-bold hover:underline cursor-pointer flex items-center gap-1">

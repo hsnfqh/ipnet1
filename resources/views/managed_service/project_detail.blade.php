@@ -1048,30 +1048,59 @@
                                                 </span>
                                             @endif
                                         </td>
-                                        {{-- Laporan PM (Bisa Lebih Dari 1 File & Bisa Dilihat; Jika belum ada laporan tampilkan strip bersih) --}}
-                                        <td class="py-3.5 px-4 text-center">
+                                        {{-- Laporan PM (Icon View & Icon Download; Jika belum ada laporan tampilkan strip bersih) --}}
+                                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                             @php
                                                 $allReports = $cycle->all_report_files;
                                                 $reportCount = count($allReports);
                                             @endphp
                                             @if($reportCount === 1)
-                                                <a href="{{ asset('storage/' . $allReports[0]['path']) }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold border border-emerald-200 transition shadow-2xs" title="Lihat Berkas Laporan PM">
-                                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                    <span>Lihat Laporan</span>
-                                                </a>
+                                                <div class="inline-flex items-center justify-center gap-1.5">
+                                                    {{-- 1. Icon View (Lihat / Preview) --}}
+                                                    <a href="{{ asset('storage/' . $allReports[0]['path']) }}" 
+                                                       target="_blank" 
+                                                       class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer" 
+                                                       title="Lihat Laporan PM ({{ $allReports[0]['filename'] }})">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                        </svg>
+                                                    </a>
+                                                    {{-- 2. Icon Download (Unduh) --}}
+                                                    <a href="{{ asset('storage/' . $allReports[0]['path']) }}" 
+                                                       download="{{ $allReports[0]['filename'] ?? 'Laporan_PM_' . $cycle->cycle_label . '.pdf' }}" 
+                                                       class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 border border-blue-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer" 
+                                                       title="Unduh Laporan PM ({{ $allReports[0]['filename'] }})">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                        </svg>
+                                                    </a>
+                                                </div>
                                             @elseif($reportCount > 1)
                                                 <div class="relative inline-block text-left" x-data="{ openDocs: false }">
                                                     <button type="button" @click="openDocs = !openDocs" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-bold border border-emerald-200 transition shadow-2xs cursor-pointer">
-                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                         <span>{{ $reportCount }} Berkas</span>
                                                         <svg class="w-3 h-3 text-emerald-600 transition-transform" :class="openDocs ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                     </button>
-                                                    <div x-show="openDocs" @click.outside="openDocs = false" x-cloak class="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 bg-white border border-[#CBD5E1] rounded-xl shadow-xl z-50 min-w-[210px] py-1 text-left text-xs">
-                                                        <div class="px-3 py-1 font-bold text-[10px] uppercase text-slate-400 bg-slate-50 border-b border-slate-100">Daftar Berkas Laporan</div>
+                                                    <div x-show="openDocs" @click.outside="openDocs = false" x-cloak class="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 bg-white border border-[#CBD5E1] rounded-xl shadow-xl z-50 min-w-[280px] py-1 text-left text-xs">
+                                                        <div class="px-3 py-1 font-bold text-[10px] uppercase text-slate-400 bg-slate-50 border-b border-slate-100">Daftar Berkas Laporan PM</div>
                                                         @foreach($allReports as $rIdx => $rf)
-                                                            <a href="{{ asset('storage/' . $rf['path']) }}" target="_blank" class="block px-3 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition text-[11.5px] truncate border-b border-slate-50 last:border-b-0">
-                                                                <span class="font-bold text-emerald-700">#{{ $rIdx + 1 }}.</span> {{ $rf['filename'] }}
-                                                            </a>
+                                                            <div class="px-3 py-2 flex items-center justify-between gap-2 border-b border-slate-50 last:border-b-0 hover:bg-slate-50 transition">
+                                                                <span class="text-[11.5px] text-slate-700 truncate max-w-[170px]" title="{{ $rf['filename'] }}">
+                                                                    <span class="font-bold text-emerald-700">#{{ $rIdx + 1 }}.</span> {{ $rf['filename'] }}
+                                                                </span>
+                                                                <div class="flex items-center gap-1 shrink-0">
+                                                                    {{-- Icon View --}}
+                                                                    <a href="{{ asset('storage/' . $rf['path']) }}" target="_blank" class="w-6 h-6 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center transition shadow-2xs" title="Lihat Berkas (Preview)">
+                                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                                    </a>
+                                                                    {{-- Icon Download --}}
+                                                                    <a href="{{ asset('storage/' . $rf['path']) }}" download="{{ $rf['filename'] ?? 'Laporan_PM.pdf' }}" class="w-6 h-6 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 flex items-center justify-center transition shadow-2xs" title="Unduh Berkas (Download)">
+                                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                                    </a>
+                                                                </div>
+                                                            </div>
                                                         @endforeach
                                                     </div>
                                                 </div>
@@ -1863,10 +1892,16 @@
                                                         <p class="text-[9.5px] text-slate-400" x-text="file.uploaded_at ? ('Diupload: ' + file.uploaded_at) : 'Tersimpan'"></p>
                                                     </div>
                                                 </div>
-                                                <a :href="'/storage/' + file.path" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-md text-[10.5px] font-bold border border-emerald-200 transition shrink-0">
-                                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                    <span>Lihat Dokumen</span>
-                                                </a>
+                                                <div class="flex items-center gap-1.5 shrink-0">
+                                                    <a :href="'/storage/' + file.path" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-md text-[10.5px] font-bold border border-emerald-200 transition cursor-pointer" title="Lihat Berkas (Preview)">
+                                                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                        <span>Lihat</span>
+                                                    </a>
+                                                    <a :href="'/storage/' + file.path" :download="file.filename || 'Laporan_PM.pdf'" class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md text-[10.5px] font-bold border border-blue-200 transition cursor-pointer" title="Unduh Berkas (Download)">
+                                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                        <span>Unduh</span>
+                                                    </a>
+                                                </div>
                                             </div>
                                         </template>
                                     </div>
