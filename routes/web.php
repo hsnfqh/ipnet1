@@ -2067,35 +2067,18 @@ Route::get('/restore-all-server-projects', function () {
 
 // Route inspeksi mendalam database asli server (RAW DATA tanpa manipulasi)
 Route::get('/inspect-server-db', function () {
+    $data = [];
     try {
-        $rawProjects = DB::table('projects')->orderBy('id', 'desc')->get();
-        $rawDocs = DB::table('project_documents')->orderBy('id', 'desc')->get();
-        
-        $filesInStorage = [];
-        $pubDir = storage_path('app/public');
-        if (is_dir($pubDir)) {
-            $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($pubDir));
-            foreach ($rii as $file) {
-                if ($file->isDir()) continue;
-                $filesInStorage[] = [
-                    'path' => str_replace($pubDir . DIRECTORY_SEPARATOR, '', $file->getPathname()),
-                    'size' => $file->getSize(),
-                    'mtime' => date('Y-m-d H:i:s', $file->getMTime()),
-                ];
-            }
-        }
-
-        return response()->json([
-            'projects_count' => $rawProjects->count(),
-            'projects' => $rawProjects,
-            'docs_count' => $rawDocs->count(),
-            'docs' => $rawDocs,
-            'storage_files_count' => count($filesInStorage),
-            'storage_files' => $filesInStorage,
-        ], 200, [], JSON_PRETTY_PRINT);
+        $data['projects'] = DB::table('projects')->select('id', 'name', 'client', 'location', 'project_type', 'customer_pic_technical', 'customer_pic_business', 'customer_pic_finance', 'po_spk_number', 'po_number', 'contract_value', 'po_spk_file', 'contract_file', 'boq_file', 'tor_file', 'proposal_file', 'created_at', 'deleted_at')->orderBy('id', 'desc')->get();
     } catch (\Throwable $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
+        $data['projects_error'] = $e->getMessage();
     }
+    try {
+        $data['documents'] = DB::table('project_documents')->get();
+    } catch (\Throwable $e) {
+        $data['documents_error'] = $e->getMessage();
+    }
+    return response()->json($data);
 });
         return response('Error: ' . $e->getMessage(), 500);
     }
