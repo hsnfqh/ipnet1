@@ -442,9 +442,9 @@ class DummyUserSeeder extends Seeder
         $teamNet->update(['leader_id' => $tlNet->id]);
 
         $tlSec = User::updateOrCreate(
-            ['email' => 'ignatius@ipnetsolusindo.com'],
+            ['email' => 'novan@ipnetsolusindo.com'],
             [
-                'name'        => 'Ignatius Rizky',
+                'name'        => 'Novan',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000004',
                 'position'    => 'Team Leader Security Engineering',
@@ -454,7 +454,7 @@ class DummyUserSeeder extends Seeder
                 'level'       => null,
             ]
         );
-        $tlSec->syncRoles(['Team Leader Engineering', 'Team Leader']);
+        $tlSec->syncRoles(['Team Leader Engineering', 'Team Leader', 'Lead Engineer']);
         $teamSec->update(['leader_id' => $tlSec->id]);
 
         // B. NETWORK ENGINEERS
@@ -518,11 +518,71 @@ class DummyUserSeeder extends Seeder
         );
         $engNet4->syncRoles(['Network Engineer', 'Engineer']);
 
+        $engNet5 = User::updateOrCreate(
+            ['email' => 'ardiansyah@ipnetsolusindo.com'],
+            [
+                'name'        => 'Ardiansyah',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000021',
+                'position'    => 'L1 Network Engineer',
+                'status'      => 'Active',
+                'division_id' => $divNet->id,
+                'team_id'     => $teamNet->id,
+                'level'       => 'L1',
+            ]
+        );
+        $engNet5->syncRoles(['Network Engineer', 'Engineer']);
+
+        $engNet6 = User::updateOrCreate(
+            ['email' => 'dhimas@ipnetsolusindo.com'],
+            [
+                'name'        => 'Dhimas Arda',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000022',
+                'position'    => 'L1 Network Engineer',
+                'status'      => 'Active',
+                'division_id' => $divNet->id,
+                'team_id'     => $teamNet->id,
+                'level'       => 'L1',
+            ]
+        );
+        $engNet6->syncRoles(['Network Engineer', 'Engineer']);
+
+        $engNet7 = User::updateOrCreate(
+            ['email' => 'daffa@ipnetsolusindo.com'],
+            [
+                'name'        => 'Daffa Rizqullah',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000023',
+                'position'    => 'L2 Network Engineer',
+                'status'      => 'Active',
+                'division_id' => $divNet->id,
+                'team_id'     => $teamNet->id,
+                'level'       => 'L2',
+            ]
+        );
+        $engNet7->syncRoles(['Network Engineer', 'Engineer']);
+
+        $engNet8 = User::updateOrCreate(
+            ['email' => 'panca@ipnetsolusindo.com'],
+            [
+                'name'        => 'Panca Rangga A',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000024',
+                'position'    => 'L2 Network Engineer',
+                'status'      => 'Active',
+                'division_id' => $divNet->id,
+                'team_id'     => $teamNet->id,
+                'level'       => 'L2',
+            ]
+        );
+        $engNet8->syncRoles(['Network Engineer', 'Engineer']);
+
         // C. SECURITY ENGINEERS
         $engSec1 = User::updateOrCreate(
             ['email' => 'eka@ipnetsolusindo.com'],
             [
-                'name'        => 'Eka Kurnia',
+                'name'        => 'Eka',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000009',
                 'position'    => 'L1 Security Engineer',
@@ -533,6 +593,36 @@ class DummyUserSeeder extends Seeder
             ]
         );
         $engSec1->syncRoles(['Security Engineer', 'Engineer']);
+
+        $engSec2 = User::updateOrCreate(
+            ['email' => 'luhur@ipnetsolusindo.com'],
+            [
+                'name'        => 'Luhur Dinda',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000025',
+                'position'    => 'L2 Security Engineer',
+                'status'      => 'Active',
+                'division_id' => $divSec->id,
+                'team_id'     => $teamSec->id,
+                'level'       => 'L2',
+            ]
+        );
+        $engSec2->syncRoles(['Security Engineer', 'Engineer']);
+
+        $engSec3 = User::updateOrCreate(
+            ['email' => 'randa@ipnetsolusindo.com'],
+            [
+                'name'        => 'Randa Multri',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000026',
+                'position'    => 'L2 Security Engineer',
+                'status'      => 'Active',
+                'division_id' => $divSec->id,
+                'team_id'     => $teamSec->id,
+                'level'       => 'L2',
+            ]
+        );
+        $engSec3->syncRoles(['Security Engineer', 'Engineer']);
 
         // D. MANAGED SERVICE & FIELD SUPPORT (EOS)
         $tlMnt = User::updateOrCreate(

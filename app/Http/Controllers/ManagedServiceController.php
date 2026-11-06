@@ -2584,20 +2584,20 @@ class ManagedServiceController extends Controller
             $picMsUsers = User::whereIn('name', ['Eris', 'Mario', 'Doris'])->get(['id', 'name', 'position']);
         }
 
-        // Daftar Lead Engineer Resmi: Hanya Nugraha Pratama dan Ignatius Rizky
+        // Daftar Lead Engineer Resmi: Hanya Nugraha Pratama dan Novan
         $leadEngineers = User::where('status', 'Active')
             ->where(function($q) {
                 $q->where('name', 'like', '%Nugraha%')
-                  ->orWhere('name', 'like', '%Ignatius%')
+                  ->orWhere('name', 'like', '%Novan%')
                   ->orWhere('email', 'like', '%nugraha%')
-                  ->orWhere('email', 'like', '%ignatius%');
+                  ->orWhere('email', 'like', '%novan%');
             })
             ->orderBy('name')
             ->get(['id', 'name', 'position']);
 
         if ($leadEngineers->isEmpty()) {
             $leadEngineers = User::where('name', 'like', '%Nugraha%')
-                ->orWhere('name', 'like', '%Ignatius%')
+                ->orWhere('name', 'like', '%Novan%')
                 ->get(['id', 'name', 'position']);
         }
 

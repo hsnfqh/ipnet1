@@ -2925,7 +2925,7 @@
                         @endphp
                         <option value="">-- Pilih Lead Managed Service --</option>
                         @foreach($msLeaders as $msl)
-                            <option value="{{ $msl->id }}" {{ str_contains(strtolower($msl->name), 'nugraha') || str_contains(strtolower($msl->name), 'rizky') ? 'selected' : '' }}>
+                            <option value="{{ $msl->id }}" {{ str_contains(strtolower($msl->name), 'nugraha') || str_contains(strtolower($msl->name), 'novan') ? 'selected' : '' }}>
                                 {{ $msl->name }} ({{ $msl->roles->pluck('name')->first() ?? 'Staff' }})
                             </option>
                         @endforeach
