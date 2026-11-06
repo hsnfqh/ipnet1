@@ -2069,6 +2069,11 @@ class PmoController extends Controller
                 $p->handover_target === 'managed_service'
             );
 
+            // Proyek PPATK murni implementasi PMO, tidak masuk ke alur maintenance/MS
+            if (str_contains(strtolower($p->name), 'ppat') || str_contains(strtolower($p->name), 'peremajaan router') || str_contains(strtolower($p->client ?? ''), 'ppat')) {
+                $hasMs = false;
+            }
+
             // PIC Klien pendamping diskusi ke PM
             $customerPic = $p->customer_pic_technical;
             if (empty($customerPic) || $customerPic === '-') {
