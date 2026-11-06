@@ -1416,8 +1416,32 @@ class ManagedServiceController extends Controller
                 ->where('location', 'Jl Majapahit')
                 ->forceDelete();
 
-            // 2. Hubungkan & aktifkan SEMUA proyek riil yang sudah pernah diinput user di database server
-            $existingProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])->get();
+            // Kembalikan proyek implementasi PMO (PPATK, IGNR, dll) ke PMO agar tidak masuk ke menu Managed Service (Eris)
+            Project::where('name', 'like', '%PPAT%')
+                ->orWhere('name', 'like', '%Ngurah Rai%')
+                ->orWhere('project_type', 'Implementation')
+                ->orWhere('project_type', 'One-Time Project')
+                ->update([
+                    'handover_target'    => 'pmo',
+                    'stage'              => 'Deliver',
+                    'ms_handover_status' => 'Draft',
+                ]);
+
+            // 2. Hubungkan & aktifkan HANYA proyek riil Managed Service / Maintenance user
+            $existingProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+                ->where(function($q) {
+                    $q->whereNull('project_type')
+                      ->orWhere(function($p) {
+                          $p->where('project_type', 'not like', '%Implementation%')
+                            ->where('project_type', 'not like', '%One-Time%');
+                      });
+                })
+                ->where(function($q) {
+                    $q->whereNull('handover_target')
+                      ->orWhere('handover_target', '!=', 'pmo');
+                })
+                ->get();
+
             foreach ($existingProjects as $ep) {
                 $ep->update([
                     'stage'              => 'Operate',
@@ -1722,6 +1746,17 @@ class ManagedServiceController extends Controller
 
         $query = Project::with(['creator', 'pmCycles', 'managedServiceTickets', 'msAcceptedBy'])
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where(function($q) {
+                $q->whereNull('project_type')
+                  ->orWhere(function($p) {
+                      $p->where('project_type', 'not like', '%Implementation%')
+                        ->where('project_type', 'not like', '%One-Time%');
+                  });
+            })
+            ->where(function($q) {
+                $q->whereNull('handover_target')
+                  ->orWhere('handover_target', '!=', 'pmo');
+            })
             ->where(function($q) {
                 $q->where('ms_handover_status', 'Accepted')
                   ->orWhere('stage', 'Operate')
