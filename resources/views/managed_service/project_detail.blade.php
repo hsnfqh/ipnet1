@@ -591,6 +591,17 @@
                                 </div>
                             </div>
 
+                            <!-- Ruang Lingkup Pekerjaan -->
+                            <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-start gap-3.5">
+                                <div class="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">Ruang Lingkup Pekerjaan</span>
+                                    <p class="font-bold text-[#1E293B] text-[12px] mt-0.5 whitespace-pre-line leading-relaxed">{{ $project->description ?: 'Pemeliharaan perangkat dan monitoring operasional SLA.' }}</p>
+                                </div>
+                            </div>
+
                             @if($project->contract_value)
                                 <!-- Nilai Kontrak Layanan (Neutral uniform styling, no red box) -->
                                 <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3.5">
@@ -747,7 +758,7 @@
                                 $hasActual = !empty($cycle->actual_date);
 
                                 // Berubah hijau (done) jika status Completed/Solved, atau Laporan Approved/Submitted, atau sudah ada inputan realisasi visit
-                                $isCycleDone = in_array($actStatus, ['completed', 'solved'])
+                                $isCycleDone = in_array($actStatus, ['completed', 'solved', 'selesai', 'done', 'resolved'])
                                     || in_array($repStatus, ['approved', 'submitted', 'signed', 'invoiced'])
                                     || $hasActual;
                                 $isCycleInProg = !$isCycleDone && (in_array($actStatus, ['in progress', 'assigned', 'on progress']) || $repStatus === 'draft');
@@ -1167,235 +1178,22 @@
             <!-- ========================================================== -->
             <div x-show="activeTab === 'cm'" x-cloak class="space-y-5 anim-fade-up">
                 
-                {{-- Quota Meter & Action Card --}}
-                <div class="ipnet-card p-5 sm:p-6 space-y-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E2E8F0] pb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
-                                <span class="text-[11px] font-bold text-[#8F0A0D] uppercase tracking-wider block">Corrective Maintenance (CM) Quota Tracker</span>
-                            </div>
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Penggunaan Kuota Tiket Penanganan Masalah & Incident</h3>
-                            <p class="text-[12px] text-[#64748B] mt-0.5">Pilihan kuota kontrak: 4, 6, 8, 12, 18 tiket, atau unlimited per periode kontrak.</p>
-                        </div>
-
-                    </div>
-
-                    {{-- Linear Quota Progress Bar --}}
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between text-xs font-semibold text-[#475569]">
-                            <span>Tiket Terpakai: <strong class="text-[#1E293B] font-bold">{{ $cmUsed }} Tiket</strong></span>
-                            <span>Sisa Kuota Kontrak: <strong class="text-emerald-700 font-bold">{{ $cmRemaining }} Tiket</strong></span>
-                        </div>
-                        <div class="w-full bg-[#E2E8F0] h-2.5 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full transition-all duration-500" 
-                                 style="background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: {{ $cmQuota >= 999 ? '15%' : min(100, round(($cmUsed / max(1, $cmQuota)) * 100)) }}%;"></div>
-                        </div>
-                        <div class="flex items-center justify-between text-[11px] text-[#94A3B8]">
-                            <span>Total Kuota: {{ $cmQuota >= 999 ? 'Unlimited Tiket' : $cmQuota . ' Tiket / Tahun' }}</span>
-                            <span>Target MTTR Penanganan: {{ $project->mttr_hours ?: 4 }} Jam</span>
-                        </div>
-                    </div>
-
-                    {{-- Visual Kuota Stepper Sesuai Template: Berkelok seperti Ular (Snake Flow) --}}
-                    @php
-                        $displayQuota = ($cmQuota >= 999) ? max(6, $cmUsed + 2) : max(1, (int)$cmQuota);
-                        $isSnakeCm = $displayQuota > 6;
-                        $cmChunkSize = 6; // 6 slot tiket per baris
-
-                        $cmSlots = collect();
-                        $sortedTickets = $cmTickets->values();
-
-                        for ($slotIndex = 1; $slotIndex <= $displayQuota; $slotIndex++) {
-                            $ticket = $sortedTickets->get($slotIndex - 1);
-                            $isUsed = ($ticket !== null) || ($slotIndex <= $cmUsed);
-                            $ticketStatus = $ticket ? ($ticket->status ?: 'Resolved') : ($isUsed ? 'Resolved' : 'Available');
-                            $rawStatus = strtolower($ticketStatus);
-                            $isResolved = in_array($rawStatus, ['resolved', 'closed', 'solved', 'completed', 'submitted']) || ($ticket && !empty($ticket->resolved_at));
-                            $isInProg = !$isResolved && in_array($rawStatus, ['in progress', 'assigned', 'open', 'investigating']);
-
-                            // Format tanggal d/m/Y seperti pada PM jika ada tanggal insiden / pelaksanaan
-                            if ($ticket) {
-                                $tDate = $ticket->incident_date ?: ($ticket->resolved_at ?: $ticket->created_at);
-                                $subText = !empty($tDate) ? \Carbon\Carbon::parse($tDate)->format('d/m/Y') : ($ticket->status ?: 'Resolved');
-                            } else {
-                                $subText = 'Tersedia';
-                            }
-
-                            $cmSlots->push([
-                                'slot_number' => $slotIndex,
-                                'is_used'     => $isUsed,
-                                'status'      => $ticketStatus,
-                                'is_resolved' => $isResolved,
-                                'is_in_prog'  => $isInProg,
-                                'ticket'      => $ticket,
-                                'label'       => 'Tiket #' . $slotIndex,
-                                'sub'         => $subText,
-                                'is_next'     => (!$isUsed && $slotIndex === ($cmUsed + 1)),
-                            ]);
-                        }
-
-                        $cmRows = $isSnakeCm ? $cmSlots->chunk($cmChunkSize) : collect([$cmSlots]);
-                    @endphp
-
-                    <div class="pt-3 border-t border-[#E2E8F0] overflow-x-auto">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                Visualisasi Slot Kuota Tiket ({{ $displayQuota }} Kuota &bull; {{ $cmUsed }} Terpakai &bull; {{ $cmRemaining }} Tersisa)
-                            </span>
-                        </div>
-
-                        @if(!$isSnakeCm)
-                            {{-- MODE 1: MEMANJANG HORIZONTAL LURUS (KUOTA <= 6) --}}
-                            <div class="flex items-center justify-between min-w-[550px] relative py-2 px-3">
-                                <div class="absolute left-6 right-6 top-4 h-0.5 bg-[#CBD5E1] -z-0"></div>
-
-                                @foreach($cmSlots as $slot)
-                                    @php
-                                        $isResolved = $slot['is_resolved'] ?? in_array($slot['status'], ['Resolved', 'Closed', 'Solved', 'Completed', 'Submitted']);
-                                        $isInProg = $slot['is_in_prog'] ?? in_array($slot['status'], ['In Progress', 'Assigned']);
-                                        $isNext = $slot['is_next'] ?? false;
-                                        $ticketObj = $slot['ticket'];
-                                    @endphp
-                                    <div class="relative z-10 flex flex-col items-center text-center cursor-pointer group"
-                                         @if($ticketObj)
-                                             @click="activeCmTicket = {{ json_encode($ticketObj) }}; isCmDetailModalOpen = true"
-                                         @else
-                                             @click="selectedCmSlot = {{ $slot['slot_number'] }}; isCmModalOpen = true"
-                                         @endif
-                                         title="{{ $ticketObj ? ($ticketObj->ticket_number . ' - ' . $ticketObj->title . ' (' . $ticketObj->status . ') - Klik untuk Update') : ('Tiket #' . $slot['slot_number'] . ' - Klik untuk Catat / Mulai Tiket Baru') }}">
-                                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all group-hover:scale-110
-                                            {{ $slot['is_used'] 
-                                                ? ($isResolved 
-                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' 
-                                                    : ($isInProg 
-                                                        ? 'bg-amber-500 border-amber-500 text-white animate-pulse' 
-                                                        : 'bg-[#8F0A0D] border-[#8F0A0D] text-white shadow-xs')) 
-                                                : ($isNext 
-                                                    ? 'bg-white border-[#8F0A0D] text-[#8F0A0D] ring-2 ring-[#8F0A0D]/20 shadow-xs' 
-                                                    : 'bg-white border-[#CBD5E1] text-[#94A3B8] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
-                                            @if($slot['is_used'])
-                                                @if($isResolved)
-                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                @elseif($isInProg)
-                                                    {{ $slot['slot_number'] }}
-                                                @else
-                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                @endif
-                                            @else
-                                                {{ $slot['slot_number'] }}
-                                            @endif
-                                        </div>
-                                        <span class="text-[11px] font-bold mt-1.5 transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#8F0A0D]')) : ($isNext ? 'text-[#8F0A0D]' : 'text-[#1E293B] group-hover:text-[#8F0A0D]') }}">
-                                            Tiket #{{ $slot['slot_number'] }}
-                                        </span>
-                                        <span class="text-[10px] transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#8F0A0D] font-medium')) : ($isNext ? 'text-[#8F0A0D] font-bold' : 'text-[#94A3B8] group-hover:text-[#8F0A0D]') }}">
-                                            {{ $slot['sub'] }}
-                                        </span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            {{-- MODE 2: BERKELOK KEK ULER (KUOTA BANYAK > 6) --}}
-                            <div class="min-w-[720px] max-w-5xl mx-auto space-y-6 py-2">
-                                @foreach($cmRows as $rowIndex => $rowSlots)
-                                    @php
-                                        $isRtl = ($rowIndex % 2 === 1);
-                                        $hasNextRow = ($rowIndex < $cmRows->count() - 1);
-                                    @endphp
-
-                                    <div class="relative">
-                                        {{-- Garis Utama Horizontal Baris Ini --}}
-                                        <div class="absolute top-4 left-6 right-6 h-0.5 bg-[#CBD5E1] -z-0"></div>
-
-                                        {{-- Lekukan U-Turn Berkelok (Loop Belok Ular) Menyambung Baris Bawahnya --}}
-                                        @if($hasNextRow)
-                                            @if(!$isRtl)
-                                                {{-- Belokan Loop Kanan: Mengalir ke bawah kanan --}}
-                                                <div class="absolute -right-1 top-4 w-10 h-[calc(100%+1.5rem)] border-t-2 border-r-2 border-b-2 rounded-r-3xl border-[#CBD5E1] pointer-events-none -z-0"></div>
-                                                <div class="absolute right-7 -bottom-3 text-[#94A3B8] text-[10px]">
-                                                    <svg class="w-3.5 h-3.5 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                                                </div>
-                                            @else
-                                                {{-- Belokan Loop Kiri: Mengalir ke bawah kiri --}}
-                                                <div class="absolute -left-1 top-4 w-10 h-[calc(100%+1.5rem)] border-t-2 border-l-2 border-b-2 rounded-l-3xl border-[#CBD5E1] pointer-events-none -z-0"></div>
-                                                <div class="absolute left-7 -bottom-3 text-[#94A3B8] text-[10px]">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                                                </div>
-                                            @endif
-                                        @endif
-
-                                        {{-- Node Slot Tiket Baris Ini --}}
-                                        <div class="flex items-start justify-between relative z-10 px-2 {{ $isRtl ? 'flex-row-reverse' : '' }}">
-                                            @foreach($rowSlots as $slot)
-                                                @php
-                                                    $isResolved = $slot['is_resolved'] ?? in_array($slot['status'], ['Resolved', 'Closed', 'Solved', 'Completed', 'Submitted']);
-                                                    $isInProg = $slot['is_in_prog'] ?? in_array($slot['status'], ['In Progress', 'Assigned']);
-                                                    $isNext = $slot['is_next'] ?? false;
-                                                    $ticketObj = $slot['ticket'];
-                                                @endphp
-                                                <div class="flex-1 flex flex-col items-center text-center">
-                                                    <div class="cursor-pointer group flex flex-col items-center"
-                                                         @if($ticketObj)
-                                                             @click="activeCmTicket = {{ json_encode($ticketObj) }}; isCmDetailModalOpen = true"
-                                                         @else
-                                                             @click="selectedCmSlot = {{ $slot['slot_number'] }}; isCmModalOpen = true"
-                                                         @endif
-                                                         title="{{ $ticketObj ? ($ticketObj->ticket_number . ' - ' . $ticketObj->title . ' (' . $ticketObj->status . ') - Klik untuk Update') : ('Tiket #' . $slot['slot_number'] . ' - Klik untuk Catat / Mulai Tiket Baru') }}">
-                                                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all group-hover:scale-110
-                                                            {{ $slot['is_used'] 
-                                                                ? ($isResolved 
-                                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' 
-                                                                    : ($isInProg 
-                                                                        ? 'bg-amber-500 border-amber-500 text-white animate-pulse' 
-                                                                        : 'bg-[#8F0A0D] border-[#8F0A0D] text-white shadow-xs')) 
-                                                                : ($isNext 
-                                                                    ? 'bg-white border-[#8F0A0D] text-[#8F0A0D] ring-2 ring-[#8F0A0D]/20 shadow-xs' 
-                                                                    : 'bg-white border-[#CBD5E1] text-[#94A3B8] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
-                                                            @if($slot['is_used'])
-                                                                @if($isResolved)
-                                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                                @elseif($isInProg)
-                                                                    {{ $slot['slot_number'] }}
-                                                                @else
-                                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                                @endif
-                                                            @else
-                                                                {{ $slot['slot_number'] }}
-                                                            @endif
-                                                        </div>
-                                                        <span class="text-[11px] font-bold mt-1.5 transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#8F0A0D]')) : ($isNext ? 'text-[#8F0A0D]' : 'text-[#1E293B] group-hover:text-[#8F0A0D]') }}">
-                                                            Tiket #{{ $slot['slot_number'] }}
-                                                        </span>
-                                                        <span class="text-[10px] transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#8F0A0D] font-medium')) : ($isNext ? 'text-[#8F0A0D] font-bold' : 'text-[#94A3B8] group-hover:text-[#8F0A0D]') }}">
-                                                            {{ $slot['sub'] }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-
-                                            {{-- Penyeimbang lebar jika baris terakhir memiliki slot lebih sedikit --}}
-                                            @if($rowSlots->count() < $cmChunkSize)
-                                                @for($fill = 0; $fill < ($cmChunkSize - $rowSlots->count()); $fill++)
-                                                    <div class="flex-1 opacity-0 pointer-events-none"></div>
-                                                @endfor
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                {{-- CM Tickets Table --}}
+                {{-- KARTU 1: DAFTAR TIKET CM (PINDAH KE ATAS) --}}
                 <div class="ipnet-card overflow-hidden">
-                    <div class="p-4 sm:p-5 border-b border-[#E2E8F0]">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
-                            <h3 class="text-[13px] font-bold text-[#1E293B] uppercase tracking-wider">Daftar Tiket Corrective Maintenance Proyek Ini</h3>
+                    <div class="p-4 sm:p-5 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                                <h3 class="text-[13px] font-bold text-[#1E293B] uppercase tracking-wider">Daftar Tiket Corrective Maintenance Proyek Ini</h3>
+                            </div>
+                            <p class="text-[12px] text-[#64748B] mt-0.5">Riwayat insiden, perbaikan perangkat, teknisi yang bertugas, dan berita acara perbaikan (BAP)</p>
                         </div>
-                        <p class="text-[12px] text-[#64748B] mt-0.5">Riwayat insiden, perbaikan perangkat, teknisi yang bertugas, dan berita acara perbaikan (BAP)</p>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button type="button" @click="selectedCmSlot = null; isCmModalOpen = true" class="px-3.5 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#72080A] text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <span>+ Catat Tiket CM Baru</span>
+                            </button>
+                        </div>
                     </div>
 
                     @if($cmTickets->isEmpty())
@@ -1459,17 +1257,22 @@
                                                 {{ $t->assignedEngineer?->name ?: '—' }}
                                             </td>
                                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                                @if($t->status === 'Resolved' || $t->status === 'Closed')
+                                                @php
+                                                    $rawSt = strtolower(trim((string)$t->status));
+                                                    $isStResolved = in_array($rawSt, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+                                                    $isStInProg = !$isStResolved && in_array($rawSt, ['in progress', 'assigned', 'open', 'investigating', 'on progress']);
+                                                @endphp
+                                                @if($isStResolved)
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                         Resolved
                                                     </span>
-                                                @elseif($t->status === 'In Progress')
+                                                @elseif($isStInProg)
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                                         In Progress
                                                     </span>
                                                 @else
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-[#8F0A0D] border border-rose-200">
-                                                        Open
+                                                        {{ $t->status ?: 'Open' }}
                                                     </span>
                                                 @endif
                                             </td>
@@ -1498,6 +1301,199 @@
                             </table>
                         </div>
                     @endif
+                </div>
+
+                {{-- KARTU 2: VISUALISASI SLOT KUOTA TIKET (PINDAH KE BAWAH, TANPA LINEAR PROGRESS BAR) --}}
+                <div class="ipnet-card p-5 sm:p-6 space-y-4">
+                    @php
+                        $displayQuota = ($cmQuota >= 999) ? max(6, $cmUsed + 2) : max(1, (int)$cmQuota);
+                        $isSnakeCm = $displayQuota > 6;
+                        $cmChunkSize = 6; // 6 slot tiket per baris
+
+                        $cmSlots = collect();
+                        $sortedTickets = $cmTickets->values();
+
+                        for ($slotIndex = 1; $slotIndex <= $displayQuota; $slotIndex++) {
+                            $ticket = $sortedTickets->get($slotIndex - 1);
+                            $isUsed = ($ticket !== null) || ($slotIndex <= $cmUsed);
+                            $ticketStatus = $ticket ? ($ticket->status ?: 'Resolved') : ($isUsed ? 'Resolved' : 'Available');
+                            $rawStatus = strtolower(trim((string)$ticketStatus));
+                            $isResolved = in_array($rawStatus, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'berhasil', 'sukses', 'approved']) || ($ticket && !empty($ticket->resolved_at));
+                            $isInProg = !$isResolved && in_array($rawStatus, ['in progress', 'assigned', 'open', 'investigating', 'on progress']);
+
+                            // Format tanggal d/m/Y seperti pada PM jika ada tanggal insiden / pelaksanaan
+                            if ($ticket) {
+                                $tDate = $ticket->incident_date ?: ($ticket->resolved_at ?: $ticket->created_at);
+                                $subText = !empty($tDate) ? \Carbon\Carbon::parse($tDate)->format('d/m/Y') : ($ticket->status ?: 'Resolved');
+                            } else {
+                                $subText = 'Tersedia';
+                            }
+
+                            $cmSlots->push([
+                                'slot_number' => $slotIndex,
+                                'is_used'     => $isUsed,
+                                'status'      => $ticketStatus,
+                                'is_resolved' => $isResolved,
+                                'is_in_prog'  => $isInProg,
+                                'ticket'      => $ticket,
+                                'label'       => 'Tiket #' . $slotIndex,
+                                'sub'         => $subText,
+                                'is_next'     => (!$isUsed && $slotIndex === ($cmUsed + 1)),
+                            ]);
+                        }
+
+                        $cmRows = $isSnakeCm ? $cmSlots->chunk($cmChunkSize) : collect([$cmSlots]);
+                    @endphp
+
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#E2E8F0] pb-3">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                                <span class="text-[11px] font-bold text-[#8F0A0D] uppercase tracking-wider block">Visualisasi Slot Kuota Tiket</span>
+                            </div>
+                            <h3 class="text-[14px] font-bold text-[#1E293B]">
+                                Visualisasi Slot Kuota Tiket ({{ $displayQuota }} Kuota &bull; {{ $cmUsed }} Terpakai &bull; {{ $cmRemaining }} Tersisa)
+                            </h3>
+                            <p class="text-[11.5px] text-[#64748B] mt-0.5">Alur kuota penanganan insiden SLA &bull; Target MTTR: {{ $project->mttr_hours ?: 4 }} Jam &bull; Klik bulatan tiket untuk melihat detail atau mencatat tiket baru</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 overflow-x-auto">
+                        @if(!$isSnakeCm)
+                            {{-- MODE 1: MEMANJANG HORIZONTAL LURUS (KUOTA <= 6) --}}
+                            <div class="flex items-center justify-between min-w-[550px] relative py-2 px-3">
+                                <div class="absolute left-6 right-6 top-4 h-0.5 bg-[#CBD5E1] -z-0"></div>
+
+                                @foreach($cmSlots as $slot)
+                                    @php
+                                        $isResolved = $slot['is_resolved'];
+                                        $isInProg = $slot['is_in_prog'];
+                                        $isNext = $slot['is_next'] ?? false;
+                                        $ticketObj = $slot['ticket'];
+                                    @endphp
+                                    <div class="relative z-10 flex flex-col items-center text-center cursor-pointer group"
+                                         @if($ticketObj)
+                                             @click="activeCmTicket = {{ json_encode($ticketObj) }}; isCmDetailModalOpen = true"
+                                         @else
+                                             @click="selectedCmSlot = {{ $slot['slot_number'] }}; isCmModalOpen = true"
+                                         @endif
+                                         title="{{ $ticketObj ? ($ticketObj->ticket_number . ' - ' . $ticketObj->title . ' (' . $ticketObj->status . ') - Klik untuk Update') : ('Tiket #' . $slot['slot_number'] . ' - Klik untuk Catat / Mulai Tiket Baru') }}">
+                                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all group-hover:scale-110
+                                            {{ $slot['is_used'] 
+                                                ? ($isResolved 
+                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' 
+                                                    : ($isInProg 
+                                                        ? 'bg-amber-500 border-amber-500 text-white animate-pulse' 
+                                                        : 'bg-[#8F0A0D] border-[#8F0A0D] text-white shadow-xs')) 
+                                                : ($isNext 
+                                                    ? 'bg-white border-[#8F0A0D] text-[#8F0A0D] ring-2 ring-[#8F0A0D]/20 shadow-xs' 
+                                                    : 'bg-white border-[#CBD5E1] text-[#94A3B8] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
+                                            @if($slot['is_used'])
+                                                @if($isResolved)
+                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                @elseif($isInProg)
+                                                    {{ $slot['slot_number'] }}
+                                                @else
+                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                @endif
+                                            @else
+                                                {{ $slot['slot_number'] }}
+                                            @endif
+                                        </div>
+                                        <span class="text-[11px] font-bold mt-1.5 transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#8F0A0D]')) : ($isNext ? 'text-[#8F0A0D]' : 'text-[#1E293B] group-hover:text-[#8F0A0D]') }}">
+                                            Tiket #{{ $slot['slot_number'] }}
+                                        </span>
+                                        <span class="text-[10px] transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#8F0A0D] font-medium')) : ($isNext ? 'text-[#8F0A0D] font-bold' : 'text-[#94A3B8] group-hover:text-[#8F0A0D]') }}">
+                                            {{ $slot['sub'] }}
+                                        </span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            {{-- MODE 2: BERKELOK KEK ULER (KUOTA BANYAK > 6) --}}
+                            <div class="min-w-[720px] max-w-5xl mx-auto space-y-6 py-2">
+                                @foreach($cmRows as $rowIndex => $rowSlots)
+                                    @php
+                                        $isRtl = ($rowIndex % 2 === 1);
+                                        $hasNextRow = ($rowIndex < $cmRows->count() - 1);
+                                    @endphp
+
+                                    <div class="relative">
+                                        {{-- Garis Utama Horizontal Baris Ini --}}
+                                        <div class="absolute top-4 left-6 right-6 h-0.5 bg-[#CBD5E1] -z-0"></div>
+
+                                        {{-- Garis Lengkung U-Turn Penghubung Antar Baris --}}
+                                        @if($hasNextRow)
+                                            @if(!$isRtl)
+                                                {{-- Belokan di Kanan: Baris LTR -> Baris RTL --}}
+                                                <div class="absolute right-6 top-4 w-10 h-16 border-t-2 border-r-2 border-b-2 border-[#CBD5E1] rounded-r-2xl pointer-events-none -z-0"></div>
+                                            @else
+                                                {{-- Belokan di Kiri: Baris RTL -> Baris LTR --}}
+                                                <div class="absolute left-6 top-4 w-10 h-16 border-t-2 border-l-2 border-b-2 border-[#CBD5E1] rounded-l-2xl pointer-events-none -z-0"></div>
+                                            @endif
+                                        @endif
+
+                                        {{-- Slot Tiket Baris Ini --}}
+                                        <div class="flex items-start justify-between relative z-10 px-2 {{ $isRtl ? 'flex-row-reverse' : '' }}">
+                                            @foreach($rowSlots as $slot)
+                                                @php
+                                                    $isResolved = $slot['is_resolved'];
+                                                    $isInProg = $slot['is_in_prog'];
+                                                    $isNext = $slot['is_next'] ?? false;
+                                                    $ticketObj = $slot['ticket'];
+                                                @endphp
+                                                <div class="flex-1 flex flex-col items-center text-center">
+                                                    <div class="cursor-pointer group flex flex-col items-center"
+                                                         @if($ticketObj)
+                                                             @click="activeCmTicket = {{ json_encode($ticketObj) }}; isCmDetailModalOpen = true"
+                                                         @else
+                                                             @click="selectedCmSlot = {{ $slot['slot_number'] }}; isCmModalOpen = true"
+                                                         @endif
+                                                         title="{{ $ticketObj ? ($ticketObj->ticket_number . ' - ' . $ticketObj->title . ' (' . $ticketObj->status . ') - Klik untuk Update') : ('Tiket #' . $slot['slot_number'] . ' - Klik untuk Catat / Mulai Tiket Baru') }}">
+                                                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all group-hover:scale-110
+                                                            {{ $slot['is_used'] 
+                                                                ? ($isResolved 
+                                                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' 
+                                                                    : ($isInProg 
+                                                                        ? 'bg-amber-500 border-amber-500 text-white animate-pulse' 
+                                                                        : 'bg-[#8F0A0D] border-[#8F0A0D] text-white shadow-xs')) 
+                                                                : ($isNext 
+                                                                    ? 'bg-white border-[#8F0A0D] text-[#8F0A0D] ring-2 ring-[#8F0A0D]/20 shadow-xs' 
+                                                                    : 'bg-white border-[#CBD5E1] text-[#94A3B8] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
+                                                            @if($slot['is_used'])
+                                                                @if($isResolved)
+                                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                                @elseif($isInProg)
+                                                                    {{ $slot['slot_number'] }}
+                                                                @else
+                                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                                @endif
+                                                            @else
+                                                                {{ $slot['slot_number'] }}
+                                                            @endif
+                                                        </div>
+                                                        <span class="text-[11px] font-bold mt-1.5 transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#8F0A0D]')) : ($isNext ? 'text-[#8F0A0D]' : 'text-[#1E293B] group-hover:text-[#8F0A0D]') }}">
+                                                            Tiket #{{ $slot['slot_number'] }}
+                                                        </span>
+                                                        <span class="text-[10px] transition-colors {{ $slot['is_used'] ? ($isResolved ? 'text-emerald-600 font-medium' : ($isInProg ? 'text-amber-600 font-medium' : 'text-[#8F0A0D] font-medium')) : ($isNext ? 'text-[#8F0A0D] font-bold' : 'text-[#94A3B8] group-hover:text-[#8F0A0D]') }}">
+                                                            {{ $slot['sub'] }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+
+                                            {{-- Penyeimbang lebar jika baris terakhir memiliki slot lebih sedikit --}}
+                                            @if($rowSlots->count() < $cmChunkSize)
+                                                @for($fill = 0; $fill < ($cmChunkSize - $rowSlots->count()); $fill++)
+                                                    <div class="flex-1 opacity-0 pointer-events-none"></div>
+                                                @endfor
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
 
