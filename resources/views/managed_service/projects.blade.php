@@ -270,13 +270,13 @@
                 {{-- Table Card Tab 1 --}}
                 <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
                     <div class="overflow-x-auto">
-                        <table class="w-full min-w-[900px] border-collapse text-[13px] text-left">
+                        <table class="w-full min-w-[1150px] border-collapse text-[13px] text-left">
                             <thead>
                                 <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Nama Project &amp; Tipe</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Client &amp; Sales</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Project Manager</th>
-                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Lokasi</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider whitespace-nowrap min-w-[220px]">Lokasi</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Durasi &amp; Deadline</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Progress Siklus PM</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Status</th>
@@ -374,8 +374,8 @@
                                             </div>
                                         </td>
 
-                                        {{-- Lokasi --}}
-                                        <td class="py-3 px-4 text-[#475569] text-[12.5px] max-w-[160px] truncate" title="{{ $p->location ?: 'On-Site Klien' }}">
+                                        {{-- Lokasi Lengkap Tanpa Terpotong (Bisa Scroll Ke Samping) --}}
+                                        <td class="py-3 px-4 text-[#475569] text-[12.5px] whitespace-nowrap min-w-[220px]" title="{{ $p->location ?: 'On-Site Klien' }}">
                                             {{ $p->location ?: '—' }}
                                         </td>
 
