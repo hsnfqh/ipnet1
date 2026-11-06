@@ -40,6 +40,20 @@
          activeTab: '{{ request('tab', 'active') }}', 
          showCreateContractModal: false,
          showEditContractModal: false,
+         showDeleteModal: false,
+         deleteProjectId: null,
+         deleteProjectName: '',
+         deleteProjectClient: '',
+         isDeleting: false,
+         isSubmittingContract: false,
+         isUpdatingContract: false,
+         openDeleteModal(id, name, client) {
+             this.deleteProjectId = id;
+             this.deleteProjectName = name;
+             this.deleteProjectClient = client;
+             this.isDeleting = false;
+             this.showDeleteModal = true;
+         },
          editContractValueFormatted: '',
          editContractValueRaw: '',
          editDurationMonths: 12,
@@ -64,6 +78,7 @@
              pm_frequency_type: '1_thn_3_bln',
              pm_total_cycles: 4,
              cm_quota: 12,
+             sharing_knowledge: '1_thn_1x',
              pm_id: '',
              bast_handover_type: 'am_to_ms',
              status: 'Active',
@@ -444,6 +459,7 @@
                                                             'pm_frequency_type' => $p->pm_frequency_type ?: '1_thn_3_bln',
                                                             'pm_total_cycles' => $p->pm_total_cycles ?: 4,
                                                             'cm_quota' => $p->cm_quota ?? 12,
+                                                            'sharing_knowledge' => $p->sharing_knowledge ?: '1_thn_1x',
                                                             'pm_id' => $p->pm_id ?: '',
                                                             'bast_handover_type' => $p->handover_data['bast_handover_type'] ?? 'am_to_ms',
                                                             'status' => $p->status ?: 'Active',
@@ -460,6 +476,16 @@
                                                         class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                                    </svg>
+                                                </button>
+
+                                                {{-- 3. Hapus Kontrak Proyek (Icon Sampah) --}}
+                                                <button type="button" 
+                                                        @click="openDeleteModal({{ $p->id }}, '{{ addslashes($p->name) }}', '{{ addslashes($p->client) }}')"
+                                                        title="Hapus Kontrak Proyek" 
+                                                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[#64748B] hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                     </svg>
                                                 </button>
                                             </div>
@@ -734,6 +760,7 @@
                              pmFrequency: '1_thn_3_bln',
                              pmCycles: 4,
                              cmQuota: 12,
+                             sharingKnowledge: '1_thn_1x',
                              startDate: '{{ now()->format('Y-m-d') }}',
                              endDate: '{{ now()->addYear()->format('Y-m-d') }}',
                              durationMonths: 12,
@@ -839,7 +866,7 @@
                         </div>
 
                         {{-- Modal Body (Scrollable Form) --}}
-                        <form action="{{ route('ms.projects.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden m-0">
+                        <form action="{{ route('ms.projects.store') }}" method="POST" enctype="multipart/form-data" @submit="isSubmittingContract = true" class="flex flex-col flex-1 overflow-hidden m-0">
                             @csrf
                             <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
 
@@ -1029,9 +1056,31 @@
                                             <input type="number" name="pm_total_cycles" x-model="pmCycles" min="1" max="120" @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '')" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800 bg-slate-50">
                                         </div>
 
-                                        <div class="space-y-1">
+                                        <div class="space-y-1 md:col-span-2">
                                             <label class="block text-xs font-bold text-slate-700">Kuota Tiket Insiden (CM Quota)</label>
                                             <input type="number" name="cm_quota" x-model="cmQuota" min="0" max="999" @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '')" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
+                                        </div>
+
+                                        <div class="space-y-1 md:col-span-2">
+                                            <label class="block text-xs font-bold text-slate-700">Sharing Knowledge / Pelatihan</label>
+                                            <select name="sharing_knowledge" x-model="sharingKnowledge" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white font-semibold text-slate-800">
+                                                <optgroup label="Periode Kontrak 1 Tahun">
+                                                    <option value="1_thn_1x">1 Tahun - 1x Sesi / Tahun</option>
+                                                    <option value="1_thn_2x">1 Tahun - 2x Sesi / Tahun (Per Semester)</option>
+                                                </optgroup>
+                                                <optgroup label="Periode Kontrak 2 Tahun">
+                                                    <option value="2_thn_1x">2 Tahun - 1x Sesi / Tahun (Total 2x)</option>
+                                                    <option value="2_thn_2x">2 Tahun - 2x Sesi / Tahun (Total 4x)</option>
+                                                </optgroup>
+                                                <optgroup label="Periode Kontrak 3 Tahun">
+                                                    <option value="3_thn_1x">3 Tahun - 1x Sesi / Tahun (Total 3x)</option>
+                                                    <option value="3_thn_2x">3 Tahun - 2x Sesi / Tahun (Total 6x)</option>
+                                                </optgroup>
+                                                <optgroup label="Lainnya">
+                                                    <option value="on_demand">Sesuai Kebutuhan / On-Demand</option>
+                                                    <option value="none">Tidak Ada Sharing Knowledge</option>
+                                                </optgroup>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -1260,7 +1309,8 @@
                                     Batal
                                 </button>
                                 <button type="submit" 
-                                        class="inline-flex items-center gap-2 px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-xl shadow-md shadow-red-900/15 transition cursor-pointer">
+                                        :disabled="isSubmittingContract"
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-xl shadow-md shadow-red-900/15 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                     </svg>
@@ -1298,7 +1348,7 @@
                         </div>
 
                         {{-- Modal Body (Scrollable Form) --}}
-                        <form :action="'/managed-service/projects/' + editProject.id" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden m-0">
+                        <form :action="'/managed-service/projects/' + editProject.id" method="POST" enctype="multipart/form-data" @submit="isUpdatingContract = true" class="flex flex-col flex-1 overflow-hidden m-0">
                             @csrf
                             @method('PUT')
 
@@ -1490,9 +1540,31 @@
                                             <input type="number" name="pm_total_cycles" x-model="editProject.pm_total_cycles" min="1" max="120" @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '')" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800 bg-slate-50">
                                         </div>
 
-                                        <div class="space-y-1">
+                                        <div class="space-y-1 md:col-span-2">
                                             <label class="block text-xs font-bold text-slate-700">Kuota Tiket Insiden (CM Quota)</label>
                                             <input type="number" name="cm_quota" x-model="editProject.cm_quota" min="0" max="999" @input="$event.target.value = $event.target.value.replace(/[^0-9]/g, '')" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-bold text-slate-800">
+                                        </div>
+
+                                        <div class="space-y-1 md:col-span-2">
+                                            <label class="block text-xs font-bold text-slate-700">Sharing Knowledge / Pelatihan</label>
+                                            <select name="sharing_knowledge" x-model="editProject.sharing_knowledge" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white font-semibold text-slate-800">
+                                                <optgroup label="Periode Kontrak 1 Tahun">
+                                                    <option value="1_thn_1x">1 Tahun - 1x Sesi / Tahun</option>
+                                                    <option value="1_thn_2x">1 Tahun - 2x Sesi / Tahun (Per Semester)</option>
+                                                </optgroup>
+                                                <optgroup label="Periode Kontrak 2 Tahun">
+                                                    <option value="2_thn_1x">2 Tahun - 1x Sesi / Tahun (Total 2x)</option>
+                                                    <option value="2_thn_2x">2 Tahun - 2x Sesi / Tahun (Total 4x)</option>
+                                                </optgroup>
+                                                <optgroup label="Periode Kontrak 3 Tahun">
+                                                    <option value="3_thn_1x">3 Tahun - 1x Sesi / Tahun (Total 3x)</option>
+                                                    <option value="3_thn_2x">3 Tahun - 2x Sesi / Tahun (Total 6x)</option>
+                                                </optgroup>
+                                                <optgroup label="Lainnya">
+                                                    <option value="on_demand">Sesuai Kebutuhan / On-Demand</option>
+                                                    <option value="none">Tidak Ada Sharing Knowledge</option>
+                                                </optgroup>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -1817,7 +1889,8 @@
                                     Batal
                                 </button>
                                 <button type="submit" 
-                                        class="inline-flex items-center gap-2 px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-xl shadow-md shadow-red-900/15 transition cursor-pointer">
+                                        :disabled="isUpdatingContract"
+                                        class="inline-flex items-center gap-2 px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-xl shadow-md shadow-red-900/15 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                     </svg>
@@ -1825,6 +1898,96 @@
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            </template>
+
+            {{-- MODAL KONFIRMASI HAPUS KONTRAK PROYEK --}}
+            <template x-teleport="body">
+                <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4"
+                     @keydown.escape.window="showDeleteModal = false">
+                    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-[#CBD5E1] p-6 text-center space-y-4 anim-fade-up"
+                         @click.outside="showDeleteModal = false">
+                        <div class="w-14 h-14 rounded-full bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center mx-auto shadow-inner">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
+                        <div class="space-y-1.5">
+                            <h3 class="text-base font-bold text-[#1E293B]">Hapus Kontrak Layanan?</h3>
+                            <p class="text-xs text-[#64748B] leading-relaxed">
+                                Apakah Anda yakin ingin menghapus proyek <span class="font-bold text-slate-900" x-text="deleteProjectName"></span> untuk klien <span class="font-bold text-slate-900" x-text="deleteProjectClient"></span>? Seluruh siklus PM dan riwayat tiket terkait akan dihapus secara permanen.
+                            </p>
+                        </div>
+                        <form :action="'/managed-service/projects/' + deleteProjectId" method="POST" @submit="isDeleting = true">
+                            @csrf
+                            @method('DELETE')
+                            <div class="flex items-center justify-center gap-3 pt-2">
+                                <button type="button" @click="showDeleteModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-100 border border-slate-300 rounded-xl transition cursor-pointer">
+                                    Batal
+                                </button>
+                                <button type="submit" :disabled="isDeleting" class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-600/20 transition cursor-pointer disabled:opacity-50">
+                                    <span>Hapus Kontrak</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </template>
+
+            {{-- POP UP LOADING BUAT KONTRAK BARU --}}
+            <template x-teleport="body">
+                <div x-show="isSubmittingContract" x-cloak class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl p-7 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4">
+                        <div class="relative w-16 h-16 flex items-center justify-center">
+                            <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                            <div class="absolute inset-0 rounded-full border-4 border-[#8F0A0D] border-t-transparent animate-spin"></div>
+                            <svg class="w-7 h-7 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-bold text-[#1E293B]">Sedang Mendaftarkan Kontrak Proyek...</h4>
+                            <p class="text-xs text-[#64748B]">Mohon tunggu sebentar, sistem sedang memvalidasi data kontrak, menginisialisasi jadwal siklus PM, dan menyimpan berkas.</p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            {{-- POP UP LOADING PERBARUI KONTRAK --}}
+            <template x-teleport="body">
+                <div x-show="isUpdatingContract" x-cloak class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl p-7 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4">
+                        <div class="relative w-16 h-16 flex items-center justify-center">
+                            <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                            <div class="absolute inset-0 rounded-full border-4 border-[#8F0A0D] border-t-transparent animate-spin"></div>
+                            <svg class="w-7 h-7 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-bold text-[#1E293B]">Sedang Memperbarui Kontrak Proyek...</h4>
+                            <p class="text-xs text-[#64748B]">Mohon tunggu sebentar, sistem sedang memperbarui spesifikasi kontrak, parameter SLA, dan berkas kerja sama.</p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            {{-- POP UP LOADING HAPUS KONTRAK --}}
+            <template x-teleport="body">
+                <div x-show="isDeleting" x-cloak class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl p-7 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4">
+                        <div class="relative w-16 h-16 flex items-center justify-center">
+                            <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                            <div class="absolute inset-0 rounded-full border-4 border-red-600 border-t-transparent animate-spin"></div>
+                            <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-bold text-[#1E293B]">Sedang Menghapus Kontrak Layanan...</h4>
+                            <p class="text-xs text-[#64748B]">Mohon tunggu sebentar, sistem sedang membersihkan seluruh data proyek dan berkas terkait.</p>
+                        </div>
                     </div>
                 </div>
             </template>

@@ -1399,6 +1399,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/projects/{project}', [\App\Http\Controllers\ManagedServiceController::class, 'updateProject'])->name('ms.projects.update');
         Route::post('/projects/{project}/documents', [\App\Http\Controllers\ManagedServiceController::class, 'updateProjectDocuments'])->name('ms.projects.documents.update');
         Route::put('/projects/{project}/sla-params', [\App\Http\Controllers\ManagedServiceController::class, 'updateProjectSlaParams'])->name('ms.projects.sla.update');
+        Route::delete('/projects/{project}', [\App\Http\Controllers\ManagedServiceController::class, 'destroyProject'])->name('ms.projects.destroy');
 
         // Monitoring PM & CM Tracker
         Route::get('/monitoring/preventive/{project?}', [\App\Http\Controllers\ManagedServiceController::class, 'monitoringPm'])->name('ms.monitoring.pm');

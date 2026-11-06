@@ -1413,6 +1413,32 @@ class ManagedServiceController extends Controller
         $this->ensureTablesExist();
         $this->ensureSampleProjectExists();
 
+        // Pembersihan otomatis jika terjadi duplikasi nama proyek akibat double-submit
+        try {
+            $duplicateNames = Project::select('name', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
+                ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+                ->groupBy('name')
+                ->havingRaw('COUNT(*) > 1')
+                ->pluck('name');
+
+            foreach ($duplicateNames as $dupName) {
+                $dupList = Project::where('name', $dupName)->orderBy('id', 'asc')->get();
+                if ($dupList->count() > 1) {
+                    $hasData = $dupList->filter(fn($p) => $p->managedServiceTickets()->count() > 0 || $p->pmCycles()->whereNotNull('actual_date')->count() > 0)->first();
+                    $keepId = $hasData ? $hasData->id : $dupList->first()->id;
+
+                    $toDelete = $dupList->where('id', '!=', $keepId);
+                    foreach ($toDelete as $pDel) {
+                        $pDel->pmCycles()->delete();
+                        ManagedServiceTicket::where('project_id', $pDel->id)->delete();
+                        ManagedServiceAsset::where('project_id', $pDel->id)->delete();
+                        ProjectDocument::where('project_id', $pDel->id)->delete();
+                        $pDel->delete();
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
         $perPage = (int) $request->input('per_page', 10);
         if (!in_array($perPage, [5, 10, 25, 50])) {
             $perPage = 10;
@@ -1612,6 +1638,7 @@ class ManagedServiceController extends Controller
             'call_response_time'        => 'nullable|string|max:50',
             'pm_frequency_type'         => 'required|string',
             'pm_total_cycles'           => 'nullable|integer|min:1',
+            'sharing_knowledge'         => 'nullable|string|max:50',
             'cm_quota'                  => 'nullable|integer|min:0',
             'pm_id'                     => 'nullable|exists:users,id',
             'pm_name'                   => 'nullable|string|max:255',
@@ -1624,6 +1651,15 @@ class ManagedServiceController extends Controller
             'file_tor'                  => 'nullable|file|max:51200',
             'file_tech'                 => 'nullable|file|max:51200',
         ]);
+
+        // Cek apakah proyek dengan nama dan klien yang sama sudah dibuat (mencegah double-click submit)
+        $existingDup = Project::where('name', $validated['name'])
+            ->where('client', $validated['client'])
+            ->first();
+        if ($existingDup) {
+            return redirect()->route('ms.projects.index', ['tab' => 'active'])
+                ->with('success', "Kontrak Managed Service '{$existingDup->name}' untuk klien '{$existingDup->client}' berhasil diaktifkan.");
+        }
 
         // Parsing nilai kontrak rupiah (bersihkan format titik / koma / simbol)
         $rawVal = preg_replace('/[^\d]/', '', (string) ($request->contract_value ?? '0'));
@@ -1777,6 +1813,7 @@ class ManagedServiceController extends Controller
             'incident_resolution_hours' => $mttrHours,
             'pm_frequency_type'         => $freq,
             'pm_total_cycles'           => $totalCycles,
+            'sharing_knowledge'         => $validated['sharing_knowledge'] ?? '1_thn_1x',
             'cm_quota'                  => $cmQuota,
             'service_start_date'        => $validated['service_start_date'],
             'service_end_date'          => $validated['service_end_date'],
@@ -1885,6 +1922,7 @@ class ManagedServiceController extends Controller
             'call_response_time'        => 'nullable|string|max:50',
             'pm_frequency_type'         => 'required|string',
             'pm_total_cycles'           => 'nullable|integer|min:1',
+            'sharing_knowledge'         => 'nullable|string|max:50',
             'cm_quota'                  => 'nullable|integer|min:0',
             'pm_id'                     => 'nullable',
             'status'                    => 'nullable|string|max:50',
@@ -1964,6 +2002,7 @@ class ManagedServiceController extends Controller
             'incident_resolution_hours' => $validated['mttr_hours'] ?? $project->incident_resolution_hours,
             'pm_frequency_type'         => $validated['pm_frequency_type'],
             'pm_total_cycles'           => $totalCycles,
+            'sharing_knowledge'         => $validated['sharing_knowledge'] ?? $project->sharing_knowledge,
             'cm_quota'                  => $validated['cm_quota'] ?? $project->cm_quota,
             'status'                    => $validated['status'] ?? $project->status,
             'description'               => $validated['description'] ?? null,
@@ -2081,6 +2120,29 @@ class ManagedServiceController extends Controller
         }
 
         return redirect()->back()->with('success', 'Kontrak Managed Service berhasil diperbarui.');
+    }
+
+    /**
+     * Hapus Kontrak Proyek Managed Service beserta seluruh data relasi terkait
+     */
+    public function destroyProject($id)
+    {
+        $project = Project::findOrFail($id);
+        $projectName = $project->name;
+        $clientName = $project->client;
+
+        // Bersihkan data relasi terkait
+        $project->pmCycles()->delete();
+        ManagedServiceTicket::where('project_id', $project->id)->delete();
+        ManagedServiceAsset::where('project_id', $project->id)->delete();
+        ProjectDocument::where('project_id', $project->id)->delete();
+        Schedule::where('project_id', $project->id)->delete();
+
+        // Hapus proyek
+        $project->delete();
+
+        return redirect()->route('ms.projects.index', ['tab' => 'active'])
+            ->with('success', "Kontrak proyek '{$projectName}' untuk klien '{$clientName}' berhasil dihapus.");
     }
 
     /**
@@ -2715,6 +2777,7 @@ class ManagedServiceController extends Controller
             'customer_pic_technical'    => 'nullable|string|max:255',
             'customer_pic_business'     => 'nullable|string|max:255',
             'customer_pic_finance'      => 'nullable|string|max:255',
+            'sharing_knowledge'         => 'nullable|string|max:50',
             'sales_name'                => 'nullable|string|max:255',
             'presales_name'             => 'nullable|string|max:255',
         ]);

@@ -92,6 +92,7 @@ class Project extends Model
         'cm_quota',
         'pm_frequency_type',
         'pm_total_cycles',
+        'sharing_knowledge',
         'mttr_hours',
         'call_response_time',
         'incident_resolution_hours',

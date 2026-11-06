@@ -46,6 +46,8 @@
         isPmModalOpen: false,
         activeCycle: null,
         isSavingPm: false,
+        isSavingCm: false,
+        isSavingSla: false,
         selectedEngineers: [],
         engineerDropdownOpen: false,
         allEngineerMap: {{ json_encode($allEngineers->pluck('name', 'id')) }},
@@ -1920,6 +1922,44 @@
         </div>
     </template>
 
+    {{-- POP UP LOADING SEDANG MENYIMPAN TIKET CM --}}
+    <template x-teleport="body">
+        <div x-show="isSavingCm" x-cloak class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl p-7 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4">
+                <div class="relative w-16 h-16 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-[#8F0A0D] border-t-transparent animate-spin"></div>
+                    <svg class="w-7 h-7 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h4 class="text-sm font-bold text-[#1E293B]">Sedang Menyimpan Tiket CM...</h4>
+                    <p class="text-xs text-[#64748B]">Mohon tunggu sebentar, sistem sedang memproses tiket corrective maintenance dan memperbarui status layanan.</p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    {{-- POP UP LOADING SEDANG MENYIMPAN PARAMETER SLA --}}
+    <template x-teleport="body">
+        <div x-show="isSavingSla" x-cloak class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl p-7 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4">
+                <div class="relative w-16 h-16 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-[#8F0A0D] border-t-transparent animate-spin"></div>
+                    <svg class="w-7 h-7 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h4 class="text-sm font-bold text-[#1E293B]">Sedang Memperbarui Parameter SLA...</h4>
+                    <p class="text-xs text-[#64748B]">Mohon tunggu sebentar, sistem sedang mengupdate target SLA, matriks kuota tiket, dan jadwal pemeliharaan.</p>
+                </div>
+            </div>
+        </div>
+    </template>
+
     <!-- ========================================================== -->
     <!-- MODAL 3: CATAT TIKET CM                                    -->
     <!-- ========================================================== -->
@@ -1937,7 +1977,7 @@
                     <button @click="isCmModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold leading-none">&times;</button>
                 </div>
 
-                <form action="{{ route('ms.monitoring.cm.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                <form action="{{ route('ms.monitoring.cm.store') }}" method="POST" enctype="multipart/form-data" @submit="isSavingCm = true" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
                     <input type="hidden" name="project_id" value="{{ $project->id }}">
 
@@ -2013,7 +2053,7 @@
                         <button type="button" @click="isCmModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-200 transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white cursor-pointer">
+                        <button type="submit" :disabled="isSavingCm" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white cursor-pointer disabled:opacity-50">
                             Catat Tiket CM
                         </button>
                     </div>
@@ -2039,7 +2079,7 @@
                     <button @click="isCmDetailModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold leading-none">&times;</button>
                 </div>
 
-                <form :action="'/managed-service/monitoring/cm-tickets/' + (activeCmTicket ? activeCmTicket.id : '') + '/update'" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                <form :action="'/managed-service/monitoring/cm-tickets/' + (activeCmTicket ? activeCmTicket.id : '') + '/update'" method="POST" enctype="multipart/form-data" @submit="isSavingCm = true" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
 
                     <div class="p-6 overflow-y-auto space-y-4 flex-1">
@@ -2129,7 +2169,7 @@
                         <button type="button" @click="isCmDetailModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-200 transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white cursor-pointer">
+                        <button type="submit" :disabled="isSavingCm" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold shadow-md text-white cursor-pointer disabled:opacity-50">
                             Simpan Perubahan Tiket
                         </button>
                     </div>
@@ -2152,7 +2192,7 @@
                     <button @click="isSlaModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold">&times;</button>
                 </div>
 
-                <form action="{{ route('ms.projects.sla.update', $project->id) }}" method="POST" class="space-y-4">
+                <form action="{{ route('ms.projects.sla.update', $project->id) }}" method="POST" @submit="isSavingSla = true" class="space-y-4">
                     @csrf
                     @method('PUT')
 
@@ -2365,9 +2405,31 @@
                         </div>
                     </div>
 
+                    <div>
+                        <label class="block text-xs font-semibold text-[#334155] mb-1">Sharing Knowledge / Pelatihan</label>
+                        <select name="sharing_knowledge" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                            <optgroup label="Periode 1 Tahun">
+                                <option value="1_thn_1x" {{ ($project->sharing_knowledge ?? '1_thn_1x') == '1_thn_1x' ? 'selected' : '' }}>1 Tahun - 1x Sesi / Tahun</option>
+                                <option value="1_thn_2x" {{ ($project->sharing_knowledge ?? '') == '1_thn_2x' ? 'selected' : '' }}>1 Tahun - 2x Sesi / Tahun (Per Semester)</option>
+                            </optgroup>
+                            <optgroup label="Periode 2 Tahun">
+                                <option value="2_thn_1x" {{ ($project->sharing_knowledge ?? '') == '2_thn_1x' ? 'selected' : '' }}>2 Tahun - 1x Sesi / Tahun (Total 2x)</option>
+                                <option value="2_thn_2x" {{ ($project->sharing_knowledge ?? '') == '2_thn_2x' ? 'selected' : '' }}>2 Tahun - 2x Sesi / Tahun (Total 4x)</option>
+                            </optgroup>
+                            <optgroup label="Periode 3 Tahun">
+                                <option value="3_thn_1x" {{ ($project->sharing_knowledge ?? '') == '3_thn_1x' ? 'selected' : '' }}>3 Tahun - 1x Sesi / Tahun (Total 3x)</option>
+                                <option value="3_thn_2x" {{ ($project->sharing_knowledge ?? '') == '3_thn_2x' ? 'selected' : '' }}>3 Tahun - 2x Sesi / Tahun (Total 6x)</option>
+                            </optgroup>
+                            <optgroup label="Lainnya">
+                                <option value="on_demand" {{ ($project->sharing_knowledge ?? '') == 'on_demand' ? 'selected' : '' }}>Sesuai Kebutuhan / On-Demand</option>
+                                <option value="none" {{ ($project->sharing_knowledge ?? '') == 'none' ? 'selected' : '' }}>Tidak Ada Sharing Knowledge</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
                     <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E2E8F0]">
                         <button type="button" @click="isSlaModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-[#F8FAFC]">Batal</button>
-                        <button type="submit" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-white text-xs font-bold shadow-md cursor-pointer">Simpan Perubahan SLA</button>
+                        <button type="submit" :disabled="isSavingSla" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-white text-xs font-bold shadow-md cursor-pointer disabled:opacity-50">Simpan Perubahan SLA</button>
                     </div>
                 </form>
             </div>
