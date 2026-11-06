@@ -51,6 +51,34 @@
         selectedEngineers: [],
         engineerDropdownOpen: false,
         allEngineerMap: {{ json_encode($allEngineers->pluck('name', 'id')) }},
+        pmFile1: null,
+        pmFile2: null,
+        handlePmFile(event, slot) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            if (file.size > 52428800) {
+                alert('Ukuran berkas ' + file.name + ' melebihi batas 50MB. Silakan pilih berkas lain.');
+                event.target.value = '';
+                if (slot === 1) this.pmFile1 = null;
+                if (slot === 2) this.pmFile2 = null;
+                return;
+            }
+            const info = {
+                name: file.name,
+                size: file.size < 1048576 ? (file.size / 1024).toFixed(1) + ' KB' : (file.size / 1048576).toFixed(1) + ' MB'
+            };
+            if (slot === 1) this.pmFile1 = info;
+            if (slot === 2) this.pmFile2 = info;
+        },
+        clearPmFile(slot) {
+            if (slot === 1) {
+                if (this.$refs.pmFileInput1) this.$refs.pmFileInput1.value = '';
+                this.pmFile1 = null;
+            } else if (slot === 2) {
+                if (this.$refs.pmFileInput2) this.$refs.pmFileInput2.value = '';
+                this.pmFile2 = null;
+            }
+        },
         openPmModal(cycle) {
             this.activeCycle = cycle;
             this.selectedEngineers = [];
@@ -63,6 +91,10 @@
             }
             this.engineerDropdownOpen = false;
             this.isSavingPm = false;
+            this.pmFile1 = null;
+            this.pmFile2 = null;
+            if (this.$refs.pmFileInput1) this.$refs.pmFileInput1.value = '';
+            if (this.$refs.pmFileInput2) this.$refs.pmFileInput2.value = '';
             this.isPmModalOpen = true;
         },
         isCmModalOpen: false,
@@ -1861,15 +1893,105 @@
                             </template>
                         </div>
 
-                        {{-- UPLOAD LAPORAN PM: Multi-File + List Dokumen Sebelumnya yang Bisa Dilihat --}}
+                        {{-- UPLOAD BERKAS LAPORAN PM: SIMETRIS 2 SLOT (Laporan Utama & Berkas Pendukung/Foto/BAP) --}}
                         <div class="space-y-2.5">
-                            <div>
-                                <div class="mb-1">
-                                    <label class="block text-xs font-semibold text-[#334155]">Upload Berkas Laporan PM</label>
-                                </div>
-                                <input type="file" name="report_files[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="w-full px-3 py-2 border border-[#CBD5E1] rounded-xl text-xs bg-white outline-none focus:border-[#8F0A0D] file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100 cursor-pointer">
-                                <p class="text-[10.5px] text-slate-400 mt-1">Dukung multi-file: PDF, Word, Excel, Gambar laporan inspeksi</p>
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-semibold text-[#334155]">
+                                    Upload Berkas Laporan PM <span class="text-[11px] font-normal text-slate-500">(Bisa 2 Berkas Sekaligus)</span>
+                                </label>
+                                <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">Maks. 50 MB / Berkas</span>
                             </div>
+
+                            {{-- Hidden native inputs to maintain reliable form submission --}}
+                            <input type="file" name="report_files[]" x-ref="pmFileInput1" @change="handlePmFile($event, 1)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden">
+                            <input type="file" name="report_files[]" x-ref="pmFileInput2" @change="handlePmFile($event, 2)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden">
+
+                            {{-- Symmetrical 2-Column Upload Cards Grid --}}
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {{-- Slot 1: Berkas Laporan Utama --}}
+                                <div class="border rounded-xl p-3 transition flex flex-col justify-between"
+                                     :class="pmFile1 ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200 bg-slate-50/50 hover:border-[#8F0A0D]/50 hover:bg-red-50/20'">
+                                    
+                                    {{-- Slot 1 Header --}}
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="w-5 h-5 rounded-md bg-[#8F0A0D] text-white flex items-center justify-center text-[10px] font-extrabold shadow-2xs">1</span>
+                                            <span class="text-[11.5px] font-bold text-slate-800">Berkas Utama</span>
+                                        </div>
+                                        <span class="text-[9.5px] font-semibold px-1.5 py-0.5 rounded" :class="pmFile1 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200/70 text-slate-600'">
+                                            PDF / Dokumen
+                                        </span>
+                                    </div>
+
+                                    {{-- Slot 1 Empty / Drop state --}}
+                                    <div x-show="!pmFile1" 
+                                         @click="$refs.pmFileInput1.click()" 
+                                         class="border-2 border-dashed border-slate-200 hover:border-[#8F0A0D] rounded-xl p-3 text-center cursor-pointer transition bg-white/80 hover:bg-white group">
+                                        <div class="w-8 h-8 mx-auto mb-1.5 rounded-lg bg-red-50 text-[#8F0A0D] group-hover:scale-110 flex items-center justify-center transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                        </div>
+                                        <p class="text-[11px] font-bold text-slate-700 group-hover:text-[#8F0A0D]">Pilih Berkas 1</p>
+                                        <p class="text-[9.5px] text-slate-400">Laporan PM Utama</p>
+                                    </div>
+
+                                    {{-- Slot 1 Selected state --}}
+                                    <div x-show="pmFile1" class="p-2.5 rounded-xl bg-white border border-emerald-200 shadow-2xs flex items-center justify-between">
+                                        <div class="flex items-center gap-2 min-w-0 pr-1">
+                                            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            </div>
+                                            <div class="truncate">
+                                                <p class="text-[11px] font-bold text-slate-800 truncate" x-text="pmFile1 ? pmFile1.name : ''"></p>
+                                                <p class="text-[9.5px] text-emerald-600 font-semibold" x-text="pmFile1 ? (pmFile1.size + ' • Siap') : ''"></p>
+                                            </div>
+                                        </div>
+                                        <button type="button" @click.stop="clearPmFile(1)" class="w-6 h-6 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition cursor-pointer text-base leading-none font-bold" title="Hapus Berkas 1">&times;</button>
+                                    </div>
+                                </div>
+
+                                {{-- Slot 2: Berkas Pendukung / BAP / Foto --}}
+                                <div class="border rounded-xl p-3 transition flex flex-col justify-between"
+                                     :class="pmFile2 ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200 bg-slate-50/50 hover:border-blue-500/50 hover:bg-blue-50/20'">
+                                    
+                                    {{-- Slot 2 Header --}}
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="w-5 h-5 rounded-md bg-[#2563EB] text-white flex items-center justify-center text-[10px] font-extrabold shadow-2xs">2</span>
+                                            <span class="text-[11.5px] font-bold text-slate-800">Berkas Lampiran</span>
+                                        </div>
+                                        <span class="text-[9.5px] font-semibold px-1.5 py-0.5 rounded" :class="pmFile2 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200/70 text-slate-600'">
+                                            BAP / Foto / Arsip
+                                        </span>
+                                    </div>
+
+                                    {{-- Slot 2 Empty / Drop state --}}
+                                    <div x-show="!pmFile2" 
+                                         @click="$refs.pmFileInput2.click()" 
+                                         class="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-xl p-3 text-center cursor-pointer transition bg-white/80 hover:bg-white group">
+                                        <div class="w-8 h-8 mx-auto mb-1.5 rounded-lg bg-blue-50 text-blue-600 group-hover:scale-110 flex items-center justify-center transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                        </div>
+                                        <p class="text-[11px] font-bold text-slate-700 group-hover:text-blue-600">Pilih Berkas 2</p>
+                                        <p class="text-[9.5px] text-slate-400">Lampiran / BAP / Foto</p>
+                                    </div>
+
+                                    {{-- Slot 2 Selected state --}}
+                                    <div x-show="pmFile2" class="p-2.5 rounded-xl bg-white border border-emerald-200 shadow-2xs flex items-center justify-between">
+                                        <div class="flex items-center gap-2 min-w-0 pr-1">
+                                            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            </div>
+                                            <div class="truncate">
+                                                <p class="text-[11px] font-bold text-slate-800 truncate" x-text="pmFile2 ? pmFile2.name : ''"></p>
+                                                <p class="text-[9.5px] text-emerald-600 font-semibold" x-text="pmFile2 ? (pmFile2.size + ' • Siap') : ''"></p>
+                                            </div>
+                                        </div>
+                                        <button type="button" @click.stop="clearPmFile(2)" class="w-6 h-6 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition cursor-pointer text-base leading-none font-bold" title="Hapus Berkas 2">&times;</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400">Tips: Anda dapat memilih 1 atau 2 berkas sekaligus sebelum mengklik tombol Simpan Realisasi PM.</p>
+                        </div>
 
                             {{-- View Dokumen Laporan yang Sudah Tersimpan --}}
                             <template x-if="activeCycle && ((activeCycle.all_report_files && activeCycle.all_report_files.length > 0) || activeCycle.report_file)">
