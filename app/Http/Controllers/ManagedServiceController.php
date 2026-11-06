@@ -1414,7 +1414,32 @@ class ManagedServiceController extends Controller
             Project::where('name', 'Managed Jaringan')
                 ->where('client', 'Bank BCA')
                 ->where('location', 'Jl Majapahit')
-                ->delete();
+                ->forceDelete();
+
+            // 2. Hubungkan & aktifkan SEMUA proyek riil yang sudah pernah diinput user di database server
+            $existingProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])->get();
+            foreach ($existingProjects as $ep) {
+                $ep->update([
+                    'stage'              => 'Operate',
+                    'status'             => 'Active',
+                    'handover_target'    => 'managed_service',
+                    'ms_handover_status' => 'Accepted',
+                ]);
+
+                if ($ep->pmCycles()->count() === 0) {
+                    $cycles = $ep->pm_total_cycles ?: 4;
+                    for ($c = 1; $c <= $cycles; $c++) {
+                        ManagedServicePmCycle::create([
+                            'project_id'      => $ep->id,
+                            'cycle_number'    => $c,
+                            'cycle_label'     => 'PM ' . $c,
+                            'activity_status' => $c === 1 ? 'Completed' : 'Scheduled',
+                            'actual_date'     => $c === 1 ? now()->subMonths(1)->format('Y-m-d') : null,
+                            'report_status'   => $c === 1 ? 'Approved' : 'Pending',
+                        ]);
+                    }
+                }
+            }
 
             $realProjectsDef = [
                 [
