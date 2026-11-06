@@ -280,7 +280,7 @@
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Durasi &amp; Deadline</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Progress Siklus PM</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Status</th>
-                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#F1F5F9]">
@@ -425,8 +425,8 @@
                                         </td>
 
                                         {{-- Aksi: Hanya 2 Tombol (View: Icon Mata & Edit: Icon Pensil) --}}
-                                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                                            <div class="flex justify-end items-center gap-1.5">
+                                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                            <div class="flex justify-center items-center gap-1.5">
                                                 {{-- 1. View / Lihat Detail Proyek (Icon Mata) --}}
                                                 <a href="{{ route('ms.projects.show', $p->id) }}" 
                                                    title="Lihat Detail Proyek" 
@@ -535,7 +535,7 @@
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">SLA &amp; Coverage</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Jadwal PM &amp; Periode</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-center">Status Layanan</th>
-                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#F1F5F9]">
@@ -651,8 +651,8 @@
                                         </td>
 
                                         {{-- 6. Aksi --}}
-                                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                                            <div class="flex items-center justify-end gap-1.5">
+                                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                            <div class="flex items-center justify-center gap-1.5">
                                                 @php
                                                     $resolvedLeadMs = $ho->msAcceptedBy?->name ?? ($ho->handover_data['pic_ms_name'] ?? ($ho->handover_data['lead_ms_name'] ?? auth()->user()->name));
                                                 @endphp
