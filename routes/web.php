@@ -73,73 +73,12 @@ Route::get('/fix-cpanel-deploy', function () {
     return '<pre>' . implode("\n", $output) . '</pre>';
 });
 
-// Route untuk membersihkan semua data dummy dari web database kecuali data user & login
+// Route ini TELAH DINONAKTIFKAN PERMANEN demi keamanan agar data perusahaan tidak terhapus.
 Route::get('/clean-dummy-data', function () {
-    $tablesToClear = [
-        'activity_document_signatures',
-        'admin_dispatch_items',
-        'admin_document_checklists',
-        'admin_documents',
-        'admin_equipment_assets',
-        'admin_logistics_dispatches',
-        'admin_project_handovers',
-        'admin_serial_numbers',
-        'attendances',
-        'certifications',
-        'clients',
-        'cro_account_health',
-        'cro_concerns',
-        'cro_csat_surveys',
-        'cro_engagements',
-        'cro_opportunities',
-        'digital_signature_documents',
-        'engineer_activity_logs',
-        'inventory_items',
-        'inventory_transactions',
-        'managed_service_assets',
-        'managed_service_reports',
-        'managed_service_tickets',
-        'managed_service_pm_cycles',
-        'market_intelligences',
-        'notifications',
-        'partnerships',
-        'project_documents',
-        'projects',
-        'sales_activities',
-        'schedule_user',
-        'schedules',
-        'task_user',
-        'tasks',
-        'timesheets',
-        'vendors',
-    ];
-
-    \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-    $cleared = [];
-    foreach ($tablesToClear as $table) {
-        if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
-            $count = \Illuminate\Support\Facades\DB::table($table)->count();
-            \Illuminate\Support\Facades\DB::table($table)->truncate();
-            $cleared[] = "Tabel <strong>$table</strong> berhasil dikosongkan (sebelumnya ada $count baris)";
-        }
-    }
-    \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-
-    $usersCount = \Illuminate\Support\Facades\DB::table('users')->count();
-    $rolesCount = \Illuminate\Support\Facades\DB::table('roles')->count();
-
-    $output = [
-        "<div style='font-family:sans-serif; max-width:650px; margin:40px auto; padding:24px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc;'>",
-        "<h2 style='color:#16a34a; margin-top:0;'>&#10004; SEMUA DATA DUMMY BERHASIL DIBERSIHKAN!</h2>",
-        "<p style='color:#334155;'><strong>Data Login Tetap Utuh:</strong> $usersCount User dan $rolesCount Role tersimpan aman.</p>",
-        "<hr style='border:none; border-top:1px solid #cbd5e1; margin:16px 0;'>",
-        "<h4 style='color:#475569; margin-bottom:8px;'>Daftar Tabel yang Dikosongkan:</h4>",
-        "<ul style='color:#64748b; font-size:14px; line-height:1.6;'><li>" . implode("</li><li>", $cleared) . "</li></ul>",
-        "<p style='margin-top:20px;'><a href='/login' style='display:inline-block; padding:10px 20px; background:#1e293b; color:#fff; text-decoration:none; border-radius:6px; font-weight:600;'>Kembali ke Login</a></p>",
-        "</div>",
-    ];
-
-    return implode("\n", $output);
+    return response()->json([
+        'status'  => 'protected',
+        'message' => 'Penghapusan data dinonaktifkan demi perlindungan data perusahaan Anda.',
+    ]);
 });
 
 // Route Trigger Resmi: Injeksi 3 Data Dummy Skenario Alur Technical ke Server Hosting Live
@@ -659,200 +598,13 @@ Route::get('/seed-ppatk-project', function () {
         ], 500);
     }
 });
-// Route Helper untuk membersihkan seluruh data operasional & dummy di modul Maintenance / Managed Service
+// Route ini TELAH DINONAKTIFKAN PERMANEN demi keamanan agar data maintenance tidak terhapus.
 Route::get('/clean-maintenance-data', function () {
-    try {
-        if (function_exists('opcache_reset')) {
-            @opcache_reset();
-        }
-
-        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-        $cleared = [];
-
-        // 1. Kosongkan tabel transaksional Managed Service
-        $msTables = [
-            'managed_service_tickets'   => 'Tiket Gangguan / Insiden (CM & Service Request)',
-            'managed_service_pm_cycles' => 'Siklus Preventive Maintenance (PM 1–12)',
-            'managed_service_reports'   => 'Laporan Maintenance & SLA',
-            'managed_service_assets'    => 'Aset Klien SLA (Configuration Items)',
-        ];
-
-        foreach ($msTables as $tbl => $label) {
-            if (\Illuminate\Support\Facades\Schema::hasTable($tbl)) {
-                $count = \Illuminate\Support\Facades\DB::table($tbl)->count();
-                \Illuminate\Support\Facades\DB::table($tbl)->truncate();
-                $cleared[] = "Tabel <strong>{$tbl}</strong> ({$label}): <strong>{$count}</strong> data dihapus/dikosongkan.";
-            }
-        }
-
-        // 2. Hapus SEMUA proyek dummy bertipe Managed Service / Pemeliharaan (Kecuali proyek implementasi PMO PPATK)
-        if (\Illuminate\Support\Facades\Schema::hasTable('projects')) {
-            $msDummyProjects = \App\Models\Project::where(function($q) {
-                $q->where('name', 'like', '%Managed Service%')
-                  ->orWhere('name', 'like', '%Pemeliharaan%')
-                  ->orWhere('project_type', 'like', '%Managed%')
-                  ->orWhere('project_type', 'like', '%Maintenance%')
-                  ->orWhere('handover_target', 'managed_service')
-                  ->orWhere('stage', 'Operate')
-                  ->orWhere('po_spk_number', 'KTR/TLK-NET/2026/021')
-                  ->orWhere('po_spk_number', 'SPK/IPNET/BRY/2026/014')
-                  ->orWhere('po_spk_number', 'SO-2026-MS-MNDR01')
-                  ->orWhere('id', 15);
-            })
-            ->where('name', 'not like', '%PPAT%')
-            ->where('name', 'not like', '%Peremajaan Router%')
-            ->get();
-
-            $deletedProjectNames = [];
-            foreach ($msDummyProjects as $dp) {
-                $deletedProjectNames[] = $dp->name;
-                if (\Illuminate\Support\Facades\Schema::hasTable('tasks')) {
-                    \App\Models\Task::where('project_id', $dp->id)->forceDelete();
-                }
-                if (\Illuminate\Support\Facades\Schema::hasTable('schedules')) {
-                    \App\Models\Schedule::where('project_id', $dp->id)->forceDelete();
-                }
-                if (\Illuminate\Support\Facades\Schema::hasTable('admin_project_handovers')) {
-                    \App\Models\AdminProjectHandover::where('project_id', $dp->id)->delete();
-                }
-                $dp->forceDelete();
-            }
-            if (count($deletedProjectNames) > 0) {
-                $cleared[] = "Proyek Managed Service / Maintenance: <strong>" . count($deletedProjectNames) . "</strong> proyek dihapus (" . implode(', ', $deletedProjectNames) . ").";
-            }
-
-            // 3. Reset status Handover Managed Service di seluruh proyek tersisa agar portofolio & incoming handover MS kosong 0
-            $updatedProjects = \App\Models\Project::where('stage', 'Operate')
-                ->orWhere('ms_handover_status', '!=', 'Draft')
-                ->orWhere('handover_target', 'managed_service')
-                ->orWhere('handover_target', 'both')
-                ->update([
-                    'ms_handover_status' => 'Draft',
-                    'ms_accepted_at'     => null,
-                    'ms_accepted_by'     => null,
-                    'stage'              => 'Deliver',
-                    'handover_target'    => 'pmo',
-                ]);
-            $cleared[] = "Reset Handover Proyek MS: <strong>{$updatedProjects}</strong> proyek di-reset (Kontrak Aktif: 0, Incoming Handover: 0).";
-        }
-
-        // 4. Bersihkan Task terkait Maintenance / CM / PM di modul Tasks
-        $tasksCount = 0;
-        if (\Illuminate\Support\Facades\Schema::hasTable('tasks')) {
-            $tasksCount = \App\Models\Task::where(function($q) {
-                $q->where('title', 'like', '[CM-%')
-                  ->orWhere('title', 'like', '[MS-%')
-                  ->orWhere('title', 'like', '%[MS -%')
-                  ->orWhere('title', 'like', '%Preventive Maintenance%')
-                  ->orWhere('title', 'like', '%Corrective Maintenance%')
-                  ->orWhere('title', 'like', '%Siklus-%')
-                  ->orWhere('title', 'like', '%Kunjungan PM%')
-                  ->orWhere('title', 'like', '%Maintenance%');
-            })->forceDelete();
-        }
-        $cleared[] = "Penugasan Tim (Tasks) Maintenance / CM: <strong>{$tasksCount}</strong> tugas dibersihkan.";
-
-        // 5. Bersihkan Schedule terkait Maintenance / CM / PM di Work Schedule
-        $schedCount = 0;
-        if (\Illuminate\Support\Facades\Schema::hasTable('schedules')) {
-            $schedCount = \App\Models\Schedule::where(function($q) {
-                $q->where('title', 'like', '[CM-%')
-                  ->orWhere('title', 'like', '[MS-%')
-                  ->orWhere('title', 'like', '%[MS -%')
-                  ->orWhere('title', 'like', '%Preventive Maintenance%')
-                  ->orWhere('title', 'like', '%Corrective Maintenance%')
-                  ->orWhere('title', 'like', '%Siklus-%')
-                  ->orWhere('title', 'like', '%Kunjungan PM%')
-                  ->orWhere('title', 'like', '%Kunjungan Preventive Maintenance%')
-                  ->orWhere('title', 'like', '%Maintenance%');
-            })->forceDelete();
-        }
-        $cleared[] = "Jadwal Kalender (Schedules) Maintenance: <strong>{$schedCount}</strong> agenda dibersihkan.";
-
-        // 6. Bersihkan admin_project_handovers terkait Maintenance
-        if (\Illuminate\Support\Facades\Schema::hasTable('admin_project_handovers')) {
-            $hoCount = \App\Models\AdminProjectHandover::where('target_division', 'like', '%Maintenance%')
-                ->orWhere('target_division', 'like', '%Managed%')
-                ->delete();
-            $cleared[] = "Serah Terima Divisi Maintenance: <strong>{$hoCount}</strong> dibersihkan.";
-        }
-
-        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-        if (function_exists('opcache_reset')) {
-            @opcache_reset();
-        }
-
-        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-
-        if (request()->query('redirect') === 'dashboard') {
-            return redirect()->route('ms.dashboard')->with('success', 'Seluruh data Maintenance berhasil dibersihkan! Modul siap untuk uji coba.');
-        } elseif (request()->query('redirect') === 'projects') {
-            return redirect()->route('ms.projects.index')->with('success', 'Seluruh data proyek Maintenance berhasil dibersihkan! Modul siap untuk uji coba.');
-        } elseif (request()->query('redirect') === 'tickets') {
-            return redirect()->route('ms.tickets.index')->with('success', 'Seluruh tiket Maintenance berhasil dibersihkan! Modul siap untuk uji coba.');
-        }
-
-        return response("
-            <!DOCTYPE html>
-            <html lang='id'>
-            <head>
-                <meta charset='UTF-8'>
-                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                <title>Data Maintenance Berhasil Dibersihkan</title>
-                <style>
-                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #F8FAFC; color: #1E293B; margin: 0; padding: 40px 20px; }
-                    .card { max-width: 680px; margin: 0 auto; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 32px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
-                    .header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
-                    .icon { width: 48px; height: 48px; background: #DEF7EC; color: #03543F; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; flex-shrink: 0; }
-                    h2 { margin: 0; font-size: 20px; font-weight: 800; color: #0F172A; }
-                    p.sub { margin: 4px 0 0; font-size: 13px; color: #64748B; }
-                    .box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; margin-bottom: 24px; }
-                    h4 { margin: 0 0 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; font-weight: 700; }
-                    ul { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.8; color: #334155; }
-                    .btn-wrap { display: flex; gap: 12px; flex-wrap: wrap; }
-                    .btn-primary { display: inline-block; padding: 11px 22px; background: #8F0A0D; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 700; transition: background 0.2s; }
-                    .btn-primary:hover { background: #73080A; }
-                    .btn-secondary { display: inline-block; padding: 11px 22px; background: #F1F5F9; color: #334155; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 700; border: 1px solid #CBD5E1; transition: background 0.2s; }
-                    .btn-secondary:hover { background: #E2E8F0; }
-                </style>
-            </head>
-            <body>
-                <div class='card'>
-                    <div class='header'>
-                        <div class='icon'>&#10003;</div>
-                        <div>
-                            <h2>Seluruh Data Maintenance Berhasil Dibersihkan!</h2>
-                            <p class='sub'>Tabel tiket CM, siklus PM, laporan, aset klien, proyek dummy Telkom/Bank Raya, dan task maintenance telah di-reset kosong 100%.</p>
-                        </div>
-                    </div>
-                    <div class='box'>
-                        <h4>Rincian Pembersihan Database:</h4>
-                        <ul>
-                            <li>" . implode("</li><li>", $cleared) . "</li>
-                        </ul>
-                    </div>
-                    <div class='btn-wrap'>
-                        <a href='/managed-service' class='btn-primary'>Buka Dashboard Maintenance &rarr;</a>
-                        <a href='/managed-service/projects' class='btn-secondary'>Buka Daftar Proyek MS</a>
-                        <a href='/managed-service/tickets' class='btn-secondary'>Buka Tiket SLA</a>
-                    </div>
-                </div>
-            </body>
-            </html>
-        ");
-    } catch (\Throwable $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage()
-        ], 500);
-    }
+    return redirect()->route('ms.projects.index');
 });
 
-// Alias backward compatibility untuk route clear sebelumnya
 Route::get('/clear-managed-service-projects', function () {
-    return redirect('/clean-maintenance-data');
+    return redirect()->route('ms.projects.index');
 });
 
 // Route Helper untuk membuat 2 dummy resmi: 1 Laporan Aktivitas Sales (A-G) & 1 Lesson Learned (Lost Deal)
@@ -1871,46 +1623,12 @@ Route::get('/clear-opcache', function () {
     ]);
 });
 
-// Utility route untuk menghapus seluruh data dummy (Project, Task, Schedule, Timesheet, Attendance, Notifikasi)
-// SEMENTARA SELURUH DATA USER & ENGINEER TETAP UTUH
+// Route ini TELAH DINONAKTIFKAN PERMANEN demi keamanan agar data tidak terhapus.
 Route::get('/clear-dummy-data', function () {
-    try {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-        if (Schema::hasTable('task_user')) {
-            DB::table('task_user')->truncate();
-        }
-        if (Schema::hasTable('schedule_user')) {
-            DB::table('schedule_user')->truncate();
-        }
-
-        \App\Models\Task::truncate();
-        \App\Models\Schedule::truncate();
-        \App\Models\Project::truncate();
-        \App\Models\Timesheet::truncate();
-        \App\Models\Attendance::truncate();
-        \App\Models\Notification::truncate();
-
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-
-        Artisan::call('config:clear');
-        Artisan::call('cache:clear');
-        Artisan::call('view:clear');
-        Artisan::call('route:clear');
-
-        return response()->json([
-            'status'           => 'success',
-            'message'          => 'Semua data dummy (project, task, schedule, timesheet, presensi, notifikasi) berhasil dibersihkan total!',
-            'kept_users_count' => \App\Models\User::count(),
-            'projects_count'   => \App\Models\Project::count(),
-            'tasks_count'      => \App\Models\Task::count(),
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'Gagal membersihkan data: ' . $e->getMessage(),
-        ], 500);
-    }
+    return response()->json([
+        'status'  => 'protected',
+        'message' => 'Penghapusan data dinonaktifkan demi perlindungan data perusahaan Anda.',
+    ]);
 });
 
 // Webhook / Helper route untuk menarik update terbaru dari GitHub di cPanel/hosting
