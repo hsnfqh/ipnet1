@@ -50,124 +50,26 @@ Route::get('/fix-cpanel-deploy', function () {
     $path = base_path();
     $output = [];
     $output[] = "=== PATH: $path ===";
-    $output[] = "=== .cpanel.yml EXISTS? ===" . (file_exists("$path/.cpanel.yml") ? "YES" : "NO");
-    if (file_exists("$path/.cpanel.yml")) {
-        $output[] = "=== .cpanel.yml CONTENT ===";
-        $output[] = file_get_contents("$path/.cpanel.yml");
-    }
-    $output[] = "=== GIT PULL ===";
+    $output[] = "=== 1. GIT RESET WORKING TREE ===";
+    $output[] = shell_exec("git -C \"$path\" reset --hard HEAD 2>&1") ?? 'N/A';
+    $output[] = "=== 2. CLEAN UNTRACKED DOCS ===";
+    $output[] = shell_exec("git -C \"$path\" clean -fd public/assets/docs 2>&1") ?? 'N/A';
+    $output[] = "=== 3. GIT PULL ORIGIN MAIN ===";
     $output[] = shell_exec("git -C \"$path\" pull origin main 2>&1") ?? 'N/A';
-    $output[] = "=== LATEST COMMIT ===";
+    $output[] = "=== 4. LATEST COMMIT ===";
     $output[] = shell_exec("git -C \"$path\" log -n 1 --oneline 2>&1") ?? 'N/A';
     try {
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         \Illuminate\Support\Facades\Artisan::call('view:clear');
         \Illuminate\Support\Facades\Artisan::call('cache:clear');
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         if (function_exists('opcache_reset')) {
             @opcache_reset();
         }
-        $output[] = "=== MIGRATED AND CACHE CLEARED ===";
-    } catch (\Throwable $e) {}
-    try {
-        // 1. Pastikan Proyek Resmi Angkasa Pura Support Ada & Lengkap
-        $seeder = new \Database\Seeders\AngkasaPuraProjectSeeder();
-        $seeder->run();
-        $output[] = "=== ANGKASA PURA SEEDER SUCCESSFUL ===";
-
-        $apProject = \App\Models\Project::where('name', 'like', '%Angkasa Pura%')
-            ->orWhere('client', 'like', '%Angkasa Pura%')
-            ->first();
-
-        if ($apProject) {
-            $pmRizki = \App\Models\User::where('name', 'like', '%Rizki%')->first();
-            $salesRaiza = \App\Models\User::where('name', 'like', '%Raiza%')->first();
-            $hd = is_array($apProject->handover_data) ? $apProject->handover_data : [];
-            if ($pmRizki) {
-                if (isset($hd['pm_signature'])) {
-                    $hd['pm_signature']['user_name'] = $pmRizki->name;
-                    $hd['pm_signature']['user_id'] = $pmRizki->id;
-                }
-            }
-            if ($salesRaiza && isset($hd['sales_signature'])) {
-                $hd['sales_signature']['user_name'] = $salesRaiza->name;
-                $hd['sales_signature']['user_id'] = $salesRaiza->id;
-            }
-            $apProject->update([
-                'handover_target'       => 'pmo',
-                'pm_id'                 => $pmRizki ? $pmRizki->id : $apProject->pm_id,
-                'sales_name'            => $salesRaiza ? $salesRaiza->name : 'Raiza',
-                'created_by'            => $salesRaiza ? $salesRaiza->id : $apProject->created_by,
-                'so_code'               => 'SO-IPNET-0008',
-                'so_number'             => 'SO-IPNET-0008',
-                'sla_tier'              => 'Gold',
-                'sla_coverage_hours'    => '24x7',
-                'maintenance_frequency' => 'Bulanan (Monthly)',
-                'handover_data'         => $hd,
-            ]);
-        }
-
-        // 2. Bersihkan SELURUH data proyek lain selain Angkasa Pura (Nonaktifkan FK sementara)
-        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        
-        $apId = $apProject ? $apProject->id : 0;
-        
-        $deletedProjectsCount = \Illuminate\Support\Facades\DB::table('projects')
-            ->where('id', '!=', $apId)
-            ->where('client', 'not like', '%Angkasa Pura%')
-            ->where('name', 'not like', '%Angkasa Pura%')
-            ->delete();
-
-        // Bersihkan seluruh tabel turunan yang tidak terkait proyek Angkasa Pura
-        $childTables = [
-            'tasks',
-            'task_user',
-            'project_documents',
-            'project_expenses',
-            'timeline_milestones',
-            'sales_activities',
-            'managed_service_tickets',
-            'managed_service_pm_cycles',
-            'managed_service_assets',
-            'activity_document_signatures',
-            'digital_signature_documents',
-            'admin_project_handovers',
-            'engineer_activity_logs',
-        ];
-
-        foreach ($childTables as $t) {
-            if (\Illuminate\Support\Facades\Schema::hasTable($t)) {
-                if ($t === 'task_user') {
-                    \Illuminate\Support\Facades\DB::table('task_user')
-                        ->whereNotIn('task_id', function($q) use ($apId) {
-                            $q->select('id')->from('tasks')->where('project_id', $apId);
-                        })->delete();
-                } elseif (\Illuminate\Support\Facades\Schema::hasColumn($t, 'project_id')) {
-                    \Illuminate\Support\Facades\DB::table($t)->where('project_id', '!=', $apId)->delete();
-                }
-            }
-        }
-
-        if (\Illuminate\Support\Facades\Schema::hasTable('clients')) {
-            \Illuminate\Support\Facades\DB::table('clients')->where('name', 'not like', '%Angkasa Pura%')->delete();
-        }
-
-        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-        if (function_exists('opcache_reset')) {
-            @opcache_reset();
-        }
-
-        $output[] = "=== CLEANUP SUCCESSFUL: DELETED $deletedProjectsCount OTHER PROJECTS ===";
-
-        $remainingProjects = \App\Models\Project::all();
-        $output[] = "=== REMAINING ACTIVE PROJECTS ({$remainingProjects->count()}): ===";
-        foreach ($remainingProjects as $rp) {
-            $output[] = "- [ID {$rp->id}] {$rp->name} (Client: {$rp->client}) | Target: {$rp->handover_target} | Stage: {$rp->stage}";
-        }
+        $output[] = "=== CACHE CLEARED ===";
     } catch (\Throwable $e) {
-        $output[] = "=== CLEANUP ERROR: " . $e->getMessage() . " on line " . $e->getLine() . " ===";
+        $output[] = "Cache clear error: " . $e->getMessage();
     }
+
     return '<pre>' . implode("\n", $output) . '</pre>';
 });
 
