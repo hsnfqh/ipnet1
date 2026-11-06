@@ -3386,13 +3386,6 @@ class ManagedServiceController extends Controller
                 }
             }
         }
-            $file = $request->file('billing_ba_file');
-            $validated['billing_ba_file'] = FileUploadHelper::storePublicly($file, 'ms_pm_billing');
-            $validated['billing_ba_filename'] = $file->getClientOriginalName();
-            if (($validated['billing_ba_status'] ?? 'Pending') === 'Pending') {
-                $validated['billing_ba_status'] = 'Submitted';
-            }
-        }
 
         $validated['billing_ba_status'] = $validated['billing_ba_status'] ?? ($cycle->billing_ba_status ?: 'Pending');
 
