@@ -539,24 +539,98 @@
                                                 @endif
                                             </td>
 
-                                            {{-- Laporan PM (PDF) --}}
+                                            {{-- Laporan PM (Icon View & Icon Download Konsisten; Jika 2 file ada pop-up pilihan rapi) --}}
                                             <td class="py-3.5 px-4 whitespace-nowrap">
-                                                <div class="flex items-center gap-1.5">
-                                                    @if($cycle->report_file)
-                                                        {{-- 1. Icon View (Lihat) --}}
-                                                        <a href="{{ asset('storage/' . $cycle->report_file) }}" target="_blank" class="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center transition shadow-2xs cursor-pointer" title="Lihat Laporan PM (Preview)">
+                                                @php
+                                                    $allReports = $cycle->all_report_files;
+                                                    $reportCount = count($allReports);
+                                                @endphp
+                                                @if($reportCount === 1)
+                                                    <div class="flex items-center gap-1.5">
+                                                        {{-- 1. Icon View (Lihat / Preview Langsung) --}}
+                                                        <a href="{{ asset('storage/' . $allReports[0]['path']) }}" 
+                                                           target="_blank" 
+                                                           class="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center transition shadow-2xs cursor-pointer" 
+                                                           title="Lihat Laporan PM ({{ $allReports[0]['filename'] }})">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                         </a>
-                                                        {{-- 2. Icon Download (Unduh) --}}
-                                                        <a href="{{ asset('storage/' . $cycle->report_file) }}" download="Laporan_PM_{{ $cycle->cycle_label }}.pdf" class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 flex items-center justify-center transition shadow-2xs cursor-pointer" title="Unduh Laporan PM (Download)">
+                                                        {{-- 2. Icon Download (Unduh Langsung) --}}
+                                                        <a href="{{ asset('storage/' . $allReports[0]['path']) }}" 
+                                                           download="{{ $allReports[0]['filename'] ?? 'Laporan_PM_' . $cycle->cycle_label . '.pdf' }}" 
+                                                           class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 flex items-center justify-center transition shadow-2xs cursor-pointer" 
+                                                           title="Unduh Laporan PM ({{ $allReports[0]['filename'] }})">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                         </a>
-                                                    @else
-                                                        <button type="button" @click="openPmModal({{ json_encode($cycle) }})" class="text-[11.5px] text-[#8F0A0D] font-bold hover:underline cursor-pointer flex items-center gap-1">
-                                                            <span>+ Upload PDF</span>
-                                                        </button>
-                                                    @endif
-                                                </div>
+                                                    </div>
+                                                @elseif($reportCount > 1)
+                                                    <div class="flex items-center gap-1.5" x-data="{ openViewMenu: false, openDownloadMenu: false }">
+                                                        {{-- 1. Icon View (Buka Popup Pilihan Berkas untuk Dilihat) --}}
+                                                        <div class="relative">
+                                                            <button type="button" 
+                                                                    @click="openViewMenu = !openViewMenu; openDownloadMenu = false" 
+                                                                    class="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center transition shadow-2xs cursor-pointer" 
+                                                                    title="Lihat Berkas (Tersedia {{ $reportCount }} Berkas)">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                            </button>
+                                                            <div x-show="openViewMenu" 
+                                                                 @click.outside="openViewMenu = false" 
+                                                                 x-cloak 
+                                                                 class="absolute left-0 top-full mt-1.5 bg-white border border-[#CBD5E1] rounded-xl shadow-xl z-50 min-w-[240px] py-1 text-left text-xs">
+                                                                <div class="px-3 py-1.5 font-bold text-[10px] uppercase tracking-wider text-slate-400 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                                                                    <span>Pilih Berkas untuk Dilihat</span>
+                                                                    <span class="text-emerald-700 font-extrabold">{{ $reportCount }} Berkas</span>
+                                                                </div>
+                                                                @foreach($allReports as $rIdx => $rf)
+                                                                    <a href="{{ asset('storage/' . $rf['path']) }}" 
+                                                                       target="_blank" 
+                                                                       @click="openViewMenu = false"
+                                                                       class="px-3 py-2 flex items-center gap-2 border-b border-slate-50 last:border-b-0 hover:bg-emerald-50/60 transition group">
+                                                                        <span class="w-5 h-5 rounded bg-emerald-100 text-emerald-800 font-extrabold text-[10px] flex items-center justify-center shrink-0">#{{ $rIdx + 1 }}</span>
+                                                                        <span class="text-[11.5px] text-slate-700 group-hover:text-emerald-900 font-semibold truncate flex-1" title="{{ $rf['filename'] }}">
+                                                                            {{ $rf['filename'] }}
+                                                                        </span>
+                                                                        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                                                    </a>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- 2. Icon Download (Buka Popup Pilihan Berkas untuk Diunduh) --}}
+                                                        <div class="relative">
+                                                            <button type="button" 
+                                                                    @click="openDownloadMenu = !openDownloadMenu; openViewMenu = false" 
+                                                                    class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 flex items-center justify-center transition shadow-2xs cursor-pointer" 
+                                                                    title="Unduh Berkas (Tersedia {{ $reportCount }} Berkas)">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                            </button>
+                                                            <div x-show="openDownloadMenu" 
+                                                                 @click.outside="openDownloadMenu = false" 
+                                                                 x-cloak 
+                                                                 class="absolute left-0 top-full mt-1.5 bg-white border border-[#CBD5E1] rounded-xl shadow-xl z-50 min-w-[240px] py-1 text-left text-xs">
+                                                                <div class="px-3 py-1.5 font-bold text-[10px] uppercase tracking-wider text-slate-400 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                                                                    <span>Pilih Berkas untuk Diunduh</span>
+                                                                    <span class="text-blue-700 font-extrabold">{{ $reportCount }} Berkas</span>
+                                                                </div>
+                                                                @foreach($allReports as $rIdx => $rf)
+                                                                    <a href="{{ asset('storage/' . $rf['path']) }}" 
+                                                                       download="{{ $rf['filename'] ?? 'Laporan_PM_' . ($rIdx + 1) . '.pdf' }}" 
+                                                                       @click="openDownloadMenu = false"
+                                                                       class="px-3 py-2 flex items-center gap-2 border-b border-slate-50 last:border-b-0 hover:bg-blue-50/60 transition group">
+                                                                        <span class="w-5 h-5 rounded bg-blue-100 text-blue-800 font-extrabold text-[10px] flex items-center justify-center shrink-0">#{{ $rIdx + 1 }}</span>
+                                                                        <span class="text-[11.5px] text-slate-700 group-hover:text-blue-900 font-semibold truncate flex-1" title="{{ $rf['filename'] }}">
+                                                                            {{ $rf['filename'] }}
+                                                                        </span>
+                                                                        <svg class="w-3.5 h-3.5 text-blue-600 shrink-0 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                                    </a>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <button type="button" @click="openPmModal({{ json_encode($cycle) }})" class="text-[11.5px] text-[#8F0A0D] font-bold hover:underline cursor-pointer flex items-center gap-1">
+                                                        <span>+ Upload PDF</span>
+                                                    </button>
+                                                @endif
                                             </td>
 
                                             {{-- BA / Milestone --}}
