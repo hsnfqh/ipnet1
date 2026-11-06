@@ -2080,9 +2080,6 @@ Route::get('/inspect-server-db', function () {
     }
     return response()->json($data);
 });
-        return response('Error: ' . $e->getMessage(), 500);
-    }
-});
 
 // Route inspeksi database proyek server (JSON)
 Route::get('/server-project-status', function () {
