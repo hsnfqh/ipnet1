@@ -2049,13 +2049,13 @@ Route::get('/migrate-only', function () {
     }
 });
 
-// Route pemulihan instan seluruh proyek Managed Service resmi (PE LAN Sudirman Bank BRI, Batam, dan Bank BCA)
+// Route pemulihan instan seluruh 7 proyek Managed Service resmi user
 Route::get('/restore-user-project', function () {
     try {
         $controller = new \App\Http\Controllers\ManagedServiceController();
         $controller->ensureSampleProjectExists();
         return redirect()->route('ms.projects.index', ['tab' => 'active'])
-            ->with('success', "Seluruh proyek (PE LAN Sudirman Bank BRI, Batam, dan Bank BCA) berhasil dipulihkan dan langsung aktif!");
+            ->with('success', "Seluruh 7 proyek riil (PE LAN BRI, EXTERNET ODC, BP. BATAM, BATII, LICENSE WIFI SUDIRMAN, WIFI MATARAM, WIFI JAKARTA) berhasil diaktifkan!");
     } catch (\Throwable $e) {
         return response()->json(['error' => $e->getMessage()], 500);
     }
@@ -2065,29 +2065,32 @@ Route::get('/restore-all-server-projects', function () {
     return redirect('/restore-user-project');
 });
 
-// Utility route untuk migrate database & seed user resmi & clear cache dari browser di cPanel
+// Route inspeksi database proyek server
+Route::get('/server-project-status', function () {
+    try {
+        $controller = new \App\Http\Controllers\ManagedServiceController();
+        $controller->ensureSampleProjectExists();
+
+        $allProjects = \App\Models\Project::withTrashed()
+            ->latest('id')
+            ->get(['id', 'name', 'client', 'location', 'project_type', 'status', 'stage', 'handover_target', 'ms_handover_status', 'deleted_at']);
+
+        return response()->json([
+            'status'         => 'success',
+            'total_projects' => $allProjects->count(),
+            'projects'       => $allProjects,
+        ], 200, [], JSON_PRETTY_PRINT);
+    } catch (\Throwable $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
+// Utility route untuk migrate database & clear cache (TANPA TRUNCATE PROYEK)
 Route::get('/run-migration', function () {
     $outputs = [];
     try {
         Artisan::call('migrate', ['--force' => true]);
         $outputs[] = "Artisan migrate output:\n" . trim(Artisan::output());
-
-        // 0. Reset bersih tabel database agar sinkron 100% dengan tim resmi
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        \App\Models\Notification::truncate();
-        \App\Models\Attendance::truncate();
-        \App\Models\Timesheet::truncate();
-        \App\Models\Schedule::truncate();
-        \App\Models\Task::truncate();
-        \App\Models\Project::truncate();
-        \App\Models\Certification::truncate();
-        \App\Models\Team::truncate();
-        \App\Models\Division::truncate();
-        \App\Models\User::truncate();
-        DB::table('model_has_roles')->truncate();
-        DB::table('model_has_permissions')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        $outputs[] = "Pembersihan total seluruh data dummy lama: OK";
 
         // 1. Reset cache permission Spatie & Seeder Role Resmi
         if (class_exists(\Spatie\Permission\PermissionRegistrar::class)) {
