@@ -74,18 +74,33 @@ class FileUploadHelper
             @mkdir($destPublicHtml, 0755, true);
         }
 
-        // Move uploaded file to primary destination
-        $file->move($destAppPublic, $fileName);
+        // Move uploaded file safely (with fallback if Symfony move() triggers is_writable() false-alarm)
         $sourceFile = $destAppPublic . '/' . $fileName;
-
-        // Copy to public/storage if it's a distinct physical directory (not a symlink)
-        if (file_exists($destPublic) && realpath($destPublic) !== realpath($destAppPublic)) {
-            @copy($sourceFile, $destPublic . '/' . $fileName);
+        $moved = false;
+        try {
+            $file->move($destAppPublic, $fileName);
+            $moved = true;
+        } catch (\Throwable $e) {
+            $src = $file->getRealPath() ?: $file->getPathname();
+            if ($src && file_exists($src)) {
+                if (!@move_uploaded_file($src, $sourceFile)) {
+                    $moved = @copy($src, $sourceFile);
+                } else {
+                    $moved = true;
+                }
+            }
         }
 
-        // Copy to public_html/storage if cPanel folder exists
-        if ($hasPublicHtml && file_exists($destPublicHtml)) {
-            @copy($sourceFile, $destPublicHtml . '/' . $fileName);
+        // Copy to public/storage if it's a distinct physical directory (not a symlink)
+        if (file_exists($sourceFile)) {
+            if (file_exists($destPublic) && realpath($destPublic) !== realpath($destAppPublic)) {
+                @copy($sourceFile, $destPublic . '/' . $fileName);
+            }
+
+            // Copy to public_html/storage if cPanel folder exists
+            if ($hasPublicHtml && file_exists($destPublicHtml)) {
+                @copy($sourceFile, $destPublicHtml . '/' . $fileName);
+            }
         }
 
         return $folder . '/' . $fileName;

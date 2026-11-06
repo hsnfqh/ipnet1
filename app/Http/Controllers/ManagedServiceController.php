@@ -3246,6 +3246,40 @@ class ManagedServiceController extends Controller
     {
         $cycle = ManagedServicePmCycle::findOrFail($cycleId);
 
+        // Pastikan kolom report_files dan assigned_engineers tersedia di database
+        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_pm_cycles')) {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('managed_service_pm_cycles', 'report_files')) {
+                try {
+                    \Illuminate\Support\Facades\Schema::table('managed_service_pm_cycles', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->json('report_files')->nullable()->after('report_filename');
+                    });
+                } catch (\Throwable $e) {}
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('managed_service_pm_cycles', 'assigned_engineers')) {
+                try {
+                    \Illuminate\Support\Facades\Schema::table('managed_service_pm_cycles', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->json('assigned_engineers')->nullable()->after('assigned_engineer_id');
+                    });
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        // Sanitasi berkas upload: Bersihkan elemen input kosong (error UPLOAD_ERR_NO_FILE) sebelum validasi
+        // agar form tetap sukses meskipun user hanya memilih 1 berkas dari 2 slot yang tersedia
+        if ($request->has('report_files') || $request->hasFile('report_files')) {
+            $rawFiles = $request->file('report_files');
+            if (is_array($rawFiles)) {
+                $validFiles = array_values(array_filter($rawFiles, function ($file) {
+                    return $file instanceof \Symfony\Component\HttpFoundation\File\UploadedFile && $file->isValid();
+                }));
+                if (!empty($validFiles)) {
+                    $request->files->set('report_files', $validFiles);
+                } else {
+                    $request->files->remove('report_files');
+                }
+            }
+        }
+
         $validated = $request->validate([
             'scheduled_date'          => 'nullable|date',
             'activity_status'         => 'required|string|in:Scheduled,In Progress,Completed',
@@ -3301,23 +3335,33 @@ class ManagedServiceController extends Controller
 
         if ($request->hasFile('report_file')) {
             $file = $request->file('report_file');
-            $path = FileUploadHelper::storePublicly($file, 'ms_pm_reports');
-            $existingFiles[] = [
-                'path'        => $path,
-                'filename'    => $file->getClientOriginalName(),
-                'uploaded_at' => date('d/m/Y H:i'),
-            ];
-        }
-
-        if ($request->hasFile('report_files')) {
-            foreach ($request->file('report_files') as $file) {
-                if ($file) {
-                    $path = FileUploadHelper::storePublicly($file, 'ms_pm_reports');
+            if ($file && $file->isValid()) {
+                $path = FileUploadHelper::storePublicly($file, 'ms_pm_reports');
+                if ($path) {
                     $existingFiles[] = [
                         'path'        => $path,
                         'filename'    => $file->getClientOriginalName(),
                         'uploaded_at' => date('d/m/Y H:i'),
                     ];
+                }
+            }
+        }
+
+        if ($request->hasFile('report_files')) {
+            $rFiles = $request->file('report_files');
+            if (!is_array($rFiles)) {
+                $rFiles = [$rFiles];
+            }
+            foreach ($rFiles as $file) {
+                if ($file && $file->isValid()) {
+                    $path = FileUploadHelper::storePublicly($file, 'ms_pm_reports');
+                    if ($path) {
+                        $existingFiles[] = [
+                            'path'        => $path,
+                            'filename'    => $file->getClientOriginalName(),
+                            'uploaded_at' => date('d/m/Y H:i'),
+                        ];
+                    }
                 }
             }
         }
@@ -3333,6 +3377,15 @@ class ManagedServiceController extends Controller
         }
 
         if ($request->hasFile('billing_ba_file')) {
+            $file = $request->file('billing_ba_file');
+            if ($file && $file->isValid()) {
+                $validated['billing_ba_file'] = FileUploadHelper::storePublicly($file, 'ms_pm_billing');
+                $validated['billing_ba_filename'] = $file->getClientOriginalName();
+                if (($validated['billing_ba_status'] ?? 'Pending') === 'Pending') {
+                    $validated['billing_ba_status'] = 'Submitted';
+                }
+            }
+        }
             $file = $request->file('billing_ba_file');
             $validated['billing_ba_file'] = FileUploadHelper::storePublicly($file, 'ms_pm_billing');
             $validated['billing_ba_filename'] = $file->getClientOriginalName();

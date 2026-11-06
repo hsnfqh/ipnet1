@@ -846,9 +846,9 @@
                             <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">Maks. 50 MB / Berkas</span>
                         </div>
 
-                        {{-- Hidden native inputs to maintain reliable form submission --}}
-                        <input type="file" name="report_files[]" x-ref="pmFileInput1" @change="handlePmFile($event, 1)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden">
-                        <input type="file" name="report_files[]" x-ref="pmFileInput2" @change="handlePmFile($event, 2)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden">
+                        {{-- Hidden native inputs with dynamic Alpine name binding so empty slots don't send empty files --}}
+                        <input type="file" :name="pmFile1 ? 'report_files[]' : null" x-ref="pmFileInput1" @change="handlePmFile($event, 1)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden">
+                        <input type="file" :name="pmFile2 ? 'report_files[]' : null" x-ref="pmFileInput2" @change="handlePmFile($event, 2)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden">
 
                         {{-- Symmetrical 2-Column Upload Cards Grid --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
