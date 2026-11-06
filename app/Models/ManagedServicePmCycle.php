@@ -20,6 +20,8 @@ class ManagedServicePmCycle extends Model
         'actual_date',
         'activity_status',
         'activity_notes',
+        'pic_ms_id',
+        'lead_engineer_id',
         'assigned_engineer_id',
         'assigned_engineers',
         'report_status',
@@ -51,6 +53,16 @@ class ManagedServicePmCycle extends Model
     public function assignedEngineer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_engineer_id');
+    }
+
+    public function picMs(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'pic_ms_id');
+    }
+
+    public function leadEngineer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'lead_engineer_id');
     }
 
     /**

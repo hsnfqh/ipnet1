@@ -53,9 +53,11 @@
             this.activeCycle = cycle;
             this.selectedEngineers = [];
             if (cycle && cycle.assigned_engineers && Array.isArray(cycle.assigned_engineers)) {
-                this.selectedEngineers = cycle.assigned_engineers.map(e => typeof e === 'object' ? Number(e.id) : Number(e));
-            } else if (cycle && cycle.assigned_engineer_id) {
-                this.selectedEngineers = [Number(cycle.assigned_engineer_id)];
+                const picMsId = cycle.pic_ms_id ? Number(cycle.pic_ms_id) : null;
+                const leadEngId = cycle.lead_engineer_id ? Number(cycle.lead_engineer_id) : null;
+                this.selectedEngineers = cycle.assigned_engineers
+                    .map(e => typeof e === 'object' ? Number(e.id) : Number(e))
+                    .filter(id => id !== picMsId && id !== leadEngId);
             }
             this.engineerDropdownOpen = false;
             this.isSavingPm = false;
@@ -897,6 +899,7 @@
                                     <th class="py-3 px-4">Jadwal Target</th>
                                     <th class="py-3 px-4">Realisasi Visit</th>
                                     <th class="py-3 px-4">PIC Managed Service</th>
+                                    <th class="py-3 px-4">Lead Engineer</th>
                                     <th class="py-3 px-4">Engineer</th>
                                     <th class="py-3 px-4 text-center">Status Visit</th>
                                     <th class="py-3 px-4 text-center">Laporan PM</th>
@@ -935,32 +938,54 @@
                                                 <span class="text-slate-300 font-bold text-sm select-none">&mdash;</span>
                                             @endif
                                         </td>
-                                        {{-- Kolom 4: PIC Managed Service (Koordinator Layanan, misal Eris) --}}
+                                        {{-- Kolom 4: PIC Managed Service (Hanya muncul jika sudah diset, jika belum strip rapi) --}}
                                         <td class="py-3.5 px-4 text-[#334155] font-medium">
-                                            @php
-                                                $picMsName = $project->pm?->name 
-                                                    ?: ($project->handover_data['coordinator_name'] 
-                                                    ?? ($project->handover_data['pic_ms_name'] 
-                                                    ?? ($project->handover_data['project_manager'] ?? 'Eris')));
-                                                $picMsInitial = strtoupper(substr(trim($picMsName), 0, 1)) ?: 'E';
-                                            @endphp
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] flex items-center justify-center border border-slate-300 shadow-2xs shrink-0">
-                                                    {{ $picMsInitial }}
+                                            @if($cycle->picMs)
+                                                @php
+                                                    $picMsName = trim($cycle->picMs->name);
+                                                    $picMsFirstName = explode(' ', $picMsName)[0] ?: $picMsName;
+                                                    $picMsInitial = strtoupper(substr($picMsFirstName, 0, 1)) ?: 'E';
+                                                @endphp
+                                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-[#8F0A0D] border border-rose-200 text-[11px] font-bold shadow-2xs" title="{{ $picMsName }}">
+                                                    <span class="w-4 h-4 rounded-full bg-[#8F0A0D] text-white text-[8.5px] font-black flex items-center justify-center shrink-0">
+                                                        {{ $picMsInitial }}
+                                                    </span>
+                                                    <span>{{ $picMsFirstName }}</span>
                                                 </div>
-                                                <span class="font-semibold text-slate-800 text-[12px] truncate max-w-[120px]">{{ $picMsName }}</span>
-                                            </div>
+                                            @else
+                                                <span class="text-slate-300 font-bold text-sm select-none">&mdash;</span>
+                                            @endif
                                         </td>
 
-                                        {{-- Kolom 5: Engineer Lapangan (Hanya Nama Depan; Jika belum ada dikosongi / strip rapi) --}}
+                                        {{-- Kolom 5: Lead Engineer (Hanya muncul jika sudah diset, jika belum strip rapi) --}}
+                                        <td class="py-3.5 px-4 text-[#334155] font-medium">
+                                            @if($cycle->leadEngineer)
+                                                @php
+                                                    $leadEngName = trim($cycle->leadEngineer->name);
+                                                    $leadEngFirstName = explode(' ', $leadEngName)[0] ?: $leadEngName;
+                                                    $leadEngInitial = strtoupper(substr($leadEngFirstName, 0, 1)) ?: 'L';
+                                                @endphp
+                                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold shadow-2xs" title="{{ $leadEngName }} ({{ $cycle->leadEngineer->position ?: 'Lead' }})">
+                                                    <span class="w-4 h-4 rounded-full bg-blue-600 text-white text-[8.5px] font-black flex items-center justify-center shrink-0">
+                                                        {{ $leadEngInitial }}
+                                                    </span>
+                                                    <span>{{ $leadEngFirstName }}</span>
+                                                </div>
+                                            @else
+                                                <span class="text-slate-300 font-bold text-sm select-none">&mdash;</span>
+                                            @endif
+                                        </td>
+
+                                        {{-- Kolom 6: Engineer Lapangan (Hanya Nama Depan; Jika belum ada dikosongi / strip rapi) --}}
                                         <td class="py-3.5 px-4 text-[#334155] font-medium">
                                             @php
                                                 $engList = is_array($cycle->assigned_engineers) ? $cycle->assigned_engineers : [];
-                                                $filteredEngList = array_filter($engList, function($eng) use ($picMsName, $project) {
-                                                    $eName = trim($eng['name'] ?? '');
-                                                    if (empty($eName)) return false;
-                                                    if ($eName === $picMsName) return false;
-                                                    if (!empty($project->pm_id) && isset($eng['id']) && $eng['id'] == $project->pm_id) return false;
+                                                $picMsId = $cycle->pic_ms_id;
+                                                $leadEngId = $cycle->lead_engineer_id;
+                                                $filteredEngList = array_filter($engList, function($eng) use ($picMsId, $leadEngId) {
+                                                    $eId = $eng['id'] ?? null;
+                                                    if ($picMsId && $eId == $picMsId) return false;
+                                                    if ($leadEngId && $eId == $leadEngId) return false;
                                                     return true;
                                                 });
                                             @endphp
@@ -972,22 +997,22 @@
                                                             $firstName = explode(' ', $fullName)[0] ?: '-';
                                                             $engInitial = strtoupper(substr($firstName, 0, 1)) ?: 'E';
                                                         @endphp
-                                                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-[#8F0A0D] border border-red-200 text-[11px] font-semibold" title="{{ $fullName }}">
-                                                            <span class="w-3.5 h-3.5 rounded-full bg-[#8F0A0D] text-white text-[8px] font-bold flex items-center justify-center shrink-0">
+                                                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold shadow-2xs" title="{{ $fullName }}">
+                                                            <span class="w-3.5 h-3.5 rounded-full bg-emerald-600 text-white text-[8px] font-bold flex items-center justify-center shrink-0">
                                                                 {{ $engInitial }}
                                                             </span>
                                                             <span>{{ $firstName }}</span>
                                                         </div>
                                                     @endforeach
                                                 </div>
-                                            @elseif($cycle->assignedEngineer && $cycle->assigned_engineer_id != $project->pm_id && trim($cycle->assignedEngineer->name) !== $picMsName)
+                                            @elseif($cycle->assignedEngineer && $cycle->assigned_engineer_id != $picMsId && $cycle->assigned_engineer_id != $leadEngId)
                                                 @php
                                                     $fullName = trim($cycle->assignedEngineer->name);
                                                     $firstName = explode(' ', $fullName)[0] ?: '-';
                                                     $engInitial = strtoupper(substr($firstName, 0, 1)) ?: 'E';
                                                 @endphp
-                                                <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-[#8F0A0D] border border-red-200 text-[11px] font-semibold" title="{{ $fullName }}">
-                                                    <span class="w-3.5 h-3.5 rounded-full bg-[#8F0A0D] text-white text-[8px] font-bold flex items-center justify-center shrink-0">
+                                                <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold shadow-2xs" title="{{ $fullName }}">
+                                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-600 text-white text-[8px] font-bold flex items-center justify-center shrink-0">
                                                         {{ $engInitial }}
                                                     </span>
                                                     <span>{{ $firstName }}</span>
@@ -1063,7 +1088,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="py-10 text-center text-[#64748B] text-[12px]">
+                                        <td colspan="9" class="py-10 text-center text-[#64748B] text-[12px]">
                                             Belum ada siklus PM yang tersimpan untuk proyek ini.
                                         </td>
                                     </tr>
@@ -1706,15 +1731,27 @@
                             </div>
                         </div>
 
-                        {{-- PIC Managed Service --}}
-                        <div>
-                            <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Managed Service (Koordinator)</label>
-                            <select name="assigned_engineer_id" :value="activeCycle ? (activeCycle.assigned_engineer_id || '{{ $project->pm_id }}') : '{{ $project->pm_id }}'" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer font-semibold">
-                                <option value="">Pilih PIC Managed Service</option>
-                                @foreach($engineers as $eng)
-                                    <option value="{{ $eng->id }}">{{ $eng->name }}</option>
-                                @endforeach
-                            </select>
+                        {{-- PIC Managed Service & Lead Engineer --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Managed Service (Koordinator)</label>
+                                <select name="pic_ms_id" :value="activeCycle ? (activeCycle.pic_ms_id || '') : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer font-semibold">
+                                    <option value="">Pilih PIC Managed Service</option>
+                                    @foreach($picMsUsers as $pms)
+                                        <option value="{{ $pms->id }}">{{ $pms->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Lead Engineer (Koordinator Teknis)</label>
+                                <select name="lead_engineer_id" :value="activeCycle ? (activeCycle.lead_engineer_id || '') : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer font-semibold">
+                                    <option value="">Pilih Lead Engineer</option>
+                                    @foreach($leadEngineers as $leng)
+                                        <option value="{{ $leng->id }}">{{ $leng->name }} ({{ $leng->position ?: 'Lead' }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
                         {{-- KOLOM ENGINEER: Dikelompokkan (Network, Security, dll), Bentuk Dropdown Frekuensi, Multi-Select --}}

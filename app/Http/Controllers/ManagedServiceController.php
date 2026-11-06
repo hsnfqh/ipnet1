@@ -2374,7 +2374,7 @@ class ManagedServiceController extends Controller
                 ->update(['assigned_engineer_id' => null]);
         }
 
-        $pmCycles = $project->pmCycles()->orderBy('cycle_number')->get();
+        $pmCycles = $project->pmCycles()->with(['picMs', 'leadEngineer', 'assignedEngineer'])->orderBy('cycle_number')->get();
         $pmCompleted = $pmCycles->filter(function($c) {
             $act = strtolower($c->activity_status ?? '');
             $rep = strtolower($c->report_status ?? '');
@@ -2507,9 +2507,39 @@ class ManagedServiceController extends Controller
             return 'Tim Teknis & Lapangan';
         });
 
+        // PIC Managed Service resmi: Eris, Mario, Doris
+        $picMsUsers = User::where('status', 'Active')
+            ->where(function($q) {
+                $q->whereIn('name', ['Eris', 'Mario', 'Doris'])
+                  ->orWhere('email', 'like', '%eris%')
+                  ->orWhere('email', 'like', '%mario%')
+                  ->orWhere('email', 'like', '%doris%');
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'position']);
+
+        if ($picMsUsers->isEmpty()) {
+            $picMsUsers = User::whereIn('name', ['Eris', 'Mario', 'Doris'])->get(['id', 'name', 'position']);
+        }
+
+        // Daftar Lead Engineer (Koordinator Teknis)
+        $leadEngineers = User::where('status', 'Active')
+            ->where(function($q) {
+                $q->where('position', 'like', '%Lead%')
+                  ->orWhereHas('roles', fn($r) => $r->where('name', 'like', '%Lead%'))
+                  ->orWhereIn('name', ['Nugraha Pratama', 'Dedy Suryana', 'Doris', 'Ignatius Rizky', 'Rizki']);
+            })
+            ->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Director', 'Direktur', 'Finance', 'Finance / Accounting', 'Admin Support']))
+            ->orderBy('name')
+            ->get(['id', 'name', 'position']);
+
+        if ($leadEngineers->isEmpty()) {
+            $leadEngineers = $allEngineers;
+        }
+
         return view('managed_service.project_detail', compact(
             'project', 'allProjects', 'documents', 'additionalDocs', 'availableDocCount', 'cmQuota', 'cmUsed', 'cmRemaining', 'cmTickets',
-            'pmCycles', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers', 'groupedEngineers', 'allEngineers', 'activeTab',
+            'pmCycles', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers', 'groupedEngineers', 'allEngineers', 'picMsUsers', 'leadEngineers', 'activeTab',
             'daysInMonth', 'totalPeriodHours', 'targetSla', 'totalProjDowntimeHours', 'downtimeDeviceList',
             'projectSlaUptime', 'maxAllowedDowntimeHours', 'remainingBufferHours', 'isSlaMet'
         ));
@@ -2820,6 +2850,8 @@ class ManagedServiceController extends Controller
             'actual_date'             => 'nullable|date',
             'activity_notes'          => 'nullable|string',
             'notes'                   => 'nullable|string',
+            'pic_ms_id'               => 'nullable',
+            'lead_engineer_id'        => 'nullable',
             'assigned_engineer_id'    => 'nullable',
             'assigned_engineer_ids'   => 'nullable|array',
             'assigned_engineer_ids.*' => 'nullable',
@@ -2835,11 +2867,11 @@ class ManagedServiceController extends Controller
             $validated['activity_notes'] = $validated['notes'];
         }
 
+        $validated['pic_ms_id'] = $request->filled('pic_ms_id') ? $request->input('pic_ms_id') : null;
+        $validated['lead_engineer_id'] = $request->filled('lead_engineer_id') ? $request->input('lead_engineer_id') : null;
+
         // Multi-engineer assignment
         $engineerIds = $request->input('assigned_engineer_ids', []);
-        if (empty($engineerIds) && !empty($validated['assigned_engineer_id'])) {
-            $engineerIds = [$validated['assigned_engineer_id']];
-        }
         if (!empty($engineerIds)) {
             $assignedUsers = User::whereIn('id', $engineerIds)->get(['id', 'name', 'position']);
             $assignedArray = $assignedUsers->map(fn($u) => [
@@ -2850,6 +2882,9 @@ class ManagedServiceController extends Controller
 
             $validated['assigned_engineers'] = $assignedArray;
             $validated['assigned_engineer_id'] = $engineerIds[0];
+        } else {
+            $validated['assigned_engineers'] = [];
+            $validated['assigned_engineer_id'] = null;
         }
 
         // Multi-report files handling

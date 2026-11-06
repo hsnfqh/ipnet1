@@ -46,3 +46,4 @@ return new class extends Migration
         // No down operation needed
     }
 };
+
