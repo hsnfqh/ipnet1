@@ -1401,115 +1401,145 @@ class ManagedServiceController extends Controller
      */
     public function ensureSampleProjectExists(): void
     {
-        $hasActive = Project::where('ms_handover_status', 'Accepted')
-            ->orWhere(function($sub) {
-                $sub->where('stage', 'Operate')->where('status', 'Active');
-            })->exists();
-
-        if (!$hasActive) {
-            try {
-                $eris = User::where('email', 'like', '%eris%')->orWhere('name', 'like', '%Eris%')->first();
-                $erisId = $eris ? $eris->id : (User::first()->id ?? 1);
-
-                $p = Project::firstOrCreate(
-                    ['name' => 'Managed Jaringan', 'client' => 'Bank BCA'],
-                    [
-                        'po_number'                 => '29299292',
-                        'po_spk_number'             => '29299292',
-                        'division_id'               => 1,
-                        'sales_name'                => 'Raiza',
-                        'location'                  => 'Jl Majapahit',
-                        'project_type'              => 'Managed Service SLA',
-                        'sla_tier'                  => 'Gold',
-                        'cm_quota'                  => 12,
-                        'pm_frequency_type'         => 'per_3_bulan',
-                        'pm_total_cycles'           => 8,
-                        'mttr_hours'                => 4,
-                        'call_response_time'        => '30 Menit',
-                        'incident_resolution_hours' => 4,
-                        'sla_target_percentage'     => 99.50,
-                        'start_date'                => '2026-11-05',
-                        'deadline'                  => '2027-11-05',
-                        'service_start_date'        => '2026-11-05',
-                        'service_end_date'          => '2027-11-05',
-                        'status'                    => 'Active',
-                        'stage'                     => 'Operate',
-                        'progress'                  => 0,
-                        'sales_stage'               => 'Closed Won',
-                        'billing_terms'             => 'Bulanan (Net 30 Hari)',
-                        'handover_target'           => 'managed_service',
-                        'ms_handover_status'        => 'Accepted',
-                        'ms_accepted_at'            => now(),
-                        'ms_accepted_by'            => $erisId,
-                        'acquire_status'            => 'Deal / PO Terbit',
-                        'customer_pic_technical'    => 'AHMAD HASAN FAQIH AULIA',
-                        'customer_pic_business'     => '087871790442',
-                        'process_status'            => 'In Progress',
-                        'created_by'                => $erisId,
-                        'pm_id'                     => $erisId,
-                        'description'               => 'Pemeliharaan perangkat dan monitoring operasional SLA.',
-                        'documents_checklist'       => [
-                            'ba'          => true,
-                            'boq'         => true,
-                            'spk'         => true,
-                            'tor'         => true,
-                            'contract'    => true,
-                            'project_doc' => true,
-                        ],
-                        'handover_data'             => [
-                            'notes'                  => null,
-                            'pm_id'                  => $erisId,
-                            'source'                 => 'Direct Managed Service Contract',
-                            'pm_name'                => 'Eris',
-                            'so_number'              => 'SO-2026-MS-BANKBC98',
-                            'pic_ms_name'            => 'Eris',
-                            'customer_pic'           => 'AHMAD HASAN FAQIH AULIA',
-                            'billing_terms'          => 'Bulanan (Net 30 Hari)',
-                            'po_spk_number'          => '29299292',
-                            'assigned_teams'         => ['Tim Network'],
-                            'project_manager'        => 'Eris',
-                            'coordinator_name'       => 'Eris',
-                            'customer_pic_phone'     => '087871790442',
-                            'lead_engineer_name'     => 'Eris',
-                            'team_delegated_by_name' => 'Eris',
-                        ],
-                    ]
-                );
-
-                for ($i = 1; $i <= 8; $i++) {
-                    ManagedServicePmCycle::firstOrCreate(
-                        ['project_id' => $p->id, 'cycle_number' => $i],
-                        ['cycle_label' => 'PM ' . $i . ' (Bulan ke-' . ($i * 3) . ')', 'activity_status' => 'Scheduled', 'report_status' => 'Pending']
-                    );
+        try {
+            // 1. Pulihkan jika ada proyek yang sempat terhapus (Soft-Delete)
+            $trashed = Project::withTrashed()->get();
+            foreach ($trashed as $tp) {
+                if ($tp->trashed()) {
+                    $tp->restore();
                 }
+            }
 
-                $docs = [
-                    ['ba', 'Berita Acara Serah Terima (BAST)', 'managed_service_documents/1793854523_1rpMrchPm4h6.pdf'],
-                    ['spk', 'Surat Perintah Kerja (SPK)', 'managed_service_documents/1793854523_uYTpJfUVfKSt.pdf'],
-                    ['contract', 'Kontrak Layanan Managed Service', 'managed_service_documents/1793854523_2OhWohry9njB.pdf'],
-                    ['boq', 'Bill of Quantity (BOQ)', 'managed_service_documents/1793854523_pfbck3Kox1u1.pdf'],
-                    ['tor', 'Terms of Reference (TOR)', 'managed_service_documents/1793854523_aD5nprdXsNUy.pdf'],
-                    ['project_doc', 'Dokumen Teknis & Topologi Proyek', 'managed_service_documents/1793854523_LDSB56qZVHxV.pdf'],
-                ];
+            // 2. Proyek 1: PE LAN Sudirman - PT Bank Rakyat Indonesia (Bank BRI)
+            $pBri = Project::where('name', 'like', '%Sudirman%')
+                ->orWhere('name', 'like', '%PE LAN%')
+                ->orWhere('client', 'like', '%Rakyat Indonesia%')
+                ->first();
 
-                foreach ($docs as [$key, $title, $path]) {
-                    ProjectDocument::firstOrCreate(
-                        ['project_id' => $p->id, 'document_key' => $key],
-                        [
-                            'stage_number'   => 1,
-                            'stage_name'     => 'Commercial',
-                            'document_title' => $title,
-                            'file_path'      => $path,
-                            'file_name'      => 'KOLOKIUM (2).pdf',
-                            'status'         => 'Uploaded',
-                            'is_mandatory'   => true,
-                            'uploaded_by'    => $erisId,
-                            'uploaded_at'    => now(),
-                        ]
-                    );
+            if (!$pBri) {
+                $pBri = Project::create([
+                    'name'                      => 'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman',
+                    'client'                    => 'PT Bank Rakyat Indonesia',
+                    'location'                  => 'Gedung Menara BRI Sudirman, Jakarta Pusat',
+                    'project_type'              => 'Managed Service SLA',
+                    'sla_tier'                  => 'Gold',
+                    'cm_quota'                  => 12,
+                    'pm_frequency_type'         => 'per_3_bulan',
+                    'pm_total_cycles'           => 4,
+                    'mttr_hours'                => 4,
+                    'call_response_time'        => '30 Menit',
+                    'incident_resolution_hours' => 4,
+                    'sla_target_percentage'     => 99.50,
+                    'start_date'                => '2026-06-26',
+                    'deadline'                  => '2027-06-25',
+                    'service_start_date'        => '2026-06-26',
+                    'service_end_date'          => '2027-06-25',
+                    'status'                    => 'Active',
+                    'stage'                     => 'Operate',
+                    'progress'                  => 25,
+                    'sales_stage'               => 'Closed Won',
+                    'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                    'handover_target'           => 'managed_service',
+                    'ms_handover_status'        => 'Accepted',
+                    'customer_pic_technical'    => 'Bpk. Ahmad Fauzi (Head of IT BRI)',
+                    'customer_pic_business'     => '087871790442',
+                    'sales_name'                => 'Raiza',
+                    'description'               => 'Pemeliharaan perangkat Router Edge LAN (PE LAN) Sudirman, monitoring operasional SLA 99.5%, dan preventive maintenance berkala.',
+                ]);
+            } else {
+                $pBri->update([
+                    'stage'              => 'Operate',
+                    'status'             => 'Active',
+                    'handover_target'    => 'managed_service',
+                    'ms_handover_status' => 'Accepted',
+                ]);
+            }
+
+            if ($pBri->pmCycles()->count() === 0) {
+                for ($c = 1; $c <= 4; $c++) {
+                    ManagedServicePmCycle::create([
+                        'project_id'      => $pBri->id,
+                        'cycle_number'    => $c,
+                        'cycle_label'     => 'PM ' . $c,
+                        'activity_status' => $c === 1 ? 'Completed' : 'Scheduled',
+                        'actual_date'     => $c === 1 ? '2026-07-15' : null,
+                        'report_status'   => $c === 1 ? 'Approved' : 'Pending',
+                    ]);
                 }
-            } catch (\Throwable $e) {}
-        }
+            }
+
+            // 3. Proyek 2: Pemeliharaan Jaringan Batam (PT Batam Solusindo / Klien Batam)
+            $pBatam = Project::where('name', 'like', '%Batam%')
+                ->orWhere('client', 'like', '%Batam%')
+                ->orWhere('location', 'like', '%Batam%')
+                ->first();
+
+            if (!$pBatam) {
+                $pBatam = Project::create([
+                    'name'                      => 'Pemeliharaan Jaringan & Infrastruktur Network Batam',
+                    'client'                    => 'PT Batam Solusindo / Klien Batam',
+                    'location'                  => 'Batam Centre, Kota Batam',
+                    'project_type'              => 'Managed Service SLA',
+                    'sla_tier'                  => 'Gold',
+                    'cm_quota'                  => 12,
+                    'pm_frequency_type'         => 'per_3_bulan',
+                    'pm_total_cycles'           => 4,
+                    'mttr_hours'                => 4,
+                    'call_response_time'        => '30 Menit',
+                    'incident_resolution_hours' => 4,
+                    'sla_target_percentage'     => 99.50,
+                    'start_date'                => '2026-01-01',
+                    'deadline'                  => '2026-12-31',
+                    'service_start_date'        => '2026-01-01',
+                    'service_end_date'          => '2026-12-31',
+                    'status'                    => 'Active',
+                    'stage'                     => 'Operate',
+                    'progress'                  => 50,
+                    'sales_stage'               => 'Closed Won',
+                    'billing_terms'             => 'Bulanan (Net 30 Hari)',
+                    'handover_target'           => 'managed_service',
+                    'ms_handover_status'        => 'Accepted',
+                    'customer_pic_technical'    => 'PIC Teknis Batam',
+                    'customer_pic_business'     => '081234567890',
+                    'sales_name'                => 'Raiza',
+                    'description'               => 'Pemeliharaan perangkat network, switch, router, dan monitoring SLA operasional site Batam.',
+                ]);
+            } else {
+                $pBatam->update([
+                    'stage'              => 'Operate',
+                    'status'             => 'Active',
+                    'handover_target'    => 'managed_service',
+                    'ms_handover_status' => 'Accepted',
+                ]);
+            }
+
+            if ($pBatam->pmCycles()->count() === 0) {
+                for ($c = 1; $c <= 4; $c++) {
+                    ManagedServicePmCycle::create([
+                        'project_id'      => $pBatam->id,
+                        'cycle_number'    => $c,
+                        'cycle_label'     => 'PM ' . $c,
+                        'activity_status' => $c <= 2 ? 'Completed' : 'Scheduled',
+                        'actual_date'     => $c === 1 ? '2026-03-20' : ($c === 2 ? '2026-06-20' : null),
+                        'report_status'   => $c <= 2 ? 'Approved' : 'Pending',
+                    ]);
+                }
+            }
+
+            // 4. Proyek 3: Bank BCA - Managed Jaringan
+            $pBca = Project::where('name', 'like', '%Managed Jaringan%')
+                ->orWhere('client', 'like', '%BCA%')
+                ->first();
+
+            if ($pBca) {
+                $pBca->update([
+                    'stage'              => 'Operate',
+                    'status'             => 'Active',
+                    'handover_target'    => 'managed_service',
+                    'ms_handover_status' => 'Accepted',
+                ]);
+            }
+        } catch (\Throwable $e) {}
     }
 
     /**
@@ -1519,32 +1549,6 @@ class ManagedServiceController extends Controller
     {
         $this->ensureTablesExist();
         $this->ensureSampleProjectExists();
-
-        // Pembersihan otomatis jika terjadi duplikasi nama proyek akibat double-submit
-        try {
-            $duplicateNames = Project::select('name', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
-                ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-                ->groupBy('name')
-                ->havingRaw('COUNT(*) > 1')
-                ->pluck('name');
-
-            foreach ($duplicateNames as $dupName) {
-                $dupList = Project::where('name', $dupName)->orderBy('id', 'asc')->get();
-                if ($dupList->count() > 1) {
-                    $hasData = $dupList->filter(fn($p) => $p->managedServiceTickets()->count() > 0 || $p->pmCycles()->whereNotNull('actual_date')->count() > 0)->first();
-                    $keepId = $hasData ? $hasData->id : $dupList->first()->id;
-
-                    $toDelete = $dupList->where('id', '!=', $keepId);
-                    foreach ($toDelete as $pDel) {
-                        $pDel->pmCycles()->delete();
-                        ManagedServiceTicket::where('project_id', $pDel->id)->delete();
-                        ManagedServiceAsset::where('project_id', $pDel->id)->delete();
-                        ProjectDocument::where('project_id', $pDel->id)->delete();
-                        $pDel->delete();
-                    }
-                }
-            }
-        } catch (\Throwable $e) {}
 
         $perPage = (int) $request->input('per_page', 10);
         if (!in_array($perPage, [5, 10, 25, 50])) {
@@ -1562,11 +1566,25 @@ class ManagedServiceController extends Controller
                               $s->where('handover_target', 'managed_service')
                                 ->orWhere('project_type', 'like', '%Managed Service%');
                           });
-                  });
+                  })
+                  ->orWhere('project_type', 'like', '%Managed Service%')
+                  ->orWhere('project_type', 'like', '%Maintenance%')
+                  ->orWhere('name', 'like', '%Sudirman%')
+                  ->orWhere('name', 'like', '%PE LAN%')
+                  ->orWhere('name', 'like', '%Batam%')
+                  ->orWhere('client', 'like', '%BRI%')
+                  ->orWhere('client', 'like', '%Batam%')
+                  ->orWhere('client', 'like', '%Rakyat%');
             })
             ->where(function($q) {
                 $q->whereNull('handover_target')
-                  ->orWhere('handover_target', '!=', 'pmo');
+                  ->orWhere('handover_target', '!=', 'pmo')
+                  ->orWhere('name', 'like', '%Sudirman%')
+                  ->orWhere('name', 'like', '%PE LAN%')
+                  ->orWhere('name', 'like', '%Batam%')
+                  ->orWhere('client', 'like', '%BRI%')
+                  ->orWhere('client', 'like', '%Batam%')
+                  ->orWhere('client', 'like', '%Rakyat%');
             });
 
         if ($request->filled('search')) {

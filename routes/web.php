@@ -2049,46 +2049,20 @@ Route::get('/migrate-only', function () {
     }
 });
 
-// Route pemulihan instan proyek Bank BCA - Managed Jaringan untuk akun Eris (Maintenance)
+// Route pemulihan instan seluruh proyek Managed Service resmi (PE LAN Sudirman Bank BRI, Batam, dan Bank BCA)
 Route::get('/restore-user-project', function () {
     try {
         $controller = new \App\Http\Controllers\ManagedServiceController();
         $controller->ensureSampleProjectExists();
         return redirect()->route('ms.projects.index', ['tab' => 'active'])
-            ->with('success', "Proyek 'Managed Jaringan' (Bank BCA - Jl Majapahit) berhasil dipulihkan dan tampil di Kontrak Layanan Aktif!");
+            ->with('success', "Seluruh proyek (PE LAN Sudirman Bank BRI, Batam, dan Bank BCA) berhasil dipulihkan dan langsung aktif!");
     } catch (\Throwable $e) {
         return response()->json(['error' => $e->getMessage()], 500);
     }
 });
 
-// Route pembersihan instan untuk menghapus proyek dummy PE LAN Sudirman beserta relasinya dari database
-Route::get('/delete-dummy-pelan', function () {
-    $deleted = [];
-    $projects = \App\Models\Project::where('name', 'like', '%Router Edge LAN (PE LAN) Sudirman%')->get();
-    foreach ($projects as $p) {
-        \App\Models\Task::where('project_id', $p->id)->forceDelete();
-        if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
-            \App\Models\ProjectDocument::where('project_id', $p->id)->delete();
-        }
-        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_assets')) {
-            \App\Models\ManagedServiceAsset::where('project_id', $p->id)->delete();
-        }
-        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_tickets')) {
-            \App\Models\ManagedServiceTicket::where('project_id', $p->id)->delete();
-        }
-        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_pm_cycles')) {
-            \App\Models\ManagedServicePmCycle::where('project_id', $p->id)->delete();
-        }
-        $deleted[] = $p->name;
-        $p->forceDelete();
-    }
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Seluruh data dummy PE LAN Sudirman berhasil dihapus total dari database!',
-        'deleted_projects' => $deleted
-    ]);
+Route::get('/restore-all-server-projects', function () {
+    return redirect('/restore-user-project');
 });
 
 // Utility route untuk migrate database & seed user resmi & clear cache dari browser di cPanel
