@@ -799,7 +799,7 @@
     <!-- ========================================================== -->
     <template x-teleport="body">
         <div x-show="isPmModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] max-h-[90vh] overflow-y-auto" @click.away="isPmModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-[#E2E8F0] max-h-[90vh] overflow-y-auto" @click.away="isPmModalOpen = false">
                 <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-4">
                     <div>
                         <p class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Update Realisasi PM</p>
@@ -838,7 +838,7 @@
                     </div>
 
                     {{-- UPLOAD BERKAS LAPORAN PM: SIMETRIS 2 SLOT (Laporan Utama & Berkas Pendukung/Foto/BAP) --}}
-                    <div class="space-y-2.5">
+                    <div class="space-y-2">
                         <div class="flex items-center justify-between">
                             <label class="block text-xs font-semibold text-[#334155]">
                                 Upload Berkas Laporan PM <span class="text-[11px] font-normal text-slate-500">(Bisa 2 Berkas Sekaligus)</span>
@@ -858,38 +858,38 @@
                                 
                                 {{-- Slot 1 Header --}}
                                 <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="w-5 h-5 rounded-md bg-[#8F0A0D] text-white flex items-center justify-center text-[10px] font-extrabold shadow-2xs">1</span>
-                                        <span class="text-[11.5px] font-bold text-slate-800">Berkas Utama</span>
+                                    <div class="flex items-center gap-1.5 min-w-0">
+                                        <span class="w-5 h-5 rounded-md bg-[#8F0A0D] text-white flex items-center justify-center text-[10px] font-extrabold shadow-2xs shrink-0">1</span>
+                                        <span class="text-[11.5px] font-bold text-slate-800 truncate">Berkas Utama</span>
                                     </div>
-                                    <span class="text-[9.5px] font-semibold px-1.5 py-0.5 rounded" :class="pmFile1 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200/70 text-slate-600'">
-                                        PDF / Dokumen
+                                    <span class="text-[9.5px] font-semibold px-1.5 py-0.5 rounded shrink-0" :class="pmFile1 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'">
+                                        Laporan PM
                                     </span>
                                 </div>
 
                                 {{-- Slot 1 Empty / Drop state --}}
                                 <div x-show="!pmFile1" 
                                      @click="$refs.pmFileInput1.click()" 
-                                     class="border-2 border-dashed border-slate-200 hover:border-[#8F0A0D] rounded-xl p-3 text-center cursor-pointer transition bg-white/80 hover:bg-white group">
-                                    <div class="w-8 h-8 mx-auto mb-1.5 rounded-lg bg-red-50 text-[#8F0A0D] group-hover:scale-110 flex items-center justify-center transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                     class="h-[84px] border-2 border-dashed border-slate-200 hover:border-[#8F0A0D] rounded-xl p-2.5 flex flex-col items-center justify-center text-center cursor-pointer transition bg-white/80 hover:bg-white group">
+                                    <div class="w-7 h-7 mb-1 rounded-lg bg-red-50 text-[#8F0A0D] group-hover:scale-110 flex items-center justify-center transition shrink-0">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                                     </div>
                                     <p class="text-[11px] font-bold text-slate-700 group-hover:text-[#8F0A0D]">Pilih Berkas 1</p>
-                                    <p class="text-[9.5px] text-slate-400">Laporan PM Utama</p>
+                                    <p class="text-[9.5px] text-slate-400">PDF / Dokumen PM</p>
                                 </div>
 
                                 {{-- Slot 1 Selected state --}}
-                                <div x-show="pmFile1" class="p-2.5 rounded-xl bg-white border border-emerald-200 shadow-2xs flex items-center justify-between">
+                                <div x-show="pmFile1" class="h-[84px] p-2.5 rounded-xl bg-white border border-emerald-200 shadow-2xs flex items-center justify-between">
                                     <div class="flex items-center gap-2 min-w-0 pr-1">
                                         <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                         </div>
                                         <div class="truncate">
                                             <p class="text-[11px] font-bold text-slate-800 truncate" x-text="pmFile1 ? pmFile1.name : ''"></p>
-                                            <p class="text-[9.5px] text-emerald-600 font-semibold" x-text="pmFile1 ? (pmFile1.size + ' • Siap') : ''"></p>
+                                            <p class="text-[9.5px] text-emerald-600 font-semibold" x-text="pmFile1 ? (pmFile1.size + ' • Siap Diupload') : ''"></p>
                                         </div>
                                     </div>
-                                    <button type="button" @click.stop="clearPmFile(1)" class="w-6 h-6 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition cursor-pointer text-base leading-none font-bold" title="Hapus Berkas 1">&times;</button>
+                                    <button type="button" @click.stop="clearPmFile(1)" class="w-6 h-6 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition cursor-pointer text-base leading-none font-bold shrink-0" title="Hapus Berkas 1">&times;</button>
                                 </div>
                             </div>
 
@@ -899,38 +899,38 @@
                                 
                                 {{-- Slot 2 Header --}}
                                 <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="w-5 h-5 rounded-md bg-[#2563EB] text-white flex items-center justify-center text-[10px] font-extrabold shadow-2xs">2</span>
-                                        <span class="text-[11.5px] font-bold text-slate-800">Berkas Lampiran</span>
+                                    <div class="flex items-center gap-1.5 min-w-0">
+                                        <span class="w-5 h-5 rounded-md bg-[#2563EB] text-white flex items-center justify-center text-[10px] font-extrabold shadow-2xs shrink-0">2</span>
+                                        <span class="text-[11.5px] font-bold text-slate-800 truncate">Berkas Lampiran</span>
                                     </div>
-                                    <span class="text-[9.5px] font-semibold px-1.5 py-0.5 rounded" :class="pmFile2 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200/70 text-slate-600'">
-                                        BAP / Foto / Arsip
+                                    <span class="text-[9.5px] font-semibold px-1.5 py-0.5 rounded shrink-0" :class="pmFile2 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'">
+                                        BAP / Foto
                                     </span>
                                 </div>
 
                                 {{-- Slot 2 Empty / Drop state --}}
                                 <div x-show="!pmFile2" 
                                      @click="$refs.pmFileInput2.click()" 
-                                     class="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-xl p-3 text-center cursor-pointer transition bg-white/80 hover:bg-white group">
-                                    <div class="w-8 h-8 mx-auto mb-1.5 rounded-lg bg-blue-50 text-blue-600 group-hover:scale-110 flex items-center justify-center transition">
+                                     class="h-[84px] border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-xl p-2.5 flex flex-col items-center justify-center text-center cursor-pointer transition bg-white/80 hover:bg-white group">
+                                    <div class="w-7 h-7 mb-1 rounded-lg bg-blue-50 text-blue-600 group-hover:scale-110 flex items-center justify-center transition shrink-0">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                                     </div>
                                     <p class="text-[11px] font-bold text-slate-700 group-hover:text-blue-600">Pilih Berkas 2</p>
-                                    <p class="text-[9.5px] text-slate-400">Lampiran / BAP / Foto</p>
+                                    <p class="text-[9.5px] text-slate-400">BAP / Foto / Arsip</p>
                                 </div>
 
                                 {{-- Slot 2 Selected state --}}
-                                <div x-show="pmFile2" class="p-2.5 rounded-xl bg-white border border-emerald-200 shadow-2xs flex items-center justify-between">
+                                <div x-show="pmFile2" class="h-[84px] p-2.5 rounded-xl bg-white border border-emerald-200 shadow-2xs flex items-center justify-between">
                                     <div class="flex items-center gap-2 min-w-0 pr-1">
                                         <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                         </div>
                                         <div class="truncate">
                                             <p class="text-[11px] font-bold text-slate-800 truncate" x-text="pmFile2 ? pmFile2.name : ''"></p>
-                                            <p class="text-[9.5px] text-emerald-600 font-semibold" x-text="pmFile2 ? (pmFile2.size + ' • Siap') : ''"></p>
+                                            <p class="text-[9.5px] text-emerald-600 font-semibold" x-text="pmFile2 ? (pmFile2.size + ' • Siap Diupload') : ''"></p>
                                         </div>
                                     </div>
-                                    <button type="button" @click.stop="clearPmFile(2)" class="w-6 h-6 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition cursor-pointer text-base leading-none font-bold" title="Hapus Berkas 2">&times;</button>
+                                    <button type="button" @click.stop="clearPmFile(2)" class="w-6 h-6 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition cursor-pointer text-base leading-none font-bold shrink-0" title="Hapus Berkas 2">&times;</button>
                                 </div>
                             </div>
                         </div>
