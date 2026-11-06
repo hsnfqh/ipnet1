@@ -1426,9 +1426,14 @@ class ManagedServiceController extends Controller
                     'ms_handover_status' => 'Draft',
                 ]);
 
-            // Hapus proyek nama inisial pendek sementara agar digantikan data resmi lengkap
-            Project::whereIn('name', ['PE LAN BRI', 'EXTERNET ODC', 'BP. BATAM', 'BATII', 'LICENSE WIFI SUDIRMAN', 'WIFI MATARAM', 'WIFI JAKARTA'])
-                ->delete();
+            // Sinkronisasi jika ada proyek dengan nama inisial agar otomatis menjadi nama resmi lengkap tanpa menghapus data upload user
+            Project::where('name', 'PE LAN BRI')->update(['name' => 'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman']);
+            Project::where('name', 'EXTERNET ODC')->update(['name' => 'Pengadaan Perpanjangan Maintenance Perangkat Network Switch Pihak-3 (PSC-P3-AS1 dan BSC-P3-AS1) di PSCF dan BSCF Tahun 2026 - 2027']);
+            Project::where('name', 'BP. BATAM')->update(['name' => 'Perpanjangan ATS Firewall System']);
+            Project::where('name', 'BATII')->update(['name' => 'Perpanjangan Maintenance SLA Network & Server BATII']);
+            Project::where('name', 'LICENSE WIFI SUDIRMAN')->update(['name' => 'Perpanjangan Pemeliharaan License Wi-Fi Sudirman']);
+            Project::where('name', 'WIFI MATARAM')->update(['name' => 'Maintenance & Monitoring Network Wi-Fi Kantor Wilayah BRI Mataram']);
+            Project::where('name', 'WIFI JAKARTA')->update(['name' => 'Pemeliharaan dan Monitoring Jaringan Wi-Fi Kantor Wilayah Jakarta']);
 
             $eris = User::where('email', 'like', '%eris%')->orWhere('name', 'like', '%Eris%')->first();
             $erisId = $eris ? $eris->id : (User::first()->id ?? 1);
@@ -1460,23 +1465,6 @@ class ManagedServiceController extends Controller
                     'billing_terms'             => 'Bulanan (Net 30 Hari)',
                     'handover_target'           => 'managed_service',
                     'ms_handover_status'        => 'Accepted',
-                    'customer_pic_technical'    => 'Bpk. Hendra Gunawan',
-                    'customer_pic_business'     => '08117721904',
-                    'customer_pic_finance'      => 'infrastruktur.it@bpbatam.go.id',
-                    'handover_data'             => [
-                        'customer_pic'       => 'Bpk. Hendra Gunawan',
-                        'customer_pic_phone' => '08117721904',
-                        'customer_pic_email' => 'infrastruktur.it@bpbatam.go.id',
-                    ],
-                    'contract_value'            => 350000000,
-                    'po_spk_number'             => 'SPK/BPBATAM/FW-2026/04',
-                    'po_number'                 => 'PO-BPBATAM-2026-081',
-                    'po_spk_file'               => 'assets/docs/sample_sc_contract.pdf',
-                    'contract_file'             => 'assets/docs/sample_sc_contract.pdf',
-                    'boq_file'                  => 'assets/docs/sample_technical_boq.pdf',
-                    'tor_file'                  => 'assets/docs/sample_sla_managed_service.pdf',
-                    'proposal_file'             => 'assets/docs/sample_installation_report.pdf',
-                    'documents_checklist'       => ['ba' => true, 'spk' => true, 'boq' => true, 'tor' => true, 'contract' => true, 'project_doc' => true],
                     'description'               => 'Perpanjangan ATS Firewall System BP Batam, monitoring SLA 99.9% Platinum, dan preventive maintenance berkala.',
                     'completed_cycles'          => [1],
                 ],
@@ -1506,23 +1494,6 @@ class ManagedServiceController extends Controller
                     'billing_terms'             => 'Bulanan (Net 30 Hari)',
                     'handover_target'           => 'managed_service',
                     'ms_handover_status'        => 'Accepted',
-                    'customer_pic_technical'    => 'Bpk. Dwi Prabowo',
-                    'customer_pic_business'     => '081289217734',
-                    'customer_pic_finance'      => 'it.drc@bri.co.id',
-                    'handover_data'             => [
-                        'customer_pic'       => 'Bpk. Dwi Prabowo',
-                        'customer_pic_phone' => '081289217734',
-                        'customer_pic_email' => 'it.drc@bri.co.id',
-                    ],
-                    'contract_value'            => 520000000,
-                    'po_spk_number'             => 'SPK/BRI/DRC-NET/2026/019',
-                    'po_number'                 => 'PO-BRI-DRC-2026-11',
-                    'po_spk_file'               => 'assets/docs/sample_sc_contract.pdf',
-                    'contract_file'             => 'assets/docs/sample_sc_contract.pdf',
-                    'boq_file'                  => 'assets/docs/sample_technical_boq.pdf',
-                    'tor_file'                  => 'assets/docs/sample_sla_managed_service.pdf',
-                    'proposal_file'             => 'assets/docs/sample_installation_report.pdf',
-                    'documents_checklist'       => ['ba' => true, 'spk' => true, 'boq' => true, 'tor' => true, 'contract' => true, 'project_doc' => true],
                     'description'               => 'Pengadaan Perpanjangan Maintenance Perangkat Network Switch Pihak-3 (PSC-P3-AS1 dan BSC-P3-AS1) di PSCF dan BSCF Tahun 2026 - 2027.',
                     'completed_cycles'          => [],
                 ],
@@ -1552,23 +1523,6 @@ class ManagedServiceController extends Controller
                     'billing_terms'             => 'Bulanan (Net 30 Hari)',
                     'handover_target'           => 'managed_service',
                     'ms_handover_status'        => 'Accepted',
-                    'customer_pic_technical'    => 'Bpk. Ahmad Fauzi',
-                    'customer_pic_business'     => '087871790442',
-                    'customer_pic_finance'      => 'maintenance.lan@bri.co.id',
-                    'handover_data'             => [
-                        'customer_pic'       => 'Bpk. Ahmad Fauzi',
-                        'customer_pic_phone' => '087871790442',
-                        'customer_pic_email' => 'maintenance.lan@bri.co.id',
-                    ],
-                    'contract_value'            => 480000000,
-                    'po_spk_number'             => 'SPK/BRI/PELAN-SDR/2024/008',
-                    'po_number'                 => 'PO-BRI-PELAN-2024-88',
-                    'po_spk_file'               => 'assets/docs/sample_sc_contract.pdf',
-                    'contract_file'             => 'assets/docs/sample_sc_contract.pdf',
-                    'boq_file'                  => 'assets/docs/sample_technical_boq.pdf',
-                    'tor_file'                  => 'assets/docs/sample_sla_managed_service.pdf',
-                    'proposal_file'             => 'assets/docs/sample_installation_report.pdf',
-                    'documents_checklist'       => ['ba' => true, 'spk' => true, 'boq' => true, 'tor' => true, 'contract' => true, 'project_doc' => true],
                     'description'               => 'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman 3 Tahun.',
                     'completed_cycles'          => [1],
                 ],
@@ -1598,23 +1552,6 @@ class ManagedServiceController extends Controller
                     'billing_terms'             => 'Bulanan (Net 30 Hari)',
                     'handover_target'           => 'managed_service',
                     'ms_handover_status'        => 'Accepted',
-                    'customer_pic_technical'    => 'Bpk. Ahmad Fauzi',
-                    'customer_pic_business'     => '087871790442',
-                    'customer_pic_finance'      => 'it.wifi@bri.co.id',
-                    'handover_data'             => [
-                        'customer_pic'       => 'Bpk. Ahmad Fauzi',
-                        'customer_pic_phone' => '087871790442',
-                        'customer_pic_email' => 'it.wifi@bri.co.id',
-                    ],
-                    'contract_value'            => 195000000,
-                    'po_spk_number'             => 'SPK/BRI/LIC-WIFI/2026/033',
-                    'po_number'                 => 'PO-BRI-WIFI-2026-33',
-                    'po_spk_file'               => 'assets/docs/sample_sc_contract.pdf',
-                    'contract_file'             => 'assets/docs/sample_sc_contract.pdf',
-                    'boq_file'                  => 'assets/docs/sample_technical_boq.pdf',
-                    'tor_file'                  => 'assets/docs/sample_sla_managed_service.pdf',
-                    'proposal_file'             => 'assets/docs/sample_installation_report.pdf',
-                    'documents_checklist'       => ['ba' => true, 'spk' => true, 'boq' => true, 'tor' => true, 'contract' => true, 'project_doc' => true],
                     'description'               => 'Perpanjangan Pemeliharaan Lisensi Wi-Fi Sudirman BRI.',
                     'completed_cycles'          => [1],
                 ],
@@ -1644,23 +1581,6 @@ class ManagedServiceController extends Controller
                     'billing_terms'             => 'Bulanan (Net 30 Hari)',
                     'handover_target'           => 'managed_service',
                     'ms_handover_status'        => 'Accepted',
-                    'customer_pic_technical'    => 'Bpk. Lalu Muhammad Arifin',
-                    'customer_pic_business'     => '081339821100',
-                    'customer_pic_finance'      => 'kanwil.mataram@bri.co.id',
-                    'handover_data'             => [
-                        'customer_pic'       => 'Bpk. Lalu Muhammad Arifin',
-                        'customer_pic_phone' => '081339821100',
-                        'customer_pic_email' => 'kanwil.mataram@bri.co.id',
-                    ],
-                    'contract_value'            => 180000000,
-                    'po_spk_number'             => 'SPK/BRI-MTR/WIFI/2026/012',
-                    'po_number'                 => 'PO-BRI-MTR-2026-12',
-                    'po_spk_file'               => 'assets/docs/sample_sc_contract.pdf',
-                    'contract_file'             => 'assets/docs/sample_sc_contract.pdf',
-                    'boq_file'                  => 'assets/docs/sample_technical_boq.pdf',
-                    'tor_file'                  => 'assets/docs/sample_sla_managed_service.pdf',
-                    'proposal_file'             => 'assets/docs/sample_installation_report.pdf',
-                    'documents_checklist'       => ['ba' => true, 'spk' => true, 'boq' => true, 'tor' => true, 'contract' => true, 'project_doc' => true],
                     'description'               => 'Pemeliharaan dan monitoring Wi-Fi kantor wilayah Mataram.',
                     'completed_cycles'          => [1],
                 ],
@@ -1690,23 +1610,6 @@ class ManagedServiceController extends Controller
                     'billing_terms'             => 'Bulanan (Net 30 Hari)',
                     'handover_target'           => 'managed_service',
                     'ms_handover_status'        => 'Accepted',
-                    'customer_pic_technical'    => 'Ibu Siti Rahmawati',
-                    'customer_pic_business'     => '081210928845',
-                    'customer_pic_finance'      => 'kanwil.jakarta@bri.co.id',
-                    'handover_data'             => [
-                        'customer_pic'       => 'Ibu Siti Rahmawati',
-                        'customer_pic_phone' => '081210928845',
-                        'customer_pic_email' => 'kanwil.jakarta@bri.co.id',
-                    ],
-                    'contract_value'            => 220000000,
-                    'po_spk_number'             => 'SPK/BRI-JKT/WIFI/2026/015',
-                    'po_number'                 => 'PO-BRI-JKT-2026-15',
-                    'po_spk_file'               => 'assets/docs/sample_sc_contract.pdf',
-                    'contract_file'             => 'assets/docs/sample_sc_contract.pdf',
-                    'boq_file'                  => 'assets/docs/sample_technical_boq.pdf',
-                    'tor_file'                  => 'assets/docs/sample_sla_managed_service.pdf',
-                    'proposal_file'             => 'assets/docs/sample_installation_report.pdf',
-                    'documents_checklist'       => ['ba' => true, 'spk' => true, 'boq' => true, 'tor' => true, 'contract' => true, 'project_doc' => true],
                     'description'               => 'Pemeliharaan dan monitoring jaringan Wi-Fi kantor wilayah Jakarta.',
                     'completed_cycles'          => [1],
                 ],
@@ -1736,23 +1639,6 @@ class ManagedServiceController extends Controller
                     'billing_terms'             => 'Bulanan (Net 30 Hari)',
                     'handover_target'           => 'managed_service',
                     'ms_handover_status'        => 'Accepted',
-                    'customer_pic_technical'    => 'Bpk. Reza Kurniawan',
-                    'customer_pic_business'     => '081908234412',
-                    'customer_pic_finance'      => 'operational@batii.co.id',
-                    'handover_data'             => [
-                        'customer_pic'       => 'Bpk. Reza Kurniawan',
-                        'customer_pic_phone' => '081908234412',
-                        'customer_pic_email' => 'operational@batii.co.id',
-                    ],
-                    'contract_value'            => 210000000,
-                    'po_spk_number'             => 'SPK/BATII/MS/2026/007',
-                    'po_number'                 => 'PO-BATII-2026-07',
-                    'po_spk_file'               => 'assets/docs/sample_sc_contract.pdf',
-                    'contract_file'             => 'assets/docs/sample_sc_contract.pdf',
-                    'boq_file'                  => 'assets/docs/sample_technical_boq.pdf',
-                    'tor_file'                  => 'assets/docs/sample_sla_managed_service.pdf',
-                    'proposal_file'             => 'assets/docs/sample_installation_report.pdf',
-                    'documents_checklist'       => ['ba' => true, 'spk' => true, 'boq' => true, 'tor' => true, 'contract' => true, 'project_doc' => true],
                     'description'               => 'Perpanjangan Maintenance SLA Network & Server BATII.',
                     'completed_cycles'          => [1],
                 ],
@@ -1770,7 +1656,13 @@ class ManagedServiceController extends Controller
                     $item['pm_id'] = $erisId;
                     $proj = Project::create($item);
                 } else {
-                    $proj->update($item);
+                    $proj->update([
+                        'status'             => 'Active',
+                        'stage'              => 'Operate',
+                        'sales_stage'        => 'Closed Won',
+                        'handover_target'    => 'managed_service',
+                        'ms_handover_status' => 'Accepted',
+                    ]);
                 }
 
                 if ($proj) {
@@ -1787,38 +1679,6 @@ class ManagedServiceController extends Controller
                                 'actual_date'     => $isDone ? now()->subMonths(1)->format('Y-m-d') : null,
                                 'report_status'   => $isDone ? 'Approved' : 'Pending',
                             ]);
-                        }
-                    }
-
-                    if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
-                        $docDefs = [
-                            ['document_key' => 'spk', 'document_title' => 'Surat Perintah Kerja (SPK / PO)', 'file_path' => 'assets/docs/sample_sc_contract.pdf', 'file_name' => 'sample_sc_contract.pdf'],
-                            ['document_key' => 'contract', 'document_title' => 'Kontrak Layanan & PKS', 'file_path' => 'assets/docs/sample_sc_contract.pdf', 'file_name' => 'sample_sc_contract.pdf'],
-                            ['document_key' => 'boq', 'document_title' => 'Bill of Quantity (BOQ & Spesifikasi Layanan)', 'file_path' => 'assets/docs/sample_technical_boq.pdf', 'file_name' => 'sample_technical_boq.pdf'],
-                            ['document_key' => 'tor', 'document_title' => 'Terms of Reference (TOR)', 'file_path' => 'assets/docs/sample_sla_managed_service.pdf', 'file_name' => 'sample_sla_managed_service.pdf'],
-                            ['document_key' => 'project_doc', 'document_title' => 'Dokumen Teknis & Topologi Proyek', 'file_path' => 'assets/docs/sample_installation_report.pdf', 'file_name' => 'sample_installation_report.pdf'],
-                        ];
-                        foreach ($docDefs as $dDef) {
-                            try {
-                                \App\Models\ProjectDocument::updateOrCreate(
-                                    [
-                                        'project_id'   => $proj->id,
-                                        'document_key' => $dDef['document_key'],
-                                    ],
-                                    [
-                                        'document_title' => $dDef['document_title'],
-                                        'stage_number'   => 6,
-                                        'stage_name'     => 'Operate',
-                                        'is_mandatory'   => true,
-                                        'file_path'      => $dDef['file_path'],
-                                        'file_name'      => $dDef['file_name'],
-                                        'file_extension' => 'pdf',
-                                        'status'         => 'Verified',
-                                        'verified_at'    => now(),
-                                        'notes'          => 'Dokumen resmi terverifikasi.',
-                                    ]
-                                );
-                            } catch (\Throwable $e) {}
                         }
                     }
                 }
@@ -2631,34 +2491,7 @@ class ManagedServiceController extends Controller
         $techNumber   = 'DOC-' . ($project->so_code ?: $project->id);
         $techDate     = $techDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
 
-        // Fallback file sampel resmi agar selalu tersedia
-        $defaultSampleContract = 'assets/docs/sample_sc_contract.pdf';
-        $defaultSampleBoq      = 'assets/docs/sample_technical_boq.pdf';
-        $defaultSampleSla      = 'assets/docs/sample_sla_managed_service.pdf';
-        $defaultSampleTech     = 'assets/docs/sample_installation_report.pdf';
 
-        if (!$spkFilePath) {
-            $spkFilePath = $defaultSampleContract;
-        }
-        if (!$contractFilePath) {
-            $contractFilePath = $defaultSampleContract;
-        }
-        if (!$boqFilePath) {
-            $boqFilePath = $defaultSampleBoq;
-        }
-        if (!$torFilePath) {
-            $torFilePath = $defaultSampleSla;
-        }
-        if (!$techFilePath) {
-            $techFilePath = $defaultSampleTech;
-        }
-
-        $toFileUrl = function(?string $path) {
-            if (!$path) return null;
-            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) return $path;
-            if (str_starts_with($path, 'assets/')) return asset($path);
-            return asset('storage/' . ltrim($path, '/'));
-        };
 
         $checklist = is_array($project->documents_checklist) ? $project->documents_checklist : [];
 
@@ -2673,21 +2506,21 @@ class ManagedServiceController extends Controller
                 'key'         => 'ba',
                 'title'       => $bastTitle,
                 'description' => 'Bukti serah terima operasional dan alih kelola layanan.',
-                'file_path'   => $baFilePath ?: $defaultSampleContract,
-                'file_url'    => $baFileUrl ?: $toFileUrl($baFilePath ?: $defaultSampleContract),
+                'file_path'   => $baFilePath,
+                'file_url'    => $baFileUrl ?: ($baFilePath ? asset('storage/' . $baFilePath) : null),
                 'number'      => $baNumber,
                 'date'        => $baDate,
-                'verified'    => true,
+                'verified'    => !empty($checklist['ba']) || !empty($checklist['bast']) || !empty($baFilePath) || $isHandedOver,
             ],
             'spk' => [
                 'key'         => 'spk',
                 'title'       => 'Surat Perintah Kerja (SPK / PO)',
                 'description' => 'Dokumen acuan perintah kerja resmi dari klien.',
                 'file_path'   => $spkFilePath,
-                'file_url'    => $toFileUrl($spkFilePath),
+                'file_url'    => $spkFilePath ? asset('storage/' . $spkFilePath) : null,
                 'number'      => $spkNumber,
                 'date'        => $spkDate,
-                'verified'    => true,
+                'verified'    => !empty($checklist['spk']) || !empty($spkFilePath) || $isHandedOver,
             ],
             // PKS / Kontrak di-hide sesuai permintaan: 'pks dihide aja ya jd gaus ayupload pks dan yg ud berjalan pks ny dihde saja ya'
             'boq' => [
@@ -2695,30 +2528,30 @@ class ManagedServiceController extends Controller
                 'title'       => 'Bill of Quantity (BOQ & Spesifikasi Layanan)',
                 'description' => 'Daftar rincian perangkat keras, lisensi software, dan alokasi mandays.',
                 'file_path'   => $boqFilePath,
-                'file_url'    => $toFileUrl($boqFilePath),
+                'file_url'    => $boqFilePath ? asset('storage/' . $boqFilePath) : null,
                 'number'      => $boqNumber,
                 'date'        => $boqDate,
-                'verified'    => true,
+                'verified'    => !empty($checklist['boq']) || !empty($boqFilePath) || $isHandedOver,
             ],
             'tor' => [
                 'key'         => 'tor',
                 'title'       => 'Terms of Reference (TOR)',
                 'description' => 'Kerangka acuan kerja, ruang lingkup & spesifikasi teknis layanan.',
                 'file_path'   => $torFilePath,
-                'file_url'    => $toFileUrl($torFilePath),
+                'file_url'    => $torFilePath ? asset('storage/' . $torFilePath) : null,
                 'number'      => $torNumber,
                 'date'        => $torDate,
-                'verified'    => true,
+                'verified'    => !empty($checklist['tor']) || !empty($torFilePath) || $isHandedOver,
             ],
             'project_doc' => [
                 'key'         => 'project_doc',
                 'title'       => 'Dokumen Teknis & Topologi Proyek',
                 'description' => 'Diagram jaringan, desain arsitektur, IP addressing, dan NDA.',
                 'file_path'   => $techFilePath,
-                'file_url'    => $toFileUrl($techFilePath),
+                'file_url'    => $techFilePath ? asset('storage/' . $techFilePath) : null,
                 'number'      => $techNumber,
                 'date'        => $techDate,
-                'verified'    => true,
+                'verified'    => !empty($checklist['project_doc']) || !empty($checklist['technical']) || !empty($techFilePath) || $isHandedOver,
             ],
         ];
     }

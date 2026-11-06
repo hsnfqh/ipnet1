@@ -490,20 +490,8 @@
                                     }
                                 }
                             }
-                            if (empty($customerPicName) || $customerPicName === '—' || $customerPicName === '-') {
-                                if (str_contains(strtolower($project->client ?? ''), 'batam')) {
-                                    $customerPicName = 'Bpk. Hendra Gunawan';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'batii')) {
-                                    $customerPicName = 'Bpk. Reza Kurniawan';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'mataram')) {
-                                    $customerPicName = 'Bpk. Lalu Muhammad Arifin';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'jakarta')) {
-                                    $customerPicName = 'Ibu Siti Rahmawati';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'switch')) {
-                                    $customerPicName = 'Bpk. Dwi Prabowo';
-                                } else {
-                                    $customerPicName = 'Bpk. Ahmad Fauzi';
-                                }
+                            if (empty($customerPicName)) {
+                                $customerPicName = '—';
                             }
 
                             // 2. Resolve Customer Phone (Strictly Digits / Numeric Only)
@@ -525,21 +513,6 @@
                                     }
                                 }
                             }
-                            if (empty($customerPhone) || $customerPhone === '—' || $customerPhone === '-') {
-                                if (str_contains(strtolower($project->client ?? ''), 'batam')) {
-                                    $customerPhone = '0811-7721-904';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'batii')) {
-                                    $customerPhone = '0819-0823-4412';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'mataram')) {
-                                    $customerPhone = '0813-3982-1100';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'jakarta')) {
-                                    $customerPhone = '0812-1092-8845';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'switch')) {
-                                    $customerPhone = '0812-8921-7734';
-                                } else {
-                                    $customerPhone = '0878-7179-0442';
-                                }
-                            }
 
                             // 3. Resolve Customer Email (Must contain @ and no spaces)
                             $customerEmail = null;
@@ -557,21 +530,6 @@
                                         $customerEmail = $eTrim;
                                         break;
                                     }
-                                }
-                            }
-                            if (empty($customerEmail) || $customerEmail === '—' || $customerEmail === '-') {
-                                if (str_contains(strtolower($project->client ?? ''), 'batam')) {
-                                    $customerEmail = 'infrastruktur.it@bpbatam.go.id';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'batii')) {
-                                    $customerEmail = 'operational@batii.co.id';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'mataram')) {
-                                    $customerEmail = 'kanwil.mataram@bri.co.id';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'jakarta')) {
-                                    $customerEmail = 'kanwil.jakarta@bri.co.id';
-                                } elseif (str_contains(strtolower($project->name ?? ''), 'switch')) {
-                                    $customerEmail = 'it.drc@bri.co.id';
-                                } else {
-                                    $customerEmail = 'it.wifi@bri.co.id';
                                 }
                             }
                         @endphp
@@ -679,7 +637,7 @@
                         @foreach($documents as $docKey => $doc)
                             @php
                                 $hasDocFile = !empty($doc['file_path']) || !empty($doc['file_url']);
-                                $viewUrl = !empty($doc['file_url']) ? $doc['file_url'] : (!empty($doc['file_path']) ? (str_starts_with($doc['file_path'], 'assets/') ? asset($doc['file_path']) : asset('storage/' . $doc['file_path'])) : null);
+                                $viewUrl = !empty($doc['file_url']) ? $doc['file_url'] : (!empty($doc['file_path']) ? asset('storage/' . $doc['file_path']) : null);
                             @endphp
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-[#E2E8F0] hover:border-[#CBD5E1] bg-white transition shadow-2xs">
                                 <div class="flex items-start gap-3 min-w-0">
