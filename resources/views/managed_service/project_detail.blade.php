@@ -1748,7 +1748,7 @@
                                 <select name="lead_engineer_id" :value="activeCycle ? (activeCycle.lead_engineer_id || '') : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer font-semibold">
                                     <option value="">Pilih Lead Engineer</option>
                                     @foreach($leadEngineers as $leng)
-                                        <option value="{{ $leng->id }}">{{ $leng->name }} ({{ $leng->position ?: 'Lead' }})</option>
+                                        <option value="{{ $leng->id }}">{{ $leng->name }}</option>
                                     @endforeach
                                 </select>
                             </div>

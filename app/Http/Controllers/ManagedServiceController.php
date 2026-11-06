@@ -2522,19 +2522,21 @@ class ManagedServiceController extends Controller
             $picMsUsers = User::whereIn('name', ['Eris', 'Mario', 'Doris'])->get(['id', 'name', 'position']);
         }
 
-        // Daftar Lead Engineer (Koordinator Teknis)
+        // Daftar Lead Engineer Resmi: Hanya Nugraha Pratama dan Ignatius Rizky
         $leadEngineers = User::where('status', 'Active')
             ->where(function($q) {
-                $q->where('position', 'like', '%Lead%')
-                  ->orWhereHas('roles', fn($r) => $r->where('name', 'like', '%Lead%'))
-                  ->orWhereIn('name', ['Nugraha Pratama', 'Dedy Suryana', 'Doris', 'Ignatius Rizky', 'Rizki']);
+                $q->where('name', 'like', '%Nugraha%')
+                  ->orWhere('name', 'like', '%Ignatius%')
+                  ->orWhere('email', 'like', '%nugraha%')
+                  ->orWhere('email', 'like', '%ignatius%');
             })
-            ->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Director', 'Direktur', 'Finance', 'Finance / Accounting', 'Admin Support']))
             ->orderBy('name')
             ->get(['id', 'name', 'position']);
 
         if ($leadEngineers->isEmpty()) {
-            $leadEngineers = $allEngineers;
+            $leadEngineers = User::where('name', 'like', '%Nugraha%')
+                ->orWhere('name', 'like', '%Ignatius%')
+                ->get(['id', 'name', 'position']);
         }
 
         return view('managed_service.project_detail', compact(
