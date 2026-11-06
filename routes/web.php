@@ -2065,7 +2065,72 @@ Route::get('/restore-all-server-projects', function () {
     return redirect('/restore-user-project');
 });
 
-// Route inspeksi database proyek server
+// Route inspeksi mendalam database asli server (RAW DATA tanpa manipulasi)
+Route::get('/inspect-server-db', function () {
+    try {
+        $rawProjects = DB::table('projects')->orderBy('id', 'desc')->get();
+        $rawDocs = DB::table('project_documents')->orderBy('id', 'desc')->take(50)->get();
+        $rawCycles = DB::table('managed_service_pm_cycles')->orderBy('id', 'desc')->take(50)->get();
+        $rawTickets = DB::table('managed_service_tickets')->orderBy('id', 'desc')->take(50)->get();
+
+        $logTail = '';
+        $logFile = storage_path('logs/laravel.log');
+        if (file_exists($logFile)) {
+            $lines = file($logFile);
+            $logTail = implode('', array_slice($lines, -150));
+        }
+
+        $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Inspeksi Database Server</title>';
+        $html .= '<style>body{font-family:ui-monospace,monospace;background:#0f172a;color:#f8fafc;padding:24px;font-size:12.5px;} table{width:100%;border-collapse:collapse;margin-bottom:30px;background:#1e293b;} th,td{border:1px solid #334155;padding:8px 12px;text-align:left;} th{background:#334155;color:#38bdf8;} tr:hover{background:#1e293b;} h2{color:#f59e0b;border-bottom:1px solid #334155;padding-bottom:8px;} pre{background:#1e293b;padding:16px;border-radius:8px;max-height:400px;overflow:auto;color:#cbd5e1;}</style></head><body>';
+        
+        $html .= '<h1>Inspeksi Status Database Server Live (ipnet1solusindo.my.id)</h1>';
+        $html .= '<p><a href="/managed-service/projects" style="color:#38bdf8;font-weight:bold;">&larr; Kembali ke Daftar Proyek Managed Service</a> | <a href="/restore-user-project" style="color:#4ade80;font-weight:bold;">&circlearrowright; Jalankan Pemulihan Proyek</a></p>';
+        
+        $html .= '<h2>1. Tabel Projects (Total: ' . $rawProjects->count() . ' Baris Riil di Database)</h2>';
+        if ($rawProjects->isEmpty()) {
+            $html .= '<p style="color:#ef4444;font-weight:bold;">Tabel projects kosong saat ini di database server.</p>';
+        } else {
+            $html .= '<table><thead><tr><th>ID</th><th>Nama Proyek</th><th>Klien</th><th>Lokasi</th><th>Tipe</th><th>Stage</th><th>Status</th><th>Handover Target</th><th>MS Status</th><th>Created At</th><th>Deleted At</th></tr></thead><tbody>';
+            foreach ($rawProjects as $p) {
+                $del = $p->deleted_at ? "<span style='color:#ef4444;'>{$p->deleted_at} (DELETED)</span>" : "<span style='color:#4ade80;'>Active (NULL)</span>";
+                $html .= "<tr><td>{$p->id}</td><td><strong>{$p->name}</strong></td><td>{$p->client}</td><td>{$p->location}</td><td>{$p->project_type}</td><td>{$p->stage}</td><td>{$p->status}</td><td>{$p->handover_target}</td><td>{$p->ms_handover_status}</td><td>{$p->created_at}</td><td>{$del}</td></tr>";
+            }
+            $html .= '</tbody></table>';
+        }
+
+        $html .= '<h2>2. Berkas Dokumen Proyek Terupload (project_documents - Total: ' . $rawDocs->count() . ')</h2>';
+        if ($rawDocs->isNotEmpty()) {
+            $html .= '<table><thead><tr><th>ID</th><th>Project ID</th><th>Kategori</th><th>File Name</th><th>File Path</th><th>Created At</th></tr></thead><tbody>';
+            foreach ($rawDocs as $d) {
+                $html .= "<tr><td>{$d->id}</td><td>{$d->project_id}</td><td>{$d->category}</td><td>{$d->file_name}</td><td>{$d->file_path}</td><td>{$d->created_at}</td></tr>";
+            }
+            $html .= '</tbody></table>';
+        } else {
+            $html .= '<p>Tidak ada dokumen tercatat di project_documents.</p>';
+        }
+
+        $html .= '<h2>3. Siklus PM (managed_service_pm_cycles - Total: ' . $rawCycles->count() . ')</h2>';
+        if ($rawCycles->isNotEmpty()) {
+            $html .= '<table><thead><tr><th>ID</th><th>Project ID</th><th>Siklus</th><th>Label</th><th>Status Aktivitas</th><th>Tanggal Realisasi</th><th>Status Laporan</th></tr></thead><tbody>';
+            foreach ($rawCycles as $c) {
+                $html .= "<tr><td>{$c->id}</td><td>{$c->project_id}</td><td>{$c->cycle_number}</td><td>{$c->cycle_label}</td><td>{$c->activity_status}</td><td>{$c->actual_date}</td><td>{$c->report_status}</td></tr>";
+            }
+            $html .= '</tbody></table>';
+        } else {
+            $html .= '<p>Tidak ada siklus PM tercatat.</p>';
+        }
+
+        $html .= '<h2>4. Log Server Terkini (storage/logs/laravel.log)</h2>';
+        $html .= '<pre>' . htmlspecialchars($logTail ?: 'Log kosong.') . '</pre>';
+
+        $html .= '</body></html>';
+        return response($html);
+    } catch (\Throwable $e) {
+        return response('Error: ' . $e->getMessage(), 500);
+    }
+});
+
+// Route inspeksi database proyek server (JSON)
 Route::get('/server-project-status', function () {
     try {
         $controller = new \App\Http\Controllers\ManagedServiceController();
