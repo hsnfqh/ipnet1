@@ -74,10 +74,10 @@
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> MANAJEMEN ASET
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> MANAJEMEN ASET PERANGKAT
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">Daftar Aset Eksternal (Perangkat Klien)</h2>
-                        <p class="text-[13px] text-[#64748B] mt-0.5">Inventaris perangkat keras, spesifikasi teknis, nomor seri, dan kepemilikan aset klien</p>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Inventaris perangkat, spesifikasi OS, status garansi, kontrak vendor (PAR-ND/SD/RTF), EOL/EOS, &amp; backup konfigurasi</p>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3 shrink-0">
@@ -107,6 +107,59 @@
                     </div>
                 </div>
 
+                <!-- KPI Summary Cards: 4 Pilar Informasi Perangkat Customer -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+                    {{-- Metric 1: Total Perangkat --}}
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider block">Total Perangkat</span>
+                            <div class="text-[20px] font-extrabold text-slate-900 mt-0.5">{{ $totalAssetsCount ?? $assets->total() }}</div>
+                            <span class="text-[11px] text-slate-500 font-medium">Unit Terdata</span>
+                        </div>
+                        <div class="w-9 h-9 rounded-lg bg-white text-slate-700 flex items-center justify-center border border-slate-200 shadow-2xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                        </div>
+                    </div>
+
+                    {{-- Metric 2: Support Vendor Aktif --}}
+                    <div class="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200/80 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10.5px] font-bold text-emerald-800 uppercase tracking-wider block">Support Vendor</span>
+                            <div class="text-[20px] font-extrabold text-emerald-700 mt-0.5">{{ $activeSupportCount ?? 0 }}</div>
+                            <span class="text-[11px] text-emerald-600 font-semibold">Active (PAR / SLA)</span>
+                        </div>
+                        <div class="w-9 h-9 rounded-lg bg-emerald-100/80 text-emerald-700 flex items-center justify-center border border-emerald-200 shadow-2xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        </div>
+                    </div>
+
+                    {{-- Metric 3: EOL / EOS Reached --}}
+                    <div class="p-3.5 rounded-xl {{ ($eolEosCount ?? 0) > 0 ? 'bg-red-50/60 border-red-200/80' : 'bg-slate-50 border-slate-200/80' }} border flex items-center justify-between">
+                        <div>
+                            <span class="text-[10.5px] font-bold {{ ($eolEosCount ?? 0) > 0 ? 'text-[#8F0A0D]' : 'text-slate-500' }} uppercase tracking-wider block">Siklus EOL / EOS</span>
+                            <div class="text-[20px] font-extrabold {{ ($eolEosCount ?? 0) > 0 ? 'text-[#8F0A0D]' : 'text-slate-900' }} mt-0.5">{{ $eolEosCount ?? 0 }}</div>
+                            <span class="text-[11px] {{ ($eolEosCount ?? 0) > 0 ? 'text-[#8F0A0D] font-bold' : 'text-slate-500' }}">
+                                {{ ($eolEosCount ?? 0) > 0 ? 'Perlu Peremajaan' : 'Semua Aman' }}
+                            </span>
+                        </div>
+                        <div class="w-9 h-9 rounded-lg {{ ($eolEosCount ?? 0) > 0 ? 'bg-red-100 text-[#8F0A0D] border border-red-200' : 'bg-white text-slate-700 border border-slate-200' }} flex items-center justify-center shadow-2xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                    </div>
+
+                    {{-- Metric 4: Backup Perangkat --}}
+                    <div class="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/80 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10.5px] font-bold text-blue-900 uppercase tracking-wider block">Backup Config</span>
+                            <div class="text-[20px] font-extrabold text-blue-800 mt-0.5">{{ $backedUpCount ?? 0 }}</div>
+                            <span class="text-[11px] text-blue-700 font-semibold">Tersimpan</span>
+                        </div>
+                        <div class="w-9 h-9 rounded-lg bg-blue-100/80 text-blue-800 flex items-center justify-center border border-blue-200 shadow-2xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Filter Controls with Per Page Selector (5, 10, 25, 50) -->
                 <form method="GET" action="{{ route('ms.assets.external') }}" class="flex flex-col md:flex-row flex-wrap items-center justify-between gap-3">
                     <div class="flex flex-col sm:flex-row flex-wrap items-center gap-2.5 w-full md:w-auto flex-1">
@@ -114,25 +167,32 @@
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             </div>
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, serial, deskripsi..." 
+                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, serial, OS, service..." 
                                    class="w-full pl-10 pr-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-medium text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs">
                         </div>
 
-                        <select name="category" onchange="this.form.submit()" class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <select name="category" onchange="this.form.submit()" class="w-full sm:w-40 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                             <option value="all">Semua Tipe</option>
                             @foreach(['Router', 'Switch', 'Firewall', 'Server', 'Access Point', 'UPS', 'Storage', 'Testing Tool', 'Fusion Splicer', 'Toolkit', 'Laptop / Device', 'Other'] as $cat)
                                 <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                             @endforeach
                         </select>
 
-                        <select name="owner" onchange="this.form.submit()" class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                            <option value="">Semua Pemilik (Klien)</option>
+                        <select name="support_status" onchange="this.form.submit()" class="w-full sm:w-40 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                            <option value="all">Semua Support</option>
+                            <option value="Active" {{ request('support_status') == 'Active' ? 'selected' : '' }}>Support Active</option>
+                            <option value="Expired" {{ request('support_status') == 'Expired' ? 'selected' : '' }}>Support Expired</option>
+                            <option value="Pending Renewal" {{ request('support_status') == 'Pending Renewal' ? 'selected' : '' }}>Pending Renewal</option>
+                        </select>
+
+                        <select name="owner" onchange="this.form.submit()" class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                            <option value="">Semua Klien</option>
                             @foreach($clients as $c)
                                 <option value="{{ $c->name }}" {{ request('owner') == $c->name ? 'selected' : '' }}>{{ $c->name }}</option>
                             @endforeach
                         </select>
 
-                        @if(request('search') || (request('category') && request('category') !== 'all') || request('owner') || (request('per_page') && request('per_page') != 10))
+                        @if(request('search') || (request('category') && request('category') !== 'all') || (request('support_status') && request('support_status') !== 'all') || request('owner') || (request('per_page') && request('per_page') != 10))
                             <a href="{{ route('ms.assets.external') }}" class="px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 self-center">
                                 Reset Filter
                             </a>
@@ -151,27 +211,34 @@
                     </div>
                 </form>
             </div>
+                    </div>
+                </form>
+            </div>
 
-            {{-- Asset Table: Tipe Perangkat, Product Name, Product Description, Quantity, Serial Number, Keterangan, Pemilik --}}
+            {{-- Asset Table: Tipe Perangkat, Brand & OS, Serial Number, Service Support, Siklus EOL/EOS, Backup, Pemilik --}}
             <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold tracking-wider text-[#64748B] uppercase">
-                                <th class="py-3.5 px-4">Tipe Perangkat</th>
-                                <th class="py-3.5 px-4">Product Name</th>
-                                <th class="py-3.5 px-4">Product Description</th>
-                                <th class="py-3.5 px-3 text-center">Quantity</th>
-                                <th class="py-3.5 px-4">Serial Number</th>
-                                <th class="py-3.5 px-4">Keterangan</th>
-                                <th class="py-3.5 px-4">Pemilik</th>
-                                <th class="py-3.5 px-4 text-right">Aksi</th>
+                                <th class="py-3.5 px-4 min-w-[120px]">Tipe Perangkat</th>
+                                <th class="py-3.5 px-4 min-w-[200px]">Perangkat &amp; Brand</th>
+                                <th class="py-3.5 px-4 min-w-[170px]">Serial Number &amp; OS</th>
+                                <th class="py-3.5 px-4 min-w-[180px]">Service Support Vendor</th>
+                                <th class="py-3.5 px-4 min-w-[150px]">Siklus EOL / EOS</th>
+                                <th class="py-3.5 px-4 min-w-[150px]">Backup Config</th>
+                                <th class="py-3.5 px-4 min-w-[150px]">Pemilik &amp; Lokasi</th>
+                                <th class="py-3.5 px-4 text-right whitespace-nowrap">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#F1F5F9] text-[12.5px]">
                             @forelse($assets as $asset)
                                 @php
                                     $isInternal = ($asset->owner_type === 'internal') || str_contains(strtolower($asset->client_name), 'ipnet') || str_contains(strtolower($asset->client_name), 'internal');
+                                    $isSupportExpired = ($asset->support_expiry_date && \Carbon\Carbon::parse($asset->support_expiry_date)->isPast()) || ($asset->support_status === 'Expired');
+                                    $isEol = $asset->eol_date && \Carbon\Carbon::parse($asset->eol_date)->isPast();
+                                    $isEos = $asset->eos_date && \Carbon\Carbon::parse($asset->eos_date)->isPast();
+                                    $isBackedUp = ($asset->backup_status === 'Backed Up');
                                 @endphp
                                 <tr class="hover:bg-[#F8FAFC]/80 transition-colors">
                                     {{-- 1. Tipe Perangkat --}}
@@ -179,49 +246,119 @@
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]">
                                             {{ $asset->category ?: 'Perangkat' }}
                                         </span>
+                                        <div class="mt-1">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                {{ $asset->quantity ?: 1 }} Unit
+                                            </span>
+                                        </div>
                                     </td>
 
-                                    {{-- 2. Product Name --}}
+                                    {{-- 2. Perangkat & Brand --}}
                                     <td class="py-3.5 px-4">
-                                        <div class="font-bold text-[#1E293B] text-[13px]">{{ $asset->device_name }}</div>
-                                        @if($asset->brand || $asset->model)
-                                            <div class="text-[11px] text-[#64748B] font-medium">{{ $asset->brand }} {{ $asset->model }}</div>
-                                        @endif
-                                    </td>
-
-                                    {{-- 3. Product Description --}}
-                                    <td class="py-3.5 px-4 max-w-xs">
-                                        <div class="text-[#334155] text-[12px] line-clamp-2" title="{{ $asset->product_description ?: ($asset->brand . ' ' . $asset->model) }}">
-                                            {{ $asset->product_description ?: ($asset->brand ? $asset->brand . ' ' . $asset->model : '—') }}
+                                        <div class="font-bold text-[#1E293B] text-[13px] flex items-center gap-1.5">
+                                            <span>{{ $asset->device_name }}</span>
+                                            @if($asset->status === 'Online')
+                                                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block shrink-0" title="Online"></span>
+                                            @elseif($asset->status === 'Warning')
+                                                <span class="w-2 h-2 rounded-full bg-amber-500 inline-block shrink-0" title="Warning"></span>
+                                            @else
+                                                <span class="w-2 h-2 rounded-full bg-rose-500 inline-block shrink-0" title="{{ $asset->status }}"></span>
+                                            @endif
+                                        </div>
+                                        <div class="text-[11.5px] text-[#64748B] font-medium mt-0.5">
+                                            <strong>{{ $asset->brand ?: 'Brand N/A' }}</strong>
+                                            @if($asset->model) &bull; {{ $asset->model }} @endif
                                         </div>
                                         @if($asset->ip_address)
-                                            <div class="font-mono text-[11px] text-[#8F0A0D] font-semibold mt-0.5">IP: {{ $asset->ip_address }}</div>
+                                            <div class="font-mono text-[11px] text-[#8F0A0D] font-semibold mt-0.5">
+                                                IP: {{ $asset->ip_address }}
+                                            </div>
                                         @endif
                                     </td>
 
-                                    {{-- 4. Quantity --}}
-                                    <td class="py-3.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-extrabold bg-slate-100 text-slate-800 border border-slate-200">
-                                            {{ $asset->quantity ?: 1 }} Unit
-                                        </span>
-                                    </td>
-
-                                    {{-- 5. Serial Number --}}
-                                    <td class="py-3.5 px-4 font-mono text-[11.5px] text-[#475569] font-medium whitespace-nowrap">
-                                        {{ $asset->serial_number ?: '—' }}
-                                    </td>
-
-                                    {{-- 6. Keterangan --}}
-                                    <td class="py-3.5 px-4 max-w-xs">
-                                        <div class="text-[#475569] text-[11.5px]">
-                                            {{ $asset->notes ?: ($asset->location_site ? 'Lokasi: ' . $asset->location_site : '—') }}
+                                    {{-- 3. Serial Number & Version OS --}}
+                                    <td class="py-3.5 px-4">
+                                        <div class="font-mono text-[12px] font-bold text-slate-800 tracking-tight">
+                                            {{ $asset->serial_number ?: '—' }}
                                         </div>
                                         <div class="mt-1">
-                                            <x-status-badge :status="$asset->status" />
+                                            @if($asset->os_version)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-blue-50 text-blue-800 border border-blue-200" title="Version OS">
+                                                    <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                                                    <span>{{ $asset->os_version }}</span>
+                                                </span>
+                                            @else
+                                                <span class="text-[11px] text-slate-400 italic">OS: Belum Diisi</span>
+                                            @endif
                                         </div>
                                     </td>
 
-                                    {{-- 7. Pemilik --}}
+                                    {{-- 4. Service Support Vendor (PAR-ND, PAR-SD, PAR-RTF, etc.) --}}
+                                    <td class="py-3.5 px-4">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold {{ $isSupportExpired ? 'bg-red-50 text-[#8F0A0D] border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }}">
+                                                {{ $isSupportExpired ? 'Expired' : ($asset->support_status ?: 'Active') }}
+                                            </span>
+                                            @if($asset->service_support_type)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200" title="Tipe Layanan Vendor">
+                                                    {{ $asset->service_support_type }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="text-[11px] text-slate-500 font-medium mt-1">
+                                            @if($asset->support_expiry_date || $asset->warranty_expiry)
+                                                Exp: {{ \Carbon\Carbon::parse($asset->support_expiry_date ?: $asset->warranty_expiry)->format('d M Y') }}
+                                            @else
+                                                <span class="text-slate-400">Garansi: N/A</span>
+                                            @endif
+                                        </div>
+                                    </td>
+
+                                    {{-- 5. Siklus Hidup (EOL & EOS) --}}
+                                    <td class="py-3.5 px-4 whitespace-nowrap">
+                                        <div class="space-y-1">
+                                            <div class="flex items-center gap-1 text-[11px]">
+                                                <span class="font-bold {{ $isEol ? 'text-[#8F0A0D]' : 'text-slate-600' }}">EOL:</span>
+                                                @if($asset->eol_date)
+                                                    <span class="{{ $isEol ? 'font-bold text-[#8F0A0D]' : 'text-slate-700' }}">{{ \Carbon\Carbon::parse($asset->eol_date)->format('d M Y') }}</span>
+                                                    @if($isEol) <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-red-100 text-[#8F0A0D]">Passed</span> @endif
+                                                @else
+                                                    <span class="text-slate-400">-</span>
+                                                @endif
+                                            </div>
+                                            <div class="flex items-center gap-1 text-[11px]">
+                                                <span class="font-bold {{ $isEos ? 'text-[#8F0A0D]' : 'text-slate-600' }}">EOS:</span>
+                                                @if($asset->eos_date)
+                                                    <span class="{{ $isEos ? 'font-bold text-[#8F0A0D]' : 'text-slate-700' }}">{{ \Carbon\Carbon::parse($asset->eos_date)->format('d M Y') }}</span>
+                                                    @if($isEos) <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-red-100 text-[#8F0A0D]">Passed</span> @endif
+                                                @else
+                                                    <span class="text-slate-400">-</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {{-- 6. Backup Perangkat --}}
+                                    <td class="py-3.5 px-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold {{ $isBackedUp ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }}">
+                                            @if($isBackedUp)
+                                                <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                <span>Backed Up</span>
+                                            @else
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                <span>{{ $asset->backup_status ?: 'Not Backed Up' }}</span>
+                                            @endif
+                                        </span>
+                                        <div class="text-[10.5px] text-slate-500 mt-1">
+                                            @if($asset->last_backup_date)
+                                                Tgl: {{ \Carbon\Carbon::parse($asset->last_backup_date)->format('d M Y') }}
+                                            @else
+                                                Belum Pernah
+                                            @endif
+                                        </div>
+                                    </td>
+
+                                    {{-- 7. Pemilik & Lokasi --}}
                                     <td class="py-3.5 px-4 whitespace-nowrap">
                                         @if($isInternal)
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-rose-50 text-[#8F0A0D] border border-rose-200">
@@ -234,6 +371,9 @@
                                                 {{ $asset->client_name }}
                                             </span>
                                         @endif
+                                        <div class="text-[11px] text-[#64748B] mt-1 truncate max-w-[160px]" title="{{ $asset->location_site }}">
+                                            {{ $asset->location_site ?: ($asset->notes ?: '—') }}
+                                        </div>
                                     </td>
 
                                     {{-- 8. Aksi --}}
@@ -280,20 +420,23 @@
         <div x-show="isModalOpen" 
              x-cloak 
              class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col overflow-hidden" @click.away="isModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden" @click.away="isModalOpen = false">
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b border-slate-200 p-5 sm:p-6 pb-4 shrink-0 bg-white">
                     <div>
-                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">External Asset</p>
-                        <h3 class="text-[17px] font-bold text-slate-900" x-text="isEdit ? 'Perbarui Aset Eksternal' : 'Tambah Aset Eksternal Baru'"></h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Kelola data perangkat dan aset operasional milik klien.</p>
+                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                            <span>Informasi Perangkat Customer &bull; Managed Service</span>
+                        </p>
+                        <h3 class="text-[18px] font-bold text-slate-900" x-text="isEdit ? 'Perbarui Data Aset Perangkat' : 'Tambah Aset Perangkat Baru'"></h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Kelola tipe perangkat, OS, status support (PAR-ND/SD/RTF), EOL/EOS, &amp; backup.</p>
                     </div>
                     <button @click="isModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <!-- Form (7 Kolom Presisi: Tipe Perangkat, Product Name, Product Description, Quantity, Serial Number, Keterangan, Pemilik) -->
+                <!-- Form -->
                 <form :action="isEdit ? '/managed-service/assets/' + form.id : '{{ route('ms.assets.store') }}'" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
                     <template x-if="isEdit">
@@ -301,84 +444,258 @@
                     </template>
                     <input type="hidden" name="owner_type" value="client">
 
-                    <div class="p-5 sm:p-6 overflow-y-auto space-y-4 text-[13px] flex-1">
+                    <div class="p-5 sm:p-6 overflow-y-auto space-y-5 text-[13px] flex-1">
                         
-                        {{-- 1. Tipe Perangkat & 2. Product Name --}}
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                    Tipe Perangkat <span class="text-[#8F0A0D]">*</span>
-                                </label>
-                                <select name="category" x-model="form.category" required 
-                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
-                                    <option value="Router">Router</option>
-                                    <option value="Switch">Switch</option>
-                                    <option value="Firewall">Firewall</option>
-                                    <option value="Server">Server</option>
-                                    <option value="Access Point">Access Point</option>
-                                    <option value="UPS">UPS</option>
-                                    <option value="Storage">Storage</option>
-                                    <option value="Testing Tool">Testing Tool (OTDR / OPM)</option>
-                                    <option value="Fusion Splicer">Fusion Splicer</option>
-                                    <option value="Toolkit">Toolkit Engineer</option>
-                                    <option value="Laptop / Device">Laptop / Device</option>
-                                    <option value="Other">Lainnya</option>
-                                </select>
+                        {{-- SECTION 1: IDENTITAS & BRAND PERANGKAT --}}
+                        <div class="space-y-3.5">
+                            <div class="flex items-center gap-2 pb-1 border-b border-slate-100 text-xs font-bold text-[#8F0A0D] uppercase tracking-wider">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                                <span>1. Identitas &amp; Tipe Perangkat</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                {{-- Pemilik / Klien --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Pemilik (Klien) <span class="text-[#8F0A0D]">*</span>
+                                    </label>
+                                    <input type="text" name="client_name" x-model="form.client_name" required placeholder="Contoh: Bank Raya, Telkom, PT APS"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+
+                                {{-- Tipe Perangkat --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Tipe Perangkat <span class="text-[#8F0A0D]">*</span>
+                                    </label>
+                                    <select name="category" x-model="form.category" required 
+                                            class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
+                                        <option value="Router">Router</option>
+                                        <option value="Switch">Switch</option>
+                                        <option value="Firewall">Firewall</option>
+                                        <option value="Server">Server</option>
+                                        <option value="Access Point">Access Point</option>
+                                        <option value="UPS">UPS</option>
+                                        <option value="Storage">Storage</option>
+                                        <option value="Testing Tool">Testing Tool (OTDR / OPM)</option>
+                                        <option value="Fusion Splicer">Fusion Splicer</option>
+                                        <option value="Toolkit">Toolkit Engineer</option>
+                                        <option value="Laptop / Device">Laptop / Device</option>
+                                        <option value="Other">Lainnya</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                                {{-- Brand --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Brand
+                                    </label>
+                                    <input type="text" name="brand" x-model="form.brand" placeholder="Cisco, Fortinet, Ruijie..."
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+
+                                {{-- Nama Produk / Device Name --}}
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Nama Perangkat / Model <span class="text-[#8F0A0D]">*</span>
+                                    </label>
+                                    <input type="text" name="device_name" x-model="form.device_name" required placeholder="Contoh: Catalyst 9200L-24P-4G atau FortiGate 100F"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                                {{-- Serial Number --}}
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Serial Number
+                                    </label>
+                                    <input type="text" name="serial_number" x-model="form.serial_number" placeholder="Contoh: FOC223419LK / FGT100F123456"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+
+                                {{-- Quantity --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Quantity
+                                    </label>
+                                    <input type="number" name="quantity" x-model="form.quantity" min="1" placeholder="1"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- SECTION 2: SYSTEM & JARINGAN (VERSION OS, IP, STATUS) --}}
+                        <div class="space-y-3.5 pt-2">
+                            <div class="flex items-center gap-2 pb-1 border-b border-slate-100 text-xs font-bold text-[#8F0A0D] uppercase tracking-wider">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                                <span>2. Sistem Operasi &amp; Jaringan</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                {{-- Version OS --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Version OS
+                                    </label>
+                                    <input type="text" name="os_version" x-model="form.os_version" placeholder="Contoh: Cisco IOS XE 17.6.4, FortiOS 7.2.5"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+
+                                {{-- IP Address --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        IP Address Manajemen
+                                    </label>
+                                    <input type="text" name="ip_address" x-model="form.ip_address" placeholder="Contoh: 192.168.10.1"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                {{-- Lokasi Site / Rack --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Lokasi Site / Rak
+                                    </label>
+                                    <input type="text" name="location_site" x-model="form.location_site" placeholder="Contoh: DC Cyber Lantai 2, Rack 04 - U18"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+
+                                {{-- Status Operasional --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Status Operasional
+                                    </label>
+                                    <select name="status" x-model="form.status"
+                                            class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
+                                        <option value="Online">Online / Normal</option>
+                                        <option value="Warning">Warning / Issue</option>
+                                        <option value="Offline">Offline</option>
+                                        <option value="Maintenance">Maintenance</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- SECTION 3: DUKUNGAN VENDOR & SIKLUS HIDUP (SUPPORT, EOL, EOS) --}}
+                        <div class="space-y-3.5 pt-2">
+                            <div class="flex items-center gap-2 pb-1 border-b border-slate-100 text-xs font-bold text-[#8F0A0D] uppercase tracking-wider">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                <span>3. Dukungan Vendor &amp; Siklus Hidup (EOL / EOS)</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                                {{-- Service Support Type (PAR-ND, PAR-SD, PAR-RTF, etc.) --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Service Support
+                                    </label>
+                                    <input type="text" name="service_support_type" x-model="form.service_support_type" list="serviceSupportList" placeholder="PAR-ND, PAR-SD, PAR-RTF..."
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                    <datalist id="serviceSupportList">
+                                        <option value="PAR-ND">PAR-ND (Next Day Replacement)</option>
+                                        <option value="PAR-SD">PAR-SD (Same Day 4h Onsite)</option>
+                                        <option value="PAR-RTF">PAR-RTF (Return to Factory)</option>
+                                        <option value="24x7 4-Hour Onsite">24x7 4-Hour Onsite SLA</option>
+                                        <option value="8x5 NBD">8x5 Next Business Day</option>
+                                        <option value="Vendor Warranty">Standard Vendor Warranty</option>
+                                    </datalist>
+                                </div>
+
+                                {{-- Status Support --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Status Support
+                                    </label>
+                                    <select name="support_status" x-model="form.support_status"
+                                            class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
+                                        <option value="Active">Active (Berlaku)</option>
+                                        <option value="Expired">Expired (Habis)</option>
+                                        <option value="Pending Renewal">Pending Renewal</option>
+                                    </select>
+                                </div>
+
+                                {{-- Tanggal Expired Support --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Tgl Expired Support
+                                    </label>
+                                    <input type="date" name="support_expiry_date" x-model="form.support_expiry_date"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                {{-- EOL Date --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Tanggal EOL (End of Life)
+                                    </label>
+                                    <input type="date" name="eol_date" x-model="form.eol_date"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+
+                                {{-- EOS Date --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Tanggal EOS (End of Support)
+                                    </label>
+                                    <input type="date" name="eos_date" x-model="form.eos_date"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- SECTION 4: BACKUP KONFIGURASI PERANGKAT --}}
+                        <div class="space-y-3.5 pt-2">
+                            <div class="flex items-center gap-2 pb-1 border-b border-slate-100 text-xs font-bold text-[#8F0A0D] uppercase tracking-wider">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                                <span>4. Backup Konfigurasi Perangkat</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                {{-- Status Backup --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Status Backup
+                                    </label>
+                                    <select name="backup_status" x-model="form.backup_status"
+                                            class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
+                                        <option value="Backed Up">Backed Up (Sudah Dibackup)</option>
+                                        <option value="Not Backed Up">Not Backed Up (Belum)</option>
+                                        <option value="Scheduled">Scheduled (Terjadwal)</option>
+                                    </select>
+                                </div>
+
+                                {{-- Tanggal Terakhir Backup --}}
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                        Tanggal Terakhir Backup
+                                    </label>
+                                    <input type="date" name="last_backup_date" x-model="form.last_backup_date"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                </div>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                    Product Name <span class="text-[#8F0A0D]">*</span>
+                                    Catatan / Lokasi Backup Config
                                 </label>
-                                <input type="text" name="device_name" x-model="form.device_name" required placeholder="Contoh: Cisco Catalyst 9200L"
+                                <input type="text" name="backup_notes" x-model="form.backup_notes" placeholder="Contoh: TFTP Server HQ / Storage Backup DC-01"
                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
                             </div>
                         </div>
 
-                        {{-- 3. Product Description --}}
+                        {{-- Catatan Umum --}}
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Product Description
+                                Catatan Tambahan
                             </label>
-                            <textarea name="product_description" x-model="form.product_description" rows="2" placeholder="Spesifikasi teknis, 24-Port Gigabit PoE+, Layer 3 Switch..."
+                            <textarea name="notes" x-model="form.notes" rows="2" placeholder="Catatan kondisi perangkat, port, atau riwayat perbaikan..."
                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs"></textarea>
-                        </div>
-
-                        {{-- 4. Quantity & 5. Serial Number --}}
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                            <div class="sm:col-span-1">
-                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                    Quantity <span class="text-[#8F0A0D]">*</span>
-                                </label>
-                                <input type="number" name="quantity" x-model="form.quantity" min="1" required placeholder="1"
-                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
-                            </div>
-
-                            <div class="sm:col-span-2">
-                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                    Serial Number
-                                </label>
-                                <input type="text" name="serial_number" x-model="form.serial_number" placeholder="Contoh: FOC223419LK"
-                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
-                            </div>
-                        </div>
-
-                        {{-- 6. Keterangan --}}
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Keterangan
-                            </label>
-                            <textarea name="notes" x-model="form.notes" rows="2" placeholder="Catatan kondisi perangkat, lokasi rak DC-01, atau informasi garansi..."
-                                      class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs"></textarea>
-                        </div>
-
-                        {{-- 7. Pemilik (Nama Klien Eksternal) --}}
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Pemilik <span class="text-[#8F0A0D]">*</span>
-                            </label>
-                            <input type="text" name="client_name" x-model="form.client_name" required placeholder="Nama Klien atau Perusahaan Pemilik (contoh: Bank Raya, Telkom)..."
-                                   class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
                         </div>
 
                     </div>
@@ -443,8 +760,23 @@
                 device_name: '',
                 product_description: '',
                 category: 'Switch',
+                brand: '',
+                model: '',
+                os_version: '',
                 quantity: 1,
                 serial_number: '',
+                ip_address: '',
+                location_site: '',
+                rack_position: '',
+                status: 'Online',
+                service_support_type: 'PAR-ND',
+                support_status: 'Active',
+                support_expiry_date: '',
+                eol_date: '',
+                eos_date: '',
+                backup_status: 'Not Backed Up',
+                last_backup_date: '',
+                backup_notes: '',
                 notes: '',
                 project_id: null,
             },
@@ -457,8 +789,23 @@
                     device_name: '',
                     product_description: '',
                     category: 'Switch',
+                    brand: '',
+                    model: '',
+                    os_version: '',
                     quantity: 1,
                     serial_number: '',
+                    ip_address: '',
+                    location_site: '',
+                    rack_position: '',
+                    status: 'Online',
+                    service_support_type: 'PAR-ND',
+                    support_status: 'Active',
+                    support_expiry_date: '',
+                    eol_date: '',
+                    eos_date: '',
+                    backup_status: 'Not Backed Up',
+                    last_backup_date: '',
+                    backup_notes: '',
                     notes: '',
                     project_id: null,
                 };
@@ -468,15 +815,37 @@
                 this.isEdit = true;
                 const isInternal = (asset.owner_type === 'internal') || 
                                    (asset.client_name && (asset.client_name.toLowerCase().includes('ipnet') || asset.client_name.toLowerCase().includes('internal')));
+                
+                const fmtDate = (d) => {
+                    if (!d) return '';
+                    if (typeof d === 'string') return d.substring(0, 10);
+                    return '';
+                };
+
                 this.form = {
                     id: asset.id,
                     client_name: asset.client_name || '',
                     owner_type_choice: isInternal ? 'internal' : 'client',
                     device_name: asset.device_name || '',
-                    product_description: asset.product_description || (asset.brand ? (asset.brand + ' ' + (asset.model || '')) : ''),
+                    product_description: asset.product_description || '',
                     category: asset.category || 'Switch',
+                    brand: asset.brand || '',
+                    model: asset.model || '',
+                    os_version: asset.os_version || '',
                     quantity: asset.quantity || 1,
                     serial_number: asset.serial_number || '',
+                    ip_address: asset.ip_address || '',
+                    location_site: asset.location_site || '',
+                    rack_position: asset.rack_position || '',
+                    status: asset.status || 'Online',
+                    service_support_type: asset.service_support_type || 'PAR-ND',
+                    support_status: asset.support_status || 'Active',
+                    support_expiry_date: fmtDate(asset.support_expiry_date || asset.warranty_expiry),
+                    eol_date: fmtDate(asset.eol_date),
+                    eos_date: fmtDate(asset.eos_date),
+                    backup_status: asset.backup_status || 'Not Backed Up',
+                    last_backup_date: fmtDate(asset.last_backup_date),
+                    backup_notes: asset.backup_notes || '',
                     notes: asset.notes || '',
                     project_id: asset.project_id || null,
                 };

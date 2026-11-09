@@ -18,6 +18,7 @@ class ManagedServiceAsset extends Model
         'category',
         'brand',
         'model',
+        'os_version',
         'quantity',
         'serial_number',
         'ip_address',
@@ -25,13 +26,43 @@ class ManagedServiceAsset extends Model
         'rack_position',
         'status',
         'warranty_expiry',
+        'eol_date',
+        'eos_date',
+        'support_status',
+        'support_expiry_date',
+        'service_support_type',
+        'backup_status',
+        'last_backup_date',
+        'backup_notes',
         'notes',
         'created_by',
     ];
 
     protected $casts = [
-        'warranty_expiry' => 'date',
+        'warranty_expiry'     => 'date',
+        'eol_date'            => 'date',
+        'eos_date'            => 'date',
+        'support_expiry_date' => 'date',
+        'last_backup_date'    => 'date',
     ];
+
+    public function getIsEolAttribute(): bool
+    {
+        return $this->eol_date && $this->eol_date->isPast();
+    }
+
+    public function getIsEosAttribute(): bool
+    {
+        return $this->eos_date && $this->eos_date->isPast();
+    }
+
+    public function getEffectiveSupportStatusAttribute(): string
+    {
+        if ($this->support_expiry_date && $this->support_expiry_date->isPast()) {
+            return 'Expired';
+        }
+        return $this->support_status ?: 'Active';
+    }
 
     public function project()
     {

@@ -23,7 +23,12 @@ class ManagedServiceController extends Controller
 {
     private function ensureTablesExist(): void
     {
-        if (!Schema::hasTable('managed_service_assets') || !Schema::hasTable('managed_service_tickets') || !Schema::hasTable('managed_service_reports') || !Schema::hasTable('managed_service_pm_cycles') || !Schema::hasColumn('projects', 'cm_quota')) {
+        if (!Schema::hasTable('managed_service_assets') || 
+            !Schema::hasTable('managed_service_tickets') || 
+            !Schema::hasTable('managed_service_reports') || 
+            !Schema::hasTable('managed_service_pm_cycles') || 
+            !Schema::hasColumn('projects', 'cm_quota') ||
+            !Schema::hasColumn('managed_service_assets', 'os_version')) {
             try {
                 Artisan::call('migrate', ['--force' => true]);
             } catch (\Throwable $e) {
@@ -524,7 +529,9 @@ class ManagedServiceController extends Controller
                   ->orWhere('product_description', 'like', "%{$search}%")
                   ->orWhere('serial_number', 'like', "%{$search}%")
                   ->orWhere('ip_address', 'like', "%{$search}%")
-                  ->orWhere('brand', 'like', "%{$search}%");
+                  ->orWhere('brand', 'like', "%{$search}%")
+                  ->orWhere('os_version', 'like', "%{$search}%")
+                  ->orWhere('service_support_type', 'like', "%{$search}%");
             });
         }
 
@@ -534,6 +541,10 @@ class ManagedServiceController extends Controller
 
         if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
+        }
+
+        if ($request->filled('support_status') && $request->support_status !== 'all') {
+            $query->where('support_status', $request->support_status);
         }
 
         if ($request->filled('owner')) {
@@ -560,28 +571,67 @@ class ManagedServiceController extends Controller
         $clients = $this->getClients();
         $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
 
-        return view('managed_service.assets', compact('assets', 'clients', 'projects', 'perPage'));
+        // Rekap KPI Perangkat (Informasi & Status Customer Device)
+        $totalAssetsCount = ManagedServiceAsset::count();
+        $activeSupportCount = ManagedServiceAsset::where(function($q) {
+            $q->where('support_status', 'Active')
+              ->orWhere(function($sub) {
+                  $sub->whereNull('support_status')
+                      ->where(function($w) {
+                          $w->whereNull('warranty_expiry')
+                            ->orWhere('warranty_expiry', '>=', now()->toDateString());
+                      });
+              });
+        })->count();
+        $eolEosCount = ManagedServiceAsset::where(function($q) {
+            $q->where(function($sub) {
+                $sub->whereNotNull('eol_date')->where('eol_date', '<=', now()->toDateString());
+            })->orWhere(function($sub) {
+                $sub->whereNotNull('eos_date')->where('eos_date', '<=', now()->toDateString());
+            });
+        })->count();
+        $backedUpCount = ManagedServiceAsset::where('backup_status', 'Backed Up')->count();
+
+        return view('managed_service.assets', compact(
+            'assets', 
+            'clients', 
+            'projects', 
+            'perPage',
+            'totalAssetsCount',
+            'activeSupportCount',
+            'eolEosCount',
+            'backedUpCount'
+        ));
     }
 
     public function storeAsset(Request $request)
     {
         $validated = $request->validate([
-            'client_name'         => 'required|string|max:255',
-            'owner_type'          => 'nullable|string|in:internal,client',
-            'device_name'         => 'required|string|max:255',
-            'product_description' => 'nullable|string',
-            'category'            => 'required|string',
-            'brand'               => 'nullable|string|max:100',
-            'model'               => 'nullable|string|max:100',
-            'quantity'            => 'nullable|integer|min:1',
-            'serial_number'       => 'nullable|string|max:100',
-            'ip_address'          => 'nullable|string|max:50',
-            'location_site'       => 'nullable|string|max:255',
-            'rack_position'       => 'nullable|string|max:100',
-            'status'              => 'nullable|string',
-            'warranty_expiry'     => 'nullable|date',
-            'notes'               => 'nullable|string',
-            'project_id'          => 'nullable|exists:projects,id',
+            'client_name'          => 'required|string|max:255',
+            'owner_type'           => 'nullable|string|in:internal,client',
+            'device_name'          => 'required|string|max:255',
+            'product_description'  => 'nullable|string',
+            'category'             => 'required|string',
+            'brand'                => 'nullable|string|max:100',
+            'model'                => 'nullable|string|max:100',
+            'os_version'           => 'nullable|string|max:100',
+            'quantity'             => 'nullable|integer|min:1',
+            'serial_number'        => 'nullable|string|max:100',
+            'ip_address'           => 'nullable|string|max:50',
+            'location_site'        => 'nullable|string|max:255',
+            'rack_position'        => 'nullable|string|max:100',
+            'status'               => 'nullable|string',
+            'warranty_expiry'      => 'nullable|date',
+            'eol_date'             => 'nullable|date',
+            'eos_date'             => 'nullable|date',
+            'support_status'       => 'nullable|string|max:50',
+            'support_expiry_date'  => 'nullable|date',
+            'service_support_type' => 'nullable|string|max:100',
+            'backup_status'        => 'nullable|string|max:50',
+            'last_backup_date'     => 'nullable|date',
+            'backup_notes'         => 'nullable|string',
+            'notes'                => 'nullable|string',
+            'project_id'           => 'nullable|exists:projects,id',
         ]);
 
         if (empty($validated['status'])) {
@@ -590,6 +640,20 @@ class ManagedServiceController extends Controller
 
         if (empty($validated['quantity'])) {
             $validated['quantity'] = 1;
+        }
+
+        if (empty($validated['support_status'])) {
+            $validated['support_status'] = 'Active';
+        }
+
+        if (empty($validated['backup_status'])) {
+            $validated['backup_status'] = 'Not Backed Up';
+        }
+
+        if (!empty($validated['support_expiry_date']) && empty($validated['warranty_expiry'])) {
+            $validated['warranty_expiry'] = $validated['support_expiry_date'];
+        } elseif (!empty($validated['warranty_expiry']) && empty($validated['support_expiry_date'])) {
+            $validated['support_expiry_date'] = $validated['warranty_expiry'];
         }
 
         if (empty($validated['owner_type'])) {
@@ -611,22 +675,31 @@ class ManagedServiceController extends Controller
         }
 
         $validated = $request->validate([
-            'client_name'         => 'required|string|max:255',
-            'owner_type'          => 'nullable|string|in:internal,client',
-            'device_name'         => 'required|string|max:255',
-            'product_description' => 'nullable|string',
-            'category'            => 'required|string',
-            'brand'               => 'nullable|string|max:100',
-            'model'               => 'nullable|string|max:100',
-            'quantity'            => 'nullable|integer|min:1',
-            'serial_number'       => 'nullable|string|max:100',
-            'ip_address'          => 'nullable|string|max:50',
-            'location_site'       => 'nullable|string|max:255',
-            'rack_position'       => 'nullable|string|max:100',
-            'status'              => 'nullable|string',
-            'warranty_expiry'     => 'nullable|date',
-            'notes'               => 'nullable|string',
-            'project_id'          => 'nullable|exists:projects,id',
+            'client_name'          => 'required|string|max:255',
+            'owner_type'           => 'nullable|string|in:internal,client',
+            'device_name'          => 'required|string|max:255',
+            'product_description'  => 'nullable|string',
+            'category'             => 'required|string',
+            'brand'                => 'nullable|string|max:100',
+            'model'                => 'nullable|string|max:100',
+            'os_version'           => 'nullable|string|max:100',
+            'quantity'             => 'nullable|integer|min:1',
+            'serial_number'        => 'nullable|string|max:100',
+            'ip_address'           => 'nullable|string|max:50',
+            'location_site'        => 'nullable|string|max:255',
+            'rack_position'        => 'nullable|string|max:100',
+            'status'               => 'nullable|string',
+            'warranty_expiry'      => 'nullable|date',
+            'eol_date'             => 'nullable|date',
+            'eos_date'             => 'nullable|date',
+            'support_status'       => 'nullable|string|max:50',
+            'support_expiry_date'  => 'nullable|date',
+            'service_support_type' => 'nullable|string|max:100',
+            'backup_status'        => 'nullable|string|max:50',
+            'last_backup_date'     => 'nullable|date',
+            'backup_notes'         => 'nullable|string',
+            'notes'                => 'nullable|string',
+            'project_id'           => 'nullable|exists:projects,id',
         ]);
 
         if (empty($validated['status'])) {
@@ -635,6 +708,20 @@ class ManagedServiceController extends Controller
 
         if (empty($validated['quantity'])) {
             $validated['quantity'] = 1;
+        }
+
+        if (empty($validated['support_status'])) {
+            $validated['support_status'] = $asset->support_status ?: 'Active';
+        }
+
+        if (empty($validated['backup_status'])) {
+            $validated['backup_status'] = $asset->backup_status ?: 'Not Backed Up';
+        }
+
+        if (!empty($validated['support_expiry_date']) && empty($validated['warranty_expiry'])) {
+            $validated['warranty_expiry'] = $validated['support_expiry_date'];
+        } elseif (!empty($validated['warranty_expiry']) && empty($validated['support_expiry_date'])) {
+            $validated['support_expiry_date'] = $validated['warranty_expiry'];
         }
 
         if (empty($validated['owner_type'])) {
