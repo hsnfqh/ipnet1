@@ -474,7 +474,7 @@ class PmoController extends Controller
         // Sinkronisasi akumulasi progres proyek dari task yang ada
         $this->syncProjectProgressFromTasks($project);
     }
-    public function projectDashboard(Project $project)
+    public function projectDashboard(Request $request, Project $project)
     {
         $authUser = auth()->user();
         $isLeadUser = $authUser && ScopeHelper::isTeamLeader($authUser);
@@ -691,7 +691,7 @@ class PmoController extends Controller
         $deadlineDate = $project->deadline ? \Carbon\Carbon::parse($project->deadline)->endOfDay() : $startDate->copy()->addWeeks(8)->endOfDay();
         
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
-        $scheduleType = $request->query('schedule_type', $handoverData['schedule_type'] ?? 'waterfall');
+        $scheduleType = request()->query('schedule_type', $handoverData['schedule_type'] ?? 'waterfall');
         if (!in_array($scheduleType, ['waterfall', 'hybrid'])) {
             $scheduleType = 'waterfall';
         }
