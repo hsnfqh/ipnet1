@@ -691,6 +691,11 @@ class PmoController extends Controller
         $deadlineDate = $project->deadline ? \Carbon\Carbon::parse($project->deadline)->endOfDay() : $startDate->copy()->addWeeks(8)->endOfDay();
         
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $scheduleType = $request->query('schedule_type', $handoverData['schedule_type'] ?? 'waterfall');
+        if (!in_array($scheduleType, ['waterfall', 'hybrid'])) {
+            $scheduleType = 'waterfall';
+        }
+
         $estimateDuration = $handoverData['estimate_project_duration'] ?? null;
         $executionWeeks = $handoverData['execution_weeks'] ?? null;
 
@@ -703,6 +708,9 @@ class PmoController extends Controller
         $maxTaskFinishDay = 0;
         $minTaskStartDay = null;
 
+        // Pointer untuk sekuensial Waterfall
+        $waterfallPointer = 0;
+
         foreach ($tasksList as $t) {
             $bobotVal = 0.0;
             if (preg_match('/Bobot:\s*([\d\.]+)%/i', $t->description ?? '', $bm)) {
@@ -710,54 +718,59 @@ class PmoController extends Controller
             }
             $totalTaskBobotSum += $bobotVal;
 
-            $startingDay = null;
-            if (preg_match('/StartingDay:\s*(\d+)/i', $t->description ?? '', $sdm)) {
-                $startingDay = (int) $sdm[1];
-                if ($minTaskStartDay === null || $startingDay < $minTaskStartDay) {
-                    $minTaskStartDay = $startingDay;
-                }
-            }
-            $finishDay = null;
-            if (preg_match('/FinishDay:\s*(\d+)/i', $t->description ?? '', $fdm)) {
-                $finishDay = (int) $fdm[1];
-                if ($finishDay > $maxTaskFinishDay) {
-                    $maxTaskFinishDay = $finishDay;
-                }
-            }
-            $wbsWeek = null;
-            if (preg_match('/Week:\s*(\d+)/i', $t->description ?? '', $wm)) {
-                $wbsWeek = (int) $wm[1];
-            }
-
             $duration = 1;
-            if ($startingDay !== null && $finishDay !== null) {
-                $duration = max(1, $finishDay - $startingDay);
+            if (preg_match('/Duration:\s*(\d+)/i', $t->description ?? '', $durm)) {
+                $duration = max(1, (int) $durm[1]);
             } elseif ($t->start_date && $t->deadline) {
                 $duration = max(1, (int) round(\Carbon\Carbon::parse($t->start_date)->diffInDays(\Carbon\Carbon::parse($t->deadline))) + 1);
+            } elseif (preg_match('/FinishDay:\s*(\d+)/i', $t->description ?? '', $fdm) && preg_match('/StartingDay:\s*(\d+)/i', $t->description ?? '', $sdm)) {
+                $duration = max(1, (int)$fdm[1] - (int)$sdm[1]);
             }
 
-            $dailyWeight = null;
-            if (preg_match('/DailyWeight:\s*([\d\.]+)%/i', $t->description ?? '', $dwm)) {
-                $dailyWeight = (float) $dwm[1];
+            $plannedStart = null;
+            if (preg_match('/PlannedStart:\s*(\d+)/i', $t->description ?? '', $psm)) {
+                $plannedStart = (int) $psm[1];
+            } elseif (preg_match('/StartingDay:\s*(\d+)/i', $t->description ?? '', $sdm)) {
+                $plannedStart = (int) $sdm[1];
+            }
+
+            if ($scheduleType === 'hybrid') {
+                // Mode Hybrid: Task dapat berjalan paralel / tumpang-tindih (concurrent) berdasarkan Planned Start
+                $startingDay = $plannedStart !== null ? $plannedStart : 0;
+                $finishDay = $startingDay + $duration;
             } else {
-                $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 1) : 0.0;
+                // Mode Waterfall: Strictly sequential (Finish-to-Start)
+                $startingDay = $waterfallPointer;
+                $finishDay = $startingDay + $duration;
+                $waterfallPointer = $finishDay;
             }
 
+            if ($minTaskStartDay === null || $startingDay < $minTaskStartDay) {
+                $minTaskStartDay = $startingDay;
+            }
+            if ($finishDay > $maxTaskFinishDay) {
+                $maxTaskFinishDay = $finishDay;
+            }
+
+            $wbsWeek = max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7));
+
+            $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 2) : 0.0;
             $prog = (float) ($t->progress ?: (in_array($t->status, ['Done', 'Completed']) ? 100 : 0));
 
             $parsedTasks[] = [
-                'id'           => $t->id,
-                'title'        => $t->title,
-                'duration'     => $duration,
-                'starting_day' => $startingDay,
-                'finish_day'   => $finishDay,
-                'week'         => $wbsWeek,
-                'daily_weight' => $dailyWeight,
-                'bobot'        => $bobotVal,
-                'progress'     => $prog,
-                'status'       => $t->status,
-                'start_date'   => $t->start_date ? \Carbon\Carbon::parse($t->start_date)->startOfDay() : null,
-                'deadline'     => $t->deadline ? \Carbon\Carbon::parse($t->deadline)->endOfDay() : null,
+                'id'            => $t->id,
+                'title'         => $t->title,
+                'duration'      => $duration,
+                'planned_start' => $plannedStart ?? $startingDay,
+                'starting_day'  => $startingDay,
+                'finish_day'    => $finishDay,
+                'week'          => $wbsWeek,
+                'daily_weight'  => $dailyWeight,
+                'bobot'         => $bobotVal,
+                'progress'      => $prog,
+                'status'        => $t->status,
+                'start_date'    => $t->start_date ? \Carbon\Carbon::parse($t->start_date)->startOfDay() : null,
+                'deadline'      => $t->deadline ? \Carbon\Carbon::parse($t->deadline)->endOfDay() : null,
             ];
         }
 
@@ -793,15 +806,15 @@ class PmoController extends Controller
             $totalProjectDays = (int) $estimateDuration;
             $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
             $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
+        } elseif ($maxTaskFinishDay > 0) {
+            // Berdasarkan finish day terbesar dari WBS task (Waterfall = sum durasi, Hybrid = max finish offset)
+            $totalProjectDays = $maxTaskFinishDay;
+            $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
+            $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
         } elseif ($isPpatkProject) {
             $totalProjectDays = 20;
             $totalProjectWeeks = 3;
             $wbsEndDate = $wbsStartDate->copy()->addDays(19)->endOfDay();
-        } elseif ($maxTaskFinishDay > 0) {
-            // Berdasarkan finish day terbesar dari WBS task (misal Day 20 -> 20 Hari = 3 Minggu)
-            $totalProjectDays = $maxTaskFinishDay;
-            $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
-            $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
         } elseif ($earliestTaskDate && $latestTaskDate) {
             $totalProjectDays = max(1, (int) round($earliestTaskDate->diffInDays($latestTaskDate)) + 1);
             $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
@@ -830,19 +843,19 @@ class PmoController extends Controller
             $countPt = count($parsedTasks);
             foreach ($parsedTasks as $idx => &$pt) {
                 if ($totalTaskDuration > 0) {
-                    $calcedBobot = round(($pt['duration'] / $totalTaskDuration) * 100.0, 1);
+                    $calcedBobot = round(($pt['duration'] / $totalTaskDuration) * 100.0, 2);
                 } else {
-                    $calcedBobot = round(100.0 / $countPt, 1);
+                    $calcedBobot = round(100.0 / $countPt, 2);
                 }
 
                 // Pada item terakhir, pastikan akumulasi tepat 100.0%
                 if ($idx === $countPt - 1) {
-                    $calcedBobot = round(100.0 - $runningBobotSum, 1);
+                    $calcedBobot = round(100.0 - $runningBobotSum, 2);
                 }
                 $runningBobotSum += $calcedBobot;
 
                 $pt['bobot'] = $calcedBobot;
-                $pt['daily_weight'] = $pt['duration'] > 0 ? round($pt['bobot'] / $pt['duration'], 1) : 0.0;
+                $pt['daily_weight'] = $pt['duration'] > 0 ? round($pt['bobot'] / $pt['duration'], 2) : 0.0;
             }
             unset($pt);
             $totalTaskBobotSum = 100.0;
@@ -850,7 +863,7 @@ class PmoController extends Controller
             // Pastikan daily_weight terisi sesuai rumus = Bobot / Durasi
             foreach ($parsedTasks as &$pt) {
                 if ($pt['duration'] > 0 && empty($pt['daily_weight'])) {
-                    $pt['daily_weight'] = round($pt['bobot'] / $pt['duration'], 1);
+                    $pt['daily_weight'] = round($pt['bobot'] / $pt['duration'], 2);
                 }
             }
             unset($pt);
@@ -923,56 +936,90 @@ class PmoController extends Controller
             'BAST'                           => [1 => 0.0, 2 => 0.0, 3 => 10.0],
         ];
 
-        // 1. Matriks Weekly Weight (plan) per task (Gambar 3)
+        // 1. Matriks Weekly Weight (plan) per task (Waterfall & Hybrid Distribution)
         $weeklyWeightMatrix = [];
         $totalWeeklyWeightPlan = array_fill(1, $totalWeeks, 0.0);
 
-        foreach ($parsedTasks as $pt) {
+        foreach ($parsedTasks as &$pt) {
             $tTitle = $pt['title'];
             $wDist = [];
-            for ($w = 1; $w <= $totalWeeks; $w++) {
-                $wVal = 0.0;
-                if ($isPpatkProject && isset($ppatkWeeklyDistMap[$tTitle][$w])) {
-                    $wVal = (float) $ppatkWeeklyDistMap[$tTitle][$w];
-                } elseif (!empty($pt['week']) && (int) $pt['week'] === $w) {
-                    $wVal = (float) $pt['bobot'];
-                } else {
-                    $tStartDay = $pt['starting_day'] ?? 0;
-                    $tFinishDay = $pt['finish_day'] ?? ($tStartDay + $pt['duration']);
+            $duration = $pt['duration'];
+            $bobot = $pt['bobot'];
+
+            // Khusus PPATK bawaan seeder jika Waterfall dan ada mapping static
+            if ($isPpatkProject && $scheduleType === 'waterfall' && isset($ppatkWeeklyDistMap[$tTitle])) {
+                $wDist = $ppatkWeeklyDistMap[$tTitle];
+                for ($w = 1; $w <= $totalWeeks; $w++) {
+                    $wVal = (float) ($wDist[$w] ?? 0.0);
+                    $totalWeeklyWeightPlan[$w] += $wVal;
+                }
+            } else {
+                $tStartDay = $pt['starting_day'];
+                $tFinishDay = $pt['finish_day'];
+                $taskAllocatedWeight = 0.0;
+                $lastActiveWeek = null;
+
+                for ($w = 1; $w <= $totalWeeks; $w++) {
                     $wStartDay = ($w - 1) * 7;
                     $wEndDay = $w * 7;
                     $overlapStart = max($tStartDay, $wStartDay);
                     $overlapEnd = min($tFinishDay, $wEndDay);
                     $overlapDays = max(0, $overlapEnd - $overlapStart);
-                    if ($pt['duration'] > 0 && $overlapDays > 0) {
-                        $wVal = round(($overlapDays / $pt['duration']) * $pt['bobot'], 1);
+
+                    $wVal = 0.0;
+                    if ($duration > 0 && $overlapDays > 0) {
+                        $wVal = round(($overlapDays / $duration) * $bobot, 2);
+                        $lastActiveWeek = $w;
                     }
+                    $wDist[$w] = $wVal;
+                    $taskAllocatedWeight += $wVal;
                 }
-                $wDist[$w] = $wVal;
-                $totalWeeklyWeightPlan[$w] += $wVal;
+
+                // Normalisasi pembulatan per baris task agar check tepat = bobot task
+                if ($lastActiveWeek !== null && abs($taskAllocatedWeight - $bobot) > 0.001) {
+                    $diff = round($bobot - $taskAllocatedWeight, 2);
+                    $wDist[$lastActiveWeek] = round($wDist[$lastActiveWeek] + $diff, 2);
+                }
+
+                for ($w = 1; $w <= $totalWeeks; $w++) {
+                    $totalWeeklyWeightPlan[$w] += $wDist[$w];
+                }
             }
+
             $weeklyWeightMatrix[] = [
-                'id'           => $pt['id'],
-                'title'        => $pt['title'],
-                'duration'     => $pt['duration'],
-                'starting_day' => $pt['starting_day'] ?? 0,
-                'finish_day'   => $pt['finish_day'] ?? ($pt['duration']),
-                'weight'       => $pt['bobot'],
-                'weeks'        => $wDist,
-                'check'        => array_sum($wDist),
+                'id'            => $pt['id'],
+                'title'         => $pt['title'],
+                'duration'      => $pt['duration'],
+                'planned_start' => $pt['planned_start'],
+                'starting_day'  => $pt['starting_day'],
+                'finish_day'    => $pt['finish_day'],
+                'weight'        => $pt['bobot'],
+                'weeks'         => $wDist,
+                'check'         => round(array_sum($wDist), 2),
             ];
         }
+        unset($pt);
 
         for ($w = 1; $w <= $totalWeeks; $w++) {
-            $totalWeeklyWeightPlan[$w] = round($totalWeeklyWeightPlan[$w], 1);
+            $totalWeeklyWeightPlan[$w] = round($totalWeeklyWeightPlan[$w], 2);
         }
 
-        // Plan Cumulative % per week (Gambar 3 Baris 16)
+        // Plan Cumulative % per week (Strictly bounded and normalized to 100.0%)
         $totalWeeklyWeightCum = [];
         $cumPlanAccum = 0.0;
         for ($w = 1; $w <= $totalWeeks; $w++) {
             $cumPlanAccum += $totalWeeklyWeightPlan[$w];
-            $totalWeeklyWeightCum[$w] = min(100.0, round($cumPlanAccum, 1));
+            $totalWeeklyWeightCum[$w] = min(100.0, round($cumPlanAccum, 2));
+        }
+
+        // Kunci minggu terakhir tepat 100.0%
+        if ($totalWeeks > 0) {
+            $totalWeeklyWeightCum[$totalWeeks] = 100.0;
+            if ($totalWeeks > 1) {
+                $totalWeeklyWeightPlan[$totalWeeks] = round(100.0 - $totalWeeklyWeightCum[$totalWeeks - 1], 2);
+            } else {
+                $totalWeeklyWeightPlan[1] = 100.0;
+            }
         }
 
         // 2. Matriks Actual Progress per Task (Sheet 3)
@@ -1419,7 +1466,8 @@ class PmoController extends Controller
             'totalActualProgressSum',
             'actualCumulativePerWeek',
             'weekReportedFlags',
-            'allPmoProjects'
+            'allPmoProjects',
+            'scheduleType'
         ));
     }
 
@@ -1580,6 +1628,7 @@ class PmoController extends Controller
             'deadline'                  => 'required|date|after_or_equal:start_date',
             'estimate_project_duration' => 'nullable|integer|min:1|max:365',
             'execution_weeks'           => 'nullable|integer|min:1|max:52',
+            'schedule_type'             => 'nullable|in:waterfall,hybrid',
         ]);
 
         $startDate = Carbon::parse($validated['start_date']);
@@ -1595,12 +1644,34 @@ class PmoController extends Controller
         if ($request->filled('execution_weeks')) {
             $handoverData['execution_weeks'] = (int) $request->input('execution_weeks');
         }
+        if ($request->filled('schedule_type')) {
+            $handoverData['schedule_type'] = $request->input('schedule_type');
+        }
         $project->handover_data = $handoverData;
         $project->save();
 
         $durDays = $request->filled('estimate_project_duration') ? (int) $request->input('estimate_project_duration') : max(1, (int) round($startDate->diffInDays($deadline)) + 1);
 
         return back()->with('success', "Durasi dan periode tanggal proyek berhasil diperbarui menjadi {$startDate->format('d M Y')} s/d {$deadline->format('d M Y')} ({$durDays} Hari)!");
+    }
+
+    /**
+     * PM Memperbarui Metodologi Penjadwalan Proyek (Waterfall vs Hybrid)
+     */
+    public function updateScheduleType(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'schedule_type' => 'required|in:waterfall,hybrid',
+        ]);
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $handoverData['schedule_type'] = $validated['schedule_type'];
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        $typeName = $validated['schedule_type'] === 'hybrid' ? 'Hybrid (Concurrent / Overlapping)' : 'Waterfall (Sequential)';
+
+        return back()->with('success', "Metodologi proyek berhasil diubah ke {$typeName}!");
     }
 
     /**
@@ -2679,6 +2750,7 @@ class PmoController extends Controller
             'duration_days' => 'nullable|integer|min:1|max:365',
             'starting_day'  => 'nullable|integer|min:0|max:365',
             'finish_day'    => 'nullable|integer|min:0|max:365',
+            'planned_start' => 'nullable|integer|min:0|max:365',
             'start_date'    => 'nullable|date',
             'deadline'      => 'nullable|date',
             'bobot'         => 'nullable|numeric|min:0|max:100',
@@ -2690,7 +2762,8 @@ class PmoController extends Controller
         ]);
 
         $duration = (int) ($validated['duration_days'] ?? 1);
-        $startingDay = $request->filled('starting_day') ? (int) $request->input('starting_day') : 0;
+        $plannedStart = $request->filled('planned_start') ? (int) $request->input('planned_start') : ($request->filled('starting_day') ? (int) $request->input('starting_day') : 0);
+        $startingDay = $request->filled('starting_day') ? (int) $request->input('starting_day') : $plannedStart;
         $finishDay = $request->filled('finish_day') ? (int) $request->input('finish_day') : ($startingDay + $duration);
         $duration = max(1, $finishDay - $startingDay);
         $week = max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7));
@@ -2707,13 +2780,14 @@ class PmoController extends Controller
         $status = $validated['status'] ?? ($progress >= 100 ? 'Completed' : ($progress > 0 ? 'In Progress' : 'Not Started'));
 
         $bobotVal = isset($validated['bobot']) && is_numeric($validated['bobot']) ? (float) $validated['bobot'] : 0.0;
-        $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 1) : 0.0;
+        $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 2) : 0.0;
 
         $desc = $validated['description'] ?? '';
         $metaParts = [
             "Bobot: " . number_format($bobotVal, 1) . "%",
             "StartingDay: {$startingDay}",
             "FinishDay: {$finishDay}",
+            "PlannedStart: {$plannedStart}",
             "Week: {$week}",
             "DailyWeight: {$dailyWeight}%"
         ];
@@ -2763,6 +2837,7 @@ class PmoController extends Controller
             'duration_days' => 'nullable|integer|min:1|max:365',
             'starting_day'  => 'nullable|integer|min:0|max:365',
             'finish_day'    => 'nullable|integer|min:0|max:365',
+            'planned_start' => 'nullable|integer|min:0|max:365',
             'start_date'    => 'nullable|date',
             'deadline'      => 'nullable|date',
             'bobot'         => 'nullable|numeric|min:0|max:100',
@@ -2775,7 +2850,9 @@ class PmoController extends Controller
 
         $oldDesc = $task->description ?? '';
         $defaultStartDay = preg_match('/StartingDay:\s*(\d+)/i', $oldDesc, $sdm) ? (int)$sdm[1] : 0;
-        $startingDay = $request->filled('starting_day') ? (int) $request->input('starting_day') : $defaultStartDay;
+        $defaultPlannedStart = preg_match('/PlannedStart:\s*(\d+)/i', $oldDesc, $psm) ? (int)$psm[1] : $defaultStartDay;
+        $plannedStart = $request->filled('planned_start') ? (int) $request->input('planned_start') : ($request->filled('starting_day') ? (int) $request->input('starting_day') : $defaultPlannedStart);
+        $startingDay = $request->filled('starting_day') ? (int) $request->input('starting_day') : $plannedStart;
         
         $duration = (int) ($validated['duration_days'] ?? 1);
         $finishDay = $request->filled('finish_day') ? (int) $request->input('finish_day') : ($startingDay + $duration);
@@ -2793,13 +2870,14 @@ class PmoController extends Controller
         $status = $validated['status'] ?? ($progress >= 100 ? 'Completed' : ($progress > 0 ? 'In Progress' : 'Not Started'));
 
         $bobotVal = (isset($validated['bobot']) && is_numeric($validated['bobot'])) ? (float) $validated['bobot'] : (preg_match('/Bobot:\s*([\d\.]+)%/i', $oldDesc, $bm) ? (float)$bm[1] : 0.0);
-        $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 1) : 0.0;
+        $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 2) : 0.0;
 
         $desc = $validated['description'] ?? ($task->description ?? '');
         $metaParts = [
             "Bobot: " . number_format($bobotVal, 1) . "%",
             "StartingDay: {$startingDay}",
             "FinishDay: {$finishDay}",
+            "PlannedStart: {$plannedStart}",
             "Week: {$week}",
             "DailyWeight: {$dailyWeight}%"
         ];

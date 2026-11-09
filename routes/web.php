@@ -868,6 +868,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects/{project}/actual-progress-matrix', [PmoController::class, 'updateActualProgressMatrix'])->name('pmo.projects.actual_progress_matrix.update');
         Route::post('/projects/{project}/daily-progress', [PmoController::class, 'updateDailyProgress'])->name('pmo.projects.daily_progress.update');
         Route::post('/projects/{project}/update-timeline', [PmoController::class, 'updateTimeline'])->name('pmo.projects.update_timeline');
+        Route::post('/projects/{project}/update-schedule-type', [PmoController::class, 'updateScheduleType'])->name('pmo.projects.update_schedule_type');
         Route::post('/projects/{project}/update-client', [PmoController::class, 'updateClient'])->name('pmo.projects.update_client');
         Route::post('/projects/{project}/assign-division', [PmoController::class, 'assignDivision'])->name('pmo.projects.assign_division');
         Route::post('/projects/{project}/assign-team', [PmoController::class, 'assignTeam'])->name('pmo.projects.assign_team');

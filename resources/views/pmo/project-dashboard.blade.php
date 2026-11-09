@@ -93,7 +93,9 @@
          showQuickTaskModal: false,
          showImportExcelModal: false,
          selectedEngineerId: '',
+         scheduleType: '{{ $scheduleType ?? 'waterfall' }}',
          newTaskStartingDay: {{ $maxTaskFinishDay ?? 0 }},
+         newTaskPlannedStart: {{ $maxTaskFinishDay ?? 0 }},
          newTaskDuration: 1,
          newTaskFinishDay: {{ ($maxTaskFinishDay ?? 0) + 1 }},
          showEditTaskModal: false,
@@ -101,6 +103,7 @@
          editTaskTitle: '',
          editTaskDuration: 1,
          editTaskStartingDay: 0,
+         editTaskPlannedStart: 0,
          editTaskFinishDay: 1,
          editTaskBobot: 0,
          editTaskProgress: 0,
@@ -113,6 +116,7 @@
              this.editTaskTitle = task.title;
              this.editTaskDuration = task.duration_days ? parseInt(task.duration_days, 10) : 1;
              this.editTaskStartingDay = task.starting_day !== undefined ? parseInt(task.starting_day, 10) : 0;
+             this.editTaskPlannedStart = task.planned_start !== undefined ? parseInt(task.planned_start, 10) : this.editTaskStartingDay;
              this.editTaskFinishDay = task.finish_day !== undefined ? parseInt(task.finish_day, 10) : (this.editTaskStartingDay + this.editTaskDuration);
              this.editTaskBobot = task.bobot;
              this.editTaskProgress = task.progress;
@@ -531,10 +535,40 @@
                         </div>
                     </div>
 
-                    {{-- Excel Metadata Header (Gambar 2 / Gambar 10) --}}
+                    {{-- Excel Metadata Header (Gambar 2 / Gambar 10 & Hybrid Selector) --}}
                     <div class="overflow-x-auto rounded-xl border border-slate-200">
                         <table class="w-full text-xs text-left">
                             <tbody class="divide-y divide-slate-200 bg-white">
+                                <tr class="bg-amber-50/70">
+                                    <td class="w-64 py-2.5 px-4 font-bold text-slate-800 border-r border-slate-200">
+                                        <div class="flex items-center gap-1.5">
+                                            <span>Project Type (Metodologi)</span>
+                                            <span class="px-1.5 py-0.5 text-[9.5px] font-bold rounded bg-amber-200 text-amber-900 uppercase">Dual Method</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5 px-4">
+                                        <form action="{{ route('pmo.projects.update_schedule_type', $project->id) }}" method="POST" class="flex flex-wrap items-center gap-3">
+                                            @csrf
+                                            <div class="inline-flex rounded-lg p-0.5 bg-slate-200 border border-slate-300">
+                                                <button type="submit" name="schedule_type" value="waterfall"
+                                                    class="px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer {{ $scheduleType === 'waterfall' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-slate-700 hover:text-slate-900' }}">
+                                                    Waterfall (Sequential)
+                                                </button>
+                                                <button type="submit" name="schedule_type" value="hybrid"
+                                                    class="px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer {{ $scheduleType === 'hybrid' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-slate-700 hover:text-slate-900' }}">
+                                                    Hybrid (Overlapping)
+                                                </button>
+                                            </div>
+                                            <span class="text-[11px] text-slate-500">
+                                                @if($scheduleType === 'hybrid')
+                                                    <span class="text-blue-700 font-medium"><strong>Hybrid:</strong> Task dapat berjalan overlapping / paralel sesuai <strong>Planned Start</strong>. Total durasi kalender dihitung dari finish offset maksimum.</span>
+                                                @else
+                                                    <span class="text-slate-600 font-medium"><strong>Waterfall:</strong> Task berjalan sekuensial (Finish-to-Start). Kolom Planned Start diabaikan.</span>
+                                                @endif
+                                            </span>
+                                        </form>
+                                    </td>
+                                </tr>
                                 <tr class="bg-slate-50/70">
                                     <td class="w-64 py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Project Name</td>
                                     <td class="py-2 px-4 font-medium text-slate-900">{{ $project->name }}</td>
@@ -592,15 +626,21 @@
                         </div>
                     @endif
 
-                    {{-- Schedule WBS Table (Image 2 / 10 - NO progress bars!) --}}
+                    {{-- Schedule WBS Table (Waterfall vs Hybrid Adaptive) --}}
                     <div class="overflow-x-auto rounded-xl border border-slate-200">
                         <table class="w-full text-left text-xs">
                             <thead>
                                 <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                                     <th class="py-3 px-4 min-w-[240px]">Task Name</th>
-                                    <th class="py-3 px-3 text-center whitespace-nowrap">Duration</th>
-                                    <th class="py-3 px-3 text-center whitespace-nowrap">Starting Day</th>
-                                    <th class="py-3 px-3 text-center whitespace-nowrap">Finish Day</th>
+                                    <th class="py-3 px-3 text-center whitespace-nowrap">Duration (Days)</th>
+                                    @if($scheduleType === 'hybrid')
+                                        <th class="py-3 px-3 text-center whitespace-nowrap bg-blue-50 text-blue-800">Planned Start</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap">Start Offset</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap">Finish Offset</th>
+                                    @else
+                                        <th class="py-3 px-3 text-center whitespace-nowrap">Starting Day</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap">Finish Day</th>
+                                    @endif
                                     <th class="py-3 px-3 text-center whitespace-nowrap">Week</th>
                                     <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
                                     <th class="py-3 px-3 text-right whitespace-nowrap">Daily Weight (%)</th>
@@ -617,7 +657,7 @@
                                         $totDur += $row['duration'];
                                         $totActW += $row['weight'];
                                         $t = $project->tasks->firstWhere('id', $row['id']) ?? $project->tasks->firstWhere('title', $row['title']);
-                                        $dWeight = $row['duration'] > 0 ? round($row['weight'] / $row['duration'], 1) : 0.0;
+                                        $dWeight = $row['duration'] > 0 ? round($row['weight'] / $row['duration'], 2) : 0.0;
                                         $wWeek = 1;
                                         if (isset($row['weeks'])) {
                                             foreach ($row['weeks'] as $wk => $wv) {
@@ -635,22 +675,34 @@
                                         <td class="py-2.5 px-3 text-center font-bold text-slate-700">
                                             {{ $row['duration'] }}
                                         </td>
-                                        <td class="py-2.5 px-3 text-center font-medium text-slate-600">
-                                            {{ $row['starting_day'] }}
-                                        </td>
-                                        <td class="py-2.5 px-3 text-center font-medium text-slate-600">
-                                            {{ $row['finish_day'] }}
-                                        </td>
+                                        @if($scheduleType === 'hybrid')
+                                            <td class="py-2.5 px-3 text-center font-bold text-blue-700 bg-blue-50/40">
+                                                {{ $row['planned_start'] ?? $row['starting_day'] }}
+                                            </td>
+                                            <td class="py-2.5 px-3 text-center font-medium text-slate-600">
+                                                {{ $row['starting_day'] }}
+                                            </td>
+                                            <td class="py-2.5 px-3 text-center font-medium text-slate-600">
+                                                {{ $row['finish_day'] }}
+                                            </td>
+                                        @else
+                                            <td class="py-2.5 px-3 text-center font-medium text-slate-600">
+                                                {{ $row['starting_day'] }}
+                                            </td>
+                                            <td class="py-2.5 px-3 text-center font-medium text-slate-600">
+                                                {{ $row['finish_day'] }}
+                                            </td>
+                                        @endif
                                         <td class="py-2.5 px-3 text-center">
                                             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
                                                 {{ $wWeek }}
                                             </span>
                                         </td>
                                         <td class="py-2.5 px-3 text-right font-bold text-blue-700">
-                                            {{ number_format($row['weight'], 1) }}%
+                                            {{ number_format($row['weight'], 2) }}%
                                         </td>
                                         <td class="py-2.5 px-3 text-right font-medium text-slate-700">
-                                            {{ number_format($dWeight, 1) }}%
+                                            {{ number_format($dWeight, 2) }}%
                                         </td>
                                         <td class="py-2.5 px-3 text-right whitespace-nowrap">
                                             @if($t)
@@ -660,6 +712,7 @@
                                                                 id: {{ $t->id }},
                                                                 title: '{{ addslashes($t->title) }}',
                                                                 duration_days: {{ $row['duration'] }},
+                                                                planned_start: {{ $row['planned_start'] ?? $row['starting_day'] }},
                                                                 starting_day: {{ $row['starting_day'] }},
                                                                 finish_day: {{ $row['finish_day'] }},
                                                                 start_date: '{{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '' }}',
@@ -695,7 +748,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-6 text-slate-400">Belum ada task WBS.</td>
+                                        <td colspan="{{ $scheduleType === 'hybrid' ? 9 : 8 }}" class="text-center py-6 text-slate-400">Belum ada task WBS.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -705,16 +758,22 @@
                                         Total Rekap Schedule ({{ count($weeklyWeightMatrix) }} Tasks)
                                     </td>
                                     <td class="py-2.5 px-3 text-center text-slate-800 font-bold text-xs">
-                                        {{ $totDur }}
+                                        {{ $totDur }} {{ $scheduleType === 'hybrid' ? 'Mandays' : 'Hari' }}
                                     </td>
-                                    <td colspan="3" class="py-2.5 px-3 text-center text-slate-400 font-normal text-xs">
-                                        Day 0 s/d Day {{ $totDur }}
-                                    </td>
+                                    @if($scheduleType === 'hybrid')
+                                        <td colspan="4" class="py-2.5 px-3 text-center text-slate-600 font-semibold text-xs">
+                                            Kalender: Day 0 s/d Day {{ $totalProjectDays }} ({{ $totalProjectDays }} Hari Pelaksanaan / {{ $totalWeeks }} Minggu)
+                                        </td>
+                                    @else
+                                        <td colspan="3" class="py-2.5 px-3 text-center text-slate-400 font-normal text-xs">
+                                            Day 0 s/d Day {{ $totDur }} ({{ $totalWeeks }} Minggu)
+                                        </td>
+                                    @endif
                                     <td class="py-2.5 px-3 text-right text-blue-800 font-bold text-xs">
                                         {{ number_format($totActW, 1) }}%
                                     </td>
                                     <td class="py-2.5 px-3 text-right text-slate-700 font-bold text-xs">
-                                        {{ $totDur > 0 ? number_format($totActW / $totDur, 1) : '0.0' }}%
+                                        {{ $totDur > 0 ? number_format($totActW / $totDur, 2) : '0.00' }}%
                                     </td>
                                     <td class="py-2.5 px-3 text-right text-slate-500 font-normal text-[11px]">
                                         100% Selesai
@@ -767,13 +826,19 @@
                                 <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
                                     <th class="py-3 px-3.5 min-w-[220px]">Task Name</th>
                                     <th class="py-3 px-2.5 text-center whitespace-nowrap">Duration</th>
-                                    <th class="py-3 px-2.5 text-center whitespace-nowrap">Starting Day</th>
-                                    <th class="py-3 px-2.5 text-center whitespace-nowrap">Finish Day</th>
+                                    @if($scheduleType === 'hybrid')
+                                        <th class="py-3 px-2 text-center whitespace-nowrap bg-blue-50 text-blue-800">Planned Start</th>
+                                        <th class="py-3 px-2 text-center whitespace-nowrap">Start Offset</th>
+                                        <th class="py-3 px-2 text-center whitespace-nowrap">Finish Offset</th>
+                                    @else
+                                        <th class="py-3 px-2.5 text-center whitespace-nowrap">Starting Day</th>
+                                        <th class="py-3 px-2.5 text-center whitespace-nowrap">Finish Day</th>
+                                    @endif
                                     <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
                                     @for($w = 1; $w <= $totalWeeks; $w++)
                                         <th class="py-3 px-3 text-right whitespace-nowrap">Week {{ $w }}</th>
                                     @endfor
-                                    <th class="py-3 px-3 text-right whitespace-nowrap">Check (=weight)</th>
+                                    <th class="py-3 px-3 text-right whitespace-nowrap bg-slate-200/50">Check (=weight)</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 bg-white">
@@ -785,22 +850,34 @@
                                         <td class="py-2.5 px-2.5 text-center font-bold text-slate-700">
                                             {{ $row['duration'] }}
                                         </td>
-                                        <td class="py-2.5 px-2.5 text-center text-slate-600">
-                                            {{ $row['starting_day'] }}
-                                        </td>
-                                        <td class="py-2.5 px-2.5 text-center text-slate-600">
-                                            {{ $row['finish_day'] }}
-                                        </td>
+                                        @if($scheduleType === 'hybrid')
+                                            <td class="py-2.5 px-2 text-center font-bold text-blue-700 bg-blue-50/30">
+                                                {{ $row['planned_start'] ?? $row['starting_day'] }}
+                                            </td>
+                                            <td class="py-2.5 px-2 text-center text-slate-600">
+                                                {{ $row['starting_day'] }}
+                                            </td>
+                                            <td class="py-2.5 px-2 text-center text-slate-600">
+                                                {{ $row['finish_day'] }}
+                                            </td>
+                                        @else
+                                            <td class="py-2.5 px-2.5 text-center text-slate-600">
+                                                {{ $row['starting_day'] }}
+                                            </td>
+                                            <td class="py-2.5 px-2.5 text-center text-slate-600">
+                                                {{ $row['finish_day'] }}
+                                            </td>
+                                        @endif
                                         <td class="py-2.5 px-3 text-right font-bold text-slate-900">
-                                            {{ number_format($row['weight'], 1) }}%
+                                            {{ number_format($row['weight'], 2) }}%
                                         </td>
                                         @for($w = 1; $w <= $totalWeeks; $w++)
                                             <td class="py-2.5 px-3 text-right text-xs {{ ($row['weeks'][$w] ?? 0) > 0 ? 'font-bold text-blue-700 bg-blue-50/30' : 'text-slate-400' }}">
-                                                {{ number_format($row['weeks'][$w] ?? 0.0, 1) }}%
+                                                {{ number_format($row['weeks'][$w] ?? 0.0, 2) }}%
                                             </td>
                                         @endfor
                                         <td class="py-2.5 px-3 text-right font-bold text-slate-900 bg-slate-50/50">
-                                            {{ number_format($row['check'] ?? $row['weight'], 1) }}%
+                                            {{ number_format($row['check'] ?? $row['weight'], 2) }}%
                                         </td>
                                     </tr>
                                 @endforeach
@@ -811,13 +888,13 @@
                                     <td class="py-2.5 px-3.5 font-bold uppercase text-[11px] text-slate-800">
                                         Plan Weekly (%)
                                     </td>
-                                    <td colspan="3" class="py-2.5 px-2.5"></td>
+                                    <td colspan="{{ $scheduleType === 'hybrid' ? 4 : 3 }}" class="py-2.5 px-2.5"></td>
                                     <td class="py-2.5 px-3 text-right font-bold text-slate-800 text-xs">
                                         {{ number_format(array_sum(array_column($weeklyWeightMatrix, 'weight')), 1) }}%
                                     </td>
                                     @for($w = 1; $w <= $totalWeeks; $w++)
                                         <td class="py-2.5 px-3 text-right font-bold text-slate-800 text-xs">
-                                            {{ number_format($totalWeeklyWeightPlan[$w] ?? 0.0, 1) }}%
+                                            {{ number_format($totalWeeklyWeightPlan[$w] ?? 0.0, 2) }}%
                                         </td>
                                     @endfor
                                     <td class="py-2.5 px-3 text-right font-bold text-slate-800 text-xs bg-slate-200/50">
@@ -829,10 +906,23 @@
                                     <td class="py-2.5 px-3.5 font-bold uppercase text-[11px] text-blue-900">
                                         Plan Cumulative (%)
                                     </td>
-                                    <td colspan="4" class="py-2.5 px-2.5"></td>
+                                    <td colspan="{{ $scheduleType === 'hybrid' ? 5 : 4 }}" class="py-2.5 px-2.5"></td>
                                     @for($w = 1; $w <= $totalWeeks; $w++)
                                         <td class="py-2.5 px-3 text-right font-bold text-blue-800 text-xs">
-                                            {{ number_format($totalWeeklyWeightCum[$w] ?? 0.0, 1) }}%
+                                            {{ number_format($totalWeeklyWeightCum[$w] ?? 0.0, 2) }}%
+                                        </td>
+                                    @endfor
+                                    <td class="py-2.5 px-3"></td>
+                                </tr>
+                                {{-- Row 3: Actual Cumulative (%) --}}
+                                <tr class="bg-amber-50/80 text-amber-900">
+                                    <td class="py-2.5 px-3.5 font-bold uppercase text-[11px] text-amber-900">
+                                        Actual Cumulative (%)
+                                    </td>
+                                    <td colspan="{{ $scheduleType === 'hybrid' ? 5 : 4 }}" class="py-2.5 px-2.5"></td>
+                                    @for($w = 1; $w <= $totalWeeks; $w++)
+                                        <td class="py-2.5 px-3 text-right font-bold text-amber-800 text-xs">
+                                            {{ isset($actualCumulativePerWeek[$w]) && $actualCumulativePerWeek[$w] !== null ? number_format($actualCumulativePerWeek[$w], 2) . '%' : '-' }}
                                         </td>
                                     @endfor
                                     <td class="py-2.5 px-3"></td>
@@ -1024,7 +1114,12 @@
                             <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center">
                                 <span class="ipnet-badge-dot"></span> SHEET 4: S-CURVE PROGRESS PROYEK
                             </p>
-                            <h2 class="text-lg font-bold text-[#1E293B]">S-Curve Progress Proyek</h2>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-lg font-bold text-[#1E293B]">S-Curve Progress Proyek</h2>
+                                <span class="px-2 py-0.5 rounded text-[10.5px] font-bold {{ $scheduleType === 'hybrid' ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-slate-100 text-slate-700 border border-slate-300' }}">
+                                    {{ $scheduleType === 'hybrid' ? 'Hybrid (Concurrent)' : 'Waterfall (Sequential)' }}
+                                </span>
+                            </div>
                             <p class="text-xs text-slate-500 mt-0.5">{{ $project->name }}</p>
                         </div>
                         <div class="flex items-center gap-3">
@@ -1062,24 +1157,26 @@
                                                 {{ $rec['week'] }}
                                             </td>
                                             <td class="py-2.5 px-3 text-right font-medium text-slate-700">
-                                                {{ number_format($rec['plan_weekly'], 1) }}%
+                                                {{ number_format($rec['plan_weekly'], 2) }}%
                                             </td>
                                             <td class="py-2.5 px-3 text-right font-bold text-blue-700">
-                                                {{ number_format($rec['plan_percent'], 1) }}%
+                                                {{ number_format($rec['plan_percent'], 2) }}%
                                             </td>
                                             <td id="scurve-actual-weekly-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right font-medium text-slate-800">
-                                                {{ $rec['actual_weekly'] !== null ? number_format($rec['actual_weekly'], 1) . '%' : '' }}
+                                                {{ $rec['actual_weekly'] !== null ? number_format($rec['actual_weekly'], 2) . '%' : '-' }}
                                             </td>
                                             <td id="scurve-actual-cum-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right font-bold text-slate-800">
-                                                {{ $rec['actual_percent'] !== null ? number_format($rec['actual_percent'], 1) . '%' : '' }}
+                                                {{ $rec['actual_percent'] !== null ? number_format($rec['actual_percent'], 2) . '%' : '-' }}
                                             </td>
                                             <td id="scurve-variance-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right font-bold {{ ($rec['variance'] ?? 0) < 0 ? 'text-rose-700' : 'text-slate-800' }}">
                                                 @if($rec['variance'] !== null)
-                                                    {{ $rec['variance'] > 0 ? '+' : '' }}{{ number_format($rec['variance'], 1) }}%
+                                                    {{ $rec['variance'] > 0 ? '+' : '' }}{{ number_format($rec['variance'], 2) }}%
+                                                @else
+                                                    -
                                                 @endif
                                             </td>
                                             <td id="scurve-helper-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right text-xs {{ $rec['chart_helper'] === '#N/A' ? 'text-slate-400 italic' : 'font-bold text-slate-800' }}">
-                                                {{ $rec['chart_helper'] !== '#N/A' ? number_format($rec['chart_helper'], 1) . '%' : '#N/A' }}
+                                                {{ $rec['chart_helper'] !== '#N/A' ? number_format($rec['chart_helper'], 2) . '%' : '#N/A' }}
                                             </td>
                                         </tr>
                                     @endforeach
@@ -1474,6 +1571,14 @@
                                required
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                     </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Metodologi Penjadwalan Proyek</label>
+                        <select name="schedule_type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                            <option value="waterfall" {{ $scheduleType === 'waterfall' ? 'selected' : '' }}>Waterfall (Sequential, Finish-to-Start)</option>
+                            <option value="hybrid" {{ $scheduleType === 'hybrid' ? 'selected' : '' }}>Hybrid (Concurrent / Overlapping Tasks)</option>
+                        </select>
+                        <span class="text-[10.5px] text-slate-400 mt-1 block">Mode Hybrid memungkinkan task berjalan paralel berdasarkan Planned Start.</span>
+                    </div>
                 </div>
 
                 <div class="p-3 rounded-xl bg-blue-50/70 border border-blue-200/60 text-xs text-blue-900">
@@ -1845,34 +1950,39 @@
                     </div>
                 </div>
 
-                {{-- Row 2: Starting Day, Durasi & Finish Day (3 Kolom Otomatis Sinkron) --}}
+                {{-- Row 2: Planned Start / Starting Day, Durasi & Finish Day (3 Kolom Otomatis Sinkron) --}}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Starting Day (Hari ke-)</label>
+                    <div :class="scheduleType === 'hybrid' ? 'p-1.5 rounded-xl bg-blue-50/70 border border-blue-200' : ''">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            <span x-show="scheduleType === 'hybrid'" class="text-blue-800">Planned Start (Hari ke-) *</span>
+                            <span x-show="scheduleType !== 'hybrid'">Starting Day (Hari ke-)</span>
+                        </label>
                         <input type="number" 
-                               name="starting_day" 
-                               x-model.number="newTaskStartingDay"
-                               @input="newTaskFinishDay = newTaskStartingDay + newTaskDuration"
+                               name="planned_start" 
+                               x-model.number="newTaskPlannedStart"
+                               @input="newTaskStartingDay = newTaskPlannedStart; newTaskFinishDay = newTaskPlannedStart + newTaskDuration"
                                min="0" 
                                max="365" 
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                        <input type="hidden" name="starting_day" :value="newTaskPlannedStart">
+                        <span x-show="scheduleType === 'hybrid'" class="text-[10px] text-blue-600 block mt-0.5">Mode Hybrid: Task dapat overlap</span>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
                         <input type="number" 
                                name="duration_days" 
                                x-model.number="newTaskDuration"
-                               @input="newTaskFinishDay = newTaskStartingDay + newTaskDuration"
+                               @input="newTaskFinishDay = newTaskPlannedStart + newTaskDuration"
                                min="1" 
                                max="365" 
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Finish Day (Hari ke-)</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Finish Day / Offset</label>
                         <input type="number" 
                                name="finish_day" 
                                x-model.number="newTaskFinishDay"
-                               @input="newTaskDuration = Math.max(1, newTaskFinishDay - newTaskStartingDay)"
+                               @input="newTaskDuration = Math.max(1, newTaskFinishDay - newTaskPlannedStart)"
                                min="1" 
                                max="365" 
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
@@ -1960,32 +2070,36 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Starting Day</label>
+                    <div :class="scheduleType === 'hybrid' ? 'p-1.5 rounded-xl bg-blue-50/70 border border-blue-200' : ''">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            <span x-show="scheduleType === 'hybrid'" class="text-blue-800">Planned Start (Hari ke-)</span>
+                            <span x-show="scheduleType !== 'hybrid'">Starting Day</span>
+                        </label>
                         <input type="number" 
-                               name="starting_day" 
-                               x-model.number="editTaskStartingDay" 
-                               @input="editTaskFinishDay = editTaskStartingDay + editTaskDuration"
+                               name="planned_start" 
+                               x-model.number="editTaskPlannedStart" 
+                               @input="editTaskStartingDay = editTaskPlannedStart; editTaskFinishDay = editTaskPlannedStart + editTaskDuration"
                                min="0" 
                                max="365" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                        <input type="hidden" name="starting_day" :value="editTaskPlannedStart">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
                         <input type="number" 
                                name="duration_days" 
                                x-model.number="editTaskDuration" 
-                               @input="editTaskFinishDay = editTaskStartingDay + editTaskDuration"
+                               @input="editTaskFinishDay = editTaskPlannedStart + editTaskDuration"
                                min="1" 
                                max="365" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Finish Day</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Finish Day / Offset</label>
                         <input type="number" 
                                name="finish_day" 
                                x-model.number="editTaskFinishDay" 
-                               @input="editTaskDuration = Math.max(1, editTaskFinishDay - editTaskStartingDay)"
+                               @input="editTaskDuration = Math.max(1, editTaskFinishDay - editTaskPlannedStart)"
                                min="1" 
                                max="365" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
