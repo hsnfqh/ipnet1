@@ -241,7 +241,7 @@
             <div class="flex items-center mb-4">
                 <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#8F0A0D]/10 text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">
                     <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                    <span>Portal Otentikasi</span>
+                    <span>Portal Otentikasi Divisi IPNet 1</span>
                 </div>
             </div>
 
