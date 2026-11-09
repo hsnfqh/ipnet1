@@ -211,9 +211,6 @@
                     </div>
                 </form>
             </div>
-                    </div>
-                </form>
-            </div>
 
             {{-- Asset Table: Tipe Perangkat, Brand & OS, Serial Number, Service Support, Siklus EOL/EOS, Backup, Pemilik --}}
             <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2">
@@ -391,8 +388,22 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-12 text-center text-[#64748B] text-[13px]">
-                                        Belum ada data aset perangkat yang sesuai dengan filter.
+                                    <td colspan="8" class="py-16 text-center">
+                                        <div class="max-w-sm mx-auto flex flex-col items-center justify-center">
+                                            <div class="w-14 h-14 rounded-2xl bg-red-50 text-[#8F0A0D] flex items-center justify-center mb-3 border border-red-100 shadow-2xs">
+                                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                                                </svg>
+                                            </div>
+                                            <h4 class="text-sm font-bold text-slate-800">Belum Ada Data Aset Perangkat</h4>
+                                            <p class="text-xs text-slate-500 mt-1 max-w-xs leading-relaxed">
+                                                Data perangkat klien belum ada atau tidak cocok dengan filter pencarian saat ini.
+                                            </p>
+                                            <button type="button" @click="openCreateModal()" class="mt-4 px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                                <span>Daftarkan Aset Baru</span>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
