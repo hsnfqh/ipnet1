@@ -375,7 +375,7 @@
                         <div class="flex items-baseline gap-2">
                             <span class="text-[20px] font-extrabold text-[#1E293B] tracking-tight">{{ $totalTasks }}</span>
                             <span class="text-xs text-slate-500 font-medium">Tasks</span>
-                            <span class="text-xs font-bold text-slate-800 ml-auto">Actual: {{ number_format($currentProgressPercent, 1) }}%</span>
+                            <span id="header-metric-actual-text-1" class="text-xs font-bold text-slate-800 ml-auto">Actual: {{ number_format($currentProgressPercent, 1) }}%</span>
                         </div>
                     </div>
                     <div class="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-[#64748B] font-medium space-y-1">
@@ -399,29 +399,29 @@
                     $isStatusOnTrack = ($currentVariance ?? 0) >= -2.0;
                     $isStatusAtRisk = ($currentVariance ?? 0) < -2.0 && ($currentVariance ?? 0) >= -10.0;
                 @endphp
-                <div class="ipnet-metric-card border-l-4 {{ $isStatusOnTrack ? 'border-l-emerald-600' : ($isStatusAtRisk ? 'border-l-amber-500' : 'border-l-rose-600') }} flex flex-col justify-between">
+                <div id="header-metric-status-card" class="ipnet-metric-card border-l-4 {{ $isStatusOnTrack ? 'border-l-emerald-600' : ($isStatusAtRisk ? 'border-l-amber-500' : 'border-l-rose-600') }} flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Status Jadwal (Kurva S)</span>
-                            <div class="w-7 h-7 rounded-lg {{ $isStatusOnTrack ? 'bg-emerald-50 text-emerald-600' : ($isStatusAtRisk ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600') }} flex items-center justify-center">
+                            <div id="header-metric-status-icon-wrap" class="w-7 h-7 rounded-lg {{ $isStatusOnTrack ? 'bg-emerald-50 text-emerald-600' : ($isStatusAtRisk ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600') }} flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full {{ $isStatusOnTrack ? 'bg-emerald-500' : ($isStatusAtRisk ? 'bg-amber-500' : 'bg-rose-500') }}"></span>
-                            <span class="text-[20px] font-extrabold text-[#1E293B] tracking-tight">
+                            <span id="header-metric-status-dot" class="w-2.5 h-2.5 rounded-full {{ $isStatusOnTrack ? 'bg-emerald-500' : ($isStatusAtRisk ? 'bg-amber-500' : 'bg-rose-500') }}"></span>
+                            <span id="header-metric-status-label" class="text-[20px] font-extrabold text-[#1E293B] tracking-tight">
                                 {{ $isStatusOnTrack ? 'On-Track' : ($isStatusAtRisk ? 'At-Risk' : 'Delayed') }}
                             </span>
-                            <span class="text-xs font-bold {{ $isStatusOnTrack ? 'text-emerald-700' : ($isStatusAtRisk ? 'text-amber-700' : 'text-rose-700') }}">
+                            <span id="header-metric-status-variance" class="text-xs font-bold {{ $isStatusOnTrack ? 'text-emerald-700' : ($isStatusAtRisk ? 'text-amber-700' : 'text-rose-700') }}">
                                 ({{ ($currentVariance ?? 0) >= 0 ? '+' : '' }}{{ number_format($currentVariance ?? 0, 1) }}%)
                             </span>
                         </div>
                     </div>
                     <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
                         <span>Target: {{ $planValAtCurrentWeek !== null ? number_format($planValAtCurrentWeek, 1) . '%' : '-' }}</span>
-                        <span class="font-bold text-slate-800">
+                        <span id="header-metric-actual-text-2" class="font-bold text-slate-800">
                             Aktual: {{ number_format($currentProgressPercent, 1) }}%
                         </span>
                     </div>
@@ -937,7 +937,7 @@
                                     </td>
                                     <td colspan="{{ $scheduleType === 'hybrid' ? 5 : 4 }}" class="py-2.5 px-2.5"></td>
                                     @for($w = 1; $w <= $totalWeeks; $w++)
-                                        <td class="py-2.5 px-3 text-right font-bold text-amber-800 text-xs">
+                                        <td id="tab2-actual-cum-w{{ $w }}" class="py-2.5 px-3 text-right font-bold text-amber-800 text-xs">
                                             {{ isset($actualCumulativePerWeek[$w]) && $actualCumulativePerWeek[$w] !== null ? number_format($actualCumulativePerWeek[$w], 2) . '%' : '-' }}
                                         </td>
                                     @endfor
@@ -964,6 +964,9 @@
                             {{ $r['id'] }}: {{ (float)$r['progress'] }},
                         @endforeach
                     },
+                    saveStatus: 'idle',
+                    saveTimeout: null,
+                    resetSavedTimeout: null,
                     calcTotalActual() {
                         let sum = 0;
                         for (let id in this.weights) {
@@ -977,9 +980,58 @@
                         if (window.updateLiveSCurveActual) {
                             window.updateLiveSCurveActual(this.taskProgress);
                         }
+                        if (this.saveTimeout) clearTimeout(this.saveTimeout);
+                        this.saveStatus = 'saving';
+                        this.saveTimeout = setTimeout(() => {
+                            this.autoSaveProgress();
+                        }, 500);
+                    },
+                    autoSaveProgress() {
+                        if (this.saveTimeout) {
+                            clearTimeout(this.saveTimeout);
+                            this.saveTimeout = null;
+                        }
+                        this.saveStatus = 'saving';
+
+                        const formData = new FormData();
+                        formData.append('_token', '{{ csrf_token() }}');
+                        formData.append('tab', 'actual_progress');
+                        for (let id in this.taskProgress) {
+                            let val = this.taskProgress[id];
+                            if (val === '' || val === null || isNaN(val)) {
+                                val = 0;
+                            }
+                            formData.append(`tasks[${id}][progress]`, val);
+                        }
+
+                        fetch('{{ route('pmo.projects.actual_progress_matrix.update', $project->id) }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        })
+                        .then(res => {
+                            if (!res.ok) throw new Error('HTTP ' + res.status);
+                            return res.json();
+                        })
+                        .then(data => {
+                            this.saveStatus = 'saved';
+                            if (this.resetSavedTimeout) clearTimeout(this.resetSavedTimeout);
+                            this.resetSavedTimeout = setTimeout(() => {
+                                if (this.saveStatus === 'saved') {
+                                    this.saveStatus = 'idle';
+                                }
+                            }, 3000);
+                        })
+                        .catch(err => {
+                            console.error('Auto-save progress error:', err);
+                            this.saveStatus = 'error';
+                        });
                     }
                  }">
-                <form action="{{ route('pmo.projects.actual_progress_matrix.update', $project->id) }}" method="POST">
+                <form action="{{ route('pmo.projects.actual_progress_matrix.update', $project->id) }}" method="POST" @submit.prevent="autoSaveProgress()">
                     @csrf
                     <input type="hidden" name="tab" value="actual_progress">
                     <div class="ipnet-card p-5 sm:p-6 space-y-4">
@@ -997,12 +1049,43 @@
                                 <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold">
                                     Actual Cumulative: <span x-text="calcTotalActual() + '%'">{{ number_format($totalActualProgressSum, 1) }}%</span>
                                 </span>
-                                <button type="submit" class="px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold shadow-2xs transition inline-flex items-center gap-2 cursor-pointer active:scale-95">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                    <span>Simpan Progres Aktual</span>
-                                </button>
+                                
+                                {{-- Auto-save status indicator --}}
+                                <div class="flex items-center text-xs font-medium">
+                                    <template x-if="saveStatus === 'idle'">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 text-slate-600 border border-slate-200 shadow-2xs">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/>
+                                            </svg>
+                                            <span>Auto-save aktif</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="saveStatus === 'saving'">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 animate-pulse shadow-2xs">
+                                            <svg class="w-3.5 h-3.5 animate-spin text-amber-600" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                            </svg>
+                                            <span>Menyimpan otomatis...</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="saveStatus === 'saved'">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs transition">
+                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            <span>Tersimpan otomatis</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="saveStatus === 'error'">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
+                                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                            <span>Gagal menyimpan</span>
+                                        </span>
+                                    </template>
+                                </div>
                             </div>
                         </div>
 
@@ -1045,6 +1128,8 @@
                                                            value="{{ (float) $row['progress'] }}" 
                                                            x-model.number="taskProgress[{{ $row['id'] }}]"
                                                            @input="onProgressChanged()"
+                                                           @change="autoSaveProgress()"
+                                                           @blur="autoSaveProgress()"
                                                            class="w-16 py-1 px-1.5 text-right font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:border-blue-600 focus:outline-hidden text-xs">
                                                     <span class="text-[11px] font-bold text-slate-500">%</span>
                                                 </div>
@@ -2630,6 +2715,7 @@
             const taskWeeklyMatrix = {!! json_encode($weeklyWeightMatrix ?? []) !!};
             const totalWeeksCount = {{ (int) ($totalWeeks ?? 5) }};
             const planCumulativeMap = {!! json_encode($totalWeeklyWeightCum ?? []) !!};
+            const currentTargetPlan = {{ $planValAtCurrentWeek !== null ? (float)$planValAtCurrentWeek : 'null' }};
 
             window.updateLiveSCurveActual = function(taskProgressMap) {
                 if (!taskProgressMap) return;
@@ -2675,6 +2761,7 @@
                     const elActCum = document.getElementById(`scurve-actual-cum-w${w}`);
                     const elDev = document.getElementById(`scurve-variance-w${w}`);
                     const elHlp = document.getElementById(`scurve-helper-w${w}`);
+                    const elTab2Cum = document.getElementById(`tab2-actual-cum-w${w}`);
 
                     if (w <= maxActWeek || (w === 1 && overallSum > 0)) {
                         const dev = Math.round((accum - planCum) * 10) / 10;
@@ -2690,6 +2777,9 @@
                             elHlp.textContent = accum.toFixed(1) + '%';
                             elHlp.className = 'py-2.5 px-3 text-right text-xs font-bold text-slate-800';
                         }
+                        if (elTab2Cum) {
+                            elTab2Cum.textContent = accum.toFixed(2) + '%';
+                        }
                         chartActualData.push(accum);
                     } else {
                         if (elActWeekly) elActWeekly.textContent = '';
@@ -2698,6 +2788,9 @@
                         if (elHlp) {
                             elHlp.textContent = '#N/A';
                             elHlp.className = 'py-2.5 px-3 text-right text-xs text-slate-400 italic';
+                        }
+                        if (elTab2Cum) {
+                            elTab2Cum.textContent = '-';
                         }
                         chartActualData.push(null);
                     }
@@ -2710,6 +2803,41 @@
 
                 const tab3Badge = document.getElementById('tab-actual-progress-badge');
                 if (tab3Badge) tab3Badge.textContent = overallSum.toFixed(1) + '%';
+
+                const elAct1 = document.getElementById('header-metric-actual-text-1');
+                if (elAct1) elAct1.textContent = 'Actual: ' + overallSum.toFixed(1) + '%';
+
+                const elAct2 = document.getElementById('header-metric-actual-text-2');
+                if (elAct2) elAct2.textContent = 'Aktual: ' + overallSum.toFixed(1) + '%';
+
+                if (currentTargetPlan !== null) {
+                    const curVar = Math.round((overallSum - currentTargetPlan) * 10) / 10;
+                    const isTrack = curVar >= -2.0;
+                    const isRisk = curVar < -2.0 && curVar >= -10.0;
+                    
+                    const cardEl = document.getElementById('header-metric-status-card');
+                    const iconEl = document.getElementById('header-metric-status-icon-wrap');
+                    const dotEl = document.getElementById('header-metric-status-dot');
+                    const labelEl = document.getElementById('header-metric-status-label');
+                    const varEl = document.getElementById('header-metric-status-variance');
+
+                    if (labelEl) {
+                        labelEl.textContent = isTrack ? 'On-Track' : (isRisk ? 'At-Risk' : 'Delayed');
+                    }
+                    if (varEl) {
+                        varEl.textContent = '(' + (curVar >= 0 ? '+' : '') + curVar.toFixed(1) + '%)';
+                        varEl.className = 'text-xs font-bold ' + (isTrack ? 'text-emerald-700' : (isRisk ? 'text-amber-700' : 'text-rose-700'));
+                    }
+                    if (dotEl) {
+                        dotEl.className = 'w-2.5 h-2.5 rounded-full ' + (isTrack ? 'bg-emerald-500' : (isRisk ? 'bg-amber-500' : 'bg-rose-500'));
+                    }
+                    if (iconEl) {
+                        iconEl.className = 'w-7 h-7 rounded-lg ' + (isTrack ? 'bg-emerald-50 text-emerald-600' : (isRisk ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600')) + ' flex items-center justify-center';
+                    }
+                    if (cardEl) {
+                        cardEl.className = 'ipnet-metric-card border-l-4 ' + (isTrack ? 'border-l-emerald-600' : (isRisk ? 'border-l-amber-500' : 'border-l-rose-600')) + ' flex flex-col justify-between';
+                    }
+                }
             };
         }
 

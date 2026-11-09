@@ -1544,6 +1544,16 @@ class PmoController extends Controller
             $project->handover_data = $handoverData;
             $project->save();
 
+            $this->syncProjectProgressFromTasks($project);
+
+            if ($request->wantsJson() || $request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Progres aktual berhasil tersimpan otomatis!',
+                    'progress' => (float) $project->progress,
+                ]);
+            }
+
             return redirect()->route('pmo.projects.show', ['project' => $project->id, 'tab' => 'actual_progress'])
                 ->with('success', 'Progres aktual per task berhasil disimpan!');
         }
@@ -1576,6 +1586,15 @@ class PmoController extends Controller
         }
 
         $project->save();
+        $this->syncProjectProgressFromTasks($project);
+
+        if ($request->wantsJson() || $request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Progres aktual berhasil tersimpan otomatis!',
+                'progress' => (float) $project->progress,
+            ]);
+        }
 
         return redirect()->route('pmo.projects.show', ['project' => $project->id, 'tab' => 'actual_progress'])
             ->with('success', 'Actual Progress matrix berhasil diperbarui dan disinkronkan ke Kurva S!');
@@ -2937,21 +2956,46 @@ class PmoController extends Controller
         }
 
         $totalCumulative = 0;
-        $hasBobot = false;
+        $totalBobotSum = 0;
+        $tasksData = [];
 
         foreach ($tasks as $t) {
+            $bobot = null;
             if (preg_match('/Bobot:\s*([\d\.]+)%/i', $t->description ?? '', $m)) {
                 $bobot = (float) $m[1];
-                $prog = (float) ($t->progress ?? 0);
-                $totalCumulative += ($bobot * ($prog / 100.0));
-                $hasBobot = true;
+            }
+            $dur = (int) ($t->duration ?? 1);
+            $prog = (float) ($t->progress ?? 0);
+            $tasksData[] = [
+                'task' => $t,
+                'bobot' => $bobot,
+                'duration' => $dur,
+                'progress' => $prog,
+            ];
+            if ($bobot !== null) {
+                $totalBobotSum += $bobot;
             }
         }
 
-        if ($hasBobot) {
-            $project->progress = round($totalCumulative, 2);
-            $project->saveQuietly();
+        if (abs($totalBobotSum - 100.0) <= 1.0) {
+            foreach ($tasksData as $td) {
+                $totalCumulative += (($td['bobot'] ?? 0) * ($td['progress'] / 100.0));
+            }
+        } else {
+            $totalDur = array_sum(array_column($tasksData, 'duration'));
+            if ($totalDur > 0) {
+                foreach ($tasksData as $td) {
+                    $weight = ($td['duration'] / $totalDur) * 100.0;
+                    $totalCumulative += ($weight * ($td['progress'] / 100.0));
+                }
+            } else {
+                $avgProg = array_sum(array_column($tasksData, 'progress')) / count($tasksData);
+                $totalCumulative = $avgProg;
+            }
         }
+
+        $project->progress = min(100.0, max(0.0, round($totalCumulative, 2)));
+        $project->saveQuietly();
     }
 
     public function quickStoreTask(Request $request, Project $project)
