@@ -535,37 +535,53 @@
                         </div>
                     </div>
 
-                    {{-- Excel Metadata Header (Gambar 2 / Gambar 10 & Hybrid Selector) --}}
+                    {{-- Excel Metadata Header (Gambar 2 / Gambar 10 & Schedule Type Selector) --}}
                     <div class="overflow-x-auto rounded-xl border border-slate-200">
                         <table class="w-full text-xs text-left">
                             <tbody class="divide-y divide-slate-200 bg-white">
-                                <tr class="bg-amber-50/70">
-                                    <td class="w-64 py-2.5 px-4 font-bold text-slate-800 border-r border-slate-200">
-                                        <div class="flex items-center gap-1.5">
-                                            <span>Project Type (Metodologi)</span>
-                                            <span class="px-1.5 py-0.5 text-[9.5px] font-bold rounded bg-amber-200 text-amber-900 uppercase">Dual Method</span>
-                                        </div>
+                                <tr class="hover:bg-slate-50/60 transition">
+                                    <td class="w-64 py-2.5 px-4 font-bold text-slate-800 border-r border-slate-200 align-middle">
+                                        Project Schedule Type
                                     </td>
                                     <td class="py-2.5 px-4">
-                                        <form action="{{ route('pmo.projects.update_schedule_type', $project->id) }}" method="POST" class="flex flex-wrap items-center gap-3">
+                                        <form action="{{ route('pmo.projects.update_schedule_type', $project->id) }}" method="POST" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                             @csrf
-                                            <div class="inline-flex rounded-lg p-0.5 bg-slate-200 border border-slate-300">
-                                                <button type="submit" name="schedule_type" value="waterfall"
-                                                    class="px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer {{ $scheduleType === 'waterfall' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-slate-700 hover:text-slate-900' }}">
-                                                    Waterfall (Sequential)
-                                                </button>
-                                                <button type="submit" name="schedule_type" value="hybrid"
-                                                    class="px-3 py-1 rounded-md text-xs font-bold transition cursor-pointer {{ $scheduleType === 'hybrid' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-slate-700 hover:text-slate-900' }}">
-                                                    Hybrid (Overlapping)
-                                                </button>
+                                            <div class="flex items-center gap-6">
+                                                <label class="inline-flex items-center gap-2 cursor-pointer group">
+                                                    <input type="radio" 
+                                                           name="schedule_type" 
+                                                           value="waterfall" 
+                                                           {{ $scheduleType === 'waterfall' ? 'checked' : '' }} 
+                                                           onchange="this.form.submit()" 
+                                                           class="w-4 h-4 text-[#8F0A0D] border-slate-300 focus:ring-[#8F0A0D] cursor-pointer accent-[#8F0A0D]">
+                                                    <span class="text-xs font-bold {{ $scheduleType === 'waterfall' ? 'text-slate-900' : 'text-slate-600 group-hover:text-slate-900' }}">
+                                                        Waterfall
+                                                    </span>
+                                                    <span class="text-[11px] text-slate-400 font-normal">(Sequential)</span>
+                                                </label>
+
+                                                <label class="inline-flex items-center gap-2 cursor-pointer group">
+                                                    <input type="radio" 
+                                                           name="schedule_type" 
+                                                           value="hybrid" 
+                                                           {{ $scheduleType === 'hybrid' ? 'checked' : '' }} 
+                                                           onchange="this.form.submit()" 
+                                                           class="w-4 h-4 text-[#8F0A0D] border-slate-300 focus:ring-[#8F0A0D] cursor-pointer accent-[#8F0A0D]">
+                                                    <span class="text-xs font-bold {{ $scheduleType === 'hybrid' ? 'text-[#8F0A0D]' : 'text-slate-600 group-hover:text-slate-900' }}">
+                                                        Hybrid
+                                                    </span>
+                                                    <span class="text-[11px] text-slate-400 font-normal">(Overlapping)</span>
+                                                </label>
                                             </div>
-                                            <span class="text-[11px] text-slate-500">
-                                                @if($scheduleType === 'hybrid')
-                                                    <span class="text-blue-700 font-medium"><strong>Hybrid:</strong> Task dapat berjalan overlapping / paralel sesuai <strong>Planned Start</strong>. Total durasi kalender dihitung dari finish offset maksimum.</span>
-                                                @else
-                                                    <span class="text-slate-600 font-medium"><strong>Waterfall:</strong> Task berjalan sekuensial (Finish-to-Start). Kolom Planned Start diabaikan.</span>
-                                                @endif
-                                            </span>
+
+                                            <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                                                <span class="w-1.5 h-1.5 rounded-full {{ $scheduleType === 'hybrid' ? 'bg-blue-600' : 'bg-slate-400' }}"></span>
+                                                <span>
+                                                    {{ $scheduleType === 'hybrid' 
+                                                        ? 'Pekerjaan dapat berjalan overlapping / paralel sesuai Planned Start' 
+                                                        : 'Pekerjaan berjalan berurutan sekuensial (Finish-to-Start otomatis)' }}
+                                                </span>
+                                            </div>
                                         </form>
                                     </td>
                                 </tr>
