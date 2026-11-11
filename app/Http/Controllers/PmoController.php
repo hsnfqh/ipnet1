@@ -3332,13 +3332,20 @@ class PmoController extends Controller
                     }
                 }
 
-                // Sisipkan tag [Bobot: XX%] ke deskripsi
+                // Hitung offset hari dari awal pelaksanaan untuk jadwal WBS
+                $startingDay = max(0, (int) round($execStart->diffInDays($taskStart)));
+                $finishDay = $startingDay + $duration;
+
+                // Sisipkan metadata tag ke deskripsi
+                $tagParts = [];
                 if ($bobotVal !== null) {
                     $formattedBobot = number_format($bobotVal, 2, '.', '');
-                    $descWithBobot = trim("[Bobot: {$formattedBobot}%] " . $rawDesc);
-                } else {
-                    $descWithBobot = $rawDesc ?: null;
+                    $tagParts[] = "[Bobot: {$formattedBobot}%]";
                 }
+                $tagParts[] = "[Duration: {$duration}]";
+                $tagParts[] = "[StartingDay: {$startingDay}]";
+                $tagParts[] = "[FinishDay: {$finishDay}]";
+                $descWithBobot = trim(implode(' ', $tagParts) . ' ' . $rawDesc);
 
                 // Progress (%)
                 $progress = 0;
@@ -3359,19 +3366,23 @@ class PmoController extends Controller
                 }
 
                 // Buat Task WBS di database
-                Task::create([
+                $createdTask = Task::create([
                     'title'       => $title,
                     'project_id'  => $project->id,
                     'engineer_id' => $defaultEngineerId,
                     'priority'    => 'Medium',
                     'status'      => $status,
-                    'start_date'  => $startDate->format('Y-m-d'),
-                    'deadline'    => $deadline->format('Y-m-d 18:00:00'),
-                    'description' => $descWithBobot,
+                    'start_date'  => $taskStart->format('Y-m-d'),
+                    'deadline'    => $taskEnd->format('Y-m-d H:i:s'),
+                    'description' => $descWithBobot ?: null,
                     'progress'    => $progress,
                     'attachments' => 0,
                     'created_by'  => auth()->id() ?: ($defaultEngineerId ?: 1),
                 ]);
+
+                if ($defaultEngineerId && \Illuminate\Support\Facades\Schema::hasTable('task_user')) {
+                    $createdTask->engineers()->sync([$defaultEngineerId]);
+                }
 
                 $importedCount++;
             }
