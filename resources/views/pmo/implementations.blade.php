@@ -262,10 +262,10 @@
 
                                             {{-- Tombol Hapus / Delete --}}
                                             <button type="button"
-                                                    @click="deleteProject(project)"
+                                                    @click="openDeleteModal(project)"
                                                     title="Hapus Proyek"
-                                                    class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 hover:border-rose-200 text-[11px] font-bold inline-flex items-center gap-1.5 transition shadow-2xs cursor-pointer group active:scale-95">
-                                                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-500 hover:text-red-600 hover:border-red-200 text-[11px] font-bold inline-flex items-center gap-1.5 transition shadow-2xs cursor-pointer group active:scale-95">
+                                                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
                                                 <span>Hapus</span>
@@ -416,10 +416,10 @@
                                                 </a>
 
                                                 <button type="button"
-                                                        @click="deleteProject(project)"
+                                                        @click="openDeleteModal(project)"
                                                         title="Hapus Proyek"
-                                                        class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 hover:border-rose-200 text-[11px] font-bold inline-flex items-center gap-1.5 transition shadow-2xs cursor-pointer group active:scale-95">
-                                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-500 hover:text-red-600 hover:border-red-200 text-[11px] font-bold inline-flex items-center gap-1.5 transition shadow-2xs cursor-pointer group active:scale-95">
+                                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
                                                     <span>Hapus</span>
@@ -1900,6 +1900,60 @@
         </div>
     </template>
 
+    {{-- MODAL KONFIRMASI HAPUS PROYEK (Konsisten Sesuai Gambar 2 / Standar Managed Service) --}}
+    <template x-teleport="body">
+        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4"
+             @keydown.escape.window="showDeleteModal = false">
+            <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-[#CBD5E1] p-6 text-center space-y-4 anim-fade-up"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 @click.outside="showDeleteModal = false">
+                <div class="w-14 h-14 rounded-full bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center mx-auto shadow-inner">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+                <div class="space-y-1.5">
+                    <h3 class="text-base font-bold text-[#1E293B]">Hapus Proyek?</h3>
+                    <p class="text-xs text-[#64748B] leading-relaxed">
+                        Apakah Anda yakin ingin menghapus proyek <span class="font-bold text-slate-900" x-text="deleteProjectName"></span> untuk klien <span class="font-bold text-slate-900" x-text="deleteProjectClient"></span>? Seluruh data WBS, jadwal, dan dokumen terkait akan dihapus secara permanen.
+                    </p>
+                </div>
+                <div class="flex items-center justify-center gap-3 pt-2">
+                    <button type="button" @click="showDeleteModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-100 border border-slate-300 rounded-xl transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="button" @click="confirmDeleteAction()" :disabled="isDeleting" class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-600/20 transition cursor-pointer disabled:opacity-50 active:scale-95">
+                        <span x-text="isDeleting ? 'Menghapus...' : 'Hapus Proyek'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    {{-- POP UP LOADING HAPUS PROYEK --}}
+    <template x-teleport="body">
+        <div x-show="isDeleting" x-cloak class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl p-7 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4">
+                <div class="relative w-16 h-16 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-[#8F0A0D] border-t-transparent animate-spin"></div>
+                    <svg class="w-7 h-7 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h4 class="text-sm font-bold text-[#1E293B]">Sedang Menghapus Proyek...</h4>
+                    <p class="text-xs text-[#64748B]">Mohon tunggu sebentar, sistem sedang memproses penghapusan data.</p>
+                </div>
+            </div>
+        </div>
+    </template>
+
 </div>
 
 @push('scripts')
@@ -1918,6 +1972,11 @@
             handoverConditionalCount: {{ $handoverConditionalCount ?? 0 }},
             readyToOperateCount: {{ $readyToOperateCount ?? 0 }},
             showCreateProjectModal: false,
+            showDeleteModal: false,
+            isDeleting: false,
+            deleteProjectId: null,
+            deleteProjectName: '',
+            deleteProjectClient: '',
 
             search: '',
             statusFilter: 'Semua',
@@ -2553,69 +2612,20 @@
                 }
             },
 
-            escapeHtml(text) {
-                if (!text) return '';
-                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-                return String(text).replace(/[&<>"']/g, m => map[m]);
+            openDeleteModal(project) {
+                if (!project) return;
+                this.deleteProjectId = project.id;
+                this.deleteProjectName = project.name || '';
+                this.deleteProjectClient = project.client || '-';
+                this.showDeleteModal = true;
             },
 
-            async deleteProject(project) {
-                if (!project || !project.id) return;
-
-                let isConfirmed = false;
-                if (typeof Swal !== 'undefined') {
-                    const result = await Swal.fire({
-                        title: 'Hapus Proyek?',
-                        html: `
-                            <div class="text-left space-y-3">
-                                <p class="text-[13px] text-slate-600 leading-relaxed">
-                                    Apakah Anda yakin ingin menghapus proyek ini secara permanen dari sistem?
-                                </p>
-                                <div class="p-3.5 bg-slate-50 border border-slate-200/90 rounded-xl space-y-1">
-                                    <div class="text-[10px] font-bold uppercase tracking-wider text-[#8F0A0D]">Informasi Proyek</div>
-                                    <div class="text-[13px] font-bold text-slate-900 leading-snug">${this.escapeHtml(project.name)}</div>
-                                    <div class="text-[11.5px] text-slate-500 pt-1 flex items-center gap-1.5">
-                                        <span class="font-medium text-slate-400">Klien:</span>
-                                        <span class="font-semibold text-slate-700">${this.escapeHtml(project.client || '-')}</span>
-                                    </div>
-                                </div>
-                                <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-[12px] text-rose-800 flex items-start gap-2">
-                                    <svg class="w-4 h-4 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                    </svg>
-                                    <span class="leading-relaxed"><strong>Perhatian:</strong> Seluruh tugas WBS, bobot kurva-S, jadwal personel, dan data dokumen terkait proyek ini akan ikut terhapus.</span>
-                                </div>
-                            </div>
-                        `,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#8F0A0D',
-                        cancelButtonColor: '#64748B',
-                        confirmButtonText: 'Ya, Hapus Proyek',
-                        cancelButtonText: 'Batal',
-                        reverseButtons: true,
-                        focusCancel: true
-                    });
-                    isConfirmed = result.isConfirmed;
-                } else {
-                    isConfirmed = confirm(`Apakah Anda yakin ingin menghapus proyek "${project.name}"? Seluruh data WBS dan jadwal akan ikut terhapus.`);
-                }
-
-                if (!isConfirmed) return;
-
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: 'Menghapus Proyek...',
-                        text: 'Mohon tunggu sebentar, sistem sedang memproses penghapusan data.',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-                }
+            async confirmDeleteAction() {
+                if (!this.deleteProjectId || this.isDeleting) return;
+                this.isDeleting = true;
 
                 try {
-                    const response = await fetch(`/pmo/projects/${project.id}`, {
+                    const response = await fetch(`/pmo/projects/${this.deleteProjectId}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
@@ -2627,40 +2637,16 @@
                     const data = await response.json();
 
                     if (response.ok && data.success) {
-                        if (typeof Swal !== 'undefined') {
-                            await Swal.fire({
-                                icon: 'success',
-                                title: 'Proyek Berhasil Dihapus',
-                                text: data.message || 'Proyek telah berhasil dihapus dari portofolio.',
-                                confirmButtonColor: '#8F0A0D',
-                                confirmButtonText: 'OK'
-                            });
-                        }
+                        this.showDeleteModal = false;
                         window.location.reload();
                     } else {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal Menghapus Proyek',
-                                text: data.message || 'Terjadi kesalahan saat menghapus proyek.',
-                                confirmButtonColor: '#8F0A0D'
-                            });
-                        } else {
-                            alert(data.message || 'Gagal menghapus proyek.');
-                        }
+                        this.isDeleting = false;
+                        alert(data.message || 'Gagal menghapus proyek.');
                     }
                 } catch (e) {
                     console.error(e);
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Kesalahan Jaringan',
-                            text: 'Terjadi kesalahan sistem atau gangguan koneksi server.',
-                            confirmButtonColor: '#8F0A0D'
-                        });
-                    } else {
-                        alert('Terjadi kesalahan sistem atau gangguan koneksi server.');
-                    }
+                    this.isDeleting = false;
+                    alert('Terjadi kesalahan sistem atau gangguan koneksi server.');
                 }
             }
         }));
