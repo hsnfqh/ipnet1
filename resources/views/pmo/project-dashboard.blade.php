@@ -517,22 +517,14 @@
                             </p>
                             <h3 class="text-base font-bold text-[#1E293B]">Project Schedule &amp; WBS Deliverables</h3>
                         </div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            @if($isLeadUser)
+                        @if($isLeadUser)
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <button type="button" @click="showAssignTeamModal = true" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
                                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                     <span>Kelola Personil Tim</span>
                                 </button>
-                            @endif
-                            <button type="button" @click="showImportExcelModal = true" class="px-2.5 py-1.5 rounded-lg border border-emerald-600 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
-                                <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                <span>Import Excel (WBS)</span>
-                            </button>
-                            <button type="button" @click="showQuickTaskModal = true" class="px-2.5 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                <span>Tambah Activity / Task</span>
-                            </button>
-                        </div>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Excel Metadata Header (Gambar 2 / Gambar 10 & Schedule Type Selector) --}}
@@ -804,12 +796,20 @@
                         <span class="text-xs text-slate-500 font-medium">
                             Struktur Rincian Kerja (WBS) Proyek
                         </span>
-                        <button type="button" 
-                                @click="showQuickTaskModal = true" 
-                                class="px-3.5 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold shadow-xs transition inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>Tambah Aktivitas WBS</span>
-                        </button>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <button type="button" 
+                                    @click="showImportExcelModal = true" 
+                                    class="px-3.5 py-2 rounded-xl border border-emerald-600 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold shadow-xs transition inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                                <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span>Import Excel (WBS)</span>
+                            </button>
+                            <button type="button" 
+                                    @click="showQuickTaskModal = true" 
+                                    class="px-3.5 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold shadow-xs transition inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                <span>Tambah Aktivitas WBS</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
