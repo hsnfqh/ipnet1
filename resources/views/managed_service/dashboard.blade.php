@@ -395,7 +395,7 @@
                             <table class="w-full text-left text-xs">
                                 <thead>
                                     <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                        <th class="pb-2.5">Pelanggan &amp; Proyek</th>
+                                        <th class="pb-2.5">Proyek &amp; Pelanggan</th>
                                         <th class="pb-2.5">Urgensi Tiket (Severity)</th>
                                         <th class="pb-2.5">Status Layanan</th>
                                         <th class="pb-2.5">Realisasi SLA</th>
@@ -407,13 +407,13 @@
                                     @forelse($clientHealthList as $client)
                                     <tr class="hover:bg-slate-50/80 transition">
                                         <td class="py-3 pr-2">
-                                            <a href="{{ route('ms.projects.show', $client['id']) }}#lokasi-site" class="group block" title="Buka Detail & Lokasi Operasional Proyek">
-                                                <div class="font-extrabold text-slate-900 text-[12.5px] group-hover:text-[#8F0A0D] transition line-clamp-1 flex items-center gap-1.5">
-                                                    <span>{{ $client['name'] }}</span>
-                                                    <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-[#8F0A0D] transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                            <a href="{{ route('ms.projects.show', $client['id']) }}#lokasi-site" class="group block" title="Buka Detail & Lokasi Operasional: {{ $client['projectName'] }}">
+                                                <div class="font-extrabold text-slate-900 text-[12.5px] group-hover:text-[#8F0A0D] transition line-clamp-1 flex items-center gap-1.5" title="{{ $client['projectName'] }}">
+                                                    <span>{{ $client['projectName'] }}</span>
+                                                    <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-[#8F0A0D] transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                                 </div>
-                                                <div class="text-[11px] text-slate-500 font-medium group-hover:text-[#8F0A0D]/80 transition truncate max-w-[240px]">
-                                                    {{ $client['projectName'] }} &bull; <span class="text-slate-600 font-semibold group-hover:text-[#8F0A0D]">Kontrak {{ $client['sla_tier'] }}</span>
+                                                <div class="text-[11px] text-slate-500 font-medium group-hover:text-[#8F0A0D]/80 transition truncate max-w-[280px]">
+                                                    {{ $client['name'] }} &bull; <span class="text-slate-600 font-semibold group-hover:text-[#8F0A0D]">Kontrak {{ $client['sla_tier'] }}</span>
                                                 </div>
                                             </a>
                                         </td>
