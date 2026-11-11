@@ -188,7 +188,7 @@
                                                 <span x-text="project.name"></span>
                                             </a>
                                             <div class="flex items-center gap-2 text-[11px] text-[#64748B] flex-wrap">
-                                                <span class="font-bold text-[#8F0A0D]" x-text="'Sales: ' + (project.sales_name || 'Raiza')"></span>
+                                                <span class="font-bold text-[#8F0A0D]" x-text="'Sales: ' + (project.sales_name || '-')"></span>
                                                 <template x-if="project.so_code || project.po_number">
                                                     <span class="flex items-center gap-1.5">
                                                         <span class="text-slate-300">&bull;</span>
@@ -1716,92 +1716,19 @@
                         </div>
                     </div>
 
-                    {{-- Baris 2: Tim Teknis & Project Manager --}}
+                    {{-- Baris 3: Sales PIC & Project Manager --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {{-- Kolom Tim Teknis (Hanya Tim Network & Tim Security + Multi-select + Ketik Manual) --}}
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <label class="block text-xs font-bold text-slate-800">
-                                    Tim Teknis Pelaksana <span class="text-rose-600">*</span>
-                                </label>
-                                <span class="text-[11px] text-slate-400">Pilih satu atau lebih</span>
-                            </div>
-
-                            {{-- Pilihan Tim (Tim Network & Tim Security) + Custom Chips --}}
-                            <div class="flex flex-wrap items-center gap-2 pt-0.5">
-                                {{-- Tombol Tim Network --}}
-                                <button type="button" 
-                                        @click="toggleTeam('Tim Network')"
-                                        :class="hasTeam('Tim Network') 
-                                            ? 'bg-red-50 border-[#8F0A0D] text-[#8F0A0D] font-bold shadow-2xs ring-1 ring-[#8F0A0D]/20' 
-                                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
-                                        class="px-3 py-1.5 rounded-xl border text-xs flex items-center gap-1.5 transition cursor-pointer select-none">
-                                    <template x-if="hasTeam('Tim Network')">
-                                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    </template>
-                                    <template x-if="!hasTeam('Tim Network')">
-                                        <span class="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block"></span>
-                                    </template>
-                                    <span>Tim Network</span>
-                                </button>
-
-                                {{-- Tombol Tim Security --}}
-                                <button type="button" 
-                                        @click="toggleTeam('Tim Security')"
-                                        :class="hasTeam('Tim Security') 
-                                            ? 'bg-red-50 border-[#8F0A0D] text-[#8F0A0D] font-bold shadow-2xs ring-1 ring-[#8F0A0D]/20' 
-                                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
-                                        class="px-3 py-1.5 rounded-xl border text-xs flex items-center gap-1.5 transition cursor-pointer select-none">
-                                    <template x-if="hasTeam('Tim Security')">
-                                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    </template>
-                                    <template x-if="!hasTeam('Tim Security')">
-                                        <span class="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block"></span>
-                                    </template>
-                                    <span>Tim Security</span>
-                                </button>
-
-                                {{-- Tag Tim Kustom Hasil Ketik Manual --}}
-                                <template x-for="t in selectedTeams.filter(x => x !== 'Tim Network' && x !== 'Tim Security')" :key="t">
-                                    <span class="px-2.5 py-1.5 rounded-xl border border-red-200 bg-red-50 text-[#8F0A0D] text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-                                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                        <span x-text="t"></span>
-                                        <button type="button" @click="removeTeam(t)" class="text-red-400 hover:text-red-700 ml-0.5 cursor-pointer" title="Hapus tim ini">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                        </button>
-                                    </span>
-                                </template>
-                            </div>
-
-                            {{-- Input Tambah Tim Baru (Ketik Manual) --}}
-                            <div class="flex items-center gap-1.5 pt-1">
-                                <div class="relative flex-1">
-                                    <input type="text" 
-                                           x-model="newCustomTeam"
-                                           @keydown.enter.prevent="addCustomTeam()"
-                                           placeholder="+ Ketik manual tim lain (misal: Tim Fiber Optic, Cloud)..."
-                                           class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 bg-slate-50/60 focus:bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
-                                </div>
-                                <button type="button" 
-                                        @click="addCustomTeam()"
-                                        :disabled="!newCustomTeam.trim()"
-                                        :class="newCustomTeam.trim() ? 'bg-slate-800 text-white hover:bg-slate-900 cursor-pointer shadow-2xs' : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
-                                        class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                    <span>Tambah</span>
-                                </button>
-                            </div>
-
-                            {{-- Hidden inputs pengirim array tim ke backend --}}
-                            <template x-for="t in selectedTeams" :key="t">
-                                <input type="hidden" name="teams[]" :value="t">
-                            </template>
-
-                            {{-- Pesan Peringatan Jika Belum Memilih Tim --}}
-                            <p x-show="teamError" x-text="teamError" class="text-[11px] text-rose-600 font-semibold"></p>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Account Executive / Sales PIC
+                            </label>
+                            <input type="text" 
+                                   name="sales_name" 
+                                   list="sales_name_suggestions"
+                                   placeholder="Contoh: Raiza / Nabylla / Direct PMO"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                         </div>
 
-                        {{-- Kolom Project Manager --}}
                         <div class="space-y-1">
                             <label class="block text-xs font-bold text-slate-800">
                                 Project Manager (PM PIC) <span class="text-rose-600">*</span>
@@ -1817,6 +1744,89 @@
                                 @endforeach
                             </select>
                         </div>
+                    </div>
+
+                    {{-- Baris 4: Tim Teknis Pelaksana --}}
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Tim Teknis Pelaksana <span class="text-rose-600">*</span>
+                            </label>
+                            <span class="text-[11px] text-slate-400">Pilih satu atau lebih</span>
+                        </div>
+
+                        {{-- Pilihan Tim (Tim Network & Tim Security) + Custom Chips --}}
+                        <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                            {{-- Tombol Tim Network --}}
+                            <button type="button" 
+                                    @click="toggleTeam('Tim Network')"
+                                    :class="hasTeam('Tim Network') 
+                                        ? 'bg-red-50 border-[#8F0A0D] text-[#8F0A0D] font-bold shadow-2xs ring-1 ring-[#8F0A0D]/20' 
+                                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
+                                    class="px-3 py-1.5 rounded-xl border text-xs flex items-center gap-1.5 transition cursor-pointer select-none">
+                                <template x-if="hasTeam('Tim Network')">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                </template>
+                                <template x-if="!hasTeam('Tim Network')">
+                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block"></span>
+                                </template>
+                                <span>Tim Network</span>
+                            </button>
+
+                            {{-- Tombol Tim Security --}}
+                            <button type="button" 
+                                    @click="toggleTeam('Tim Security')"
+                                    :class="hasTeam('Tim Security') 
+                                        ? 'bg-red-50 border-[#8F0A0D] text-[#8F0A0D] font-bold shadow-2xs ring-1 ring-[#8F0A0D]/20' 
+                                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-semibold'"
+                                    class="px-3 py-1.5 rounded-xl border text-xs flex items-center gap-1.5 transition cursor-pointer select-none">
+                                <template x-if="hasTeam('Tim Security')">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                </template>
+                                <template x-if="!hasTeam('Tim Security')">
+                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block"></span>
+                                </template>
+                                <span>Tim Security</span>
+                            </button>
+
+                            {{-- Tag Tim Kustom Hasil Ketik Manual --}}
+                            <template x-for="t in selectedTeams.filter(x => x !== 'Tim Network' && x !== 'Tim Security')" :key="t">
+                                <span class="px-2.5 py-1.5 rounded-xl border border-red-200 bg-red-50 text-[#8F0A0D] text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    <span x-text="t"></span>
+                                    <button type="button" @click="removeTeam(t)" class="text-red-400 hover:text-red-700 ml-0.5 cursor-pointer" title="Hapus tim ini">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                </span>
+                            </template>
+                        </div>
+
+                        {{-- Input Tambah Tim Baru (Ketik Manual) --}}
+                        <div class="flex items-center gap-1.5 pt-1">
+                            <div class="relative flex-1">
+                                <input type="text" 
+                                       x-model="newCustomTeam"
+                                       @keydown.enter.prevent="addCustomTeam()"
+                                       placeholder="+ Ketik manual tim lain (misal: Tim Fiber Optic, Cloud)..."
+                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 bg-slate-50/60 focus:bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                            </div>
+                            <button type="button" 
+                                    @click="addCustomTeam()"
+                                    :disabled="!newCustomTeam.trim()"
+                                    :class="newCustomTeam.trim() ? 'bg-slate-800 text-white hover:bg-slate-900 cursor-pointer shadow-2xs' : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
+                                    class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                <span>Tambah</span>
+                            </button>
+                        </div>
+
+                        {{-- Hidden inputs pengirim array tim ke backend --}}
+                        <template x-for="t in selectedTeams" :key="t">
+                            <input type="hidden" name="teams[]" :value="t">
+                        </template>
+
+                        {{-- Pesan Peringatan Jika Belum Memilih Tim --}}
+                        <p x-show="teamError" x-text="teamError" class="text-[11px] text-rose-600 font-semibold"></p>
                     </div>
 
                     {{-- Baris 3: Nilai Kontrak, No SPK/PO, Tipe Proyek --}}
@@ -2043,8 +2053,28 @@
                             </div>
                         </div>
 
-                        {{-- Baris 3: PM & Status Proyek --}}
+                        {{-- Datalist Rekomendasi Nama Sales PIC --}}
+                        <datalist id="sales_name_suggestions">
+                            <option value="Raiza"></option>
+                            <option value="Nabylla"></option>
+                            <option value="Direct PMO"></option>
+                            <option value="Tim Sales IPNet"></option>
+                        </datalist>
+
+                        {{-- Baris 3: Account Executive / Sales PIC & Project Manager --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Account Executive / Sales PIC
+                                </label>
+                                <input type="text" 
+                                       name="sales_name" 
+                                       x-model="editProject.sales_name"
+                                       list="sales_name_suggestions"
+                                       placeholder="Nama Sales PIC (misal: Raiza / Nabylla / Direct PMO)"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                            </div>
+
                             <div class="space-y-1">
                                 <label class="block text-xs font-bold text-slate-800">
                                     Project Manager (PM) Penanggung Jawab
@@ -2059,7 +2089,10 @@
                                     @endforeach
                                 </select>
                             </div>
+                        </div>
 
+                        {{-- Baris 4: Status Pelaksanaan & Tipe Proyek --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1">
                                 <label class="block text-xs font-bold text-slate-800">
                                     Status Pelaksanaan
@@ -2074,9 +2107,23 @@
                                     <option value="Completed">Completed</option>
                                 </select>
                             </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Tipe Proyek
+                                </label>
+                                <select name="project_type" 
+                                        x-model="editProject.project_type"
+                                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
+                                    <option value="One-Time Project">One-Time Project</option>
+                                    <option value="Turnkey Deployment">Turnkey Deployment</option>
+                                    <option value="Hardware Installation & Cabling">Hardware Installation & Cabling</option>
+                                    <option value="Implementation + Managed Service">Implementation + Managed Service</option>
+                                </select>
+                            </div>
                         </div>
 
-                        {{-- Baris 4: Nilai Kontrak & No PO/SPK --}}
+                        {{-- Baris 5: Nilai Kontrak & No PO/SPK --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1">
                                 <label class="block text-xs font-bold text-slate-800">
@@ -2105,7 +2152,7 @@
                             </div>
                         </div>
 
-                        {{-- Baris 5: Tim Pelaksana Lapangan --}}
+                        {{-- Baris 6: Tim Pelaksana Lapangan --}}
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-800">
                                 Tim Pelaksana Lapangan
@@ -2131,26 +2178,36 @@
                             </template>
                         </div>
 
-                        {{-- Baris 6: Tanggal Mulai & Deadline --}}
+                        {{-- Baris 7: Tanggal Mulai & Deadline (Format Konsisten DD/MM/YYYY) --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1">
-                                <label class="block text-xs font-bold text-slate-800">
-                                    Tanggal Mulai Proyek
-                                </label>
-                                <input type="date" 
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-bold text-slate-800">
+                                        Tanggal Mulai Proyek
+                                    </label>
+                                    <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+                                </div>
+                                <input type="text" 
+                                       id="edit_modal_start_date"
                                        name="start_date" 
                                        x-model="editProject.start_date"
-                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
+                                       placeholder="Pilih Tanggal Mulai (HH/BB/TTTT)"
+                                       class="ipnet-datepicker w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none cursor-pointer transition">
                             </div>
 
                             <div class="space-y-1">
-                                <label class="block text-xs font-bold text-slate-800">
-                                    Target Selesai (Deadline)
-                                </label>
-                                <input type="date" 
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-bold text-slate-800">
+                                        Target Selesai (Deadline)
+                                    </label>
+                                    <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+                                </div>
+                                <input type="text" 
+                                       id="edit_modal_deadline"
                                        name="deadline" 
                                        x-model="editProject.deadline"
-                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
+                                       placeholder="Pilih Tanggal Target Selesai (HH/BB/TTTT)"
+                                       class="ipnet-datepicker w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none cursor-pointer transition">
                             </div>
                         </div>
 
@@ -2873,6 +2930,7 @@
                     name: p.name || '',
                     client: p.client || '',
                     customer_pic: (p.customer_pic && p.customer_pic !== '-') ? p.customer_pic : '',
+                    sales_name: (p.sales_name && p.sales_name !== '-') ? p.sales_name : '',
                     pm_id: p.pm_id || '',
                     po_spk_number: p.po_spk_number || p.po_number || '',
                     project_type: p.project_type || 'One-Time Project',
@@ -2896,6 +2954,18 @@
                 }
                 this.editSelectedTeams = [...teams];
                 this.showEditModal = true;
+
+                this.$nextTick(() => {
+                    if (window.initFlatpickr) window.initFlatpickr();
+                    const elStart = document.getElementById('edit_modal_start_date');
+                    const elDead = document.getElementById('edit_modal_deadline');
+                    if (elStart && elStart._flatpickr) {
+                        elStart._flatpickr.setDate(this.editProject.start_date || '', true);
+                    }
+                    if (elDead && elDead._flatpickr) {
+                        elDead._flatpickr.setDate(this.editProject.deadline || '', true);
+                    }
+                });
             },
 
             formatEditContractValue(val) {

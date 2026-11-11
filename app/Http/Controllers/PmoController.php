@@ -3424,6 +3424,7 @@ class PmoController extends Controller
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
             'client'            => 'required|string|max:255',
+            'sales_name'        => 'nullable|string|max:255',
             'customer_pic'      => 'nullable|string|max:255',
             'division_id'       => 'nullable|string',
             'custom_team_name'  => 'nullable|string|max:100',
@@ -3559,7 +3560,7 @@ class PmoController extends Controller
             'stage'                       => 'Deliver',
             'status'                      => 'In Progress',
             'progress'                    => 0,
-            'sales_name'                  => 'Direct PMO',
+            'sales_name'                  => !empty($validated['sales_name']) ? trim($validated['sales_name']) : 'Direct PMO',
             'sales_stage'                 => 'Closed Won',
             'handover_target'             => 'pmo',
             'handover_status'             => 'Approved',
@@ -3664,6 +3665,7 @@ class PmoController extends Controller
         $validated = $request->validate([
             'name'           => 'required|string|max:255',
             'client'         => 'required|string|max:255',
+            'sales_name'     => 'nullable|string|max:255',
             'customer_pic'   => 'nullable|string|max:255',
             'pm_id'          => 'nullable|exists:users,id',
             'po_spk_number'  => 'nullable|string|max:100',
@@ -3689,6 +3691,9 @@ class PmoController extends Controller
         $project->client = $validated['client'];
         $project->customer_pic_technical = $customerPic;
         $project->customer_pic_business = $customerPic;
+        if (isset($validated['sales_name'])) {
+            $project->sales_name = trim((string) $validated['sales_name']) ?: 'Direct PMO';
+        }
         if (!empty($validated['pm_id'])) {
             $project->pm_id = $validated['pm_id'];
         }
