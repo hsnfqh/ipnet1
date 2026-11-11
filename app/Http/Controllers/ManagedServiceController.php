@@ -21,8 +21,100 @@ use Illuminate\Support\Facades\Log;
 
 class ManagedServiceController extends Controller
 {
+    /**
+     * Daftar nama proyek dummy / pre-seeded sample data yang wajib di-hide & dibersihkan
+     */
+    public static function getDummyProjectNames(): array
+    {
+        return [
+            'Perpanjangan ATS Firewall System',
+            'Pengadaan Perpanjangan Maintenance Perangkat Network Switch Pihak-3 (PSC-P3-AS1 dan BSC-P3-AS1) di PSCF dan BSCF Tahun 2026 - 2027',
+            'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman',
+            'Perpanjangan Pemeliharaan License Wi-Fi Sudirman',
+            'Maintenance & Monitoring Network Wi-Fi Kantor Wilayah BRI Mataram',
+            'Pemeliharaan dan Monitoring Jaringan Wi-Fi Kantor Wilayah BRI Jakarta',
+            'Pemeliharaan dan Monitoring Jaringan Wi-Fi Kantor Wilayah Jakarta',
+            'Perpanjangan Maintenance SLA Network & Server BATII',
+            'BATII',
+            'BP. BATAM',
+            'PE LAN BRI',
+            'EXTERNET ODC',
+            'LICENSE WIFI SUDIRMAN',
+            'WIFI MATARAM',
+            'WIFI JAKARTA',
+            'Managed Jaringan',
+        ];
+    }
+
+    /**
+     * Pembersihan otomatis data dummy Managed Service dengan backup instan SQL
+     */
+    public static function cleanupDummyManagedServiceData(): void
+    {
+        try {
+            $dummyNames = self::getDummyProjectNames();
+            $dummyProjects = DB::table('projects')
+                ->where(function($q) use ($dummyNames) {
+                    foreach ($dummyNames as $name) {
+                        $q->orWhere('name', 'like', "%{$name}%");
+                    }
+                })
+                ->where('name', 'not like', '%PPAT%')
+                ->where('name', 'not like', '%Ngurah Rai%')
+                ->get(['id', 'name']);
+
+            if ($dummyProjects->isNotEmpty()) {
+                $ids = $dummyProjects->pluck('id')->toArray();
+
+                // 1. Amankan backup data SQL sebelum dihapus
+                try {
+                    $backupDir = storage_path('app/backups');
+                    if (!file_exists($backupDir)) {
+                        @mkdir($backupDir, 0775, true);
+                    }
+                    $backupFile = $backupDir . '/backup_auto_before_clean_' . date('Y_m_d_His') . '.sql';
+                    if (!file_exists($backupFile)) {
+                        $handle = @fopen($backupFile, 'w');
+                        if ($handle) {
+                            fwrite($handle, "-- AUTO BACKUP BEFORE MS CLEANUP " . date('Y-m-d H:i:s') . "\n");
+                            foreach (['projects', 'managed_service_tickets', 'pm_cycles', 'managed_service_assets', 'schedules', 'tasks'] as $t) {
+                                if (Schema::hasTable($t)) {
+                                    $rows = DB::table($t)->get();
+                                    fwrite($handle, "\n-- Table $t (" . count($rows) . " rows)\n");
+                                    foreach ($rows as $r) {
+                                        fwrite($handle, "INSERT INTO `$t` VALUES (" . implode(',', array_map(fn($v) => is_null($v) ? 'NULL' : "'" . addslashes((string)$v) . "'", (array) $r)) . ");\n");
+                                    }
+                                }
+                            }
+                            fclose($handle);
+                        }
+                    }
+                } catch (\Throwable $e) {}
+
+                // 2. Bersihkan relasi dummy
+                if (Schema::hasTable('pm_cycles')) {
+                    DB::table('pm_cycles')->whereIn('project_id', $ids)->delete();
+                }
+                if (Schema::hasTable('managed_service_tickets')) {
+                    DB::table('managed_service_tickets')->whereIn('project_id', $ids)->delete();
+                }
+                if (Schema::hasTable('managed_service_assets')) {
+                    DB::table('managed_service_assets')->whereIn('project_id', $ids)->delete();
+                }
+                if (Schema::hasTable('schedules')) {
+                    DB::table('schedules')->whereIn('project_id', $ids)->delete();
+                }
+                if (Schema::hasTable('tasks')) {
+                    DB::table('tasks')->whereIn('project_id', $ids)->delete();
+                }
+                DB::table('projects')->whereIn('id', $ids)->delete();
+            }
+        } catch (\Throwable $e) {}
+    }
+
     private function ensureTablesExist(): void
     {
+        self::cleanupDummyManagedServiceData();
         if (!Schema::hasTable('managed_service_assets') || 
             !Schema::hasTable('managed_service_tickets') || 
             !Schema::hasTable('managed_service_reports') || 
@@ -53,13 +145,17 @@ class ManagedServiceController extends Controller
         $this->ensureTablesExist();
         $this->ensureSampleProjectExists();
 
+        $dummyNames = self::getDummyProjectNames();
         $selectedYear = $request->input('year', 2026);
         $selectedClient = $request->input('client');
 
         // Assets query
         $assets = collect([]);
         if (Schema::hasTable('managed_service_assets')) {
-            $assetsQuery = ManagedServiceAsset::with('project');
+            $assetsQuery = ManagedServiceAsset::with('project')
+                ->whereDoesntHave('project', function($pq) use ($dummyNames) {
+                    $pq->whereIn('name', $dummyNames);
+                });
             if ($selectedClient) {
                 $assetsQuery->where('client_name', 'like', "%{$selectedClient}%");
             }
@@ -69,7 +165,10 @@ class ManagedServiceController extends Controller
         // Tickets query
         $tickets = collect([]);
         if (Schema::hasTable('managed_service_tickets')) {
-            $ticketsQuery = ManagedServiceTicket::with(['assignedEngineer', 'asset.project', 'project']);
+            $ticketsQuery = ManagedServiceTicket::with(['assignedEngineer', 'asset.project', 'project'])
+                ->whereDoesntHave('project', function($pq) use ($dummyNames) {
+                    $pq->whereIn('name', $dummyNames);
+                });
             if ($selectedClient) {
                 $ticketsQuery->where('client_name', 'like', "%{$selectedClient}%");
             }
@@ -97,7 +196,7 @@ class ManagedServiceController extends Controller
         $slaScore        = $totalSlaChecked > 0 ? round(($slaMetCount / $totalSlaChecked) * 100, 1) : 0;
 
         // Proyek di Tahap Operate / Managed Service (Selesai Serah Terima ke Managed Service)
-        $operateProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+        $operateProjects = Project::whereNotIn('name', array_merge(['DAY OFF', 'Day Off', 'Day Off / Cuti'], $dummyNames))
             ->where(function($q) {
                 $q->where('ms_handover_status', 'Accepted')
                   ->orWhere(function($sub) {
@@ -128,6 +227,9 @@ class ManagedServiceController extends Controller
 
         // Jadwal Preventive Maintenance Terdekat
         $upcomingPmSchedules = Schedule::with(['project', 'engineer', 'engineers'])
+            ->whereDoesntHave('project', function($pq) use ($dummyNames) {
+                $pq->whereIn('name', $dummyNames);
+            })
             ->where(function($q) {
                 $q->where('title', 'like', '%Maintenance%')
                   ->orWhere('title', 'like', '%Preventive%')
@@ -176,12 +278,15 @@ class ManagedServiceController extends Controller
         $maintenanceLoadWeekData = $buildMaintenanceLoad($weekTickets);
         $maintenanceLoadMonthData = $buildMaintenanceLoad($tickets);
 
-        $totalPmSchedulesCount = Schedule::where(function($q) {
-            $q->where('title', 'like', '%Maintenance%')
-              ->orWhere('title', 'like', '%Preventive%')
-              ->orWhere('title', 'like', '%Kunjungan%')
-              ->orWhere('title', 'like', '%Managed Service%');
-        })->whereMonth('date', now()->month)->count();
+        $totalPmSchedulesCount = Schedule::whereDoesntHave('project', function($pq) use ($dummyNames) {
+                $pq->whereIn('name', $dummyNames);
+            })
+            ->where(function($q) {
+                $q->where('title', 'like', '%Maintenance%')
+                  ->orWhere('title', 'like', '%Preventive%')
+                  ->orWhere('title', 'like', '%Kunjungan%')
+                  ->orWhere('title', 'like', '%Managed Service%');
+            })->whereMonth('date', now()->month)->count();
 
         // Ticket Type & Distribution Data for Doughnut Chart
         $ticketTypeData = [
@@ -1484,15 +1589,15 @@ class ManagedServiceController extends Controller
 
 
     /**
-     * Pastikan seluruh 7 proyek riil Managed Service resmi aktif dan siap dikelola persis sesuai data server
+     * Pastikan seluruh proyek Managed Service bersih (Dummy seeder dimatikan permanen)
      */
     public function ensureSampleProjectExists(): void
     {
-        // Guard: Nonaktifkan auto-seeding & auto-restore agar proyek yang dihapus/dibersihkan tidak muncul kembali saat pengujian data real
-        if (!request()->filled('force_seed_sample_ms')) {
-            return;
-        }
+        // Permanently disabled: Do not seed dummy sample projects
+        return;
+    }
 
+        /*
         try {
 
             // Hapus proyek dummy BCA dari seeder lama
@@ -1840,6 +1945,7 @@ class ManagedServiceController extends Controller
             }
         } catch (\Throwable $e) {}
     }
+    */
 
     /**
      * Daftar Proyek Managed Service
@@ -1854,8 +1960,9 @@ class ManagedServiceController extends Controller
             $perPage = 10;
         }
 
+        $dummyNames = self::getDummyProjectNames();
         $query = Project::with(['creator', 'pmCycles', 'managedServiceTickets', 'msAcceptedBy'])
-            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->whereNotIn('name', array_merge(['DAY OFF', 'Day Off', 'Day Off / Cuti'], $dummyNames))
             ->where(function($q) {
                 $q->whereNull('project_type')
                   ->orWhere(function($p) {

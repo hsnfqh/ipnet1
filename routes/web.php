@@ -772,29 +772,17 @@ Route::get('/clean-maintenance-data', function () {
 
         // 2. IDENTIFIKASI HANYA PROYEK MANAGED SERVICE / MAINTENANCE DUMMY
         // Pastikan PPATK, Bandara Ngurah Rai, dan proyek PMO lainnya TIDAK IKUT TERHAPUS!
+        $dummyNames = \App\Http\Controllers\ManagedServiceController::getDummyProjectNames();
         $msProjects = DB::table('projects')
-            ->where(function($q) {
-                $q->where('name', 'like', '%ATS Firewall%')
-                  ->orWhere('name', 'like', '%PSC-P3-AS1%')
-                  ->orWhere('name', 'like', '%Router Edge LAN (PE LAN) Sudirman%')
-                  ->orWhere('name', 'like', '%License Wi-Fi Sudirman%')
-                  ->orWhere('name', 'like', '%Wi-Fi Kantor Wilayah BRI Mataram%')
-                  ->orWhere('name', 'like', '%Wi-Fi Kantor Wilayah Jakarta%')
-                  ->orWhere('name', 'like', '%SLA Network & Server BATII%')
-                  ->orWhere('name', 'like', '%BATII%')
-                  ->orWhere('name', 'like', '%BP. BATAM%')
-                  ->orWhere('name', 'like', '%PE LAN BRI%')
-                  ->orWhere('name', 'like', '%EXTERNET ODC%')
-                  ->orWhere('client', 'like', '%BP Batam%')
-                  ->orWhere('handover_target', 'managed_service')
-                  ->orWhere('project_type', 'Managed Service SLA')
-                  ->orWhere('project_type', 'Maintenance');
+            ->where(function($q) use ($dummyNames) {
+                foreach ($dummyNames as $dName) {
+                    $q->orWhere('name', 'like', "%{$dName}%");
+                }
+                $q->orWhere('client', 'like', '%BP Batam%')
+                  ->orWhere('client', 'like', '%BATII%');
             })
             ->where('name', 'not like', '%PPAT%')
             ->where('name', 'not like', '%Ngurah Rai%')
-            ->where(function($q) {
-                $q->whereNull('project_type')->orWhere('project_type', '!=', 'Implementation');
-            })
             ->get(['id', 'name', 'client']);
 
         $msProjectIds = $msProjects->pluck('id')->toArray();
