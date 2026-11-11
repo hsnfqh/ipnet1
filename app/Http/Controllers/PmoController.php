@@ -26,9 +26,12 @@ class PmoController extends Controller
     public function dashboard(Request $request)
     {
         // Pastikan proyek resmi PPATK selalu tersedia di portofolio PMO
-        $hasPpatk = Project::where('name', 'like', '%PPAT%')
-            ->orWhere('name', 'like', '%Peremajaan Router%')
-            ->orWhere('client', 'like', '%PPAT%')
+        $hasPpatk = Project::withTrashed()
+            ->where(function ($q) {
+                $q->where('name', 'like', '%PPAT%')
+                    ->orWhere('name', 'like', '%Peremajaan Router%')
+                    ->orWhere('client', 'like', '%PPAT%');
+            })
             ->exists();
         if (!$hasPpatk) {
             try {
@@ -492,9 +495,12 @@ class PmoController extends Controller
             || str_contains(strtolower($project->name), 'peremajaan router');
 
         // Pastikan proyek resmi PPATK selalu ada di database
-        $hasPpatk = Project::where('name', 'like', '%PPAT%')
-            ->orWhere('name', 'like', '%Peremajaan Router%')
-            ->orWhere('client', 'like', '%PPAT%')
+        $hasPpatk = Project::withTrashed()
+            ->where(function ($q) {
+                $q->where('name', 'like', '%PPAT%')
+                    ->orWhere('name', 'like', '%Peremajaan Router%')
+                    ->orWhere('client', 'like', '%PPAT%');
+            })
             ->exists();
         if (!$hasPpatk) {
             try {
@@ -1894,9 +1900,12 @@ class PmoController extends Controller
     private function getPmoBaseData(Request $request)
     {
         // Pastikan data proyek resmi PPATK selalu tersedia di portofolio PMO
-        $hasPpatk = Project::where('name', 'like', '%PPAT%')
-            ->orWhere('name', 'like', '%Peremajaan Router%')
-            ->orWhere('client', 'like', '%PPAT%')
+        $hasPpatk = Project::withTrashed()
+            ->where(function ($q) {
+                $q->where('name', 'like', '%PPAT%')
+                    ->orWhere('name', 'like', '%Peremajaan Router%')
+                    ->orWhere('client', 'like', '%PPAT%');
+            })
             ->exists();
         if (!$hasPpatk) {
             try {
@@ -3530,5 +3539,89 @@ class PmoController extends Controller
 
         return redirect()->route('pmo.projects.show', $project->id)
             ->with('success', "Proyek '{$project->name}' berhasil dibuat! Canvas proyek siap diisi tugas WBS & jadwal kerja.");
+    }
+
+    /**
+     * Hapus Proyek PMO secara aman beserta seluruh task WBS & data turunannya
+     */
+    public function destroyProject(Request $request, Project $project)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated');
+        }
+
+        $canDelete = $user->hasAnyRole([
+            'Super Admin', 'Admin', 'PMO', 'Project Manager',
+            'Director', 'Direktur', 'HD / Direktur',
+            'Division Head', 'Group Leader', 'Group Leader Delivery & Operation'
+        ])
+        || $project->created_by == $user->id
+        || ($project->pm_id && $project->pm_id == $user->id)
+        || ($project->sales_name && str_contains(strtolower($project->sales_name), strtolower($user->name)))
+        || \App\Helpers\ScopeHelper::isExecutive($user);
+
+        if (!$canDelete) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki hak akses untuk menghapus proyek ini.'
+                ], 403);
+            }
+            return back()->with('error', 'Anda tidak memiliki hak akses untuk menghapus proyek ini.');
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $projectName = $project->name;
+
+            // Cascade delete child relations
+            $project->tasks()->delete();
+            $project->schedules()->delete();
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_expenses')) {
+                \Illuminate\Support\Facades\DB::table('project_expenses')->where('project_id', $project->id)->delete();
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+                \App\Models\ProjectDocument::where('project_id', $project->id)->delete();
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_milestones')) {
+                \Illuminate\Support\Facades\DB::table('project_milestones')->where('project_id', $project->id)->delete();
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_team_members')) {
+                \Illuminate\Support\Facades\DB::table('project_team_members')->where('project_id', $project->id)->delete();
+            }
+
+            $project->delete();
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Proyek '{$projectName}' berhasil dihapus!"
+                ], 200);
+            }
+
+            return redirect()->route('pmo.implementations.index')
+                ->with('success', "Proyek '{$projectName}' berhasil dihapus!");
+
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('PMO Destroy Project Error: ' . $e->getMessage());
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus proyek: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'Gagal menghapus proyek: ' . $e->getMessage());
+        }
     }
 }

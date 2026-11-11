@@ -36,7 +36,7 @@ class ProjectController extends Controller
 
         // Proyek dibuat oleh Sales / Commercial, PMO fokus pada serah terima & governance
         $canCreate       = !$isExecutive && !$isPmo && (\App\Helpers\ScopeHelper::canCreateProjects($user) || $isSales);
-        $canDelete       = $isExecutive || $isSales;
+        $canDelete       = $isExecutive || $isSales || ($user && $user->hasAnyRole(['Super Admin', 'Admin', 'PMO', 'Project Manager']));
         $canManage       = !$isExecutive && (\App\Helpers\ScopeHelper::isManagerial($user) || $isSales);
         $canEditProgress = !$isExecutive && (\App\Helpers\ScopeHelper::isTeamLeader($user) || \App\Helpers\ScopeHelper::isManagerial($user));
         $scopeIds        = \App\Helpers\ScopeHelper::getScopeUserIds($user);
@@ -219,8 +219,12 @@ class ProjectController extends Controller
         $isCreator = $user && (
             $project->created_by == $user->id 
             || ($project->sales_name && str_contains(strtolower($project->sales_name), strtolower($user->name)))
+            || ($project->pm_id && $project->pm_id == $user->id)
         );
-        $canDelete = $isCreator || \App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::canCreateProjects($user);
+        $canDelete = $isCreator 
+            || \App\Helpers\ScopeHelper::isExecutive($user) 
+            || \App\Helpers\ScopeHelper::canCreateProjects($user)
+            || ($user && $user->hasAnyRole(['Super Admin', 'Admin', 'PMO', 'Project Manager']));
 
         abort_unless($canDelete, 403, 'Anda tidak memiliki hak akses untuk menghapus project.');
 
