@@ -73,6 +73,14 @@ Route::get('/fix-cpanel-deploy', function () {
     return '<pre>' . implode("\n", $output) . '</pre>';
 });
 
+Route::get('/debug-db-projects', function () {
+    $projects = DB::table('projects')->get(['id', 'name', 'client', 'project_type', 'stage', 'status', 'handover_target', 'ms_handover_status']);
+    return response()->json([
+        'total' => $projects->count(),
+        'projects' => $projects
+    ]);
+});
+
 // Route ini TELAH DINONAKTIFKAN PERMANEN demi keamanan agar data perusahaan tidak terhapus.
 Route::get('/clean-dummy-data', function () {
     return response()->json([
