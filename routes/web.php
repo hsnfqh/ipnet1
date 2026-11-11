@@ -598,88 +598,98 @@ Route::get('/seed-ppatk-project', function () {
         ], 500);
     }
 });
+Route::get('/get-recent-log', function () {
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) return 'No log file';
+    return '<pre>' . htmlspecialchars(substr(file_get_contents($logFile), -4000)) . '</pre>';
+});
+
 // Route Backup Database Lengkap & Unduh File .SQL
 Route::get('/system-backup-full', function () {
     @set_time_limit(300);
     @ini_set('memory_limit', '512M');
 
-    $backupDir = storage_path('app/backups');
-    if (!file_exists($backupDir)) {
-        @mkdir($backupDir, 0775, true);
-    }
-
-    $timestamp = date('Y_m_d_His');
-    $fileName = "ipnet_full_db_backup_{$timestamp}.sql";
-    $filePath = $backupDir . '/' . $fileName;
-
-    $handle = fopen($filePath, 'w');
-    if (!$handle) {
-        return response()->json(['error' => 'Gagal membuat file backup di server.'], 500);
-    }
-
-    // Header
-    fwrite($handle, "-- ==========================================================\n");
-    fwrite($handle, "-- IP-NET SOLUSINDO FULL DATABASE BACKUP\n");
-    fwrite($handle, "-- Generated At: " . date('Y-m-d H:i:s') . "\n");
-    fwrite($handle, "-- ==========================================================\n\n");
-    fwrite($handle, "SET FOREIGN_KEY_CHECKS=0;\n");
-    fwrite($handle, "SET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\n");
-    fwrite($handle, "SET time_zone = \"+00:00\";\n\n");
-
-    // Ambil semua tabel
-    $tables = DB::select('SHOW TABLES');
-    $tableKey = 'Tables_in_' . DB::getDatabaseName();
-    $backedUpTables = [];
-
-    foreach ($tables as $tObj) {
-        $tbl = $tObj->$tableKey ?? array_values((array)$tObj)[0];
-        $backedUpTables[] = $tbl;
-
-        fwrite($handle, "\n-- --------------------------------------------------------\n");
-        fwrite($handle, "-- Table structure for table `{$tbl}`\n");
-        fwrite($handle, "-- --------------------------------------------------------\n");
-        fwrite($handle, "DROP TABLE IF EXISTS `{$tbl}`;\n");
-
-        $createRes = DB::select("SHOW CREATE TABLE `{$tbl}`");
-        $createSql = $createRes[0]->{'Create Table'} ?? '';
-        fwrite($handle, $createSql . ";\n\n");
-
-        // Dump baris
-        $count = DB::table($tbl)->count();
-        if ($count > 0) {
-            fwrite($handle, "-- Dumping data for table `{$tbl}` ({$count} rows)\n");
-            DB::table($tbl)->chunk(500, function ($rows) use ($handle, $tbl) {
-                foreach ($rows as $row) {
-                    $vals = [];
-                    foreach ((array)$row as $val) {
-                        if (is_null($val)) {
-                            $vals[] = 'NULL';
-                        } elseif (is_numeric($val) && !is_string($val)) {
-                            $vals[] = $val;
-                        } else {
-                            $vals[] = "'" . addslashes((string)$val) . "'";
-                        }
-                    }
-                    fwrite($handle, "INSERT INTO `{$tbl}` VALUES (" . implode(', ', $vals) . ");\n");
-                }
-            });
-            fwrite($handle, "\n");
+    try {
+        $backupDir = storage_path('app/backups');
+        if (!file_exists($backupDir)) {
+            @mkdir($backupDir, 0775, true);
         }
+
+        $timestamp = date('Y_m_d_His');
+        $fileName = "ipnet_full_db_backup_{$timestamp}.sql";
+        $filePath = $backupDir . '/' . $fileName;
+
+        $handle = fopen($filePath, 'w');
+        if (!$handle) {
+            return response()->json(['error' => 'Gagal membuat file backup di server.'], 500);
+        }
+
+        // Header
+        fwrite($handle, "-- ==========================================================\n");
+        fwrite($handle, "-- IP-NET SOLUSINDO FULL DATABASE BACKUP\n");
+        fwrite($handle, "-- Generated At: " . date('Y-m-d H:i:s') . "\n");
+        fwrite($handle, "-- ==========================================================\n\n");
+        fwrite($handle, "SET FOREIGN_KEY_CHECKS=0;\n");
+        fwrite($handle, "SET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\n");
+        fwrite($handle, "SET time_zone = \"+00:00\";\n\n");
+
+        // Ambil semua tabel dasar (bukan view)
+        $tables = DB::select("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'");
+        $tableKey = 'Tables_in_' . DB::getDatabaseName();
+        $backedUpTables = [];
+
+        foreach ($tables as $tObj) {
+            $tbl = $tObj->$tableKey ?? array_values((array)$tObj)[0];
+            $backedUpTables[] = $tbl;
+
+            fwrite($handle, "\n-- --------------------------------------------------------\n");
+            fwrite($handle, "-- Table structure for table `{$tbl}`\n");
+            fwrite($handle, "-- --------------------------------------------------------\n");
+            fwrite($handle, "DROP TABLE IF EXISTS `{$tbl}`;\n");
+
+            $createRes = DB::select("SHOW CREATE TABLE `{$tbl}`");
+            $createSql = $createRes[0]->{'Create Table'} ?? '';
+            fwrite($handle, $createSql . ";\n\n");
+
+            // Dump baris
+            $count = DB::table($tbl)->count();
+            if ($count > 0) {
+                fwrite($handle, "-- Dumping data for table `{$tbl}` ({$count} rows)\n");
+                DB::table($tbl)->chunk(500, function ($rows) use ($handle, $tbl) {
+                    foreach ($rows as $row) {
+                        $vals = [];
+                        foreach ((array)$row as $val) {
+                            if (is_null($val)) {
+                                $vals[] = 'NULL';
+                            } elseif (is_numeric($val) && !is_string($val)) {
+                                $vals[] = $val;
+                            } else {
+                                $vals[] = "'" . addslashes((string)$val) . "'";
+                            }
+                        }
+                        fwrite($handle, "INSERT INTO `{$tbl}` VALUES (" . implode(', ', $vals) . ");\n");
+                    }
+                });
+                fwrite($handle, "\n");
+            }
+        }
+
+        fwrite($handle, "\nSET FOREIGN_KEY_CHECKS=1;\n");
+        fclose($handle);
+
+        $fileSizeKb = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) : 0;
+
+        return response()->json([
+            'status'         => 'success',
+            'message'        => 'Backup database berhasil dibuat 100%!',
+            'file_name'      => $fileName,
+            'file_size'      => $fileSizeKb . ' KB',
+            'tables_count'   => count($backedUpTables),
+            'download_url'   => url('/download-system-backup/' . $fileName),
+        ], 200, [], JSON_PRETTY_PRINT);
+    } catch (\Throwable $e) {
+        return response("<h2 style='color:red'>ERROR BACKUP: " . htmlspecialchars($e->getMessage()) . " in " . $e->getFile() . ":" . $e->getLine() . "</h2><pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>", 500);
     }
-
-    fwrite($handle, "\nSET FOREIGN_KEY_CHECKS=1;\n");
-    fclose($handle);
-
-    $fileSizeKb = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) : 0;
-
-    return response()->json([
-        'status'         => 'success',
-        'message'        => 'Backup database berhasil dibuat 100%!',
-        'file_name'      => $fileName,
-        'file_size'      => $fileSizeKb . ' KB',
-        'tables_count'   => count($backedUpTables),
-        'download_url'   => url('/download-system-backup/' . $fileName),
-    ], 200, [], JSON_PRETTY_PRINT);
 });
 
 // Route Unduh File Backup SQL
@@ -699,201 +709,205 @@ Route::get('/clean-maintenance-data', function () {
     @set_time_limit(300);
     @ini_set('memory_limit', '512M');
 
-    // 1. OTOMATIS BACKUP TERLEBIH DAHULU SEBELUM MENGHAPUS APA PUN!
-    $backupDir = storage_path('app/backups');
-    if (!file_exists($backupDir)) {
-        @mkdir($backupDir, 0775, true);
-    }
-    $timestamp = date('Y_m_d_His');
-    $fileName = "backup_before_cleanup_ms_{$timestamp}.sql";
-    $filePath = $backupDir . '/' . $fileName;
-
-    $handle = fopen($filePath, 'w');
-    if ($handle) {
-        fwrite($handle, "-- IP-NET FULL DATABASE BACKUP BEFORE MANAGED SERVICE CLEANUP\n");
-        fwrite($handle, "-- Timestamp: {$timestamp}\n\nSET FOREIGN_KEY_CHECKS=0;\nSET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\n");
-        $tables = DB::select('SHOW TABLES');
-        $tableKey = 'Tables_in_' . DB::getDatabaseName();
-        foreach ($tables as $tObj) {
-            $tbl = $tObj->$tableKey ?? array_values((array)$tObj)[0];
-            $createRes = DB::select("SHOW CREATE TABLE `{$tbl}`");
-            $createSql = $createRes[0]->{'Create Table'} ?? '';
-            fwrite($handle, "DROP TABLE IF EXISTS `{$tbl}`;\n{$createSql};\n");
-            DB::table($tbl)->chunk(500, function ($rows) use ($handle, $tbl) {
-                foreach ($rows as $row) {
-                    $vals = [];
-                    foreach ((array)$row as $val) {
-                        if (is_null($val)) {
-                            $vals[] = 'NULL';
-                        } elseif (is_numeric($val) && !is_string($val)) {
-                            $vals[] = $val;
-                        } else {
-                            $vals[] = "'" . addslashes((string)$val) . "'";
-                        }
-                    }
-                    fwrite($handle, "INSERT INTO `{$tbl}` VALUES (" . implode(', ', $vals) . ");\n");
-                }
-            });
-        }
-        fwrite($handle, "SET FOREIGN_KEY_CHECKS=1;\n");
-        fclose($handle);
-    }
-
-    $backupSizeKb = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) : 0;
-
-    // 2. IDENTIFIKASI HANYA PROYEK MANAGED SERVICE / MAINTENANCE DUMMY
-    // Pastikan PPATK, Bandara Ngurah Rai, dan proyek PMO lainnya TIDAK IKUT TERHAPUS!
-    $msProjects = DB::table('projects')
-        ->where(function($q) {
-            $q->where('name', 'like', '%ATS Firewall%')
-              ->orWhere('name', 'like', '%PSC-P3-AS1%')
-              ->orWhere('name', 'like', '%Router Edge LAN (PE LAN) Sudirman%')
-              ->orWhere('name', 'like', '%License Wi-Fi Sudirman%')
-              ->orWhere('name', 'like', '%Wi-Fi Kantor Wilayah BRI Mataram%')
-              ->orWhere('name', 'like', '%Wi-Fi Kantor Wilayah Jakarta%')
-              ->orWhere('name', 'like', '%SLA Network & Server BATII%')
-              ->orWhere('name', 'like', '%BATII%')
-              ->orWhere('name', 'like', '%BP. BATAM%')
-              ->orWhere('name', 'like', '%PE LAN BRI%')
-              ->orWhere('name', 'like', '%EXTERNET ODC%')
-              ->orWhere('client', 'like', '%BP Batam%')
-              ->orWhere('handover_target', 'managed_service')
-              ->orWhere('project_type', 'Managed Service SLA')
-              ->orWhere('project_type', 'Maintenance');
-        })
-        ->where('name', 'not like', '%PPAT%')
-        ->where('name', 'not like', '%Ngurah Rai%')
-        ->where(function($q) {
-            $q->whereNull('project_type')->orWhere('project_type', '!=', 'Implementation');
-        })
-        ->get(['id', 'name', 'client']);
-
-    $msProjectIds = $msProjects->pluck('id')->toArray();
-    $msProjectNames = $msProjects->pluck('name')->toArray();
-
-    // 3. HAPUS DATA TERKAIT HANYA UNTUK PROYEK MANAGED SERVICE INI
-    $deletedTickets = 0;
-    if (Schema::hasTable('managed_service_tickets')) {
-        $deletedTickets = DB::table('managed_service_tickets')
-            ->whereIn('project_id', $msProjectIds)
-            ->orWhereIn('client_name', ['BP Batam', 'BATII', 'PT. Bank Rakyat Indoensia Tbk (BRI)', 'Kantor Wilayah BRI Mataram', 'Kantor Wilayah BRI Jakarta'])
-            ->delete();
-    }
-
-    $deletedAssets = 0;
-    if (Schema::hasTable('managed_service_assets')) {
-        $deletedAssets = DB::table('managed_service_assets')
-            ->whereIn('project_id', $msProjectIds)
-            ->orWhere('owner_type', 'client')
-            ->delete();
-    }
-
-    $deletedReports = 0;
-    if (Schema::hasTable('managed_service_reports')) {
-        $deletedReports = DB::table('managed_service_reports')
-            ->whereIn('project_id', $msProjectIds)
-            ->delete();
-    }
-
-    $deletedPmCycles = 0;
-    if (Schema::hasTable('pm_cycles')) {
-        $deletedPmCycles = DB::table('pm_cycles')
-            ->whereIn('project_id', $msProjectIds)
-            ->delete();
-    }
-
-    $deletedSchedules = 0;
-    if (Schema::hasTable('schedules')) {
-        $deletedSchedules = DB::table('schedules')
-            ->whereIn('project_id', $msProjectIds)
-            ->orWhere(function($q) use ($msProjectNames) {
-                foreach ($msProjectNames as $pName) {
-                    $q->orWhere('title', 'like', "%{$pName}%");
-                }
-            })
-            ->delete();
-    }
-
-    $deletedTasks = 0;
-    if (Schema::hasTable('tasks')) {
-        $deletedTasks = DB::table('tasks')
-            ->whereIn('project_id', $msProjectIds)
-            ->delete();
-    }
-
-    // Force delete proyek maintenance
-    $deletedProjectsCount = DB::table('projects')
-        ->whereIn('id', $msProjectIds)
-        ->delete();
-
-    // Bersihkan cache aplikasi
     try {
-        \Illuminate\Support\Facades\Artisan::call('view:clear');
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        \Illuminate\Support\Facades\Artisan::call('config:clear');
-        if (function_exists('opcache_reset')) {
-            @opcache_reset();
+        // 1. OTOMATIS BACKUP TERLEBIH DAHULU SEBELUM MENGHAPUS APA PUN!
+        $backupDir = storage_path('app/backups');
+        if (!file_exists($backupDir)) {
+            @mkdir($backupDir, 0775, true);
         }
-    } catch (\Throwable $e) {}
+        $timestamp = date('Y_m_d_His');
+        $fileName = "backup_before_cleanup_ms_{$timestamp}.sql";
+        $filePath = $backupDir . '/' . $fileName;
 
-    return response("
-    <!DOCTYPE html>
-    <html lang='id'>
-    <head>
-        <meta charset='UTF-8'>
-        <title>Pembersihan Data Managed Service Berhasil - IP-NET Solusindo</title>
-        <link href='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap' rel='stylesheet'>
-        <style>
-            body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0F172A; color: #E2E8F0; margin: 0; padding: 40px 20px; line-height: 1.6; }
-            .container { max-width: 800px; margin: 0 auto; background: #1E293B; border: 1px solid #334155; border-radius: 20px; padding: 36px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-            .badge-success { display: inline-block; background: #10B981; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px; }
-            h1 { color: #FFFFFF; font-size: 22px; margin: 16px 0 8px; font-weight: 800; }
-            .card { background: #0F172A; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin: 20px 0; }
-            .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 13px; text-decoration: none; cursor: pointer; transition: 0.2s; }
-            .btn-download { background: #10B981; color: white; }
-            .btn-download:hover { background: #059669; }
-            .btn-dash { background: #8F0A0D; color: white; margin-left: 10px; }
-            .btn-dash:hover { background: #73080A; }
-            ul { margin: 8px 0; padding-left: 20px; }
-            li { margin-bottom: 6px; font-size: 13.5px; }
-        </style>
-    </head>
-    <body>
-        <div class='container'>
-            <span class='badge-success'>BERHASIL DIBERSIHKAN</span>
-            <h1>Pembersihan Data Managed Service Selesai</h1>
-            <p style='color: #94A3B8; font-size: 14px;'>Data dummy Managed Service telah dibersihkan. Sistem kini siap digunakan untuk pengujian data riil.</p>
+        $handle = fopen($filePath, 'w');
+        if ($handle) {
+            fwrite($handle, "-- IP-NET FULL DATABASE BACKUP BEFORE MANAGED SERVICE CLEANUP\n");
+            fwrite($handle, "-- Timestamp: {$timestamp}\n\nSET FOREIGN_KEY_CHECKS=0;\nSET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\n");
+            $tables = DB::select("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'");
+            $tableKey = 'Tables_in_' . DB::getDatabaseName();
+            foreach ($tables as $tObj) {
+                $tbl = $tObj->$tableKey ?? array_values((array)$tObj)[0];
+                $createRes = DB::select("SHOW CREATE TABLE `{$tbl}`");
+                $createSql = $createRes[0]->{'Create Table'} ?? '';
+                fwrite($handle, "DROP TABLE IF EXISTS `{$tbl}`;\n{$createSql};\n");
+                DB::table($tbl)->chunk(500, function ($rows) use ($handle, $tbl) {
+                    foreach ($rows as $row) {
+                        $vals = [];
+                        foreach ((array)$row as $val) {
+                            if (is_null($val)) {
+                                $vals[] = 'NULL';
+                            } elseif (is_numeric($val) && !is_string($val)) {
+                                $vals[] = $val;
+                            } else {
+                                $vals[] = "'" . addslashes((string)$val) . "'";
+                            }
+                        }
+                        fwrite($handle, "INSERT INTO `{$tbl}` VALUES (" . implode(', ', $vals) . ");\n");
+                    }
+                });
+            }
+            fwrite($handle, "SET FOREIGN_KEY_CHECKS=1;\n");
+            fclose($handle);
+        }
 
-            <div class='card'>
-                <h3 style='margin-top:0; color: #38BDF8; font-size: 15px;'>🛡️ File Backup Database Lengkap Telah Dibuat:</h3>
-                <p style='font-size: 13px; color: #CBD5E1;'>Sebelum data dihapus, sistem telah mengamankan 100% database Anda ke file SQL berikut:</p>
-                <div style='background: #1E293B; padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 13px; color: #4ADE80; border: 1px solid #334155; margin-bottom: 14px;'>
-                    {$fileName} ({$backupSizeKb} KB)
+        $backupSizeKb = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) : 0;
+
+        // 2. IDENTIFIKASI HANYA PROYEK MANAGED SERVICE / MAINTENANCE DUMMY
+        // Pastikan PPATK, Bandara Ngurah Rai, dan proyek PMO lainnya TIDAK IKUT TERHAPUS!
+        $msProjects = DB::table('projects')
+            ->where(function($q) {
+                $q->where('name', 'like', '%ATS Firewall%')
+                  ->orWhere('name', 'like', '%PSC-P3-AS1%')
+                  ->orWhere('name', 'like', '%Router Edge LAN (PE LAN) Sudirman%')
+                  ->orWhere('name', 'like', '%License Wi-Fi Sudirman%')
+                  ->orWhere('name', 'like', '%Wi-Fi Kantor Wilayah BRI Mataram%')
+                  ->orWhere('name', 'like', '%Wi-Fi Kantor Wilayah Jakarta%')
+                  ->orWhere('name', 'like', '%SLA Network & Server BATII%')
+                  ->orWhere('name', 'like', '%BATII%')
+                  ->orWhere('name', 'like', '%BP. BATAM%')
+                  ->orWhere('name', 'like', '%PE LAN BRI%')
+                  ->orWhere('name', 'like', '%EXTERNET ODC%')
+                  ->orWhere('client', 'like', '%BP Batam%')
+                  ->orWhere('handover_target', 'managed_service')
+                  ->orWhere('project_type', 'Managed Service SLA')
+                  ->orWhere('project_type', 'Maintenance');
+            })
+            ->where('name', 'not like', '%PPAT%')
+            ->where('name', 'not like', '%Ngurah Rai%')
+            ->where(function($q) {
+                $q->whereNull('project_type')->orWhere('project_type', '!=', 'Implementation');
+            })
+            ->get(['id', 'name', 'client']);
+
+        $msProjectIds = $msProjects->pluck('id')->toArray();
+        $msProjectNames = $msProjects->pluck('name')->toArray();
+
+        // 3. HAPUS DATA TERKAIT HANYA UNTUK PROYEK MANAGED SERVICE INI
+        $deletedTickets = 0;
+        if (Schema::hasTable('managed_service_tickets')) {
+            $deletedTickets = DB::table('managed_service_tickets')
+                ->whereIn('project_id', $msProjectIds)
+                ->orWhereIn('client_name', ['BP Batam', 'BATII', 'PT. Bank Rakyat Indoensia Tbk (BRI)', 'Kantor Wilayah BRI Mataram', 'Kantor Wilayah BRI Jakarta'])
+                ->delete();
+        }
+
+        $deletedAssets = 0;
+        if (Schema::hasTable('managed_service_assets')) {
+            $deletedAssets = DB::table('managed_service_assets')
+                ->whereIn('project_id', $msProjectIds)
+                ->orWhere('owner_type', 'client')
+                ->delete();
+        }
+
+        $deletedReports = 0;
+        if (Schema::hasTable('managed_service_reports')) {
+            $deletedReports = DB::table('managed_service_reports')
+                ->whereIn('project_id', $msProjectIds)
+                ->delete();
+        }
+
+        $deletedPmCycles = 0;
+        if (Schema::hasTable('pm_cycles')) {
+            $deletedPmCycles = DB::table('pm_cycles')
+                ->whereIn('project_id', $msProjectIds)
+                ->delete();
+        }
+
+        $deletedSchedules = 0;
+        if (Schema::hasTable('schedules')) {
+            $deletedSchedules = DB::table('schedules')
+                ->whereIn('project_id', $msProjectIds)
+                ->orWhere(function($q) use ($msProjectNames) {
+                    foreach ($msProjectNames as $pName) {
+                        $q->orWhere('title', 'like', "%{$pName}%");
+                    }
+                })
+                ->delete();
+        }
+
+        $deletedTasks = 0;
+        if (Schema::hasTable('tasks')) {
+            $deletedTasks = DB::table('tasks')
+                ->whereIn('project_id', $msProjectIds)
+                ->delete();
+        }
+
+        // Force delete proyek maintenance
+        $deletedProjectsCount = DB::table('projects')
+            ->whereIn('id', $msProjectIds)
+            ->delete();
+
+        // Bersihkan cache aplikasi
+        try {
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            if (function_exists('opcache_reset')) {
+                @opcache_reset();
+            }
+        } catch (\Throwable $e) {}
+
+        return response("
+        <!DOCTYPE html>
+        <html lang='id'>
+        <head>
+            <meta charset='UTF-8'>
+            <title>Pembersihan Data Managed Service Berhasil - IP-NET Solusindo</title>
+            <link href='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap' rel='stylesheet'>
+            <style>
+                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0F172A; color: #E2E8F0; margin: 0; padding: 40px 20px; line-height: 1.6; }
+                .container { max-width: 800px; margin: 0 auto; background: #1E293B; border: 1px solid #334155; border-radius: 20px; padding: 36px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+                .badge-success { display: inline-block; background: #10B981; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px; }
+                h1 { color: #FFFFFF; font-size: 22px; margin: 16px 0 8px; font-weight: 800; }
+                .card { background: #0F172A; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin: 20px 0; }
+                .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 13px; text-decoration: none; cursor: pointer; transition: 0.2s; }
+                .btn-download { background: #10B981; color: white; }
+                .btn-download:hover { background: #059669; }
+                .btn-dash { background: #8F0A0D; color: white; margin-left: 10px; }
+                .btn-dash:hover { background: #73080A; }
+                ul { margin: 8px 0; padding-left: 20px; }
+                li { margin-bottom: 6px; font-size: 13.5px; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <span class='badge-success'>BERHASIL DIBERSIHKAN</span>
+                <h1>Pembersihan Data Managed Service Selesai</h1>
+                <p style='color: #94A3B8; font-size: 14px;'>Data dummy Managed Service telah dibersihkan. Sistem kini siap digunakan untuk pengujian data riil.</p>
+
+                <div class='card'>
+                    <h3 style='margin-top:0; color: #38BDF8; font-size: 15px;'>🛡️ File Backup Database Lengkap Telah Dibuat:</h3>
+                    <p style='font-size: 13px; color: #CBD5E1;'>Sebelum data dihapus, sistem telah mengamankan 100% database Anda ke file SQL berikut:</p>
+                    <div style='background: #1E293B; padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 13px; color: #4ADE80; border: 1px solid #334155; margin-bottom: 14px;'>
+                        {$fileName} ({$backupSizeKb} KB)
+                    </div>
+                    <a href='/download-system-backup/{$fileName}' class='btn btn-download'>⬇️ Unduh File Backup .SQL ke Komputer</a>
                 </div>
-                <a href='/download-system-backup/{$fileName}' class='btn btn-download'>⬇️ Unduh File Backup .SQL ke Komputer</a>
-            </div>
 
-            <div class='card'>
-                <h3 style='margin-top:0; color: #F1F5F9; font-size: 15px;'>📊 Ringkasan Data yang Dibersihkan:</h3>
-                <ul>
-                    <li><strong>Proyek Kontrak Managed Service:</strong> {$deletedProjectsCount} proyek dihapus</li>
-                    <li><strong>Tiket Layanan SLA / Incident:</strong> {$deletedTickets} tiket dibersihkan</li>
-                    <li><strong>Jadwal Kunjungan & Maintenance (Schedules):</strong> {$deletedSchedules} jadwal dibersihkan</li>
-                    <li><strong>Siklus Preventive Maintenance (PM Cycles):</strong> {$deletedPmCycles} siklus dibersihkan</li>
-                    <li><strong>Aset Perangkat Maintenance Klien:</strong> {$deletedAssets} aset dibersihkan</li>
-                </ul>
-                <p style='color: #4ADE80; font-size: 12.5px; margin-bottom: 0;'>
-                    ✅ <strong>Data PMO (Implementasi), Akun Pengguna (Users & Roles), dan Master Data dipastikan 100% UTUH dan AMAN.</strong>
-                </p>
-            </div>
+                <div class='card'>
+                    <h3 style='margin-top:0; color: #F1F5F9; font-size: 15px;'>📊 Ringkasan Data yang Dibersihkan:</h3>
+                    <ul>
+                        <li><strong>Proyek Kontrak Managed Service:</strong> {$deletedProjectsCount} proyek dihapus</li>
+                        <li><strong>Tiket Layanan SLA / Incident:</strong> {$deletedTickets} tiket dibersihkan</li>
+                        <li><strong>Jadwal Kunjungan & Maintenance (Schedules):</strong> {$deletedSchedules} jadwal dibersihkan</li>
+                        <li><strong>Siklus Preventive Maintenance (PM Cycles):</strong> {$deletedPmCycles} siklus dibersihkan</li>
+                        <li><strong>Aset Perangkat Maintenance Klien:</strong> {$deletedAssets} aset dibersihkan</li>
+                    </ul>
+                    <p style='color: #4ADE80; font-size: 12.5px; margin-bottom: 0;'>
+                        ✅ <strong>Data PMO (Implementasi), Akun Pengguna (Users & Roles), dan Master Data dipastikan 100% UTUH dan AMAN.</strong>
+                    </p>
+                </div>
 
-            <div style='margin-top: 24px; text-align: right;'>
-                <a href='/managed-service' class='btn btn-dash'>Buka Dashboard Managed Service →</a>
+                <div style='margin-top: 24px; text-align: right;'>
+                    <a href='/managed-service' class='btn btn-dash'>Buka Dashboard Managed Service →</a>
+                </div>
             </div>
-        </div>
-    </body>
-    </html>
-    ");
+        </body>
+        </html>
+        ");
+    } catch (\Throwable $e) {
+        return response("<h2 style='color:red'>ERROR CLEANUP: " . htmlspecialchars($e->getMessage()) . " in " . $e->getFile() . ":" . $e->getLine() . "</h2><pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>", 500);
+    }
 });
 
 Route::get('/clear-managed-service-projects', function () {
