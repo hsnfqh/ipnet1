@@ -1724,7 +1724,6 @@
                             </label>
                             <input type="text" 
                                    name="sales_name" 
-                                   list="sales_name_suggestions"
                                    placeholder="Contoh: Raiza / Nabylla / Direct PMO"
                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                         </div>
@@ -2053,14 +2052,6 @@
                             </div>
                         </div>
 
-                        {{-- Datalist Rekomendasi Nama Sales PIC --}}
-                        <datalist id="sales_name_suggestions">
-                            <option value="Raiza"></option>
-                            <option value="Nabylla"></option>
-                            <option value="Direct PMO"></option>
-                            <option value="Tim Sales IPNet"></option>
-                        </datalist>
-
                         {{-- Baris 3: Account Executive / Sales PIC & Project Manager --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1">
@@ -2070,7 +2061,6 @@
                                 <input type="text" 
                                        name="sales_name" 
                                        x-model="editProject.sales_name"
-                                       list="sales_name_suggestions"
                                        placeholder="Nama Sales PIC (misal: Raiza / Nabylla / Direct PMO)"
                                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                             </div>
