@@ -285,6 +285,15 @@ class ScopeHelper
             return null;
         }
 
+        // 1.5. Tim Maintenance -> Akses bersama 3 personel tim maintenance (Doris, Mario, Eris)
+        if (self::isMaintenance($user)) {
+            return \App\Models\User::where(function($q) {
+                $q->where('division_id', 3)
+                  ->orWhereHas('roles', fn($r) => $r->whereIn('name', ['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)']))
+                  ->orWhereIn('name', ['Doris', 'Mario', 'Eris']);
+            })->active()->pluck('id')->toArray();
+        }
+
         // 2. Team Leader (Lead Network, Lead Security, Lead Maintenance, Lead Engineer) -> Akses hanya divisi sendiri
         if (self::isTeamLeader($user)) {
             if ($user->division_id) {
@@ -348,11 +357,12 @@ class ScopeHelper
             })->active()->get();
         }
 
-        // 2. Lead Maintenance -> Hanya staf tim maintenance sendiri (Divisi 3)
+        // 2. Tim Maintenance -> Hanya 3 personel tim maintenance sendiri (Doris, Mario, Eris / Divisi 3)
         if (self::isMaintenance($user)) {
             return \App\Models\User::where(function($q) {
                 $q->where('division_id', 3)
-                  ->orWhereHas('roles', fn($rq) => $rq->whereIn('name', ['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)']));
+                  ->orWhereHas('roles', fn($rq) => $rq->whereIn('name', ['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)']))
+                  ->orWhereIn('name', ['Doris', 'Mario', 'Eris']);
             })->active()->orderBy('name')->get();
         }
 
@@ -413,6 +423,7 @@ class ScopeHelper
     public static function canManageSchedules($user): bool
     {
         if (!$user) return false;
+        if (self::isMaintenance($user)) return true;
         return $user->hasAnyRole([
             'Director',
             'Direktur',

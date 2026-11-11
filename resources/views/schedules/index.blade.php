@@ -64,6 +64,12 @@
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Jadwal Kerja, Meeting &amp; PoC Presales</h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">Atur jadwal koordinasi dengan tim presales, sesi Proof of Concept (PoC), demo solusi, dan pertemuan klien</p>
+                        @elseif($isMaintenance ?? false)
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> PENJADWALAN MAINTENANCE &amp; MANAGED SERVICE
+                        </p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Jadwal Kerja &amp; Penugasan Maintenance</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Kelola agenda kunjungan Preventive Maintenance (PM), ticket support SLA, dan jadwal tim maintenance</p>
                         @else
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> MANAJEMEN PENJADWALAN
@@ -93,7 +99,7 @@
 
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="flex flex-wrap items-center gap-2.5">
-                        @if($isLead)
+                        @if($isLead || ($isMaintenance ?? false))
                         <div class="relative">
                             <select class="px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer" 
                                     x-model="engineerFilter">
@@ -181,7 +187,7 @@
             <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2"
                  x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-avail-head">
-                    <span class="jkw-eyebrow">Ketersediaan Engineer - <span x-text="periodLabel"></span></span>
+                    <span class="jkw-eyebrow">{{ ($isMaintenance ?? false) ? 'Ketersediaan Tim Maintenance' : 'Ketersediaan Engineer' }} - <span x-text="periodLabel"></span></span>
                     <label class="jkw-check">
                         <input type="checkbox" x-model="showOnlyAvailable">
                         <span>Hanya yang tersedia</span>
@@ -374,16 +380,39 @@
                                                 <span style="color:#64748B;" x-text="schedule.location"></span>
                                             </span>
                                         </template>
+
+                                        <!-- Inisiator / Pembuat Jadwal -->
+                                        <template x-if="schedule.creator_name || (schedule.creator && schedule.creator.name)">
+                                            <span style="display:inline-flex; align-items:center; gap:5px; font-size:11px; color:#64748B;">
+                                                <span class="jkw-sep">&bull;</span>
+                                                <span style="color:#64748B;">Inisiator:</span>
+                                                <strong style="color:#334155;" x-text="schedule.creator_name || schedule.creator.name"></strong>
+                                            </span>
+                                        </template>
                                     </div>
                                 </div>
 
                                 <!-- Actions (Right) -->
                                 <div class="jkw-day-actions">
                                     <template x-if="schedule._type === 'task'">
-                                        <a href="/tasks" class="jkw-btn-task-action" title="Kelola tiket di menu Task">
-                                            <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                            <span>Kelola di Task</span>
-                                        </a>
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <template x-if="schedule.is_pm">
+                                                <a :href="'/managed-service/' + (schedule.project_id || '')" class="jkw-btn-task-action" style="background:#FEF2F2; color:#8F0A0D; border:1px solid #FECACA;" title="Buka Detail Proyek Managed Service & PM">
+                                                    <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                    <span>Detail PM</span>
+                                                </a>
+                                            </template>
+                                            <template x-if="!schedule.is_pm">
+                                                <a href="/tasks" class="jkw-btn-task-action" title="Kelola tiket di menu Task">
+                                                    <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                                    <span>Kelola di Task</span>
+                                                </a>
+                                            </template>
+                                            <button type="button" @click="handleEventClick(schedule)" class="jkw-btn-edit" style="background:#F8FAFC; color:#475569; border:1px solid #CBD5E1;" title="Lihat Detail Lengkap">
+                                                <svg style="width:12px; height:12px; color:#475569;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                <span>Detail</span>
+                                            </button>
+                                        </div>
                                     </template>
                                     <template x-if="schedule._type !== 'task'">
                                         @if($canManageSchedule ?? false)
@@ -850,6 +879,29 @@
                                 </div>
                             </div>
 
+                            <!-- Inisiator & Status Realisasi Card -->
+                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:10px 14px; margin-bottom:12px;" x-show="form.creator_name || (form.creator && form.creator.name) || form.status">
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <div style="width:28px; height:28px; border-radius:50%; background:#EFF6FF; border:1px solid #BFDBFE; display:flex; align-items:center; justify-content:center; color:#1D4ED8; flex-shrink:0;">
+                                            <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                        </div>
+                                        <div>
+                                            <span style="display:block; font-size:9.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px;">DIBUAT / DIINISIASI OLEH</span>
+                                            <strong style="font-size:12px; color:#0F172A;" x-text="form.creator_name || (form.creator ? form.creator.name : '-')"></strong>
+                                        </div>
+                                    </div>
+                                    <template x-if="form.status">
+                                        <div style="text-align:right;">
+                                            <span style="display:block; font-size:9.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px;">STATUS REALISASI</span>
+                                            <span style="display:inline-block; font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:6px; margin-top:2px;"
+                                                  :style="form.status === 'Completed' ? 'background:#DCFCE7; color:#166534; border:1px solid #BBF7D0;' : (form.status === 'In Progress' ? 'background:#FEF3C7; color:#92400E; border:1px solid #FDE68A;' : 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;')"
+                                                  x-text="form.status"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
                             <!-- Multi Sesi (Jika ada) -->
                             <template x-if="form.sessions && form.sessions.length > 1">
                                 <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:11px 14px; margin-bottom:12px;">
@@ -903,12 +955,23 @@
                                     </div>
                                 </template>
                                 <template x-if="!editing">
-                                    <button type="button" @click="modalOpen = false" 
-                                            style="width:100%; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:10px 16px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease;"
-                                            onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8'; this.style.color='#0F172A';"
-                                            onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1'; this.style.color='#334155';">
-                                        Tutup
-                                    </button>
+                                    <div style="display:flex; gap:8px; width:100%;">
+                                        <template x-if="form.is_pm && form.project_id">
+                                            <a :href="'/managed-service/' + form.project_id" 
+                                               class="btn-ipnet-gradient" 
+                                               style="flex:1; justify-content:center; padding:10px 16px; border-radius:9px; font-weight:700; font-size:12.5px; display:inline-flex; align-items:center; gap:6px; text-decoration:none;"
+                                               title="Buka Proyek Managed Service">
+                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                                Buka Detail Proyek MS
+                                            </a>
+                                        </template>
+                                        <button type="button" @click="modalOpen = false" 
+                                                style="flex:1; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:10px 16px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease;"
+                                                onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8'; this.style.color='#0F172A';"
+                                                onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1'; this.style.color='#334155';">
+                                            Tutup
+                                        </button>
+                                    </div>
                                 </template>
                                 @else
                                 <button type="button" @click="modalOpen = false" 
@@ -3073,7 +3136,9 @@
                                         ? String(t.deadline).split(' ')[1].substring(0, 5) 
                                         : ''));
 
-                            var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
+                            var isPm = !!t.is_pm;
+                            var creatorName = (t.creator && t.creator.name) ? t.creator.name : (t.creator_name || '');
+                            var taskTimeLabel = dTime ? (dTime + ' WIB') : (isPm ? 'Kunjungan PM' : 'Kegiatan');
                             var taskEngLabel = '';
                             if (t.engineers && t.engineers.length > 0) {
                                 taskEngLabel = t.engineers.map(function(e) { 
@@ -3090,17 +3155,20 @@
                                 taskEngLabel = t.project.name;
                             }
 
+                            var tooltipText = (isPm ? 'Kegiatan PM: ' : 'Jadwal Kegiatan: ') + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (creatorName ? '\nInisiator: ' + creatorName : '') + (taskEngLabel ? '\nTeknisi: ' + taskEngLabel : '');
+
                             map[d].push({
                                 _uid: 'task-' + t.id,
                                 _type: 'task',
                                 _color: '#C81E2C',
                                 _displayTitle: t.title,
                                 _timeLabel: taskTimeLabel,
-                                _tooltip: 'Jadwal Kegiatan: ' + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (taskEngLabel ? '\nEngineer: ' + taskEngLabel : ''),
+                                _tooltip: tooltipText,
                                 _subLabel: taskEngLabel,
                                 id: t.id,
                                 title: t.title,
                                 project: t.project,
+                                project_id: t.project_id || (t.project ? t.project.id : null),
                                 engineer: t.engineer,
                                 engineers: t.engineers || [],
                                 priority: t.priority,
@@ -3109,8 +3177,13 @@
                                 deadline_time: dTime,
                                 start_time: dTime,
                                 end_time: '',
-                                location: '',
-                                description: ''
+                                location: t.project ? (t.project.location || t.project.client || '') : '',
+                                description: t.description || '',
+                                creator: t.creator || null,
+                                creator_name: creatorName,
+                                is_pm: isPm,
+                                cycle_label: t.cycle_label || '',
+                                cycle_number: t.cycle_number || null,
                             });
                         });
                     }
@@ -3375,7 +3448,7 @@
                         this.form = {
                             id: isRealSchedule ? schedule.id : null,
                             title: schedule.title || schedule._displayTitle || '',
-                            category: schedule.category || 'Meeting',
+                            category: schedule.category || (schedule.is_pm ? 'Preventive Maintenance' : 'Meeting'),
                             project_id: matchedProjId,
                             new_project_name: '',
                             engineer_id: engIds[0] || null,
@@ -3391,6 +3464,10 @@
                             end_time: schEnd,
                             location: schLoc,
                             description: this.cleanDescription(schedule.description),
+                            creator: schedule.creator || null,
+                            creator_name: schedule.creator_name || (schedule.creator ? schedule.creator.name : ''),
+                            is_pm: !!schedule.is_pm,
+                            status: schedule.status || null,
                             create_task: false,
                             task_priority: 'High',
                             send_wa: false,

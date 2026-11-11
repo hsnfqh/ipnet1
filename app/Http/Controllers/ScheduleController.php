@@ -23,16 +23,25 @@ class ScheduleController extends Controller
     public function index()
     {
         $user         = auth()->user();
+        $isMaintenance = ScopeHelper::isMaintenance($user);
         $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
         $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
         $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
         $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
         $isCommercial = $isExecutive || $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO', 'Customer Relation Officer']);
         $isCommercialOrSolution = $isArchitect || $isCommercial || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'CRO', 'Customer Relation Officer']);
-        $isLead       = (ScopeHelper::isManagerial($user) || $isCommercial) && !$isArchitect;
-        $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect || $isCommercialOrSolution);
+        $isLead       = ((ScopeHelper::isManagerial($user) || $isCommercial || $isMaintenance) && !$isArchitect);
+        $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect || $isCommercialOrSolution || $isMaintenance);
         $scopeIds     = $isExecutive ? null : ScopeHelper::getScopeUserIds($user);
         $hasScheduleUser = Schema::hasTable('schedule_user');
+
+        $maintenanceRoles = ['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)'];
+        $maintenanceUsers = User::where(function($q) use ($maintenanceRoles) {
+            $q->where('division_id', 3)
+              ->orWhereHas('roles', fn($r) => $r->whereIn('name', $maintenanceRoles))
+              ->orWhereIn('name', ['Doris', 'Mario', 'Eris']);
+        })->active()->orderBy('name')->get();
+        $maintenanceUserIds = $maintenanceUsers->pluck('id')->toArray();
 
         $commercialRoles = [
             'Presales', 'Pre-Sales',
@@ -206,7 +215,23 @@ class ScheduleController extends Controller
                     $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $presalesUserIds));
                 }
             });
+        } elseif ($isMaintenance) {
+            // Khusus tim Maintenance (Doris, Mario, Eris): Tampilkan seluruh jadwal tim maintenance & proyek Managed Service
+            $schedulesQuery->where(function($q) use ($maintenanceUserIds, $user, $hasScheduleUser) {
+                $q->whereIn('engineer_id', $maintenanceUserIds)
+                  ->orWhere('created_by', $user->id)
+                  ->orWhereIn('created_by', $maintenanceUserIds);
+                if ($hasScheduleUser) {
+                    $q->orWhereHas('engineers', fn($eq) => $eq->whereIn('users.id', $maintenanceUserIds));
+                }
+                $q->orWhereHas('project', function($pq) {
+                    $pq->where('project_type', 'like', '%Managed Service%')
+                       ->orWhere('division_id', 3);
+                });
+                $q->orWhereIn('category', ['Preventive Maintenance', 'Corrective Maintenance', 'Ticket']);
+            });
         } elseif ($scopeIds !== null) {
+            // Engineer Delivery / Umum: Putus total dari jadwal internal maintenance
             $schedulesQuery->where(function($q) use ($scopeIds, $user, $hasScheduleUser) {
                 if (count($scopeIds) === 1) {
                     $q->where('engineer_id', $scopeIds[0]);
@@ -223,9 +248,14 @@ class ScheduleController extends Controller
                 // Tampilkan jadwal PM atau task tanpa teknisi agar Lead Engineer dapat mendelegasikan
                 $q->orWhere(function($subQ) {
                     $subQ->whereNull('engineer_id')
-                         ->whereIn('category', ['Preventive Maintenance', 'Task', 'Kegiatan', 'Corrective Maintenance']);
+                         ->whereIn('category', ['Task', 'Kegiatan']);
                 });
-            });
+            })
+            ->whereNotIn('engineer_id', $maintenanceUserIds);
+
+            if ($hasScheduleUser) {
+                $schedulesQuery->whereDoesntHave('engineers', fn($eq) => $eq->whereIn('users.id', $maintenanceUserIds));
+            }
         }
 
         $schedules = $schedulesQuery->get()
@@ -310,6 +340,18 @@ class ScheduleController extends Controller
                 ->orderBy('name')
                 ->get();
             $rawEngineers = $executiveTeamUsers;
+        } elseif ($isMaintenance) {
+            $projects = Project::where(function($q) {
+                $q->where('project_type', 'like', '%Managed Service%')
+                  ->orWhere('name', 'like', '%Maintenance%')
+                  ->orWhere('name', 'like', '%SLA%')
+                  ->orWhere('name', 'like', '%Perpanjangan%')
+                  ->orWhere('division_id', 3);
+            })
+            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->orderBy('name')
+            ->get();
+            $rawEngineers = $maintenanceUsers;
         } else {
             $projectsQuery = Project::query();
             if ($divisionId && !$isGlobal) {
@@ -366,10 +408,103 @@ class ScheduleController extends Controller
         // Tasks kegiatan resmi tim engineer (dengan deadline) untuk ditampilkan di kalender Work Schedule
         if ($isArchitect || $isCommercial) {
             $tasks = collect([]);
+        } elseif ($isMaintenance) {
+            // Tarikan data dari PM (Preventive Maintenance cycles & tickets Managed Service)
+            $pmTasks = collect([]);
+            if (Schema::hasTable('managed_service_pm_cycles')) {
+                $pmCycles = \App\Models\ManagedServicePmCycle::with(['project.creator', 'assignedEngineer', 'picMs', 'leadEngineer'])
+                    ->where(function($q) {
+                        $q->whereNotNull('scheduled_date')
+                          ->orWhereNotNull('actual_date');
+                    })
+                    ->get();
+
+                foreach ($pmCycles as $cycle) {
+                    $proj = $cycle->project;
+                    if (!$proj) continue;
+
+                    $targetDate = $cycle->scheduled_date ?: $cycle->actual_date;
+                    $targetDateStr = $targetDate ? ($targetDate instanceof \Carbon\Carbon ? $targetDate->format('Y-m-d') : substr((string)$targetDate, 0, 10)) : null;
+                    if (!$targetDateStr) continue;
+
+                    // Siapa yang buat / PIC inisiator PM:
+                    $creator = $cycle->picMs ?: ($cycle->leadEngineer ?: ($proj->creator ?: null));
+                    $creatorName = $creator ? $creator->name : ($proj->sales_name ?: 'Koordinator MS / PMO');
+
+                    // Teknisi yang ditugaskan (3 personel tim maintenance: Doris, Mario, Eris):
+                    $assignedEng = $cycle->assignedEngineer;
+                    $assignedList = [];
+                    if (!empty($cycle->assigned_engineers) && is_array($cycle->assigned_engineers)) {
+                        $assignedList = $cycle->assigned_engineers;
+                    } elseif ($assignedEng) {
+                        $assignedList = [['id' => $assignedEng->id, 'name' => $assignedEng->name, 'position' => $assignedEng->position ?? '']];
+                    }
+
+                    $assignedIds = !empty($assignedList) ? array_column($assignedList, 'id') : ($cycle->assigned_engineer_id ? [$cycle->assigned_engineer_id] : []);
+
+                    $pmTasks->push([
+                        'id'            => 'pm_' . $cycle->id,
+                        'title'         => 'PM ' . $cycle->cycle_label . ': ' . $proj->name,
+                        'cycle_label'   => $cycle->cycle_label,
+                        'cycle_number'  => $cycle->cycle_number,
+                        'deadline'      => $targetDateStr,
+                        'deadline_time' => '09:00',
+                        'priority'      => 'High',
+                        'status'        => $cycle->activity_status ?: 'Scheduled',
+                        'engineer_id'   => $cycle->assigned_engineer_id,
+                        'engineer_ids'  => $assignedIds,
+                        'engineers'     => $assignedList,
+                        'project_id'    => $proj->id,
+                        'project'       => [
+                            'id'       => $proj->id,
+                            'name'     => $proj->name,
+                            'client'   => $proj->client,
+                            'location' => $proj->location ?: $proj->client,
+                        ],
+                        'engineer'      => $assignedEng ? ['id' => $assignedEng->id, 'name' => $assignedEng->name, 'position' => $assignedEng->position ?? ''] : null,
+                        'creator'       => $creator ? ['id' => $creator->id, 'name' => $creatorName] : ['id' => 0, 'name' => $creatorName],
+                        'creator_name'  => $creatorName,
+                        'description'   => "Jadwal Kunjungan Preventive Maintenance ({$cycle->cycle_label}) proyek '{$proj->name}' ({$proj->client}). Inisiator/Dibuat oleh: {$creatorName}. Target Realisasi: {$targetDateStr}. " . ($cycle->activity_notes ?: 'Pemeriksaan rutin perangkat, backup konfigurasi & uji performa jaringan.'),
+                        'is_pm'         => true,
+                    ]);
+                }
+            }
+
+            if (Schema::hasTable('managed_service_tickets')) {
+                $tickets = \App\Models\ManagedServiceTicket::with(['project', 'assignedEngineer'])
+                    ->whereNotNull('created_at')
+                    ->whereIn('status', ['Open', 'In Progress', 'Pending Vendor'])
+                    ->get();
+                foreach ($tickets as $t) {
+                    $tDate = $t->scheduled_date ?: ($t->target_date ?: $t->created_at->format('Y-m-d'));
+                    $tDateStr = $tDate instanceof \Carbon\Carbon ? $tDate->format('Y-m-d') : substr((string)$tDate, 0, 10);
+                    $pmTasks->push([
+                        'id'            => 'ticket_' . $t->id,
+                        'title'         => 'Tiket CM #' . $t->ticket_number . ': ' . ($t->subject ?: $t->title),
+                        'deadline'      => $tDateStr,
+                        'deadline_time' => '10:00',
+                        'priority'      => $t->severity ?: 'High',
+                        'status'        => $t->status,
+                        'engineer_id'   => $t->assigned_engineer_id,
+                        'engineer_ids'  => $t->assigned_engineer_id ? [$t->assigned_engineer_id] : [],
+                        'engineers'     => $t->assignedEngineer ? [['id' => $t->assignedEngineer->id, 'name' => $t->assignedEngineer->name, 'position' => $t->assignedEngineer->position ?? '']] : [],
+                        'project_id'    => $t->project_id,
+                        'project'       => $t->project ? ['id' => $t->project->id, 'name' => $t->project->name, 'client' => $t->project->client, 'location' => $t->project->location ?: $t->project->client] : null,
+                        'engineer'      => $t->assignedEngineer ? ['id' => $t->assignedEngineer->id, 'name' => $t->assignedEngineer->name] : null,
+                        'creator'       => ['id' => 0, 'name' => 'Helpdesk / Pelanggan'],
+                        'creator_name'  => 'Helpdesk / Pelanggan',
+                        'description'   => "Tiket Corrective Maintenance #{$t->ticket_number}. Masalah: " . ($t->description ?: ''),
+                        'is_pm'         => false,
+                    ]);
+                }
+            }
+
+            $tasks = $pmTasks;
         } else {
             $existingScheduleTitles = Schedule::pluck('title')->map(fn($t) => strtolower(trim($t)))->toArray();
             $tasks = Task::with($withTaskRelations)
                 ->where('title', 'not like', '%Implementasi Teknis%')
+                ->where('category', '!=', 'Preventive Maintenance')
                 ->when($scopeIds !== null, function($query) use ($scopeIds, $hasTaskUser) {
                     return $query->where(function($q) use ($scopeIds, $hasTaskUser) {
                         if (count($scopeIds) === 1) {
@@ -445,10 +580,12 @@ class ScheduleController extends Controller
     {
         try {
             $user = auth()->user();
+            $isMaintenance = ScopeHelper::isMaintenance($user);
             $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
             $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
             $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
-            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']));
+            $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
+            $canManageSchedule = !$isExecutive && ($isMaintenance || ScopeHelper::canManageSchedules($user) || $isArchitect || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']));
 
             if (!$canManageSchedule) {
                 if ($request->wantsJson() || $request->ajax()) {
@@ -783,10 +920,12 @@ class ScheduleController extends Controller
     {
         try {
             $user = auth()->user();
+            $isMaintenance = ScopeHelper::isMaintenance($user);
             $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
             $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
             $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
-            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']));
+            $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
+            $canManageSchedule = !$isExecutive && ($isMaintenance || ScopeHelper::canManageSchedules($user) || $isArchitect || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']));
 
             if (!$canManageSchedule) {
                 if ($request->wantsJson() || $request->ajax()) {
@@ -1031,10 +1170,12 @@ class ScheduleController extends Controller
     {
         try {
             $user = auth()->user();
+            $isMaintenance = ScopeHelper::isMaintenance($user);
             $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
             $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
             $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
-            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']));
+            $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
+            $canManageSchedule = !$isExecutive && ($isMaintenance || ScopeHelper::canManageSchedules($user) || $isArchitect || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']));
 
             if (!$canManageSchedule) {
                 if (request()->wantsJson() || request()->ajax()) {
