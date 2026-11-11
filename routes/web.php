@@ -651,11 +651,15 @@ Route::get('/system-backup-full', function () {
             $createSql = $createRes[0]->{'Create Table'} ?? '';
             fwrite($handle, $createSql . ";\n\n");
 
-            // Dump baris
+            // Dump baris menggunakan pagination offset-limit aman (tidak butuh primary key atau orderBy)
             $count = DB::table($tbl)->count();
             if ($count > 0) {
                 fwrite($handle, "-- Dumping data for table `{$tbl}` ({$count} rows)\n");
-                DB::table($tbl)->chunk(500, function ($rows) use ($handle, $tbl) {
+                $offset = 0;
+                $limit = 500;
+                while (true) {
+                    $rows = DB::table($tbl)->offset($offset)->limit($limit)->get();
+                    if ($rows->isEmpty()) break;
                     foreach ($rows as $row) {
                         $vals = [];
                         foreach ((array)$row as $val) {
@@ -669,7 +673,8 @@ Route::get('/system-backup-full', function () {
                         }
                         fwrite($handle, "INSERT INTO `{$tbl}` VALUES (" . implode(', ', $vals) . ");\n");
                     }
-                });
+                    $offset += $limit;
+                }
                 fwrite($handle, "\n");
             }
         }
@@ -730,7 +735,11 @@ Route::get('/clean-maintenance-data', function () {
                 $createRes = DB::select("SHOW CREATE TABLE `{$tbl}`");
                 $createSql = $createRes[0]->{'Create Table'} ?? '';
                 fwrite($handle, "DROP TABLE IF EXISTS `{$tbl}`;\n{$createSql};\n");
-                DB::table($tbl)->chunk(500, function ($rows) use ($handle, $tbl) {
+                $offset = 0;
+                $limit = 500;
+                while (true) {
+                    $rows = DB::table($tbl)->offset($offset)->limit($limit)->get();
+                    if ($rows->isEmpty()) break;
                     foreach ($rows as $row) {
                         $vals = [];
                         foreach ((array)$row as $val) {
@@ -744,7 +753,8 @@ Route::get('/clean-maintenance-data', function () {
                         }
                         fwrite($handle, "INSERT INTO `{$tbl}` VALUES (" . implode(', ', $vals) . ");\n");
                     }
-                });
+                    $offset += $limit;
+                }
             }
             fwrite($handle, "SET FOREIGN_KEY_CHECKS=1;\n");
             fclose($handle);
