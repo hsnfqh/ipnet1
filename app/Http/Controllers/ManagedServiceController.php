@@ -35,6 +35,12 @@ class ManagedServiceController extends Controller
             'Pemeliharaan dan Monitoring Jaringan Wi-Fi Kantor Wilayah BRI Jakarta',
             'Pemeliharaan dan Monitoring Jaringan Wi-Fi Kantor Wilayah Jakarta',
             'Perpanjangan Maintenance SLA Network & Server BATII',
+            'Managed Service Network & Security Maintenance',
+            'Managed Service Network & Security',
+            'Kontrak Managed Service & Pemeliharaan Jaringan',
+            'Pengadaan, Implementasi Data Center & Full Managed Service',
+            'Telkom STO Gambir',
+            'PLN Trunojoyo',
             'BATII',
             'BP. BATAM',
             'PE LAN BRI',
@@ -108,6 +114,37 @@ class ManagedServiceController extends Controller
                     DB::table('tasks')->whereIn('project_id', $ids)->delete();
                 }
                 DB::table('projects')->whereIn('id', $ids)->delete();
+            }
+
+            // 3. Selalu bersihkan schedule, tasks, dan siklus PM dummy/orphan yang tertinggal
+            if (Schema::hasTable('schedules')) {
+                DB::table('schedules')
+                    ->where('title', 'like', '%Managed Service Network & Security%')
+                    ->orWhere('title', 'like', '%PM PM%')
+                    ->orWhere('title', 'like', '%(Bulan ke-%')
+                    ->orWhere('title', 'like', '%Mall Kelapa Gading%')
+                    ->orWhere(function($sq) {
+                        $sq->whereNull('project_id')
+                          ->whereIn('category', ['Preventive Maintenance', 'Maintenance']);
+                    })
+                    ->delete();
+            }
+            if (Schema::hasTable('tasks')) {
+                DB::table('tasks')
+                    ->where('title', 'like', '%Managed Service Network & Security%')
+                    ->orWhere('title', 'like', '%PM PM%')
+                    ->orWhere('title', 'like', '%(Bulan ke-%')
+                    ->delete();
+            }
+            if (Schema::hasTable('pm_cycles')) {
+                DB::table('pm_cycles')
+                    ->where('cycle_label', 'like', '%(Bulan ke-%')
+                    ->delete();
+            }
+            if (Schema::hasTable('managed_service_pm_cycles')) {
+                DB::table('managed_service_pm_cycles')
+                    ->where('cycle_label', 'like', '%(Bulan ke-%')
+                    ->delete();
             }
         } catch (\Throwable $e) {}
     }
@@ -225,20 +262,20 @@ class ManagedServiceController extends Controller
             'Bronze'   => $operateProjects->where('sla_tier', 'Bronze')->count(),
         ];
 
-        // Jadwal Preventive Maintenance Terdekat
-        $upcomingPmSchedules = Schedule::with(['project', 'engineer', 'engineers'])
-            ->whereDoesntHave('project', function($pq) use ($dummyNames) {
-                $pq->whereIn('name', $dummyNames);
-            })
-            ->where(function($q) {
-                $q->where('title', 'like', '%Maintenance%')
-                  ->orWhere('title', 'like', '%Preventive%')
-                  ->orWhere('title', 'like', '%Kunjungan%')
-                  ->orWhere('title', 'like', '%Managed Service%');
-            })
-            ->latest('date')
-            ->take(3)
-            ->get();
+        // Jadwal Preventive Maintenance Terdekat (Hanya dari proyek Managed Service aktif)
+        $upcomingPmSchedules = $operateProjects->isNotEmpty()
+            ? Schedule::with(['project', 'engineer', 'engineers'])
+                ->whereIn('project_id', $operateProjects->pluck('id'))
+                ->where(function($q) {
+                    $q->where('title', 'like', '%Maintenance%')
+                      ->orWhere('title', 'like', '%Preventive%')
+                      ->orWhere('title', 'like', '%Kunjungan%')
+                      ->orWhere('title', 'like', '%Managed Service%');
+                })
+                ->latest('date')
+                ->take(3)
+                ->get()
+            : collect([]);
 
         // List Clients for filter
         $clients = $this->getClients();
@@ -278,15 +315,15 @@ class ManagedServiceController extends Controller
         $maintenanceLoadWeekData = $buildMaintenanceLoad($weekTickets);
         $maintenanceLoadMonthData = $buildMaintenanceLoad($tickets);
 
-        $totalPmSchedulesCount = Schedule::whereDoesntHave('project', function($pq) use ($dummyNames) {
-                $pq->whereIn('name', $dummyNames);
-            })
-            ->where(function($q) {
-                $q->where('title', 'like', '%Maintenance%')
-                  ->orWhere('title', 'like', '%Preventive%')
-                  ->orWhere('title', 'like', '%Kunjungan%')
-                  ->orWhere('title', 'like', '%Managed Service%');
-            })->whereMonth('date', now()->month)->count();
+        $totalPmSchedulesCount = $operateProjects->isNotEmpty()
+            ? Schedule::whereIn('project_id', $operateProjects->pluck('id'))
+                ->where(function($q) {
+                    $q->where('title', 'like', '%Maintenance%')
+                      ->orWhere('title', 'like', '%Preventive%')
+                      ->orWhere('title', 'like', '%Kunjungan%')
+                      ->orWhere('title', 'like', '%Managed Service%');
+                })->whereMonth('date', now()->month)->count()
+            : 0;
 
         // Ticket Type & Distribution Data for Doughnut Chart
         $ticketTypeData = [

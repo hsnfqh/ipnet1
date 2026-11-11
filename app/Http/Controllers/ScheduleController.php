@@ -421,7 +421,7 @@ class ScheduleController extends Controller
 
                 foreach ($pmCycles as $cycle) {
                     $proj = $cycle->project;
-                    if (!$proj) continue;
+                    if (!$proj || in_array($proj->name, \App\Http\Controllers\ManagedServiceController::getDummyProjectNames()) || stripos($proj->name, 'Network & Security') !== false) continue;
 
                     $targetDate = $cycle->scheduled_date ?: $cycle->actual_date;
                     $targetDateStr = $targetDate ? ($targetDate instanceof \Carbon\Carbon ? $targetDate->format('Y-m-d') : substr((string)$targetDate, 0, 10)) : null;
