@@ -808,14 +808,22 @@ class PmoController extends Controller
 
         // Tentukan Rentang Pelaksanaan WBS (Berdasarkan PM Execution Timeline dari Task WBS)
         $wbsStartDate = $startDate->copy()->startOfDay();
-        if ($estimateDuration) {
+
+        // Prioritas Durasi Pelaksanaan Proyek (Kurva S):
+        // 1. Jika sudah ada Task WBS ($maxTaskFinishDay > 0), durasi Kurva S otomatis selaras dengan jadwal pengerjaan riil WBS!
+        //    Hal ini mencegah Kurva S datar berbulan-bulan (misal masa kontrak 217 hari padahal WBS teknis cuma 28 hari).
+        if ($maxTaskFinishDay > 0) {
+            if ($estimateDuration && $estimateDuration >= $maxTaskFinishDay && $estimateDuration <= ($maxTaskFinishDay + 14)) {
+                $totalProjectDays = (int) $estimateDuration;
+                $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
+            } else {
+                $totalProjectDays = $maxTaskFinishDay;
+                $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
+            }
+            $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
+        } elseif ($estimateDuration && $estimateDuration <= 180) {
             $totalProjectDays = (int) $estimateDuration;
             $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
-            $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
-        } elseif ($maxTaskFinishDay > 0) {
-            // Berdasarkan finish day terbesar dari WBS task (Waterfall = sum durasi, Hybrid = max finish offset)
-            $totalProjectDays = $maxTaskFinishDay;
-            $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
             $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
         } elseif ($isPpatkProject) {
             $totalProjectDays = 20;
@@ -827,10 +835,12 @@ class PmoController extends Controller
             $wbsStartDate = $earliestTaskDate->copy()->startOfDay();
             $wbsEndDate = $latestTaskDate->copy()->endOfDay();
         } else {
-            // Fallback jika belum ada task WBS
-            $totalProjectDays = max(1, (int) round($startDate->diffInDays($deadlineDate)));
-            $totalProjectWeeks = max(1, (int) ceil($startDate->diffInWeeks($deadlineDate)));
-            $wbsEndDate = $deadlineDate->copy()->endOfDay();
+            // Default awal jika proyek baru dibuat dan belum ada task WBS:
+            // Standar durasi pelaksanaan awal adalah 30 hari (5 minggu), BUKAN seluruh masa kontrak SPK
+            $contractDays = max(1, (int) round($startDate->diffInDays($deadlineDate)));
+            $totalProjectDays = min(30, $contractDays);
+            $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
+            $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
         }
 
         // Pastikan totalWeeks dan teks timeline selaras dengan WBS
@@ -1819,6 +1829,12 @@ class PmoController extends Controller
      */
     public function storeExpense(Request $request, Project $project)
     {
+        // Bersihkan pemisah ribuan (titik/koma) jika dikirim dalam format nominal Rupiah
+        if ($request->has('amount')) {
+            $cleanAmount = preg_replace('/[^\d]/', '', (string) $request->input('amount'));
+            $request->merge(['amount' => $cleanAmount]);
+        }
+
         $validated = $request->validate([
             'category'    => 'required|string|max:100',
             'amount'      => 'required|numeric|min:1',

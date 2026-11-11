@@ -639,24 +639,24 @@
                     @endif
 
                     {{-- Schedule WBS Table (Waterfall vs Hybrid Adaptive) --}}
-                    <div class="overflow-x-auto rounded-xl border border-slate-200">
-                        <table class="w-full text-left text-xs">
-                            <thead>
+                    <div class="overflow-x-auto overflow-y-auto max-h-[500px] rounded-xl border border-slate-200 relative shadow-2xs">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="sticky top-0 z-10 bg-[#F8FAFC] shadow-xs">
                                 <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                    <th class="py-3 px-4 min-w-[240px]">Task Name</th>
-                                    <th class="py-3 px-3 text-center whitespace-nowrap">Duration (Days)</th>
+                                    <th class="py-3 px-4 min-w-[240px] bg-[#F8FAFC]">Task Name</th>
+                                    <th class="py-3 px-3 text-center whitespace-nowrap bg-[#F8FAFC]">Duration (Days)</th>
                                     @if($scheduleType === 'hybrid')
                                         <th class="py-3 px-3 text-center whitespace-nowrap bg-blue-50 text-blue-800">Planned Start</th>
-                                        <th class="py-3 px-3 text-center whitespace-nowrap">Start Offset</th>
-                                        <th class="py-3 px-3 text-center whitespace-nowrap">Finish Offset</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap bg-[#F8FAFC]">Start Offset</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap bg-[#F8FAFC]">Finish Offset</th>
                                     @else
-                                        <th class="py-3 px-3 text-center whitespace-nowrap">Starting Day</th>
-                                        <th class="py-3 px-3 text-center whitespace-nowrap">Finish Day</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap bg-[#F8FAFC]">Starting Day</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap bg-[#F8FAFC]">Finish Day</th>
                                     @endif
-                                    <th class="py-3 px-3 text-center whitespace-nowrap">Week</th>
-                                    <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
-                                    <th class="py-3 px-3 text-right whitespace-nowrap">Daily Weight (%)</th>
-                                    <th class="py-3 px-3 text-right whitespace-nowrap">Aksi</th>
+                                    <th class="py-3 px-3 text-center whitespace-nowrap bg-[#F8FAFC]">Week</th>
+                                    <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Activity Weight (%)</th>
+                                    <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Daily Weight (%)</th>
+                                    <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 bg-white">
@@ -764,7 +764,7 @@
                                     </tr>
                                 @endforelse
                             </tbody>
-                            <tfoot class="bg-slate-50 border-t-2 border-slate-200 font-bold text-xs text-slate-800">
+                            <tfoot class="sticky bottom-0 z-10 bg-slate-50 border-t-2 border-slate-200 font-bold text-xs text-slate-800 shadow-xs">
                                 <tr>
                                     <td class="py-2.5 px-4 uppercase tracking-wider text-[11px] text-slate-600">
                                         Total Rekap Schedule ({{ count($weeklyWeightMatrix) }} Tasks)
@@ -840,23 +840,23 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto rounded-xl border border-slate-200">
-                        <table class="w-full text-left text-xs">
-                            <thead>
+                    <div class="overflow-x-auto overflow-y-auto max-h-[500px] rounded-xl border border-slate-200 relative shadow-2xs">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="sticky top-0 z-10 bg-[#F8FAFC] shadow-xs">
                                 <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                    <th class="py-3 px-3.5 min-w-[220px]">Task Name</th>
-                                    <th class="py-3 px-2.5 text-center whitespace-nowrap">Duration</th>
+                                    <th class="py-3 px-3.5 min-w-[220px] bg-[#F8FAFC]">Task Name</th>
+                                    <th class="py-3 px-2.5 text-center whitespace-nowrap bg-[#F8FAFC]">Duration</th>
                                     @if($scheduleType === 'hybrid')
                                         <th class="py-3 px-2 text-center whitespace-nowrap bg-blue-50 text-blue-800">Planned Start</th>
-                                        <th class="py-3 px-2 text-center whitespace-nowrap">Start Offset</th>
-                                        <th class="py-3 px-2 text-center whitespace-nowrap">Finish Offset</th>
+                                        <th class="py-3 px-2 text-center whitespace-nowrap bg-[#F8FAFC]">Start Offset</th>
+                                        <th class="py-3 px-2 text-center whitespace-nowrap bg-[#F8FAFC]">Finish Offset</th>
                                     @else
-                                        <th class="py-3 px-2.5 text-center whitespace-nowrap">Starting Day</th>
-                                        <th class="py-3 px-2.5 text-center whitespace-nowrap">Finish Day</th>
+                                        <th class="py-3 px-2.5 text-center whitespace-nowrap bg-[#F8FAFC]">Starting Day</th>
+                                        <th class="py-3 px-2.5 text-center whitespace-nowrap bg-[#F8FAFC]">Finish Day</th>
                                     @endif
-                                    <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
+                                    <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Activity Weight (%)</th>
                                     @for($w = 1; $w <= $totalWeeks; $w++)
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Week {{ $w }}</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Week {{ $w }}</th>
                                     @endfor
                                     <th class="py-3 px-3 text-right whitespace-nowrap bg-slate-200/50">Check (=weight)</th>
                                 </tr>
@@ -902,7 +902,7 @@
                                     </tr>
                                 @endforeach
                             </tbody>
-                            <tfoot class="border-t-2 border-slate-300 font-bold text-xs">
+                            <tfoot class="sticky bottom-0 z-10 border-t-2 border-slate-300 font-bold text-xs shadow-xs">
                                 {{-- Row 1: Plan Weekly (%) --}}
                                 <tr class="bg-slate-100 text-slate-900">
                                     <td class="py-2.5 px-3.5 font-bold uppercase text-[11px] text-slate-800">
@@ -1093,15 +1093,15 @@
                             </div>
                         </div>
 
-                        <div class="overflow-x-auto rounded-xl border border-slate-200">
-                            <table class="w-full text-left text-xs">
-                                <thead>
+                        <div class="overflow-x-auto overflow-y-auto max-h-[500px] rounded-xl border border-slate-200 relative shadow-2xs">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead class="sticky top-0 z-10 bg-[#F8FAFC] shadow-xs">
                                     <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                        <th class="py-3 px-4 min-w-[240px]">Task Name</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Activity Weight (%)</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap min-w-[120px]">Progress (%)</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Actual (%)</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Aksi</th>
+                                        <th class="py-3 px-4 min-w-[240px] bg-[#F8FAFC]">Task Name</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Activity Weight (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap min-w-[120px] bg-[#F8FAFC]">Progress (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Actual (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -1184,7 +1184,7 @@
                                         </tr>
                                     @endforeach
                                 </tbody>
-                                <tfoot class="border-t-2 border-slate-300 font-bold text-xs bg-slate-100 text-slate-800">
+                                <tfoot class="sticky bottom-0 z-10 border-t-2 border-slate-300 font-bold text-xs bg-slate-100 text-slate-800 shadow-xs">
                                     <tr>
                                         <td class="py-2.5 px-4 uppercase text-[11px] font-bold text-slate-700">
                                             Total Rekap Actual Progress ({{ count($actualProgressRows) }} Tasks)
@@ -1242,17 +1242,17 @@
                     {{-- Layout Dibagi 2 Vertikal: Atas Tabel Full Width & Bawah Kurva S Full Width --}}
                     {{-- 1. BAGIAN ATAS: Tabel S-Curve Full Width (Tidak Terpotong / Sliced) --}}
                     <div class="space-y-3">
-                        <div class="overflow-x-auto rounded-xl border border-slate-200">
-                            <table class="w-full text-left text-xs">
-                                <thead>
+                        <div class="overflow-x-auto overflow-y-auto max-h-[500px] rounded-xl border border-slate-200 relative shadow-2xs">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead class="sticky top-0 z-10 bg-[#F8FAFC] shadow-xs">
                                     <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                        <th class="py-3 px-3 text-center whitespace-nowrap">Week</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Plan Weekly (%)</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Plan Cumulative (%)</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Actual Weekly (%)</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Actual Cumulative (%)</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Deviation (Actual - Plan)</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap">Actual Cumulative (Plot %)</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap bg-[#F8FAFC]">Week</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Plan Weekly (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Plan Cumulative (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Actual Weekly (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Actual Cumulative (%)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Deviation (Actual - Plan)</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Actual Cumulative (Plot %)</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -1351,59 +1351,53 @@
                             </span>
                         </div>
 
-                        <form action="{{ route('pmo.projects.expenses.store', $project->id) }}" method="POST" class="space-y-3.5">
+                        <form action="{{ route('pmo.projects.expenses.store', $project->id) }}" 
+                              method="POST" 
+                              x-data="{
+                                  rawAmount: '',
+                                  displayAmount: '',
+                                  formatNominal(e) {
+                                      let val = e.target.value.replace(/\D/g, '');
+                                      this.rawAmount = val;
+                                      this.displayAmount = val ? parseInt(val, 10).toLocaleString('id-ID') : '';
+                                  }
+                              }"
+                              class="space-y-3.5">
                             @csrf
+                            <input type="hidden" name="amount" :value="rawAmount">
                             
-                            {{-- Field 1: Category --}}
+                            {{-- Field 1: Category (Input Teks Bebas) --}}
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Pengeluaran</label>
-                                <select name="category" required 
-                                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white hover:border-slate-300 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none cursor-pointer">
-                                    <option value="Hardware & Perangkat">Hardware &amp; Perangkat</option>
-                                    <option value="Transport & Operasional">Transport &amp; Akomodasi Lapangan</option>
-                                    <option value="Konsumsi & Tim">Konsumsi &amp; Operasional Tim</option>
-                                    <option value="Jasa Subkontraktor">Jasa Subkontraktor &amp; Vendor</option>
-                                    <option value="Perizinan & Legal">Perizinan &amp; Legal</option>
-                                    <option value="Others" selected>Others / Lain-lain</option>
-                                </select>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Pengeluaran <span class="text-[#8F0A0D]">*</span></label>
+                                <input type="text" 
+                                       name="category" 
+                                       required 
+                                       placeholder="Ketik kategori pengeluaran (misal: Hardware, Transport, Konsumsi, Vendor, dll.)" 
+                                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white hover:border-slate-300 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none">
                             </div>
 
-                            {{-- Field 2: Amount (IDR) --}}
+                            {{-- Field 2: Amount (IDR) Otomatis Format Nominal Ribuan/Jutaan --}}
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah Biaya (IDR)</label>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah Biaya (IDR) <span class="text-[#8F0A0D]">*</span></label>
                                 <div class="relative">
                                     <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
-                                    <input type="number" 
-                                           name="amount" 
-                                           min="1" 
-                                           step="any"
-                                           onwheel="this.blur()"
-                                           placeholder="Contoh: 1500000" 
+                                    <input type="text" 
+                                           x-model="displayAmount"
+                                           @input="formatNominal($event)"
+                                           placeholder="Contoh: 56.666 atau 1.500.000" 
                                            required 
                                            class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 bg-white hover:border-slate-300 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none">
                                 </div>
+                                <span class="text-[10.5px] text-slate-400 mt-1 block">Otomatis terformat titik ribuan Rupiah saat diketik.</span>
                             </div>
 
-                            {{-- Field 3: Description & Date --}}
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi / No. Nota</label>
-                                    <input type="text" 
-                                           name="description" 
-                                           placeholder="Keterangan pengeluaran..." 
-                                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white hover:border-slate-300 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none">
-                                </div>
-                                <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <label class="block text-xs font-bold text-slate-700">Tanggal Transaksi</label>
-                                        <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
-                                    </div>
-                                    <input type="text" 
-                                           name="expense_date" 
-                                           value="{{ date('Y-m-d') }}"
-                                           placeholder="Pilih Tanggal Transaksi"
-                                           class="ipnet-datepicker w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white hover:border-slate-300 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none cursor-pointer">
-                                </div>
+                            {{-- Field 3: Description (Tanggal Transaksi Dihapus sesuai Permintaan) --}}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi / No. Nota (Opsional)</label>
+                                <input type="text" 
+                                       name="description" 
+                                       placeholder="Keterangan pengeluaran, nomor nota, atau bukti..." 
+                                       class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white hover:border-slate-300 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none">
                             </div>
 
                             {{-- Submit Button --}}
@@ -1419,14 +1413,14 @@
                         </form>
                     </div>
 
-                    {{-- Riwayat Pengeluaran (Expense Logs Table) --}}
+                    {{-- Riwayat Pengeluaran (Expense Logs Table) dengan Freeze Header --}}
                     <div class="ipnet-card p-5 sm:p-6 space-y-3">
                         <div class="flex items-center justify-between pb-2.5 border-b border-[#E2E8F0]">
                             <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">Riwayat Pengeluaran Proyek</h4>
                             <span class="text-xs font-semibold text-slate-400">{{ $expenses->count() }} Transaksi</span>
                         </div>
 
-                        <div class="space-y-2">
+                        <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
                             @forelse($expenses as $exp)
                                 <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-50 transition">
                                     <div class="min-w-0 pr-3">
@@ -1645,10 +1639,20 @@
                 <div class="space-y-3">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Durasi Pelaksanaan (Hari)</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-slate-700">Durasi Pelaksanaan (Hari)</label>
+                                @if(($maxTaskFinishDay ?? 0) > 0)
+                                    <button type="button" 
+                                            @click="document.getElementById('input_estimate_duration').value = {{ $maxTaskFinishDay }}; document.getElementById('input_execution_weeks').value = {{ max(1, (int)ceil($maxTaskFinishDay / 7)) }};" 
+                                            class="text-[10px] font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
+                                        Ikuti WBS ({{ $maxTaskFinishDay }} Hari)
+                                    </button>
+                                @endif
+                            </div>
                             <input type="number" 
+                                   id="input_estimate_duration"
                                    name="estimate_project_duration" 
-                                   value="{{ $estimateDuration ?? ($totalProjectDays ?? 30) }}" 
+                                   value="{{ $totalProjectDays ?? 30 }}" 
                                    min="1" 
                                    max="365"
                                    onwheel="this.blur()"
@@ -1656,10 +1660,16 @@
                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah Minggu (Weeks)</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-slate-700">Jumlah Minggu (Weeks)</label>
+                                @if(($maxTaskFinishDay ?? 0) > 0)
+                                    <span class="text-[10px] text-slate-400 font-medium">Kurva S: {{ $totalWeeks }} mg</span>
+                                @endif
+                            </div>
                             <input type="number" 
+                                   id="input_execution_weeks"
                                    name="execution_weeks" 
-                                   value="{{ $executionWeeks ?? ($totalProjectWeeks ?? 5) }}" 
+                                   value="{{ $totalProjectWeeks ?? 5 }}" 
                                    min="1" 
                                    max="52"
                                    onwheel="this.blur()"
@@ -1681,7 +1691,7 @@
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-slate-700">Target Selesai Proyek (Deadline) <span class="text-[#8F0A0D]">*</span></label>
+                            <label class="block text-xs font-bold text-slate-700">Batas Akhir Kontrak SPK (Deadline Legal) <span class="text-[#8F0A0D]">*</span></label>
                             <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
                         </div>
                         <input type="text" 
@@ -1701,13 +1711,15 @@
                     </div>
                 </div>
 
-                <div class="p-3 rounded-xl bg-blue-50/70 border border-blue-200/60 text-xs text-blue-900">
-                    <div class="flex items-start gap-2">
-                        <svg class="w-4 h-4 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span class="text-[11.5px] leading-relaxed">
-                            Mengubah durasi dan periode proyek akan otomatis menyesuaikan durasi total, rentang mingguan pada Kurva S, dan indikator sisa hari pada dashboard PMO.
-                        </span>
-                    </div>
+                <div class="p-3 rounded-xl bg-blue-50/70 border border-blue-200/60 text-xs text-blue-900 space-y-1">
+                    <p class="font-bold flex items-center gap-1.5 text-blue-950">
+                        <svg class="w-4 h-4 text-blue-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Durasi Pelaksanaan vs Batas Kontrak SPK:</span>
+                    </p>
+                    <p class="text-[11px] leading-relaxed text-blue-900">
+                        • <strong>Durasi Pelaksanaan:</strong> Menentukan rentang minggu riil pada <strong>Kurva S</strong> (misal 28 hari = 4 minggu).<br>
+                        • <strong>Batas Akhir Kontrak:</strong> Masa berlaku administrasi SPK (bisa beberapa bulan/1 tahun).
+                    </p>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">

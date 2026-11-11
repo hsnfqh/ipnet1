@@ -1865,12 +1865,12 @@
                         </div>
                     </div>
 
-                    {{-- Baris 4: Tanggal Mulai & Deadline --}}
+                    {{-- Baris 4: Tanggal Mulai & Deadline Kontrak SPK --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1">
                             <div class="flex items-center justify-between">
                                 <label class="block text-xs font-bold text-slate-800">
-                                    Tanggal Mulai Proyek
+                                    Tanggal Mulai Kontrak SPK
                                 </label>
                                 <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
                             </div>
@@ -1884,7 +1884,7 @@
                         <div class="space-y-1">
                             <div class="flex items-center justify-between">
                                 <label class="block text-xs font-bold text-slate-800">
-                                    Target Selesai (Deadline)
+                                    Batas Akhir Kontrak SPK (Deadline)
                                 </label>
                                 <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
                             </div>
@@ -1895,6 +1895,9 @@
                                    class="ipnet-datepicker w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none cursor-pointer transition">
                         </div>
                     </div>
+                    <p class="text-[10.5px] text-slate-400">
+                        * Catatan: Field ini adalah masa berlaku legal Kontrak/SPK. Durasi pengerjaan teknis (WBS / Kurva S) diatur di Dashboard Proyek setelah proyek terbuat.
+                    </p>
 
                     {{-- Baris 5: Deskripsi Scope --}}
                     <div class="space-y-1">
