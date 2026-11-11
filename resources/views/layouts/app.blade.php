@@ -82,6 +82,11 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     
+    <!-- Flatpickr (Consistent DD/MM/YYYY Datepicker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+    
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -164,6 +169,70 @@
             padding: 0.65rem 1.25rem !important;
         }
         
+        /* ----------------------------------------------------
+           DISABLE ROLL UP / ROLL DOWN (SPINNERS) ON NUMBER INPUTS
+        ---------------------------------------------------- */
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none !important;
+            margin: 0 !important;
+        }
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield !important;
+        }
+
+        /* ----------------------------------------------------
+           FLATPICKR IPNET THEME (Consistent DD/MM/YYYY)
+        ---------------------------------------------------- */
+        .flatpickr-calendar {
+            border-radius: 16px !important;
+            border: 1px solid #E2E8F0 !important;
+            box-shadow: 0 16px 36px -4px rgba(14,13,18,0.12), 0 6px 16px -2px rgba(14,13,18,0.06) !important;
+            font-family: 'Inter', sans-serif !important;
+            padding: 6px !important;
+            z-index: 99999 !important;
+        }
+        .flatpickr-day.selected, 
+        .flatpickr-day.startRange, 
+        .flatpickr-day.endRange, 
+        .flatpickr-day.selected.inRange, 
+        .flatpickr-day.startRange.inRange, 
+        .flatpickr-day.endRange.inRange, 
+        .flatpickr-day.selected:focus, 
+        .flatpickr-day.startRange:focus, 
+        .flatpickr-day.endRange:focus, 
+        .flatpickr-day.selected:hover, 
+        .flatpickr-day.startRange:hover, 
+        .flatpickr-day.endRange:hover {
+            background: #8F0A0D !important;
+            border-color: #8F0A0D !important;
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+        }
+        .flatpickr-day.today {
+            border-color: #8F0A0D !important;
+            color: #8F0A0D !important;
+        }
+        .flatpickr-day.today.selected {
+            color: #FFFFFF !important;
+        }
+        .flatpickr-months .flatpickr-month {
+            color: #1E293B !important;
+            fill: #1E293B !important;
+        }
+        .flatpickr-current-month .numInputWrapper span.arrowUp:after {
+            border-bottom-color: #8F0A0D !important;
+        }
+        .flatpickr-current-month .numInputWrapper span.arrowDown:after {
+            border-top-color: #8F0A0D !important;
+        }
+        .flatpickr-alt-input {
+            cursor: pointer !important;
+            background-color: #FFFFFF !important;
+        }
+
         html, body { 
             margin: 0 !important; 
             padding: 0 !important; 
@@ -502,8 +571,33 @@
             });
         }
 
+        // Disable mouse wheel value changing on number inputs (roll up & roll down prevention)
+        window.addEventListener('wheel', function(e) {
+            if (document.activeElement && document.activeElement.type === 'number') {
+                document.activeElement.blur();
+            }
+        }, { passive: true });
+
+        // Consistent DD/MM/YYYY Datepicker Initializer
+        window.initFlatpickr = function(root = document) {
+            if (typeof flatpickr === 'undefined') return;
+            const elements = (root || document).querySelectorAll('.ipnet-datepicker');
+            elements.forEach(function(el) {
+                if (el._flatpickr) return;
+                flatpickr(el, {
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd/m/Y', // Strictly DD/MM/YYYY
+                    altInputClass: el.className + ' flatpickr-alt-input',
+                    allowInput: true,
+                    locale: (typeof flatpickr.l10ns !== 'undefined' && flatpickr.l10ns.id) ? flatpickr.l10ns.id : 'default'
+                });
+            });
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             initNumberCounters();
+            window.initFlatpickr();
         });
 
         document.addEventListener('alpine:init', () => {

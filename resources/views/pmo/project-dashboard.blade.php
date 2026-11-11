@@ -133,6 +133,10 @@
              this.activeNotes = notes || '';
              this.activeRange = range;
              this.showProgressModal = true;
+         },
+         init() {
+             this.$watch('showTimelineModal', val => { if(val) setTimeout(() => window.initFlatpickr && window.initFlatpickr(), 50); });
+             this.$watch('showImportExcelModal', val => { if(val) setTimeout(() => window.initFlatpickr && window.initFlatpickr(), 50); });
          }
      }" 
      x-cloak>
@@ -1372,7 +1376,8 @@
                                     <input type="number" 
                                            name="amount" 
                                            min="1" 
-                                           step="1000"
+                                           step="any"
+                                           onwheel="this.blur()"
                                            placeholder="Contoh: 1500000" 
                                            required 
                                            class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 bg-white hover:border-slate-300 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none">
@@ -1389,11 +1394,15 @@
                                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white hover:border-slate-300 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Transaksi</label>
-                                    <input type="date" 
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block text-xs font-bold text-slate-700">Tanggal Transaksi</label>
+                                        <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+                                    </div>
+                                    <input type="text" 
                                            name="expense_date" 
                                            value="{{ date('Y-m-d') }}"
-                                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white hover:border-slate-300 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none cursor-pointer">
+                                           placeholder="Pilih Tanggal Transaksi"
+                                           class="ipnet-datepicker w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white hover:border-slate-300 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none cursor-pointer">
                                 </div>
                             </div>
 
@@ -1642,6 +1651,7 @@
                                    value="{{ $estimateDuration ?? ($totalProjectDays ?? 30) }}" 
                                    min="1" 
                                    max="365"
+                                   onwheel="this.blur()"
                                    placeholder="Contoh: 30"
                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
@@ -1652,25 +1662,34 @@
                                    value="{{ $executionWeeks ?? ($totalProjectWeeks ?? 5) }}" 
                                    min="1" 
                                    max="52"
+                                   onwheel="this.blur()"
                                    placeholder="Contoh: 5"
                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Mulai Proyek (Start Date) <span class="text-[#8F0A0D]">*</span></label>
-                        <input type="date" 
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700">Tanggal Mulai Proyek (Start Date) <span class="text-[#8F0A0D]">*</span></label>
+                            <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+                        </div>
+                        <input type="text" 
                                name="start_date" 
                                value="{{ $startDate ? $startDate->format('Y-m-d') : ($project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : '') }}" 
                                required
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
+                               placeholder="Pilih Tanggal Mulai (HH/BB/TTTT)"
+                               class="ipnet-datepicker w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Target Selesai Proyek (Deadline) <span class="text-[#8F0A0D]">*</span></label>
-                        <input type="date" 
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700">Target Selesai Proyek (Deadline) <span class="text-[#8F0A0D]">*</span></label>
+                            <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+                        </div>
+                        <input type="text" 
                                name="deadline" 
                                value="{{ $deadlineDate ? $deadlineDate->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : '') }}" 
                                required
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
+                               placeholder="Pilih Tanggal Target Selesai (HH/BB/TTTT)"
+                               class="ipnet-datepicker w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Metodologi Penjadwalan Proyek</label>
@@ -2064,6 +2083,7 @@
                                @input="newTaskStartingDay = newTaskPlannedStart; newTaskFinishDay = newTaskPlannedStart + newTaskDuration"
                                min="0" 
                                max="365" 
+                               onwheel="this.blur()"
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                         <input type="hidden" name="starting_day" :value="newTaskPlannedStart">
                         <span x-show="scheduleType === 'hybrid'" class="text-[10px] text-blue-600 block mt-0.5">Mode Hybrid: Task dapat overlap</span>
@@ -2076,6 +2096,7 @@
                                @input="newTaskFinishDay = newTaskPlannedStart + newTaskDuration"
                                min="1" 
                                max="365" 
+                               onwheel="this.blur()"
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
@@ -2086,22 +2107,27 @@
                                @input="newTaskDuration = Math.max(1, newTaskFinishDay - newTaskPlannedStart)"
                                min="1" 
                                max="365" 
+                               onwheel="this.blur()"
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                 </div>
 
                 {{-- Row 3: Bobot (%) --}}
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Activity Weight / Bobot (%)</label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-700">Activity Weight / Bobot (%)</label>
+                        <span class="text-[10.5px] text-slate-400 font-medium">Bisa desimal, misal: 3.05</span>
+                    </div>
                     <input type="number" 
                            name="bobot" 
                            value="10.0" 
-                           step="0.1" 
+                           step="any" 
                            min="0" 
                            max="100" 
-                           placeholder="Contoh: 10.0"
+                           onwheel="this.blur()"
+                           placeholder="Contoh: 10.0 atau 3.05"
                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
-                    <span class="text-[10.5px] text-slate-400 mt-1 block">Persentase bobot deliverable terhadap total proyek (0 - 100%).</span>
+                    <span class="text-[10.5px] text-slate-400 mt-1 block">Persentase bobot deliverable terhadap total proyek (0 - 100%). Mendukung angka desimal seperti 3.05. Roll up / roll down dinonaktifkan.</span>
                 </div>
 
                 <div>
@@ -2182,6 +2208,7 @@
                                @input="editTaskStartingDay = editTaskPlannedStart; editTaskFinishDay = editTaskPlannedStart + editTaskDuration"
                                min="0" 
                                max="365" 
+                               onwheel="this.blur()"
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                         <input type="hidden" name="starting_day" :value="editTaskPlannedStart">
                     </div>
@@ -2193,6 +2220,7 @@
                                @input="editTaskFinishDay = editTaskPlannedStart + editTaskDuration"
                                min="1" 
                                max="365" 
+                               onwheel="this.blur()"
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
@@ -2203,28 +2231,39 @@
                                @input="editTaskDuration = Math.max(1, editTaskFinishDay - editTaskPlannedStart)"
                                min="1" 
                                max="365" 
+                               onwheel="this.blur()"
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Bobot (%)</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700">Bobot (%)</label>
+                            <span class="text-[10px] text-slate-400 font-medium">Bisa desimal, misal: 3.05</span>
+                        </div>
                         <input type="number" 
                                name="bobot" 
                                x-model="editTaskBobot" 
-                               step="0.01" 
+                               step="any" 
                                min="0" 
                                max="100" 
+                               onwheel="this.blur()"
+                               placeholder="Contoh: 3.05"
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Progres Aktual (%)</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700">Progres Aktual (%)</label>
+                            <span class="text-[10px] text-slate-400 font-medium">0 - 100%</span>
+                        </div>
                         <input type="number" 
                                name="progress" 
                                x-model="editTaskProgress" 
+                               step="any"
                                min="0" 
                                max="100" 
+                               onwheel="this.blur()"
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-emerald-700 focus:border-[#8F0A0D] outline-none">
                     </div>
                 </div>
@@ -2425,21 +2464,29 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="space-y-1">
-                            <span class="text-[11px] font-bold text-slate-700">Tanggal Mulai Pelaksanaan <span class="text-[#8F0A0D]">*</span></span>
-                            <input type="date" 
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-slate-700">Tanggal Mulai Pelaksanaan <span class="text-[#8F0A0D]">*</span></span>
+                                <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+                            </div>
+                            <input type="text" 
                                    name="execution_start_date" 
                                    value="{{ $startDate ? $startDate->format('Y-m-d') : ($project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : date('Y-m-d')) }}" 
                                    required
-                                   class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
+                                   placeholder="Pilih Tanggal Mulai (HH/BB/TTTT)"
+                                   class="ipnet-datepicker w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
                         <div class="space-y-1">
-                            <span class="text-[11px] font-bold text-slate-700">Target Selesai Pelaksanaan <span class="text-[#8F0A0D]">*</span></span>
-                            <input type="date" 
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-slate-700">Target Selesai Pelaksanaan <span class="text-[#8F0A0D]">*</span></span>
+                                <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+                            </div>
+                            <input type="text" 
                                    name="execution_end_date" 
                                    value="{{ $deadlineDate ? $deadlineDate->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : '') }}" 
                                    max="{{ $deadlineDate ? $deadlineDate->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : '') }}"
                                    required
-                                   class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
+                                   placeholder="Pilih Tanggal Selesai (HH/BB/TTTT)"
+                                   class="ipnet-datepicker w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
                     </div>
                     <p class="text-[10.5px] text-slate-500">

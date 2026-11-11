@@ -1868,23 +1868,31 @@
                     {{-- Baris 4: Tanggal Mulai & Deadline --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-800">
-                                Tanggal Mulai Proyek
-                            </label>
-                            <input type="date" 
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Tanggal Mulai Proyek
+                                </label>
+                                <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+                            </div>
+                            <input type="text" 
                                    name="start_date" 
                                    value="{{ date('Y-m-d') }}"
-                                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
+                                   placeholder="Pilih Tanggal Mulai (HH/BB/TTTT)"
+                                   class="ipnet-datepicker w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none cursor-pointer transition">
                         </div>
 
                         <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-800">
-                                Target Selesai (Deadline)
-                            </label>
-                            <input type="date" 
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Target Selesai (Deadline)
+                                </label>
+                                <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+                            </div>
+                            <input type="text" 
                                    name="deadline" 
                                    value="{{ date('Y-m-d', strtotime('+30 days')) }}"
-                                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
+                                   placeholder="Pilih Tanggal Deadline (HH/BB/TTTT)"
+                                   class="ipnet-datepicker w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none cursor-pointer transition">
                         </div>
                     </div>
 
