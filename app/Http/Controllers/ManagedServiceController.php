@@ -1488,14 +1488,12 @@ class ManagedServiceController extends Controller
      */
     public function ensureSampleProjectExists(): void
     {
+        // Guard: Nonaktifkan auto-seeding & auto-restore agar proyek yang dihapus/dibersihkan tidak muncul kembali saat pengujian data real
+        if (!request()->filled('force_seed_sample_ms')) {
+            return;
+        }
+
         try {
-            // 1. Pulihkan jika ada proyek yang sempat terhapus (Soft-Delete)
-            $trashed = Project::withTrashed()->get();
-            foreach ($trashed as $tp) {
-                if ($tp->trashed()) {
-                    $tp->restore();
-                }
-            }
 
             // Hapus proyek dummy BCA dari seeder lama
             Project::where('name', 'Managed Jaringan')
