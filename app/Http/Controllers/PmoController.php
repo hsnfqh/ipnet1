@@ -2199,9 +2199,13 @@ class PmoController extends Controller
                 'health_status'                 => $healthStatus,
                 'progress'                      => $calculatedProgress,
                 'start_date'                    => $p->start_date ? $p->start_date->format('d M Y') : '-',
+                'start_date_raw'                => $p->start_date ? $p->start_date->format('Y-m-d') : '',
                 'deadline'                      => $p->deadline ? $p->deadline->format('d M Y') : '-',
                 'deadline_raw'                  => $p->deadline ? $p->deadline->format('Y-m-d') : '',
                 'duration'                      => $p->duration_formatted ?: '-',
+                'description'                   => $p->description ?: '',
+                'po_spk_number'                 => $p->po_spk_number ?: ($p->po_number ?: ''),
+                'status'                        => $p->status ?: 'In Progress',
                 'pm'                            => $p->pm ? $p->pm->name : 'Belum Ditentukan',
                 'pm_id'                         => $p->pm_id,
                 'division'                      => $divisionName,
@@ -3623,5 +3627,81 @@ class PmoController extends Controller
 
             return back()->with('error', 'Gagal menghapus proyek: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Update Data Proyek PMO
+     */
+    public function updateProject(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'name'           => 'required|string|max:255',
+            'client'         => 'required|string|max:255',
+            'customer_pic'   => 'nullable|string|max:255',
+            'pm_id'          => 'nullable|exists:users,id',
+            'po_spk_number'  => 'nullable|string|max:100',
+            'contract_value' => 'nullable',
+            'project_type'   => 'nullable|string|max:100',
+            'start_date'     => 'nullable|date',
+            'deadline'       => 'nullable|date',
+            'status'         => 'nullable|string|max:50',
+            'description'    => 'nullable|string',
+            'assigned_teams' => 'nullable|array',
+        ]);
+
+        // Format Nilai Kontrak
+        $contractValue = $project->contract_value;
+        if (isset($validated['contract_value'])) {
+            $cleanVal = preg_replace('/[^\d]/', '', (string) $validated['contract_value']);
+            $contractValue = is_numeric($cleanVal) ? (float) $cleanVal : null;
+        }
+
+        $customerPic = !empty($validated['customer_pic']) ? trim($validated['customer_pic']) : $project->customer_pic_technical;
+
+        $project->name = $validated['name'];
+        $project->client = $validated['client'];
+        $project->customer_pic_technical = $customerPic;
+        $project->customer_pic_business = $customerPic;
+        if (!empty($validated['pm_id'])) {
+            $project->pm_id = $validated['pm_id'];
+        }
+        if (isset($validated['po_spk_number'])) {
+            $project->po_spk_number = $validated['po_spk_number'];
+        }
+        $project->contract_value = $contractValue;
+        if (!empty($validated['project_type'])) {
+            $project->project_type = $validated['project_type'];
+        }
+        if (!empty($validated['start_date'])) {
+            $project->start_date = Carbon::parse($validated['start_date'])->toDateString();
+        }
+        if (!empty($validated['deadline'])) {
+            $project->deadline = Carbon::parse($validated['deadline'])->format('Y-m-d 18:00:00');
+        }
+        if (!empty($validated['status'])) {
+            $project->status = $validated['status'];
+        }
+        if (isset($validated['description'])) {
+            $project->description = $validated['description'];
+        }
+
+        if (!empty($validated['assigned_teams'])) {
+            $cleanTeams = array_values(array_filter($validated['assigned_teams']));
+            $hd = is_array($project->handover_data) ? $project->handover_data : [];
+            $hd['assigned_teams'] = $cleanTeams;
+            $project->handover_data = $hd;
+        }
+
+        $project->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Proyek '{$project->name}' berhasil diperbarui!"
+            ]);
+        }
+
+        return redirect()->route('pmo.implementations.index')
+            ->with('success', "Proyek '{$project->name}' berhasil diperbarui!");
     }
 }

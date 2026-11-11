@@ -249,26 +249,34 @@
                                                 </button>
                                             </template>
 
-                                            {{-- Tombol Detail / View --}}
+                                            {{-- 1. View / Lihat Detail Proyek (Icon Mata) --}}
                                             <a :href="'/pmo/projects/' + project.id" 
-                                               title="Buka Detail Proyek"
-                                               class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#8F0A0D] hover:border-red-200 text-[11px] font-bold inline-flex items-center gap-1.5 transition shadow-2xs group">
-                                                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#8F0A0D] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                               title="Lihat Detail Proyek" 
+                                               class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                 </svg>
-                                                <span>Detail</span>
                                             </a>
 
-                                            {{-- Tombol Hapus / Delete --}}
-                                            <button type="button"
-                                                    @click="openDeleteModal(project)"
-                                                    title="Hapus Proyek"
-                                                    class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-500 hover:text-red-600 hover:border-red-200 text-[11px] font-bold inline-flex items-center gap-1.5 transition shadow-2xs cursor-pointer group active:scale-95">
-                                                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            {{-- 2. Edit / Ubah Proyek (Icon Pensil) --}}
+                                            <button type="button" 
+                                                    @click="openEditModal(project)"
+                                                    title="Ubah Data Proyek" 
+                                                    class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer active:scale-95">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                                                 </svg>
-                                                <span>Hapus</span>
+                                            </button>
+
+                                            {{-- 3. Hapus Proyek (Icon Sampah) --}}
+                                            <button type="button" 
+                                                    @click="openDeleteModal(project)"
+                                                    title="Hapus Proyek" 
+                                                    class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[#64748B] hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer active:scale-95">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
                                             </button>
                                         </div>
                                     </td>
@@ -405,24 +413,34 @@
                                                     </button>
                                                 </template>
 
+                                                {{-- 1. View / Lihat Detail Proyek (Icon Mata) --}}
                                                 <a :href="'/pmo/projects/' + project.id" 
-                                                   title="Buka Detail Proyek"
-                                                   class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#8F0A0D] hover:border-red-200 text-[11px] font-bold inline-flex items-center gap-1.5 transition shadow-2xs group">
-                                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#8F0A0D] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                   title="Lihat Detail Proyek" 
+                                                   class="w-8 h-8 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                     </svg>
-                                                    <span>Detail</span>
                                                 </a>
 
-                                                <button type="button"
-                                                        @click="openDeleteModal(project)"
-                                                        title="Hapus Proyek"
-                                                        class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 text-slate-500 hover:text-red-600 hover:border-red-200 text-[11px] font-bold inline-flex items-center gap-1.5 transition shadow-2xs cursor-pointer group active:scale-95">
-                                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                {{-- 2. Edit / Ubah Proyek (Icon Pensil) --}}
+                                                <button type="button" 
+                                                        @click="openEditModal(project)"
+                                                        title="Ubah Data Proyek" 
+                                                        class="w-8 h-8 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer active:scale-95">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                                                     </svg>
-                                                    <span>Hapus</span>
+                                                </button>
+
+                                                {{-- 3. Hapus Proyek (Icon Sampah) --}}
+                                                <button type="button" 
+                                                        @click="openDeleteModal(project)"
+                                                        title="Hapus Proyek" 
+                                                        class="w-8 h-8 rounded-lg text-[#64748B] hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer active:scale-95">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    </svg>
                                                 </button>
                                             </div>
                                         </template>
@@ -1927,10 +1945,230 @@
                     <button type="button" @click="showDeleteModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-100 border border-slate-300 rounded-xl transition cursor-pointer">
                         Batal
                     </button>
-                    <button type="button" @click="confirmDeleteAction()" :disabled="isDeleting" class="inline-flex items-center gap-2 px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-600/20 transition cursor-pointer disabled:opacity-50 active:scale-95">
+                    <button type="button" @click="confirmDeleteAction()" :disabled="isDeleting" class="inline-flex items-center gap-2 px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-xl shadow-md shadow-red-900/20 transition cursor-pointer disabled:opacity-50 active:scale-95">
                         <span x-text="isDeleting ? 'Menghapus...' : 'Hapus Proyek'"></span>
                     </button>
                 </div>
+            </div>
+        </div>
+    </template>
+
+    {{-- MODAL UBAH / EDIT DATA PROYEK PMO --}}
+    <template x-teleport="body">
+        <div x-show="showEditModal" 
+             x-cloak 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 bg-[#0F172A]/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+             @click.self="showEditModal = false"
+             @keydown.escape.window="showEditModal = false">
+            
+            <div @click.stop
+                 class="bg-white rounded-2xl max-w-2xl sm:max-w-3xl w-full shadow-2xl border border-[#CBD5E1] max-h-[92vh] flex flex-col overflow-hidden my-auto animate-fade-in-up">
+                
+                {{-- Header Bar --}}
+                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D] shrink-0"></span>
+                        <div>
+                            <h3 class="text-[16px] font-bold text-[#0F172A]">Ubah Data Proyek</h3>
+                            <p class="text-[11px] text-[#64748B]">Perbarui rincian informasi portofolio, PIC klien, tanggal target, dan penanggung jawab PM.</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="showEditModal = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Formulir Edit Proyek --}}
+                <form :action="'/pmo/projects/' + editProject.id + '/update'" 
+                      method="POST" 
+                      class="flex flex-col flex-1 overflow-hidden m-0">
+                    @csrf
+
+                    <div class="flex-1 overflow-y-auto p-6 space-y-4">
+                        {{-- Baris 1: Nama Proyek --}}
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Nama Proyek <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="name" 
+                                   x-model="editProject.name"
+                                   required 
+                                   placeholder="Contoh: Pengadaan & Instalasi Router Core Enterprise..."
+                                   class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                        </div>
+
+                        {{-- Baris 2: Nama Klien & PIC Klien --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Instansi / Klien <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="client" 
+                                       x-model="editProject.client"
+                                       required 
+                                       placeholder="Nama Institusi / Perusahaan Klien"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    PIC Klien Lapangan
+                                </label>
+                                <input type="text" 
+                                       name="customer_pic" 
+                                       x-model="editProject.customer_pic"
+                                       placeholder="Nama PIC (contoh: Pak Bambang - 0812xxx)"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                            </div>
+                        </div>
+
+                        {{-- Baris 3: PM & Status Proyek --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Project Manager (PM) Penanggung Jawab
+                                </label>
+                                <select name="pm_id" 
+                                        x-model="editProject.pm_id"
+                                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
+                                    @foreach($pmList ?? [] as $pm)
+                                        <option value="{{ $pm->id }}">
+                                            {{ $pm->name }} ({{ $pm->email }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Status Pelaksanaan
+                                </label>
+                                <select name="status" 
+                                        x-model="editProject.status"
+                                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="On-Track">On-Track</option>
+                                    <option value="At-Risk">At-Risk</option>
+                                    <option value="Delayed">Delayed</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {{-- Baris 4: Nilai Kontrak & No PO/SPK --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Nilai Kontrak (Rp)
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                                    <input type="text" 
+                                           x-model="editContractValueFormatted"
+                                           @input="formatEditContractValue($event.target.value)"
+                                           placeholder="0"
+                                           class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono font-semibold text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                                    <input type="hidden" name="contract_value" :value="editContractValueRaw">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Nomor PO / SPK / Kontrak
+                                </label>
+                                <input type="text" 
+                                       name="po_spk_number" 
+                                       x-model="editProject.po_spk_number"
+                                       placeholder="Nomor PO atau SPK resmi"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
+                            </div>
+                        </div>
+
+                        {{-- Baris 5: Tim Pelaksana Lapangan --}}
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Tim Pelaksana Lapangan
+                            </label>
+                            <div class="flex flex-wrap items-center gap-2">
+                                @php
+                                    $defaultTeams = ['Tim Network', 'Tim Security', 'Tim Server', 'Tim CCTV & Access Control', 'Tim Fiber Optic'];
+                                @endphp
+                                @foreach($defaultTeams as $team)
+                                    <button type="button"
+                                            @click="toggleEditTeam('{{ $team }}')"
+                                            :class="hasEditTeam('{{ $team }}') ? 'bg-[#8F0A0D] text-white border-[#8F0A0D]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                                            class="px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
+                                        <template x-if="hasEditTeam('{{ $team }}')">
+                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        </template>
+                                        <span>{{ $team }}</span>
+                                    </button>
+                                @endforeach
+                            </div>
+                            <template x-for="team in editSelectedTeams" :key="team">
+                                <input type="hidden" name="assigned_teams[]" :value="team">
+                            </template>
+                        </div>
+
+                        {{-- Baris 6: Tanggal Mulai & Deadline --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Tanggal Mulai Proyek
+                                </label>
+                                <input type="date" 
+                                       name="start_date" 
+                                       x-model="editProject.start_date"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Target Selesai (Deadline)
+                                </label>
+                                <input type="date" 
+                                       name="deadline" 
+                                       x-model="editProject.deadline"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none cursor-pointer transition">
+                            </div>
+                        </div>
+
+                        {{-- Baris 7: Deskripsi Scope --}}
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                Deskripsi / Ruang Lingkup Singkat
+                            </label>
+                            <textarea name="description" 
+                                      x-model="editProject.description"
+                                      rows="2" 
+                                      placeholder="Ringkasan ruang lingkup pekerjaan atau catatan implementasi proyek..."
+                                      class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition"></textarea>
+                        </div>
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="px-6 py-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-end gap-2.5 shrink-0">
+                        <button type="button" @click="showEditModal = false" class="px-4 py-2.5 min-h-[38px] text-xs font-bold text-slate-600 hover:bg-slate-100 border border-[#CBD5E1] rounded-xl transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-5 py-2.5 min-h-[38px] text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs flex items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Simpan Perubahan</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </template>
@@ -1973,10 +2211,15 @@
             readyToOperateCount: {{ $readyToOperateCount ?? 0 }},
             showCreateProjectModal: false,
             showDeleteModal: false,
+            showEditModal: false,
             isDeleting: false,
             deleteProjectId: null,
             deleteProjectName: '',
             deleteProjectClient: '',
+            editProject: {},
+            editSelectedTeams: [],
+            editContractValueRaw: '',
+            editContractValueFormatted: '',
 
             search: '',
             statusFilter: 'Semua',
@@ -2610,6 +2853,57 @@
                         alert('Terjadi kesalahan jaringan.');
                     }
                 }
+            },
+
+            openEditModal(p) {
+                if (!p) return;
+                this.editProject = {
+                    id: p.id,
+                    name: p.name || '',
+                    client: p.client || '',
+                    customer_pic: (p.customer_pic && p.customer_pic !== '-') ? p.customer_pic : '',
+                    pm_id: p.pm_id || '',
+                    po_spk_number: p.po_spk_number || p.po_number || '',
+                    project_type: p.project_type || 'One-Time Project',
+                    start_date: p.start_date_raw || '',
+                    deadline: p.deadline_raw || '',
+                    status: p.status || p.process_status || 'In Progress',
+                    description: p.description || ''
+                };
+                
+                const cVal = (p.contract_value || '').toString().replace(/\D/g, '');
+                this.editContractValueRaw = cVal;
+                this.editContractValueFormatted = cVal ? new Intl.NumberFormat('id-ID').format(cVal) : '';
+
+                let teams = [];
+                if (p.handover_data && p.handover_data.assigned_teams && Array.isArray(p.handover_data.assigned_teams)) {
+                    teams = p.handover_data.assigned_teams;
+                } else if (p.division) {
+                    teams = [p.division];
+                } else {
+                    teams = ['Tim Network'];
+                }
+                this.editSelectedTeams = [...teams];
+                this.showEditModal = true;
+            },
+
+            formatEditContractValue(val) {
+                let clean = (val || '').toString().replace(/\D/g, '');
+                this.editContractValueRaw = clean;
+                this.editContractValueFormatted = clean ? new Intl.NumberFormat('id-ID').format(clean) : '';
+            },
+
+            toggleEditTeam(team) {
+                const idx = this.editSelectedTeams.indexOf(team);
+                if (idx > -1) {
+                    this.editSelectedTeams.splice(idx, 1);
+                } else {
+                    this.editSelectedTeams.push(team);
+                }
+            },
+
+            hasEditTeam(team) {
+                return this.editSelectedTeams.includes(team);
             },
 
             openDeleteModal(project) {
