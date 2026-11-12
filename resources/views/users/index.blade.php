@@ -123,25 +123,12 @@
                     {{-- Role Filter --}}
                     <select x-model="roleFilter"
                             @change="currentPage = 1"
-                            class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="Semua">Semua Role</option>
+                            class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="Semua">Semua Role &amp; Posisi</option>
                         @foreach($filterableRoles as $r)
                         <option value="{{ $r }}">{{ $r }}</option>
                         @endforeach
                     </select>
-
-                    {{-- Division Filter --}}
-                    @if($isGlobal || count($divisions) > 1)
-                    <select x-model="divisionFilter"
-                            @change="currentPage = 1"
-                            class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="Semua">Semua Divisi</option>
-                        @foreach($divisions as $division)
-                        <option value="{{ $division->name }}">{{ $division->name }}</option>
-                        @endforeach
-                        <option value="Non-Divisi">Non-Divisi / Manajemen</option>
-                    </select>
-                    @endif
 
                     {{-- Status Filter --}}
                     <select x-model="statusFilter"
@@ -154,7 +141,7 @@
 
                     {{-- Reset Button --}}
                     <button type="button"
-                            x-show="search || roleFilter !== 'Semua' || divisionFilter !== 'Semua' || statusFilter !== 'Semua'"
+                            x-show="search || roleFilter !== 'Semua' || statusFilter !== 'Semua'"
                             @click="search = ''; roleFilter = 'Semua'; divisionFilter = 'Semua'; statusFilter = 'Semua'; currentPage = 1;"
                             class="px-3 py-2 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
                         Reset Filter
