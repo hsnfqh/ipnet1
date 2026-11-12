@@ -194,31 +194,24 @@ class ScopeHelper
     {
         if (!$user) return [];
 
-        // 1. Head / Executive / Super Admin / Group Leader / Lead Engineer / Team Leader -> Akses penuh (bisa lihat semua kategori)
-        if (self::isExecutive($user) || self::isGroupLeader($user) || self::isTeamLeader($user) || $user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin', 'Lead Engineer', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi', 'Lead Maintenance'])) {
+        // 1. Khusus Managed Service / Maintenance (Eris, Doris, Maryo) -> HANYA 'managed_service' & 'help_desk'
+        // Prioritaskan check ini agar staf & lead MS tidak tercampur dengan proyek implementasi!
+        if (self::isMaintenance($user) && !self::isExecutive($user)) {
+            return ['managed_service', 'help_desk'];
+        }
+
+        // 2. Head of Division / Director / Executive -> Akses penuh (bisa lihat semua kategori)
+        if (self::isExecutive($user) || self::isGroupLeader($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Kepala Divisi', 'Head of Division', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation'])) {
             return ['project', 'managed_service', 'help_desk'];
         }
 
-        $categories = [];
-
-        // 2. PMO / Project Manager -> Khusus 'project'
+        // 3. PMO / Project Manager -> Khusus implementasi project
         if (self::isPmo($user)) {
-            $categories[] = 'project';
+            return ['project'];
         }
 
-        // 3. Managed Service & Maintenance (Lead Maintenance, Managed Service, Field Support) -> 'managed_service' & 'help_desk'
-        if (self::isMaintenance($user)) {
-            $categories[] = 'managed_service';
-            $categories[] = 'help_desk';
-        }
-
-        // 4. Lead Engineer / Field Engineer divisi Network atau Security
-        if (empty($categories)) {
-            // Default teknis lapangan Network & Security adalah 'project'
-            $categories[] = 'project';
-        }
-
-        return array_values(array_unique($categories));
+        // 4. Tim Teknis Engineer (Network & Security) -> Khusus implementasi project
+        return ['project'];
     }
 
     /**

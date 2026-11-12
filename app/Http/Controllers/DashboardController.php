@@ -1616,6 +1616,22 @@ class DashboardController extends Controller
                 }
             });
         }
+        // Filter ketat: jika user Managed Service / Maintenance, sembunyikan seluruh log project implementasi!
+        if (\App\Helpers\ScopeHelper::isMaintenance($authUser) && !\App\Helpers\ScopeHelper::isExecutive($authUser)) {
+            $query->whereIn('category', ['managed_service', 'help_desk']);
+            $query->where(function ($q) {
+                $q->whereNull('project_id')
+                  ->orWhereHas('project', function ($pq) {
+                      $pq->where('handover_target', 'managed_service')
+                         ->orWhere('handover_target', 'both')
+                         ->orWhereHas('managedServiceAssets')
+                         ->orWhere('name', 'like', '%Maintenance%')
+                         ->orWhere('name', 'like', '%Managed Service%')
+                         ->orWhere('name', 'like', '%Pemeliharaan%')
+                         ->orWhere('name', 'like', '%Perpanjangan%');
+                  });
+            });
+        }
 
         // Jika bukan managerial/lead, batasi log milik sendiri dan log pada proyek yang terhubung (tim/shared)
         if (!$isLead) {
@@ -3097,7 +3113,11 @@ class DashboardController extends Controller
         }
 
         // Fallback aman jika class ScopeHelper di OPcache hosting belum mereload method baru
-        if (\App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user) || \App\Helpers\ScopeHelper::isTeamLeader($user) || $user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin', 'Lead Engineer', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi', 'Lead Maintenance'])) {
+        if (\App\Helpers\ScopeHelper::isMaintenance($user) && !\App\Helpers\ScopeHelper::isExecutive($user)) {
+            return ['managed_service', 'help_desk'];
+        }
+
+        if (\App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user)) {
             return ['project', 'managed_service', 'help_desk'];
         }
 
