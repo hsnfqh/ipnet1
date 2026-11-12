@@ -233,7 +233,7 @@
                             <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
-                            <span>+ Tambah Proyek</span>
+                            <span>Tambah Proyek</span>
                         </a>
                         <button type="button" 
                                 @click="isCreateModalOpen = true" 

@@ -225,7 +225,7 @@
                                             <button type="button" @click="addPic(deptIdx)"
                                                     class="w-full py-2.5 rounded-xl border border-dashed border-[#CBD5E1] hover:border-[#8F0A0D] bg-white hover:bg-red-50/40 text-[#8F0A0D] text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                                <span>+ CREATE PIC</span>
+                                                <span>CREATE PIC</span>
                                                 <span x-text="dept.name ? dept.name.toUpperCase() : ('DEPT ' + (deptIdx + 1))"></span>
                                             </button>
                                         </div>
@@ -237,7 +237,7 @@
                                     <button type="button" @click="addDepartment()"
                                             class="text-xs font-bold text-[#8F0A0D] hover:text-[#73080A] hover:underline cursor-pointer inline-flex items-center gap-1.5">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                        <span>+ CREATE DEPARTMENT</span>
+                                        <span>CREATE DEPARTMENT</span>
                                     </button>
                                 </div>
                             </div>

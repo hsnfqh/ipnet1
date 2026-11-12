@@ -1262,7 +1262,7 @@
                         <div class="flex items-center gap-2 shrink-0">
                             <button type="button" @click="selectedCmSlot = null; isCmModalOpen = true" class="px-3.5 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#72080A] text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                <span>+ Catat Tiket CM Baru</span>
+                                <span>Catat Tiket CM Baru</span>
                             </button>
                         </div>
                     </div>
