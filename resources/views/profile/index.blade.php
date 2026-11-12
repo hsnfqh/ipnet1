@@ -53,19 +53,14 @@
                             </div>
                             <div style="min-width:0; flex:1;">
                                 <h2 style="margin:0; font-family:'Inter',sans-serif; font-size:18px; font-weight:700; color:#17151C; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $user->name }}</h2>
-                                <p style="margin:2px 0 6px; font-size:13px; color:#75727C;">{{ $user->position ?? $user->role_label }}</p>
+                                <p style="margin:2px 0 6px; font-size:13px; color:#75727C;">{{ $user->position ?: $user->role_label }} • PT IP Network Solusindo</p>
                                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                    <span style="font-size:11px; font-weight:700; background:#F1F0EE; color:#3D3A44; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.4px; display:inline-block;">
-                                        {{ $user->role_label }}
+                                    <span style="font-size:11px; font-weight:700; background:rgba(143,10,13,0.1); color:#8F0A0D; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.4px; display:inline-block; border:1px solid rgba(143,10,13,0.2);">
+                                        {{ $user->position ?: $user->role_label }}
                                     </span>
-                                    @if($user->division)
-                                    <span style="font-size:11px; font-weight:600; background:#EFF6FF; color:#1D4ED8; padding:3px 10px; border-radius:20px;">
-                                        {{ $user->division->name }}
-                                    </span>
-                                    @endif
                                     <span style="font-size:11px; font-weight:600; background:#E4F3EA; color:#1B7A46; padding:3px 10px; border-radius:20px; display:inline-flex; align-items:center; gap:4px;">
                                         <span style="width:6px; height:6px; border-radius:50%; background:#1B7A46;"></span>
-                                        {{ $user->status }}
+                                        {{ $user->status ?? 'Active' }}
                                     </span>
                                 </div>
                             </div>
