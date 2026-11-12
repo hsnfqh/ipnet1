@@ -850,11 +850,9 @@ class PmoController extends Controller
         // Hitung total durasi WBS dari seluruh task
         $totalTaskDuration = array_sum(array_column($parsedTasks, 'duration'));
 
-        // Jika total bobot task tidak sama dengan 100% (misal seeder lama/parsial 66.7% atau 70.1% atau 0%),
-        // hitung Activity Weight secara proporsional berdasarkan durasi sesuai rumus resmi Excel:
-        // Activity Weight (%) = (Duration / Total Duration) * 100%
-        // Daily Weight (%) = Activity Weight (%) / Duration
-        if ($totalTaskCount > 0 && abs($totalTaskBobotSum - 100.0) > 0.5) {
+        // Prioritaskan nilai bobot manual murni dari user:
+        // Jangan di-override secara proporsional kecuali jika seluruh task belum memiliki bobot sama sekali ($totalTaskBobotSum == 0)
+        if ($totalTaskCount > 0 && $totalTaskBobotSum <= 0.001) {
             $runningBobotSum = 0.0;
             $countPt = count($parsedTasks);
             foreach ($parsedTasks as $idx => &$pt) {
@@ -876,11 +874,9 @@ class PmoController extends Controller
             unset($pt);
             $totalTaskBobotSum = 100.0;
         } else {
-            // Pastikan daily_weight terisi sesuai rumus = Bobot / Durasi
+            // Gunakan nilai bobot manual yang diisi user secara murni tanpa diubah atau di-override
             foreach ($parsedTasks as &$pt) {
-                if ($pt['duration'] > 0 && empty($pt['daily_weight'])) {
-                    $pt['daily_weight'] = round($pt['bobot'] / $pt['duration'], 2);
-                }
+                $pt['daily_weight'] = $pt['duration'] > 0 ? round($pt['bobot'] / $pt['duration'], 2) : 0.0;
             }
             unset($pt);
         }
@@ -1028,8 +1024,8 @@ class PmoController extends Controller
             $totalWeeklyWeightCum[$w] = min(100.0, round($cumPlanAccum, 2));
         }
 
-        // Kunci minggu terakhir tepat 100.0%
-        if ($totalWeeks > 0) {
+        // Kunci minggu terakhir tepat 100.0% jika total bobot mendekati 100%
+        if ($totalWeeks > 0 && abs($totalTaskBobotSum - 100.0) <= 1.0) {
             $totalWeeklyWeightCum[$totalWeeks] = 100.0;
             if ($totalWeeks > 1) {
                 $totalWeeklyWeightPlan[$totalWeeks] = round(100.0 - $totalWeeklyWeightCum[$totalWeeks - 1], 2);
@@ -2832,7 +2828,7 @@ class PmoController extends Controller
 
         $desc = $validated['description'] ?? '';
         $metaParts = [
-            "Bobot: " . number_format($bobotVal, 1) . "%",
+            "Bobot: " . round($bobotVal, 2) . "%",
             "StartingDay: {$startingDay}",
             "FinishDay: {$finishDay}",
             "PlannedStart: {$plannedStart}",
@@ -2922,7 +2918,7 @@ class PmoController extends Controller
 
         $desc = $validated['description'] ?? ($task->description ?? '');
         $metaParts = [
-            "Bobot: " . number_format($bobotVal, 1) . "%",
+            "Bobot: " . round($bobotVal, 2) . "%",
             "StartingDay: {$startingDay}",
             "FinishDay: {$finishDay}",
             "PlannedStart: {$plannedStart}",
@@ -3006,7 +3002,7 @@ class PmoController extends Controller
             }
         }
 
-        if (abs($totalBobotSum - 100.0) <= 1.0) {
+        if ($totalBobotSum > 0) {
             foreach ($tasksData as $td) {
                 $totalCumulative += (($td['bobot'] ?? 0) * ($td['progress'] / 100.0));
             }
