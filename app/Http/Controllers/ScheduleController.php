@@ -504,7 +504,8 @@ class ScheduleController extends Controller
             $existingScheduleTitles = Schedule::pluck('title')->map(fn($t) => strtolower(trim($t)))->toArray();
             $tasks = Task::with($withTaskRelations)
                 ->where('title', 'not like', '%Implementasi Teknis%')
-                ->where('category', '!=', 'Preventive Maintenance')
+                ->where('title', 'not like', '%Preventive Maintenance%')
+                ->when(Schema::hasColumn('tasks', 'category'), fn($q) => $q->where('category', '!=', 'Preventive Maintenance'))
                 ->when($scopeIds !== null, function($query) use ($scopeIds, $hasTaskUser) {
                     return $query->where(function($q) use ($scopeIds, $hasTaskUser) {
                         if (count($scopeIds) === 1) {
