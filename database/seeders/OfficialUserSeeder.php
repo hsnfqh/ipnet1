@@ -44,7 +44,7 @@ class OfficialUserSeeder extends Seeder
             Role::firstOrCreate(['name' => $r]);
         }
 
-        // 2. Ensure Divisions exist
+        // 2. Ensure Divisions exist (Hanya Network & Security untuk Engineer teknis)
         $divNet = Division::firstOrCreate(
             ['name' => 'Divisi Network'],
             ['code' => 'NET', 'description' => 'Divisi Infrastruktur Jaringan, Routing, Switching & Fiber Optik']
@@ -52,10 +52,6 @@ class OfficialUserSeeder extends Seeder
         $divSec = Division::firstOrCreate(
             ['name' => 'Divisi Security'],
             ['code' => 'SEC', 'description' => 'Divisi Keamanan Jaringan & Cyber Security Protection']
-        );
-        $divMnt = Division::firstOrCreate(
-            ['name' => 'Divisi Maintenance & Helpdesk'],
-            ['code' => 'MNT', 'description' => 'Divisi Helpdesk Klien, Penanganan Tiket SLA, dan Koordinasi Pemeliharaan Rutin']
         );
 
         // 3. Ensure Teams exist
@@ -65,10 +61,6 @@ class OfficialUserSeeder extends Seeder
         );
         $teamSec = Team::firstOrCreate(
             ['name' => 'Tim Security', 'division_id' => $divSec->id],
-            ['leader_id' => null]
-        );
-        $teamMnt = Team::firstOrCreate(
-            ['name' => 'Tim Maintenance & Helpdesk', 'division_id' => $divMnt->id],
             ['leader_id' => null]
         );
 
@@ -214,11 +206,11 @@ class OfficialUserSeeder extends Seeder
                 'name'        => 'Doris Imanuel Taneo',
                 'email'       => 'doris.taneo@ipnetsolusindo.com',
                 'phone'       => '08111000010',
-                'position'    => 'Lead Managed Service',
-                'division_id' => $divMnt->id,
-                'team_id'     => $teamMnt->id,
-                'level'       => 'Lead',
-                'roles'       => ['Managed Service', 'Lead Maintenance', 'Team Leader'],
+                'position'    => 'Managed Service',
+                'division_id' => null,
+                'team_id'     => null,
+                'level'       => null,
+                'roles'       => ['Managed Service'],
             ],
             // 11. Edi Hermanto
             [
@@ -247,11 +239,11 @@ class OfficialUserSeeder extends Seeder
                 'name'        => 'Eris Maryon',
                 'email'       => 'eris.maryon@ipnetsolusindo.com',
                 'phone'       => '08111000013',
-                'position'    => 'Field Support Engineer / Managed Service',
-                'division_id' => $divMnt->id,
-                'team_id'     => $teamMnt->id,
+                'position'    => 'Managed Service',
+                'division_id' => null,
+                'team_id'     => null,
                 'level'       => null,
-                'roles'       => ['Managed Service', 'Field Support (EOS)', 'Field Support', 'Maintenance'],
+                'roles'       => ['Managed Service'],
             ],
             // 14. Erma Rosa Sistono
             [
@@ -313,11 +305,11 @@ class OfficialUserSeeder extends Seeder
                 'name'        => 'Maryo Alexander Bahas',
                 'email'       => 'maryo@ipnetsolusindo.com',
                 'phone'       => '08111000019',
-                'position'    => 'Field Support Engineer / Managed Service',
-                'division_id' => $divMnt->id,
-                'team_id'     => $teamMnt->id,
+                'position'    => 'Managed Service',
+                'division_id' => null,
+                'team_id'     => null,
                 'level'       => null,
-                'roles'       => ['Managed Service', 'Field Support (EOS)', 'Field Support', 'Maintenance'],
+                'roles'       => ['Managed Service'],
             ],
             // 20. Muhammad Kripsiyanto
             [
@@ -552,6 +544,15 @@ class OfficialUserSeeder extends Seeder
             ],
         ];
 
+        // Reset legacy maintenance division assignments
+        $mntDiv = Division::where('name', 'like', '%Maintenance%')->first();
+        if ($mntDiv) {
+            User::where('division_id', $mntDiv->id)->update([
+                'division_id' => null,
+                'team_id'     => null,
+            ]);
+        }
+
         $officialEmails = [];
 
         foreach ($officialUsers as $data) {
@@ -588,8 +589,6 @@ class OfficialUserSeeder extends Seeder
                 $teamNet->update(['leader_id' => $user->id]);
             } elseif ($data['email'] === 'novan@ipnetsolusindo.com') {
                 $teamSec->update(['leader_id' => $user->id]);
-            } elseif ($data['email'] === 'doris.taneo@ipnetsolusindo.com') {
-                $teamMnt->update(['leader_id' => $user->id]);
             }
         }
 

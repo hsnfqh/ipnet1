@@ -247,7 +247,7 @@
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#8F0A0D]/10 text-[#8F0A0D] uppercase tracking-wider border border-[#8F0A0D]/20">
                                             {{ $user->role_label }}
                                         </span>
-                                        @if($user->division)
+                                        @if($user->division && !str_contains(strtolower($user->division->name), 'maintenance'))
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                                             {{ $user->division->name }}
                                         </span>
@@ -320,7 +320,7 @@
                                         <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">
                                             Divisi Kerja
                                         </label>
-                                        <input type="text" value="{{ $user->division ? $user->division->name : 'Operasional & Proyek' }}" readonly
+                                        <input type="text" value="{{ $user->division ? $user->division->name : '-' }}" readonly
                                                class="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[12.5px] font-semibold text-[#64748B] cursor-not-allowed outline-none">
                                     </div>
                                 </div>
