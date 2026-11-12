@@ -1294,7 +1294,7 @@
                             <p class="font-bold text-slate-800">Notes</p>
                             <p>• Plan Weekly comes from the 'Weekly Weight' sheet (task weight spread over the days each task overlaps a week).</p>
                             <p>• Actual Cumulative = sum of (task completion % x activity weight) from the Actual Progress sheet. A week shows only once at least one task is filled in for it.</p>
-                            <p>• Column G (Actual Cumulative Plot) returns NA() on purpose so the chart skips unreported weeks instead of drawing 0%. Week 0 = baseline (0%).</p>
+                            <p>• Column G (Actual Cumulative Plot) returns NA() on purpose so the chart skips unreported weeks instead of drawing 0%. Hari ke-0 = baseline (0%), minggu pelaksanaan berjalan mulai Minggu 1.</p>
                         </div>
                     </div>
 
@@ -1305,7 +1305,7 @@
                                 S-Curve: Plan vs Actual Cumulative Progress
                             </h4>
                             <span class="text-[11px] font-bold text-slate-500">
-                                Minggu ke-0 s/d {{ $totalWeeks }} ({{ $projectTimelineText }})
+                                Minggu ke-1 s/d {{ $totalWeeks }} ({{ $projectTimelineText }})
                             </span>
                         </div>
                         <div class="w-full" style="height: 380px;">
@@ -2664,13 +2664,8 @@
                                 if (val === null || val === undefined || isNaN(val)) return;
 
                                 ctx.fillStyle = dataset.borderColor;
-                                // At week 1: actual point is higher (26.7%), plan point is lower (23.3%)
-                                let yOffset = -14;
-                                if (dIdx === 0 && pIdx === 1) {
-                                    yOffset = 16;
-                                } else if (dIdx === 0) {
-                                    yOffset = -14;
-                                }
+                                const otherVal = dIdx === 0 ? (chart.data.datasets[1]?.data[pIdx] ?? null) : null;
+                                let yOffset = (dIdx === 0 && otherVal !== null && Math.abs(val - otherVal) < 15) ? 16 : -14;
                                 ctx.fillText(val.toFixed(1) + '%', element.x, element.y + yOffset);
                             });
                         });
@@ -2755,7 +2750,7 @@
                 sCurveChartInstance.data.datasets[1].data = sCurveActual;
                 sCurveChartInstance.data.datasets[0].pointRadius = 3.5;
                 sCurveChartInstance.data.datasets[1].pointRadius = 5.0;
-                sCurveChartInstance.options.scales.x.title.text = 'Minggu Pelaksanaan (Minggu ke-0 s/d {{ $totalWeeks }})';
+                sCurveChartInstance.options.scales.x.title.text = 'Minggu Pelaksanaan (Minggu ke-1 s/d {{ $totalWeeks }})';
                 sCurveChartInstance.resize();
                 sCurveChartInstance.update();
             };
@@ -2799,7 +2794,7 @@
                 }
 
                 let accum = 0.0;
-                let chartActualData = [0.0]; // Week 0 Baseline
+                let chartActualData = [];
 
                 for (let w = 1; w <= totalWeeksCount; w++) {
                     accum = Math.round((accum + weeklyActual[w]) * 10) / 10;

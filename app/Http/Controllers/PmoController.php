@@ -758,7 +758,7 @@ class PmoController extends Controller
                 $maxTaskFinishDay = $finishDay;
             }
 
-            $wbsWeek = max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7));
+            $wbsWeek = $t->week ? (int)$t->week : (preg_match('/Week:\s*(\d+)/i', $t->description ?? '', $wm) ? (int)$wm[1] : max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7)));
 
             $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 2) : 0.0;
             $prog = (float) ($t->progress ?: (in_array($t->status, ['Done', 'Completed']) ? 100 : 0));
@@ -949,26 +949,35 @@ class PmoController extends Controller
             $taskAllocatedWeight = 0.0;
             $lastActiveWeek = null;
 
-            for ($w = 1; $w <= $totalWeeks; $w++) {
-                $wStartDay = ($w - 1) * 7;
-                $wEndDay = $w * 7;
-                $overlapStart = max($tStartDay, $wStartDay);
-                $overlapEnd = min($tFinishDay, $wEndDay);
-                $overlapDays = max(0, $overlapEnd - $overlapStart);
-
-                $wVal = 0.0;
-                if ($duration > 0 && $overlapDays > 0) {
-                    $wVal = round(($overlapDays / $duration) * $bobot, 2);
-                    $lastActiveWeek = $w;
+            // Jika task memiliki minggu target WBS yang eksplisit (misal Week = 1, 2, atau 3) dan durasi <= 7 hari:
+            // Alokasikan langsung bobot penuh ke minggu tersebut agar persis sesuai tabel WBS dan kurva S!
+            $targetWeek = (int) ($pt['week'] ?? 0);
+            if ($targetWeek >= 1 && $targetWeek <= $totalWeeks && $duration <= 7) {
+                for ($w = 1; $w <= $totalWeeks; $w++) {
+                    $wDist[$w] = ($w === $targetWeek) ? $bobot : 0.0;
                 }
-                $wDist[$w] = $wVal;
-                $taskAllocatedWeight += $wVal;
-            }
+            } else {
+                for ($w = 1; $w <= $totalWeeks; $w++) {
+                    $wStartDay = ($w - 1) * 7;
+                    $wEndDay = $w * 7;
+                    $overlapStart = max($tStartDay, $wStartDay);
+                    $overlapEnd = min($tFinishDay, $wEndDay);
+                    $overlapDays = max(0, $overlapEnd - $overlapStart);
 
-            // Normalisasi pembulatan per baris task agar check tepat = bobot task
-            if ($lastActiveWeek !== null && abs($taskAllocatedWeight - $bobot) > 0.001) {
-                $diff = round($bobot - $taskAllocatedWeight, 2);
-                $wDist[$lastActiveWeek] = round($wDist[$lastActiveWeek] + $diff, 2);
+                    $wVal = 0.0;
+                    if ($duration > 0 && $overlapDays > 0) {
+                        $wVal = round(($overlapDays / $duration) * $bobot, 2);
+                        $lastActiveWeek = $w;
+                    }
+                    $wDist[$w] = $wVal;
+                    $taskAllocatedWeight += $wVal;
+                }
+
+                // Normalisasi pembulatan per baris task agar check tepat = bobot task
+                if ($lastActiveWeek !== null && abs($taskAllocatedWeight - $bobot) > 0.001) {
+                    $diff = round($bobot - $taskAllocatedWeight, 2);
+                    $wDist[$lastActiveWeek] = round($wDist[$lastActiveWeek] + $diff, 2);
+                }
             }
 
             for ($w = 1; $w <= $totalWeeks; $w++) {
@@ -1107,34 +1116,11 @@ class PmoController extends Controller
         // Data Progres Mingguan yang tersimpan (Catatan / override)
         $savedWeekly = $handoverData['s_curve_weekly'] ?? [];
 
-        // Generate Data Mingguan Lengkap (untuk Tabel & Grafik Kurva S)
+        // Generate Data Mingguan Lengkap (untuk Tabel & Grafik Kurva S - Jalannya tetap mulai dari Minggu 1)
         $weeklyRecords = [];
         $sCurveLabels = [];
         $sCurvePlan = [];
         $sCurveActual = [];
-
-        // Minggu 0 (Baseline Start Sesuai Gambar Excel)
-        $sCurveLabels[] = 0;
-        $sCurvePlan[] = 0.0;
-        $sCurveActual[] = 0.0;
-
-        $weeklyRecords[] = [
-            'week'           => 0,
-            'date_range'     => 'Kick-off Baseline (' . $startDate->format('d M Y') . ')',
-            'plan_weekly'    => 0.0,
-            'plan_percent'   => 0.0,
-            'actual_weekly'  => 0.0,
-            'actual_percent' => 0.0,
-            'variance'       => 0.0,
-            'chart_helper'   => 0.0,
-            'is_current'     => false,
-            'is_passed'      => true,
-            'is_future'      => false,
-            'is_recorded'    => true,
-            'notes'          => 'Baseline Awal SPK (0.0%)',
-            'tasks_in_week'  => ['Kick-off & Baseline SPK'],
-            'tasks_count'    => 1,
-        ];
 
         for ($w = 1; $w <= $totalWeeks; $w++) {
             $wStart = $wbsStartDate->copy()->addWeeks($w - 1)->startOfDay();
@@ -2777,7 +2763,9 @@ class PmoController extends Controller
         $startingDay = $request->filled('starting_day') ? (int) $request->input('starting_day') : $plannedStart;
         $finishDay = $request->filled('finish_day') ? (int) $request->input('finish_day') : ($startingDay + $duration);
         $duration = max(1, $finishDay - $startingDay);
-        $week = max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7));
+        $week = $request->filled('week') 
+            ? (int) $request->input('week') 
+            : ($task->week ? (int) $task->week : (preg_match('/Week:\s*(\d+)/i', $oldDesc, $wm) ? (int)$wm[1] : max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7))));
 
         $projStart = $project->start_date ? Carbon::parse($project->start_date)->startOfDay() : now()->startOfDay();
         $startDate = !empty($validated['start_date']) ? Carbon::parse($validated['start_date']) : $projStart->copy()->addDays($startingDay);
@@ -2868,7 +2856,9 @@ class PmoController extends Controller
         $duration = (int) ($validated['duration_days'] ?? 1);
         $finishDay = $request->filled('finish_day') ? (int) $request->input('finish_day') : ($startingDay + $duration);
         $duration = max(1, $finishDay - $startingDay);
-        $week = max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7));
+        $week = $request->filled('week') 
+            ? (int) $request->input('week') 
+            : ($task->week ? (int) $task->week : (preg_match('/Week:\s*(\d+)/i', $oldDesc, $wm) ? (int)$wm[1] : max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7))));
 
         $startDate = !empty($validated['start_date']) ? Carbon::parse($validated['start_date']) : ($task->start_date ? Carbon::parse($task->start_date) : now());
         if (!empty($validated['deadline'])) {
