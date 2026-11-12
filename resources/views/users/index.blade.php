@@ -278,9 +278,14 @@
                                     {{-- Divisi & Level --}}
                                     <td class="py-3.5 px-5 whitespace-nowrap">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-[13px] font-semibold text-[#1E293B]" x-text="user.division_name !== '-' ? user.division_name : '-'"></span>
+                                            <template x-if="user.division_name && user.division_name !== '-'">
+                                                <span class="text-[13px] font-semibold text-[#1E293B]" x-text="user.division_name"></span>
+                                            </template>
                                             <template x-if="user.level">
                                                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]" x-text="user.level"></span>
+                                            </template>
+                                            <template x-if="(!user.division_name || user.division_name === '-') && !user.level">
+                                                <span class="text-[13px] text-[#94A3B8]">-</span>
                                             </template>
                                         </div>
                                     </td>
