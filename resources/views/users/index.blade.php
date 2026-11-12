@@ -115,12 +115,14 @@
                         </svg>
                         <input type="text"
                                x-model="search"
-                               placeholder="Cari nama, email, nomor..."
+                               @input="currentPage = 1"
+                               placeholder="Cari nama, email, nomor, jabatan..."
                                class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs">
                     </div>
 
                     {{-- Role Filter --}}
                     <select x-model="roleFilter"
+                            @change="currentPage = 1"
                             class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="Semua">Semua Role</option>
                         @foreach($filterableRoles as $r)
@@ -131,16 +133,19 @@
                     {{-- Division Filter --}}
                     @if($isGlobal || count($divisions) > 1)
                     <select x-model="divisionFilter"
+                            @change="currentPage = 1"
                             class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="Semua">Semua Divisi</option>
                         @foreach($divisions as $division)
                         <option value="{{ $division->name }}">{{ $division->name }}</option>
                         @endforeach
+                        <option value="Non-Divisi">Non-Divisi / Manajemen</option>
                     </select>
                     @endif
 
                     {{-- Status Filter --}}
                     <select x-model="statusFilter"
+                            @change="currentPage = 1"
                             class="w-full sm:w-40 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="Semua">Semua Status</option>
                         <option value="Active">Active</option>
@@ -840,35 +845,108 @@
                 },
 
                 init() {
-                    console.log('Users Manager initialized!');
+                    this.$watch('search', () => { this.currentPage = 1; });
+                    this.$watch('roleFilter', () => { this.currentPage = 1; });
+                    this.$watch('divisionFilter', () => { this.currentPage = 1; });
+                    this.$watch('statusFilter', () => { this.currentPage = 1; });
                 },
 
                 get filteredUsers() {
-                    return this.users.filter(u => {
-                        const matchSearch = (u.name || '').toLowerCase().includes(this.search.toLowerCase()) ||
-                                            (u.email || '').toLowerCase().includes(this.search.toLowerCase()) ||
-                                            (u.phone || '').toLowerCase().includes(this.search.toLowerCase());
+                    const q = (this.search || '').trim().toLowerCase();
+                    const roleF = (this.roleFilter || 'Semua');
+                    const divF = (this.divisionFilter || 'Semua');
+                    const statF = (this.statusFilter || 'Semua');
 
-                        let matchRole = false;
-                        if (this.roleFilter === 'Semua') {
-                            matchRole = true;
-                        } else if (this.roleFilter === 'Engineer L1') {
-                            matchRole = (u.role_name === 'Engineer' && u.level === 'L1');
-                        } else if (this.roleFilter === 'Engineer L2') {
-                            matchRole = (u.role_name === 'Engineer' && u.level === 'L2');
-                        } else if (this.roleFilter === 'Team Leader') {
-                            matchRole = (u.role_name === 'Team Leader');
-                        } else if (this.roleFilter === 'Group Leader') {
-                            matchRole = (u.role_name === 'Group Leader');
-                        } else if (this.roleFilter === 'Direktur') {
-                            matchRole = (u.role_name === 'Direktur' || u.role_name === 'HD / Direktur');
-                        } else {
-                            matchRole = (u.role_name === this.roleFilter);
+                    return this.users.filter(u => {
+                        // 1. Filter Pencarian Teks (Nama, Email, Telepon, Posisi/Jabatan, Role, Divisi)
+                        if (q) {
+                            const name = (u.name || '').toLowerCase();
+                            const email = (u.email || '').toLowerCase();
+                            const phone = (u.phone || '').toLowerCase();
+                            const pos = (u.position || '').toLowerCase();
+                            const roleName = (u.role_name || '').toLowerCase();
+                            const divName = (u.division_name || '').toLowerCase();
+                            const rolesStr = Array.isArray(u.roles) ? u.roles.join(' ').toLowerCase() : '';
+
+                            const matchSearch = name.includes(q) ||
+                                                email.includes(q) ||
+                                                phone.includes(q) ||
+                                                pos.includes(q) ||
+                                                roleName.includes(q) ||
+                                                divName.includes(q) ||
+                                                rolesStr.includes(q);
+                            if (!matchSearch) return false;
                         }
 
-                        const matchDivision = this.divisionFilter === 'Semua' || u.division_name === this.divisionFilter;
-                        const matchStatus = this.statusFilter === 'Semua' || u.status === this.statusFilter;
-                        return matchSearch && matchRole && matchDivision && matchStatus;
+                        // 2. Filter Status (Active / Inactive)
+                        if (statF !== 'Semua') {
+                            if ((u.status || '').toLowerCase() !== statF.toLowerCase()) {
+                                return false;
+                            }
+                        }
+
+                        // 3. Filter Divisi
+                        if (divF !== 'Semua') {
+                            const divLower = divF.toLowerCase();
+                            const userDivLower = (u.division_name || '-').toLowerCase();
+
+                            if (divF === 'Non-Divisi') {
+                                if (u.division_id || (userDivLower !== '-' && userDivLower !== '')) {
+                                    return false;
+                                }
+                            } else {
+                                const matchDiv = userDivLower === divLower ||
+                                                 userDivLower.includes(divLower) ||
+                                                 divLower.includes(userDivLower);
+                                if (!matchDiv) return false;
+                            }
+                        }
+
+                        // 4. Filter Role / Jabatan Organisasi
+                        if (roleF !== 'Semua') {
+                            const rfLower = roleF.toLowerCase();
+                            const userRoles = Array.isArray(u.roles) ? u.roles.map(r => r.toLowerCase()) : [];
+                            const userRoleName = (u.role_name || '').toLowerCase();
+                            const userPos = (u.position || '').toLowerCase();
+
+                            let matchRole = false;
+
+                            if (rfLower === 'director' || rfLower === 'direktur') {
+                                matchRole = userRoles.includes('director') || userRoles.includes('direktur') || userPos.includes('director');
+                            } else if (rfLower === 'kepala divisi' || rfLower === 'division head') {
+                                matchRole = userRoles.includes('division head') || userRoles.includes('kepala divisi') || userRoles.includes('head of division') || userPos.includes('divisi');
+                            } else if (rfLower === 'admin' || rfLower === 'admin support' || rfLower === 'admin logistik') {
+                                matchRole = userRoles.includes('admin') || userRoles.includes('admin support') || userPos.includes('admin');
+                            } else if (rfLower === 'bdm' || rfLower === 'busdev' || rfLower === 'business development') {
+                                matchRole = userRoles.includes('bdm') || userRoles.includes('busdev') || userRoles.includes('business development') || userPos.includes('bdm');
+                            } else if (rfLower === 'sales' || rfLower === 'account manager') {
+                                matchRole = userRoles.includes('sales') || userRoles.includes('account manager') || userPos.includes('sales');
+                            } else if (rfLower === 'pre sales' || rfLower === 'presales' || rfLower === 'lead pre sales') {
+                                matchRole = userRoles.includes('presales') || userRoles.includes('pre-sales') || userRoles.includes('lead pre sales') || userPos.includes('pre-sales') || userPos.includes('presales') || userPos.includes('pre sales');
+                            } else if (rfLower === 'solution architect') {
+                                matchRole = userRoles.includes('solution architect') || userRoles.includes('solutions architect') || userPos.includes('architect');
+                            } else if (rfLower === 'project manager' || rfLower === 'pmo') {
+                                matchRole = userRoles.includes('project manager') || userRoles.includes('pmo') || userPos.includes('project manager');
+                            } else if (rfLower === 'lead engineer network') {
+                                matchRole = userRoles.includes('lead engineer network') || (userRoles.includes('team leader') && (userPos.includes('network') || (u.division_name || '').toLowerCase().includes('network')));
+                            } else if (rfLower === 'lead security') {
+                                matchRole = userRoles.includes('lead security') || userPos.includes('lead security');
+                            } else if (rfLower === 'network engineer') {
+                                matchRole = userRoles.includes('network engineer') || userRoles.includes('engineer network l1') || userRoles.includes('engineer network l2') || userPos.includes('network');
+                            } else if (rfLower === 'security engineer') {
+                                matchRole = userRoles.includes('security engineer') || userRoles.includes('engineer security l1') || userRoles.includes('engineer security l2') || userPos.includes('security');
+                            } else if (rfLower === 'managed service' || rfLower === 'maintenance') {
+                                matchRole = userRoles.includes('managed service') || userRoles.includes('maintenance') || userRoles.includes('lead maintenance') || userPos.includes('managed service') || (u.division_name || '').toLowerCase().includes('maintenance');
+                            } else if (rfLower === 'warehouse') {
+                                matchRole = userRoles.includes('warehouse') || userPos.includes('warehouse');
+                            } else {
+                                matchRole = userRoles.includes(rfLower) || userRoleName.includes(rfLower) || userPos.includes(rfLower);
+                            }
+
+                            if (!matchRole) return false;
+                        }
+
+                        return true;
                     });
                 },
 
@@ -1252,25 +1330,65 @@
 
                 getRoleBadge(user) {
                     const role = (typeof user === 'object' && user !== null) ? user.role_name : user;
+                    const pos = (typeof user === 'object' && user !== null && user.position) ? user.position : '';
                     const level = (typeof user === 'object' && user !== null) ? user.level : null;
-                    const roleKey = (role === 'Engineer' && level) ? ('Engineer ' + level) : role;
+
+                    let displayLabel = role || pos || 'User';
+                    if (role === 'Engineer' && level) {
+                        displayLabel = 'Engineer ' + level;
+                    }
+
                     const styles = {
-                        'Direktur':         { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D' },
-                        'HD / Direktur':    { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D' },
-                        'Group Leader':     { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
-                        'Team Leader':      { bg: '#FFFBEB', fg: '#B45309', border: '#FDE68A', dot: '#D97706' },
-                        'Lead Engineer':    { bg: '#FFFBEB', fg: '#B45309', border: '#FDE68A', dot: '#D97706' },
-                        'Lead Maintenance': { bg: '#F0FDFA', fg: '#0F766E', border: '#CCFBF1', dot: '#14B8A6' },
-                        'Maintenance':      { bg: '#F0FDFA', fg: '#0F766E', border: '#CCFBF1', dot: '#14B8A6' },
-                        'Engineer':         { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
-                        'Engineer L1':      { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
-                        'Engineer L2':      { bg: '#ECFDF5', fg: '#047857', border: '#A7F3D0', dot: '#059669' },
+                        'Director':                     { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D' },
+                        'Direktur':                     { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D' },
+                        'HD / Direktur':                { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D' },
+                        'Kepala Divisi':                { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D' },
+                        'Division Head':                { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D' },
+                        'Head of Division':             { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D' },
+                        'Group Leader':                 { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
+                        'Project Manager':              { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
+                        'PMO':                          { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
+                        'BDM':                          { bg: '#EFF6FF', fg: '#1D4ED8', border: '#BFDBFE', dot: '#2563EB' },
+                        'BusDev':                       { bg: '#EFF6FF', fg: '#1D4ED8', border: '#BFDBFE', dot: '#2563EB' },
+                        'Sales':                        { bg: '#FFF7ED', fg: '#C2410C', border: '#FFEDD5', dot: '#EA580C' },
+                        'Account Manager':              { bg: '#FFF7ED', fg: '#C2410C', border: '#FFEDD5', dot: '#EA580C' },
+                        'Pre Sales':                    { bg: '#ECFEFF', fg: '#0E7490', border: '#CFFAFE', dot: '#06B6D4' },
+                        'Presales':                     { bg: '#ECFEFF', fg: '#0E7490', border: '#CFFAFE', dot: '#06B6D4' },
+                        'Lead Pre Sales':               { bg: '#ECFEFF', fg: '#0E7490', border: '#CFFAFE', dot: '#06B6D4' },
+                        'Solution Architect':           { bg: '#F5F3FF', fg: '#6D28D9', border: '#EDE9FE', dot: '#7C3AED' },
+                        'Admin':                        { bg: '#F8FAFC', fg: '#475569', border: '#CBD5E1', dot: '#64748B' },
+                        'Admin Support':                { bg: '#F8FAFC', fg: '#475569', border: '#CBD5E1', dot: '#64748B' },
+                        'Warehouse':                    { bg: '#FEF3C7', fg: '#92400E', border: '#FDE68A', dot: '#D97706' },
+                        'Lead Engineer Network':        { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
+                        'Team Leader Engineering':      { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
+                        'Lead Security':                { bg: '#FFF1F2', fg: '#9F1239', border: '#FFE4E6', dot: '#E11D48' },
+                        'Network Engineer':             { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
+                        'Engineer Network L1':          { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
+                        'Engineer Network L2':          { bg: '#ECFDF5', fg: '#047857', border: '#A7F3D0', dot: '#059669' },
+                        'Security Engineer':            { bg: '#FFF1F2', fg: '#BE123C', border: '#FFE4E6', dot: '#E11D48' },
+                        'Engineer Security L1':         { bg: '#FFF1F2', fg: '#BE123C', border: '#FFE4E6', dot: '#E11D48' },
+                        'Engineer Security L2':         { bg: '#FFE4E6', fg: '#9F1239', border: '#FECDD3', dot: '#BE123C' },
+                        'Managed Service':              { bg: '#F0FDFA', fg: '#0F766E', border: '#CCFBF1', dot: '#14B8A6' },
+                        'Lead Maintenance':             { bg: '#F0FDFA', fg: '#0F766E', border: '#CCFBF1', dot: '#14B8A6' },
+                        'Maintenance':                  { bg: '#F0FDFA', fg: '#0F766E', border: '#CCFBF1', dot: '#14B8A6' },
                     };
-                    const s = styles[roleKey] || styles[role] || { bg: '#F1F5F9', fg: '#475569', border: '#E2E8F0', dot: '#64748B' };
-                    const label = (role === 'Engineer' && level) ? ('Engineer ' + level) : role;
+
+                    let s = styles[displayLabel] || styles[role] || null;
+                    if (!s) {
+                        for (let k in styles) {
+                            if (displayLabel.toLowerCase().includes(k.toLowerCase()) || role.toLowerCase().includes(k.toLowerCase())) {
+                                s = styles[k];
+                                break;
+                            }
+                        }
+                    }
+                    if (!s) {
+                        s = { bg: '#F1F5F9', fg: '#475569', border: '#E2E8F0', dot: '#64748B' };
+                    }
+
                     return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11.5px; font-weight: 700; padding: 3px 9px 3px 7px; border-radius: 9999px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
                                 <span style="width: 6px; height: 6px; border-radius: 50%; background: ${s.dot}; flex-shrink: 0;"></span>
-                                ${label}
+                                ${displayLabel}
                             </span>`;
                 },
 

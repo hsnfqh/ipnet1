@@ -507,19 +507,36 @@ class ScopeHelper
     {
         if (!$user) return [];
 
-        if ($user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader'])) {
+        if ($user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Kepala Divisi', 'Head of Division', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager'])) {
             return [
-                'Director', 'Division Head', 'Group Leader', 'PMO', 'Project Manager',
-                'Sales', 'BusDev', 'CRO', 'Presales', 'Solution Architect', 'Tech Develop',
-                'Team Leader Engineering', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Field Support (EOS)'
+                'Admin Support',
+                'BDM',
+                'Director',
+                'Kepala Divisi',
+                'Lead Engineer Network',
+                'Lead Security',
+                'Managed Service',
+                'Network Engineer',
+                'Pre Sales',
+                'Project Manager',
+                'Sales',
+                'Security Engineer',
+                'Solution Architect',
+                'Warehouse',
             ];
         }
 
         if (self::isTeamLeader($user)) {
-            return ['Network Engineer', 'Security Engineer', 'Team Leader Engineering', 'Engineer L1', 'Engineer L2'];
+            return [
+                'Network Engineer',
+                'Security Engineer',
+                'Managed Service',
+                'Lead Engineer Network',
+                'Lead Security',
+            ];
         }
 
-        return ['Network Engineer', 'Security Engineer', 'Field Support (EOS)', 'Engineer L1', 'Engineer L2'];
+        return ['Network Engineer', 'Security Engineer', 'Managed Service'];
     }
 
     /**

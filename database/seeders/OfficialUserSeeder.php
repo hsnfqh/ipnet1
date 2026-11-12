@@ -600,3 +600,4 @@ class OfficialUserSeeder extends Seeder
             ->delete();
     }
 }
+
