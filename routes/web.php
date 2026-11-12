@@ -1732,8 +1732,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/export/pdf',   [TimesheetController::class, 'exportPdf'])->name('timesheets.export.pdf');
     });
 
-    // ─── PENGGUNA ─────────────────────────────────────────────────────────
-    Route::prefix('users')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service')->group(function () {
+    // ─── PENGGUNA (HANYA HEAD OF DIVISION & DIRECTOR) ─────────────────────
+    Route::prefix('users')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Kepala Divisi|Head of Division|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('users.index');
         Route::post('/', [UserController::class, 'store'])->name('users.store');
         Route::put('/{user}', [UserController::class, 'update'])->name('users.update');

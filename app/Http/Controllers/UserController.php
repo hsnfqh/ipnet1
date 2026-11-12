@@ -74,7 +74,7 @@ class UserController extends Controller
     public function index()
     {
         $authUser  = auth()->user();
-        abort_unless(ScopeHelper::isManagerial($authUser), 403, 'Anda tidak memiliki akses ke Manajemen Pengguna.');
+        abort_unless(ScopeHelper::isExecutive($authUser), 403, 'Akses terbatas: Hanya Head of Division dan Director yang memiliki akses ke Manajemen Pengguna.');
 
         $scopeIds  = ScopeHelper::getScopeUserIds($authUser);
 
@@ -113,7 +113,7 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         $authUser = auth()->user();
-        abort_unless(ScopeHelper::isManagerial($authUser), 403, 'Anda tidak memiliki izin menambah pengguna.');
+        abort_unless(ScopeHelper::isExecutive($authUser), 403, 'Akses terbatas: Hanya Head of Division dan Director yang memiliki izin menambah pengguna.');
 
         $creatableRoles = ScopeHelper::getCreatableRoles($authUser);
         if (!in_array($request->role, $creatableRoles)) {

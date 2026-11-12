@@ -88,9 +88,6 @@
             // ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
             // ['key' => 'attendance',   'label' => 'Attendance',        'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
         ];
-        if (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
-            $navItems[] = ['key' => 'users', 'label' => 'Users', 'route' => 'users.index'];
-        }
     } elseif ($isPmoUser) {
         // Project Manager & PMO: Pusat Kontrol Portofolio & Serah Terima Proyek
         $navItems = [
@@ -151,7 +148,6 @@
             // ['key' => 'digital_signatures','label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             // ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
             // ['key' => 'attendance',  'label' => 'Attendance',        'route' => 'attendance.recap'],
-            ['key' => 'users',             'label' => 'Users',             'route' => 'users.index'],
         ];
     } else {
         $navItems = [

@@ -33,6 +33,9 @@ class ScopeHelper
             'Division Head',
             'Kepala Divisi',
             'Head of Division',
+            'Group Leader',
+            'Group Leader Commercial & Solution',
+            'Group Leader Delivery & Operation',
         ]);
     }
 
@@ -469,32 +472,22 @@ class ScopeHelper
 
     /**
      * Role apa saja yang dapat dibuat oleh user yang sedang login?
+     * Hanya Director dan Head of Division yang berhak membuat user baru.
      */
     public static function getCreatableRoles($user): array
     {
         if (!$user) return [];
 
-        if ($user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head'])) {
+        if (self::isExecutive($user)) {
             return [
-                'Director', 'Division Head', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation',
-                'PMO', 'Project Manager', 'Sales', 'BusDev', 'CRO', 'Presales', 'Solution Architect', 'Tech Develop',
-                'Team Leader Engineering', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Field Support (EOS)'
+                'Director', 'Division Head', 'Kepala Divisi', 'Head of Division',
+                'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation',
+                'PMO', 'Project Manager', 'Sales', 'Account Manager', 'BusDev', 'BDM', 'CRO',
+                'Presales', 'Lead Pre Sales', 'Solution Architect', 'Tech Develop',
+                'Team Leader Engineering', 'Lead Engineer Network', 'Lead Security',
+                'Lead Maintenance', 'Network Engineer', 'Security Engineer', 'Managed Service',
+                'Field Support (EOS)', 'Field Support', 'Admin Support', 'Warehouse'
             ];
-        }
-
-        if (self::isGroupLeader($user)) {
-            return [
-                'PMO', 'Project Manager', 'Sales', 'BusDev', 'CRO', 'Presales', 'Solution Architect', 'Tech Develop',
-                'Team Leader Engineering', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Field Support (EOS)'
-            ];
-        }
-
-        if (self::isTeamLeader($user)) {
-            return ['Network Engineer', 'Security Engineer', 'Engineer'];
-        }
-
-        if ($user->hasAnyRole(['Managed Service', 'Lead Maintenance'])) {
-            return ['Field Support (EOS)', 'Maintenance'];
         }
 
         return [];
@@ -541,6 +534,7 @@ class ScopeHelper
 
     /**
      * Apakah auth user berhak mengelola (edit, toggle status, hapus) target user?
+     * Hanya Director dan Head of Division yang berhak mengelola pengguna lainnya.
      */
     public static function canManageUser($authUser, $targetUser): bool
     {
@@ -551,43 +545,16 @@ class ScopeHelper
             return false;
         }
 
-        // 1. Director & Division Head memiliki wewenang penuh
-        if ($authUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head'])) {
-            return true;
-        }
-
-        // Target adalah Director -> tidak ada yang boleh mengubah selain sesama Director
-        if ($targetUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur'])) {
-            return false;
-        }
-
-        // 2. Group Leader dapat mengelola jajaran di bawahnya
-        if (self::isGroupLeader($authUser)) {
-            if ($targetUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head'])) {
+        // HANYA Director dan Head of Division yang memiliki hak akses mengelola user lain
+        if (self::isExecutive($authUser)) {
+            // Target adalah Director -> hanya sesama Director yang berhak mengelola
+            if ($targetUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']) && !$authUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur'])) {
                 return false;
             }
             return true;
         }
 
-        // 3. Team Leader hanya dapat mengelola Engineer di divisinya sendiri
-        if (self::isTeamLeader($authUser)) {
-            if ($targetUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Lead Divisi', 'Team Leader', 'PMO'])) {
-                return false;
-            }
-            if ($authUser->division_id && $targetUser->division_id === $authUser->division_id) {
-                return true;
-            }
-            if ($authUser->team_id && $targetUser->team_id === $authUser->team_id) {
-                return true;
-            }
-            return false;
-        }
-
-        // 4. Managed Service Coordinator hanya dapat mengelola staf Field Support
-        if ($authUser->hasAnyRole(['Managed Service', 'Lead Maintenance'])) {
-            return $targetUser->hasAnyRole(['Field Support (EOS)', 'Field Support', 'Maintenance']);
-        }
-
+        // Role lainnya (Team Leader, Lead Maintenance, Managed Service, PMO, Engineer, dll.) TIDAK punya hak mengelola pengguna lainnya
         return false;
     }
 }

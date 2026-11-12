@@ -94,7 +94,7 @@
                             <span class="text-[#8F0A0D] font-extrabold" x-text="users.length"></span>
                         </div>
 
-                        @if(\App\Helpers\ScopeHelper::isManagerial(auth()->user()))
+                        @if(\App\Helpers\ScopeHelper::isExecutive(auth()->user()))
                         <button @click="openModal()"
                                 class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
@@ -295,7 +295,7 @@
                                         <template x-if="user.has_certification">
                                             <div class="flex items-center gap-2">
                                                 <span x-html="getCertificationStatusBadge(user.certification_status)"></span>
-                                                @if(\App\Helpers\ScopeHelper::isManagerial(auth()->user()))
+                                                @if(\App\Helpers\ScopeHelper::isExecutive(auth()->user()))
                                                 <button @click="viewCertification(user)"
                                                         class="p-1.5 text-[#8F0A0D] hover:bg-[#FEF2F2] rounded-lg transition cursor-pointer"
                                                         title="Lihat Dokumen Sertifikat">
