@@ -235,8 +235,13 @@ class ScopeHelper
             'Direktur',
             'HD / Direktur',
             'Division Head',
+            'Kepala Divisi',
+            'Head of Division',
             'Group Leader',
             'Group Leader Commercial & Solution',
+            'Group Leader Delivery & Operation',
+            'PMO',
+            'Project Manager',
             'Sales',
             'Account Manager',
             'BusDev',
@@ -244,7 +249,12 @@ class ScopeHelper
             'Business Development',
             'Presales',
             'Pre-Sales',
+            'Lead Pre Sales',
             'Solution Architect',
+            'Solutions Architect',
+            'Managed Service',
+            'Lead Maintenance',
+            'Maintenance',
         ]);
     }
 

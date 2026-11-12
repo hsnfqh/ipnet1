@@ -134,6 +134,13 @@ class ProjectController extends Controller
                     if ($projectIdsWithTeamTasks->isNotEmpty()) {
                         $q->orWhereIn('id', $projectIdsWithTeamTasks);
                     }
+                    if ($user->hasAnyRole(['Managed Service', 'Lead Maintenance', 'Maintenance'])) {
+                        $q->orWhere('project_type', 'like', '%Managed Service%')
+                          ->orWhere('project_type', 'like', '%Maintenance%')
+                          ->orWhere('handover_target', 'managed_service')
+                          ->orWhere('stage', 'Operate')
+                          ->orWhere('created_by', $user->id);
+                    }
                 })
                 ->latest()
                 ->get();

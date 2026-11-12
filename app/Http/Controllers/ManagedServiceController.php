@@ -2017,7 +2017,8 @@ class ManagedServiceController extends Controller
                   ->orWhere('status', 'Active')
                   ->orWhere('handover_target', 'managed_service')
                   ->orWhere('project_type', 'like', '%Managed Service%')
-                  ->orWhere('project_type', 'like', '%Maintenance%');
+                  ->orWhere('project_type', 'like', '%Maintenance%')
+                  ->orWhere('created_by', auth()->id());
             });
 
         if ($request->filled('search')) {

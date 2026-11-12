@@ -38,7 +38,7 @@
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" 
      x-data="{ 
          activeTab: '{{ request('tab', 'active') }}', 
-         showCreateContractModal: false,
+         showCreateContractModal: {{ (request('action') === 'create' || $errors->any()) ? 'true' : 'false' }},
          showEditContractModal: false,
          showDeleteModal: false,
          deleteProjectId: null,
@@ -181,6 +181,30 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-center justify-between text-xs font-semibold anim-fade-up">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-800 text-sm font-bold">&times;</button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold anim-fade-up">
+                    <div class="flex items-center gap-2 font-bold text-red-900 mb-1.5">
+                        <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Gagal Menambahkan Proyek. Mohon periksa isian formulir:</span>
+                    </div>
+                    <ul class="list-disc pl-6 space-y-0.5 text-[11.5px] text-red-800">
+                        @foreach($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <!-- ========================================================== -->
             <!-- 1. HEADER CARD (WITH SEGMENTED TAB SWITCHER)               -->
             <!-- ========================================================== -->
@@ -195,14 +219,15 @@
                     </div>
 
                     <div class="flex items-center gap-3 shrink-0 self-start lg:self-center">
-                        {{-- Tombol Buat Kontrak Baru --}}
+                        {{-- Tombol Tambah Proyek / Buat Kontrak Baru --}}
                         <button type="button" 
                                 @click="showCreateContractModal = true" 
-                                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                                class="btn-ipnet-gradient inline-flex items-center justify-center gap-2 px-4 py-2.5 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap active:scale-95"
+                                title="Tambah Proyek / Kontrak Managed Service Baru">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
-                            <span>Buat Kontrak Service Baru</span>
+                            <span>+ Tambah Proyek Baru</span>
                         </button>
                     </div>
                 </div>

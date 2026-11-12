@@ -226,7 +226,15 @@
                     </div>
 
                     {{-- Quick Action Buttons --}}
-                    <div class="flex items-center gap-2.5 shrink-0">
+                    <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
+                        <a href="{{ route('ms.projects.index', ['action' => 'create']) }}" 
+                           class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-bold text-[12.5px] hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95"
+                           title="Tambah Kontrak / Proyek Managed Service">
+                            <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>+ Tambah Proyek</span>
+                        </a>
                         <button type="button" 
                                 @click="isCreateModalOpen = true" 
                                 class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-bold text-[12.5px] hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95">
