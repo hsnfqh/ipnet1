@@ -485,16 +485,146 @@ Route::get('/auto-migrate-system-2026', function () {
     }
 });
 
+// Switch Dashboard View untuk User dengan Rangkap Jabatan (Novan: BDM & Lead Security)
+Route::get('/switch-dashboard-view/{view}', function ($view) {
+    if (!in_array($view, ['bdm', 'lead_security', 'lead'])) {
+        $view = 'bdm';
+    }
+    session(['active_dashboard_view' => $view]);
+    if ($view === 'lead_security' || $view === 'lead') {
+        return redirect()->route('dashboard.lead')->with('success', 'Berhasil beralih ke Tampilan Dashboard Lead Security');
+    }
+    return redirect()->route('dashboard.bdm')->with('success', 'Berhasil beralih ke Tampilan Dashboard BDM');
+})->name('switch.dashboard.view')->middleware('auth');
+
+// Route Sinkronisasi Master Akun Resmi (38 Pengguna Real + Full Backup Otomatis Terlebih Dahulu)
+Route::get('/sync-official-users', function () {
+    try {
+        $timestamp = date('Y_m_d_His');
+        $backupDir = storage_path('app/backups');
+        if (!file_exists($backupDir)) {
+            @mkdir($backupDir, 0775, true);
+        }
+        $fileName = "backup_before_user_sync_{$timestamp}.sql";
+        $filePath = $backupDir . '/' . $fileName;
+
+        // 1. Full database backup
+        $handle = fopen($filePath, 'w');
+        if ($handle) {
+            fwrite($handle, "-- IP-NET FULL BACKUP BEFORE OFFICIAL USER SYNC\n");
+            fwrite($handle, "-- Generated: " . date('Y-m-d H:i:s') . "\n\n");
+            $tables = DB::select('SHOW TABLES');
+            $dbName = DB::getDatabaseName();
+            $key = "Tables_in_{$dbName}";
+            foreach ($tables as $t) {
+                $table = $t->$key;
+                $create = DB::select("SHOW CREATE TABLE `{$table}`");
+                fwrite($handle, "DROP TABLE IF EXISTS `{$table}`;\n");
+                fwrite($handle, $create[0]->{'Create Table'} . ";\n\n");
+                $rows = DB::table($table)->get();
+                foreach ($rows as $row) {
+                    $cols = array_keys((array)$row);
+                    $vals = array_map(function ($val) {
+                        if (is_null($val)) return 'NULL';
+                        return "'" . addslashes((string)$val) . "'";
+                    }, array_values((array)$row));
+                    fwrite($handle, "INSERT INTO `{$table}` (`" . implode('`, `', $cols) . "`) VALUES (" . implode(', ', $vals) . ");\n");
+                }
+                fwrite($handle, "\n");
+            }
+            fclose($handle);
+        }
+
+        // 2. Forget cached permissions and run Seeders
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        Artisan::call('db:seed', ['--class' => 'RoleSeeder', '--force' => true]);
+        Artisan::call('db:seed', ['--class' => 'OfficialUserSeeder', '--force' => true]);
+        Artisan::call('optimize:clear');
+
+        $users = \App\Models\User::with('roles')->orderBy('id')->get();
+        $totalUsers = $users->count();
+        $backupSizeKb = file_exists($filePath) ? round(filesize($filePath) / 1024, 2) : 0;
+
+        $html = "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='utf-8'>
+            <title>Sinkronisasi Akun Resmi Berhasil - IP-NET</title>
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0F172A; color: #F8FAFC; margin: 0; padding: 30px; }
+                .container { max-width: 900px; margin: 0 auto; background: #1E293B; border-radius: 16px; padding: 28px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+                h1 { color: #38BDF8; font-size: 24px; margin-top: 0; }
+                .alert { background: #064E3B; border: 1px solid #059669; color: #A7F3D0; padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; }
+                .backup-box { background: #0F172A; border: 1px dashed #64748B; padding: 14px; border-radius: 10px; margin-bottom: 24px; font-size: 13px; }
+                table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 15px; }
+                th { background: #334155; padding: 10px; text-align: left; font-weight: 700; color: #94A3B8; }
+                td { padding: 9px 10px; border-bottom: 1px solid #334155; }
+                tr:hover td { background: #243247; }
+                .role-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; background: #8F0A0D; color: #FFF; font-weight: 600; font-size: 11px; }
+                .btn { display: inline-block; padding: 10px 18px; border-radius: 10px; background: #0284C7; color: white; text-decoration: none; font-weight: bold; font-size: 13px; margin-right: 10px; }
+                .btn-green { background: #059669; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <h1>🛡️ Sinkronisasi Akun Resmi IP-NET Selesai 100%!</h1>
+                <div class='alert'>
+                    Semua 38 Akun Resmi sesuai daftar PDF telah berhasil dimasukkan/diperbarui dengan aman, lengkap dengan role Spatie dan penempatan divisi teknis!
+                </div>
+                <div class='backup-box'>
+                    <strong>🛡️ File Backup SQL Otomatis:</strong> {$fileName} ({$backupSizeKb} KB)<br>
+                    <a href='/download-system-backup/{$fileName}' class='btn' style='margin-top:10px;'>⬇️ Unduh File Backup .SQL</a>
+                    <a href='/login' class='btn btn-green' style='margin-top:10px;'>🔐 Masuk ke Halaman Login</a>
+                </div>
+                <h3>Daftar Seluruh Akun Resmi ({$totalUsers} Pengguna Aktif):</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Lengkap</th>
+                            <th>Email Resmi</th>
+                            <th>Role / Posisi</th>
+                            <th>Divisi</th>
+                        </tr>
+                    </thead>
+                    <tbody>";
+        $no = 1;
+        foreach ($users as $u) {
+            $rolesStr = $u->roles->pluck('name')->implode(', ');
+            $divName = $u->division ? $u->division->name : '-';
+            $html .= "<tr>
+                <td>{$no}</td>
+                <td><strong>{$u->name}</strong></td>
+                <td><code>{$u->email}</code></td>
+                <td><span class='role-badge'>{$u->position}</span> <br><small style='color:#94A3B8'>{$rolesStr}</small></td>
+                <td>{$divName}</td>
+            </tr>";
+            $no++;
+        }
+        $html .= "
+                    </tbody>
+                </table>
+            </div>
+        </body>
+        </html>";
+
+        return response($html);
+    } catch (\Throwable $e) {
+        return response("<h2 style='color:red'>ERROR SYNC: " . htmlspecialchars($e->getMessage()) . " in " . $e->getFile() . ":" . $e->getLine() . "</h2><pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>", 500);
+    }
+});
+
 // Auto Seed Accounts & Roles Helper for Production Deployment
 Route::get('/seed-dummy-accounts-2026', function () {
     try {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         Artisan::call('db:seed', ['--class' => 'RoleSeeder', '--force' => true]);
-        Artisan::call('db:seed', ['--class' => 'DummyUserSeeder', '--force' => true]);
+        Artisan::call('db:seed', ['--class' => 'OfficialUserSeeder', '--force' => true]);
         Artisan::call('optimize:clear');
         return response()->json([
             'status' => 'success',
-            'message' => 'Seluruh akun resmi (Akbar Presales, Aris Solution Architect, 9 Sales, 5 BDM, PMO, Direktur) dan role Spatie berhasil di-seed!',
+            'message' => 'Seluruh 38 akun resmi IP-NET Solusindo dan role Spatie berhasil di-seed & disinkronisasi!',
         ]);
     } catch (\Throwable $e) {
         return response()->json([
@@ -1708,6 +1838,17 @@ Route::get('/', function () {
         $name = strtolower($user->name ?? '');
         $pos = strtolower($user->position ?? '');
 
+        // Dual role handling (Novan: BDM & Lead Security)
+        $activeRoleView = session('active_dashboard_view', 'bdm');
+        $isDualRoleNovan = (str_contains($email, 'novan') || ($user->hasRole('BDM') && $user->hasAnyRole(['Lead Engineer', 'Team Leader Engineering', 'Security Engineer', 'Lead Security', 'Team Leader'])));
+        if ($isDualRoleNovan) {
+            if ($activeRoleView === 'lead_security' || $activeRoleView === 'lead') {
+                return redirect()->route('dashboard.lead');
+            } else {
+                return redirect()->route('dashboard.bdm');
+            }
+        }
+
         // Warehouse & Logistics Staff -> Selalu ke Dashboard Warehouse
         if ($user->hasRole('Warehouse') || str_contains($email, 'warehouse') || str_contains($pos, 'warehouse')) {
             return redirect()->route('warehouse.dashboard');
@@ -1718,15 +1859,20 @@ Route::get('/', function () {
             return redirect()->route('pmo.dashboard');
         }
 
+        // Executive / Kepala Divisi / Director / Group Leader -> Dashboard Lead
+        if ($user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Kepala Divisi', 'Head of Division', 'Group Leader Delivery & Operation', 'Group Leader'])) {
+            return redirect()->route('dashboard.lead');
+        }
+
         // Engineer (Field / Technical Delivery) selalu diarahkan ke dashboard engineer
-        if ($user->hasRole('Engineer') && !$user->hasAnyRole(['Director', 'Direktur', 'Division Head', 'Group Leader', 'Sales', 'BDM', 'Presales', 'Solution Architect', 'PMO', 'Project Manager'])) {
+        if ($user->hasRole('Engineer') && !$user->hasAnyRole(['Director', 'Direktur', 'Division Head', 'Kepala Divisi', 'Head of Division', 'Group Leader', 'Sales', 'BDM', 'Presales', 'Solution Architect', 'PMO', 'Project Manager', 'Lead Security'])) {
             return redirect()->route('dashboard.engineer');
         }
 
         if ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D']) || str_contains($email, 'aris') || str_contains($pos, 'solution architect') || str_contains($pos, 'architect')) {
             return redirect()->route('dashboard.architect');
         }
-        if ($user->hasAnyRole(['Presales', 'Pre-Sales']) || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
+        if ($user->hasAnyRole(['Presales', 'Pre-Sales', 'Lead Pre Sales']) || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
             return redirect()->route('dashboard.presales');
         }
         if ($user->hasAnyRole(['BusDev', 'BDM', 'Business Development']) || str_contains($pos, 'business development') || str_contains($pos, 'bdm')) {
@@ -1738,10 +1884,10 @@ Route::get('/', function () {
         if ($user->hasAnyRole(['Sales', 'Account Manager', 'Group Leader Commercial & Solution']) || str_contains($pos, 'sales') || str_contains($pos, 'account manager')) {
             return redirect()->route('dashboard.sales');
         }
-        if ($user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin']) || str_contains($pos, 'admin support')) {
+        if ($user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin']) || str_contains($pos, 'admin support') || str_contains($pos, 'admin')) {
             return redirect()->route('admin_support.dashboard');
         }
-        if ($user->hasAnyRole(['Lead Maintenance', 'Maintenance']) || ($user->division && str_contains(strtolower($user->division->name), 'maintenance'))) {
+        if ($user->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service']) || ($user->division && str_contains(strtolower($user->division->name), 'maintenance'))) {
             return redirect()->route('ms.dashboard');
         }
         if (\App\Helpers\ScopeHelper::isManagerial($user)) {

@@ -1,12 +1,23 @@
 @php
     $user = auth()->user();
     $currentRoute = request()->route() ? request()->route()->getName() : '';
-    $isExecutiveOrGl = $user && $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation']);
+
+    // Dual-role check (Novan: BDM & Lead Security)
+    $activeRoleView = session('active_dashboard_view', 'bdm');
+    $isDualRoleNovan = $user && (
+        str_contains(strtolower($user->email ?? ''), 'novan') ||
+        ($user->hasRole('BDM') && $user->hasAnyRole(['Lead Engineer', 'Team Leader Engineering', 'Security Engineer', 'Lead Security', 'Team Leader']))
+    );
+
+    $isExecutiveOrGl = $user && $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Kepala Divisi', 'Head of Division', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation']);
     $isPmoUser = $user && ($user->hasAnyRole(['PMO', 'Project Manager']) || str_contains(strtolower($user->email ?? ''), 'rizki') || str_contains(strtolower($user->email ?? ''), 'kuncoro') || str_contains(strtolower($user->position ?? ''), 'project manager') || str_contains(strtolower($user->position ?? ''), 'pmo'));
-    $isMaintenance = $user && ($user->hasAnyRole(['Lead Maintenance', 'Maintenance']) || ($user->division && str_contains(strtolower($user->division->name), 'maintenance')));
+    $isMaintenance = $user && ($user->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service']) || ($user->division && str_contains(strtolower($user->division->name), 'maintenance')));
     $isArchitect = $user && $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D']);
     $isBdm = $user && $user->hasAnyRole(['BDM', 'BusDev', 'Business Development']);
-    $isPresales = $user && $user->hasAnyRole(['Presales', 'Pre-Sales']);
+    if ($isDualRoleNovan && $activeRoleView === 'lead_security') {
+        $isBdm = false; // Saat mode Lead Security aktif, sidebar beralih ke Team Leader Engineering
+    }
+    $isPresales = $user && $user->hasAnyRole(['Presales', 'Pre-Sales', 'Lead Pre Sales']);
     $isAdminSupport = $user && $user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin']);
     $isCro = $user && $user->hasAnyRole(['CRO', 'Customer Relation Officer', 'Customer Relationship Officer']);
     $isSales = $user && $user->hasAnyRole(['Sales', 'Account Manager']);
@@ -34,6 +45,7 @@
             ['key' => 'inventory',          'label' => 'Inventory',         'route' => 'inventory.index'],
             ['key' => 'warehouse',          'label' => 'Warehouse',         'route' => 'warehouse.dashboard'],
             ['key' => 'vendors',            'label' => 'Vendors',           'route' => 'vendors.index'],
+            ['key' => 'users',              'label' => 'Team & Users',      'route' => 'users.index'],
             // ['key' => 'digital_signatures', 'label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             // ['key' => 'timesheets',         'label' => 'Timesheet',         'route' => 'timesheets.index'],
         ];

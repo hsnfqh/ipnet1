@@ -198,6 +198,22 @@
                                 Pantau kapasitas tim teknisi, progres instalasi proyek jaringan, dan jadwal operasional lapangan.
                             @endif
                         </p>
+
+                        @php
+                            $isDualRoleLead = auth()->user() && (
+                                str_contains(strtolower(auth()->user()->email ?? ''), 'novan') ||
+                                (auth()->user()->hasRole('BDM') && auth()->user()->hasAnyRole(['Lead Engineer', 'Team Leader Engineering', 'Security Engineer', 'Lead Security', 'Team Leader']))
+                            );
+                        @endphp
+                        @if($isDualRoleLead)
+                        <div class="mt-2.5 inline-flex items-center gap-2 p-1.5 px-3 rounded-xl bg-black/25 border border-white/20 backdrop-blur-sm">
+                            <span class="text-[11px] font-bold text-white/90">Rangkap Jabatan:</span>
+                            <span class="px-2.5 py-0.5 rounded-md bg-white text-[#8F0A0D] text-[11px] font-black shadow-xs">🛡️ Mode Lead Security</span>
+                            <a href="{{ route('switch.dashboard.view', 'bdm') }}" class="px-2.5 py-0.5 rounded-md bg-white/20 hover:bg-white text-white hover:text-[#8F0A0D] text-[11px] font-bold transition-all">
+                                💼 Beralih ke BDM &rarr;
+                            </a>
+                        </div>
+                        @endif
                     </div>
 
                     {{-- Quick Action Buttons (Untuk Eksekutif/Direktur/Head: Tanpa tombol tambah baru, fokus review & view) --}}

@@ -193,6 +193,22 @@
                         <p class="mt-0.5 text-xs text-white/80 leading-relaxed line-clamp-1">
                             Kelola inisiasi peluang pasar dan serah terima prospek tender strategis ke tim Sales.
                         </p>
+
+                        @php
+                            $isDualRole = auth()->user() && (
+                                str_contains(strtolower(auth()->user()->email ?? ''), 'novan') ||
+                                (auth()->user()->hasRole('BDM') && auth()->user()->hasAnyRole(['Lead Engineer', 'Team Leader Engineering', 'Security Engineer', 'Lead Security', 'Team Leader']))
+                            );
+                        @endphp
+                        @if($isDualRole)
+                        <div class="mt-2.5 inline-flex items-center gap-2 p-1.5 px-3 rounded-xl bg-black/25 border border-white/20 backdrop-blur-sm">
+                            <span class="text-[11px] font-bold text-white/90">Rangkap Jabatan:</span>
+                            <span class="px-2.5 py-0.5 rounded-md bg-white text-[#8F0A0D] text-[11px] font-black shadow-xs">💼 Mode BDM</span>
+                            <a href="{{ route('switch.dashboard.view', 'lead_security') }}" class="px-2.5 py-0.5 rounded-md bg-white/20 hover:bg-white text-white hover:text-[#8F0A0D] text-[11px] font-bold transition-all">
+                                🛡️ Beralih ke Lead Security &rarr;
+                            </a>
+                        </div>
+                        @endif
                     </div>
 
                     {{-- Actions & Filter --}}

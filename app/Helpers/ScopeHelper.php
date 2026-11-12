@@ -31,6 +31,8 @@ class ScopeHelper
             'Direktur',
             'HD / Direktur',
             'Division Head',
+            'Kepala Divisi',
+            'Head of Division',
         ]);
     }
 
@@ -45,6 +47,8 @@ class ScopeHelper
             'Direktur',
             'HD / Direktur',
             'Division Head',
+            'Kepala Divisi',
+            'Head of Division',
             'Group Leader',
             'Group Leader Commercial & Solution',
             'Group Leader Delivery & Operation',
@@ -64,6 +68,8 @@ class ScopeHelper
             'Group Leader Commercial & Solution',
             'Group Leader Delivery & Operation',
             'Division Head',
+            'Kepala Divisi',
+            'Head of Division',
             'Lead Divisi',
         ]);
     }
@@ -79,6 +85,8 @@ class ScopeHelper
             'Team Leader',
             'Lead Divisi',
             'Lead Engineer',
+            'Lead Engineer Network',
+            'Lead Security',
             'Lead Maintenance',
             'Managed Service',
         ]);
@@ -108,6 +116,8 @@ class ScopeHelper
             'Direktur',
             'HD / Direktur',
             'Division Head',
+            'Kepala Divisi',
+            'Head of Division',
             'Group Leader',
             'Group Leader Commercial & Solution',
             'Group Leader Delivery & Operation',
@@ -118,6 +128,8 @@ class ScopeHelper
             'Lead Divisi',
             'Lead Maintenance',
             'Lead Engineer',
+            'Lead Engineer Network',
+            'Lead Security',
             'Managed Service',
         ]);
     }

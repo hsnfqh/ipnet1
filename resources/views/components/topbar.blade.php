@@ -33,6 +33,30 @@
         </button>
 
         <h1 class="font-sans text-[17px] sm:text-[21px] font-bold text-[#17151C] tracking-[-0.3px] leading-tight truncate">{{ $title }}</h1>
+
+        @php
+            $isDualRoleNovan = $user && (
+                str_contains(strtolower($user->email ?? ''), 'novan') ||
+                ($user->hasRole('BDM') && $user->hasAnyRole(['Lead Engineer', 'Team Leader Engineering', 'Security Engineer', 'Lead Security', 'Team Leader']))
+            );
+            $activeRoleView = session('active_dashboard_view', 'bdm');
+        @endphp
+
+        @if($isDualRoleNovan)
+        <div class="hidden sm:inline-flex items-center ml-2 p-1 bg-slate-100/90 border border-slate-200/90 rounded-xl shadow-2xs">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 px-2">Mode Tampilan:</span>
+            <a href="{{ route('switch.dashboard.view', 'bdm') }}"
+               class="px-2.5 py-1 rounded-lg text-[11.5px] font-bold transition-all {{ $activeRoleView === 'bdm' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-slate-600 hover:text-[#8F0A0D] hover:bg-white' }}"
+               title="Beralih ke Dashboard Business Development (BDM)">
+                💼 BDM
+            </a>
+            <a href="{{ route('switch.dashboard.view', 'lead_security') }}"
+               class="px-2.5 py-1 rounded-lg text-[11.5px] font-bold transition-all {{ $activeRoleView !== 'bdm' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-slate-600 hover:text-[#8F0A0D] hover:bg-white' }}"
+               title="Beralih ke Dashboard Lead Security">
+                🛡️ Lead Security
+            </a>
+        </div>
+        @endif
     </div>
 
     <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
