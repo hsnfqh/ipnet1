@@ -1711,17 +1711,6 @@
                     </div>
                 </div>
 
-                <div class="p-3 rounded-xl bg-blue-50/70 border border-blue-200/60 text-xs text-blue-900 space-y-1">
-                    <p class="font-bold flex items-center gap-1.5 text-blue-950">
-                        <svg class="w-4 h-4 text-blue-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Durasi Pelaksanaan vs Batas Kontrak SPK:</span>
-                    </p>
-                    <p class="text-[11px] leading-relaxed text-blue-900">
-                        • <strong>Durasi Pelaksanaan:</strong> Menentukan rentang minggu riil pada <strong>Kurva S</strong> (misal 28 hari = 4 minggu).<br>
-                        • <strong>Batas Akhir Kontrak:</strong> Masa berlaku administrasi SPK (bisa beberapa bulan/1 tahun).
-                    </p>
-                </div>
-
                 <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                     <button type="button" @click="showTimelineModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
                         Batal
