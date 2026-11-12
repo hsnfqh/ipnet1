@@ -738,14 +738,8 @@ Route::get('/seed-ppatk-project', function () {
 });
 Route::get('/get-recent-log', function () {
     $logFile = storage_path('logs/laravel.log');
-    $logContent = file_exists($logFile) ? substr(file_get_contents($logFile), -25000) : 'No log file';
-    
-    $projects = \App\Models\Project::withTrashed()->latest()->take(10)->get(['id', 'name', 'client', 'project_type', 'stage', 'status', 'handover_target', 'ms_handover_status', 'created_by', 'deleted_at', 'created_at']);
-    
-    return response()->json([
-        'recent_projects' => $projects,
-        'recent_log' => $logContent
-    ]);
+    if (!file_exists($logFile)) return 'No log file';
+    return '<pre>' . htmlspecialchars(substr(file_get_contents($logFile), -4000)) . '</pre>';
 });
 
 // Route Backup Database Lengkap & Unduh File .SQL
