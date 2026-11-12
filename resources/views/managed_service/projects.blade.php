@@ -897,6 +897,21 @@
                             @csrf
                             <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
 
+                                {{-- Alert Error Validasi Modal --}}
+                                @if($errors->any())
+                                    <div class="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs">
+                                        <div class="font-bold mb-1 flex items-center gap-1.5">
+                                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span>Gagal menyimpan proyek. Mohon periksa isian berikut:</span>
+                                        </div>
+                                        <ul class="list-disc pl-5 space-y-0.5 text-[11.5px]">
+                                            @foreach($errors->all() as $err)
+                                                <li>{{ $err }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+
                                 {{-- SECTION 1: Informasi Kontrak & Klien --}}
                                 <div>
                                     <div class="flex items-center gap-2.5 mb-3 pb-2 border-b border-slate-100">
@@ -910,12 +925,12 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div class="space-y-1 md:col-span-2">
                                             <label class="block text-xs font-bold text-slate-700">Nama Kontrak Layanan / Proyek <span class="text-red-500">*</span></label>
-                                            <input type="text" name="name" required placeholder="Contoh: Managed Service Pemeliharaan Jaringan & Router WAN" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                            <input type="text" name="name" value="{{ old('name') }}" required placeholder="Contoh: Managed Service Pemeliharaan Jaringan & Router WAN" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
                                         </div>
 
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Nama Perusahaan / Klien <span class="text-red-500">*</span></label>
-                                            <input type="text" name="client" required placeholder="Contoh: PT Bank Mandiri (Persero) Tbk" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                            <input type="text" name="client" value="{{ old('client') }}" required placeholder="Contoh: PT Bank Mandiri (Persero) Tbk" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
                                         </div>
 
                                         <div class="space-y-1">
@@ -923,30 +938,30 @@
                                             <select name="sales_name" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none bg-white">
                                                 <option value="">-- Pilih Sales (Opsional) --</option>
                                                 @foreach($salesUsers ?? [] as $s)
-                                                    <option value="{{ $s->name }}">{{ $s->name }} (Sales)</option>
+                                                    <option value="{{ $s->name }}" {{ old('sales_name') == $s->name ? 'selected' : '' }}>{{ $s->name }} (Sales)</option>
                                                 @endforeach
-                                                <option value="Direct Maintenance">Direct Maintenance / Non-Sales</option>
+                                                <option value="Direct Maintenance" {{ old('sales_name') == 'Direct Maintenance' ? 'selected' : '' }}>Direct Maintenance / Non-Sales</option>
                                             </select>
                                         </div>
 
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Nama PIC Klien (Customer PIC)</label>
-                                            <input type="text" name="customer_pic" placeholder="Contoh: Bapak Irwan (Head of IT Ops)" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
+                                            <input type="text" name="customer_pic" value="{{ old('customer_pic') }}" placeholder="Contoh: Bapak Irwan (Head of IT Ops)" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
                                         </div>
 
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Kontak / No. Telp PIC Klien <span class="text-slate-400 font-normal">(Angka)</span></label>
-                                            <input type="tel" name="customer_pic_phone" @input="$event.target.value = $event.target.value.replace(/[^0-9+\-\s()]/g, '')" placeholder="Contoh: 0812-3456-7890" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
+                                            <input type="tel" name="customer_pic_phone" value="{{ old('customer_pic_phone') }}" @input="$event.target.value = $event.target.value.replace(/[^0-9+\-\s()]/g, '')" placeholder="Contoh: 0812-3456-7890" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
                                         </div>
 
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Email PIC Klien</label>
-                                            <input type="email" name="customer_pic_email" placeholder="Contoh: irwan@bankmandiri.co.id" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
+                                            <input type="email" name="customer_pic_email" value="{{ old('customer_pic_email') }}" placeholder="Contoh: irwan@bankmandiri.co.id" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
                                         </div>
 
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Lokasi / Kantor / Data Center Layanan</label>
-                                            <input type="text" name="location" placeholder="Contoh: Plaza Mandiri Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta Selatan" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
+                                            <input type="text" name="location" value="{{ old('location') }}" placeholder="Contoh: Plaza Mandiri Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta Selatan" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none font-medium text-slate-800">
                                         </div>
                                     </div>
                                 </div>
@@ -964,7 +979,7 @@
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Nomor PO / SPK / Kontrak</label>
-                                            <input type="text" name="po_spk_number" placeholder="Contoh: PO-2026/MNDR-IT/088" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                            <input type="text" name="po_spk_number" value="{{ old('po_spk_number') }}" placeholder="Contoh: PO-2026/MNDR-IT/088" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
                                         </div>
 
                                         <div class="space-y-1">

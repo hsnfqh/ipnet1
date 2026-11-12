@@ -27,28 +27,8 @@ class ManagedServiceController extends Controller
     public static function getDummyProjectNames(): array
     {
         return [
-            'Perpanjangan ATS Firewall System',
-            'Pengadaan Perpanjangan Maintenance Perangkat Network Switch Pihak-3 (PSC-P3-AS1 dan BSC-P3-AS1) di PSCF dan BSCF Tahun 2026 - 2027',
-            'Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman',
-            'Perpanjangan Pemeliharaan License Wi-Fi Sudirman',
-            'Maintenance & Monitoring Network Wi-Fi Kantor Wilayah BRI Mataram',
-            'Pemeliharaan dan Monitoring Jaringan Wi-Fi Kantor Wilayah BRI Jakarta',
-            'Pemeliharaan dan Monitoring Jaringan Wi-Fi Kantor Wilayah Jakarta',
-            'Perpanjangan Maintenance SLA Network & Server BATII',
-            'Managed Service Network & Security Maintenance',
-            'Managed Service Network & Security',
-            'Kontrak Managed Service & Pemeliharaan Jaringan',
-            'Pengadaan, Implementasi Data Center & Full Managed Service',
-            'Telkom STO Gambir',
-            'PLN Trunojoyo',
-            'BATII',
-            'BP. BATAM',
-            'PE LAN BRI',
-            'EXTERNET ODC',
-            'LICENSE WIFI SUDIRMAN',
-            'WIFI MATARAM',
-            'WIFI JAKARTA',
-            'Managed Jaringan',
+            'Sample Dummy Project',
+            'Dummy MS Project',
         ];
     }
 
@@ -57,96 +37,7 @@ class ManagedServiceController extends Controller
      */
     public static function cleanupDummyManagedServiceData(): void
     {
-        try {
-            $dummyNames = self::getDummyProjectNames();
-            $dummyProjects = DB::table('projects')
-                ->where(function($q) use ($dummyNames) {
-                    foreach ($dummyNames as $name) {
-                        $q->orWhere('name', 'like', "%{$name}%");
-                    }
-                })
-                ->where('name', 'not like', '%PPAT%')
-                ->where('name', 'not like', '%Ngurah Rai%')
-                ->get(['id', 'name']);
-
-            if ($dummyProjects->isNotEmpty()) {
-                $ids = $dummyProjects->pluck('id')->toArray();
-
-                // 1. Amankan backup data SQL sebelum dihapus
-                try {
-                    $backupDir = storage_path('app/backups');
-                    if (!file_exists($backupDir)) {
-                        @mkdir($backupDir, 0775, true);
-                    }
-                    $backupFile = $backupDir . '/backup_auto_before_clean_' . date('Y_m_d_His') . '.sql';
-                    if (!file_exists($backupFile)) {
-                        $handle = @fopen($backupFile, 'w');
-                        if ($handle) {
-                            fwrite($handle, "-- AUTO BACKUP BEFORE MS CLEANUP " . date('Y-m-d H:i:s') . "\n");
-                            foreach (['projects', 'managed_service_tickets', 'pm_cycles', 'managed_service_assets', 'schedules', 'tasks'] as $t) {
-                                if (Schema::hasTable($t)) {
-                                    $rows = DB::table($t)->get();
-                                    fwrite($handle, "\n-- Table $t (" . count($rows) . " rows)\n");
-                                    foreach ($rows as $r) {
-                                        fwrite($handle, "INSERT INTO `$t` VALUES (" . implode(',', array_map(fn($v) => is_null($v) ? 'NULL' : "'" . addslashes((string)$v) . "'", (array) $r)) . ");\n");
-                                    }
-                                }
-                            }
-                            fclose($handle);
-                        }
-                    }
-                } catch (\Throwable $e) {}
-
-                // 2. Bersihkan relasi dummy
-                if (Schema::hasTable('pm_cycles')) {
-                    DB::table('pm_cycles')->whereIn('project_id', $ids)->delete();
-                }
-                if (Schema::hasTable('managed_service_tickets')) {
-                    DB::table('managed_service_tickets')->whereIn('project_id', $ids)->delete();
-                }
-                if (Schema::hasTable('managed_service_assets')) {
-                    DB::table('managed_service_assets')->whereIn('project_id', $ids)->delete();
-                }
-                if (Schema::hasTable('schedules')) {
-                    DB::table('schedules')->whereIn('project_id', $ids)->delete();
-                }
-                if (Schema::hasTable('tasks')) {
-                    DB::table('tasks')->whereIn('project_id', $ids)->delete();
-                }
-                DB::table('projects')->whereIn('id', $ids)->delete();
-            }
-
-            // 3. Selalu bersihkan schedule, tasks, dan siklus PM dummy/orphan yang tertinggal
-            if (Schema::hasTable('schedules')) {
-                DB::table('schedules')
-                    ->where('title', 'like', '%Managed Service Network & Security%')
-                    ->orWhere('title', 'like', '%PM PM%')
-                    ->orWhere('title', 'like', '%(Bulan ke-%')
-                    ->orWhere('title', 'like', '%Mall Kelapa Gading%')
-                    ->orWhere(function($sq) {
-                        $sq->whereNull('project_id')
-                          ->whereIn('category', ['Preventive Maintenance', 'Maintenance']);
-                    })
-                    ->delete();
-            }
-            if (Schema::hasTable('tasks')) {
-                DB::table('tasks')
-                    ->where('title', 'like', '%Managed Service Network & Security%')
-                    ->orWhere('title', 'like', '%PM PM%')
-                    ->orWhere('title', 'like', '%(Bulan ke-%')
-                    ->delete();
-            }
-            if (Schema::hasTable('pm_cycles')) {
-                DB::table('pm_cycles')
-                    ->where('cycle_label', 'like', '%(Bulan ke-%')
-                    ->delete();
-            }
-            if (Schema::hasTable('managed_service_pm_cycles')) {
-                DB::table('managed_service_pm_cycles')
-                    ->where('cycle_label', 'like', '%(Bulan ke-%')
-                    ->delete();
-            }
-        } catch (\Throwable $e) {}
+        return;
     }
 
     private function ensureTablesExist(): void
@@ -2047,6 +1938,10 @@ class ManagedServiceController extends Controller
 
         // Sinkronisasi otomatis progress riil proyek berdasarkan siklus PM yang telah selesai/disetujui/dilakukan
         foreach ($projects as $proj) {
+            if (!$proj->pmCycles || $proj->pmCycles->isEmpty()) {
+                self::initPmCycles($proj);
+                $proj->load('pmCycles');
+            }
             if ($proj->pmCycles && $proj->pmCycles->isNotEmpty()) {
                 $pTotal = $proj->pm_total_cycles ?: $proj->pmCycles->count();
                 $pDone = $proj->pmCycles->filter(function($c) {
@@ -2211,11 +2106,27 @@ class ManagedServiceController extends Controller
             'file_tech'                 => 'nullable|file|max:51200',
         ]);
 
-        // Cek apakah proyek dengan nama dan klien yang sama sudah dibuat (mencegah double-click submit)
+        // Cek jika proyek pernah terhapus / ada duplikat nama dan klien yang sama
+        $existingTrashed = Project::onlyTrashed()
+            ->where('name', $validated['name'])
+            ->where('client', $validated['client'])
+            ->first();
+        if ($existingTrashed) {
+            $existingTrashed->restore();
+        }
+
         $existingDup = Project::where('name', $validated['name'])
             ->where('client', $validated['client'])
             ->first();
         if ($existingDup) {
+            $existingDup->update([
+                'handover_target'    => 'managed_service',
+                'stage'              => 'Operate',
+                'status'             => 'Active',
+                'ms_handover_status' => 'Accepted',
+                'project_type'       => $existingDup->project_type ?: 'Managed Service SLA',
+            ]);
+            self::initPmCycles($existingDup);
             return redirect()->route('ms.projects.index', ['tab' => 'active'])
                 ->with('success', "Kontrak Managed Service '{$existingDup->name}' untuk klien '{$existingDup->client}' berhasil diaktifkan.");
         }
