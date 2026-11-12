@@ -722,7 +722,7 @@
                                                     <button type="button" 
                                                             @click="openEditTaskModal({
                                                                 id: {{ $t->id }},
-                                                                title: '{{ addslashes($t->title) }}',
+                                                                title: {{ json_encode($t->title) }},
                                                                 duration_days: {{ $row['duration'] }},
                                                                 planned_start: {{ $row['planned_start'] ?? $row['starting_day'] }},
                                                                 starting_day: {{ $row['starting_day'] }},
@@ -734,7 +734,7 @@
                                                                 status: '{{ $t->status }}',
                                                                 priority: '{{ $t->priority ?: 'Medium' }}',
                                                                 engineer_id: '{{ $t->engineer_id }}',
-                                                                description: '{{ addslashes($t->description ?? '') }}'
+                                                                description: {{ json_encode($t->description ?? '') }}
                                                             })"
                                                             title="Ubah Task"
                                                             class="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 transition cursor-pointer shadow-2xs">
@@ -1149,7 +1149,7 @@
                                                         <button type="button" 
                                                                 @click="openEditTaskModal({
                                                                     id: {{ $t->id }},
-                                                                    title: '{{ addslashes($t->title) }}',
+                                                                    title: {{ json_encode($t->title) }},
                                                                     duration_days: {{ $t->duration ?? 1 }},
                                                                     start_date: '{{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '' }}',
                                                                     deadline: '{{ $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '' }}',
@@ -1158,7 +1158,7 @@
                                                                     status: '{{ $t->status }}',
                                                                     priority: '{{ $t->priority ?: 'Medium' }}',
                                                                     engineer_id: '{{ $t->engineer_id }}',
-                                                                    description: '{{ addslashes($t->description ?? '') }}'
+                                                                    description: {{ json_encode($t->description ?? '') }}
                                                                 })"
                                                                 title="Ubah Task"
                                                                 class="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 transition cursor-pointer shadow-2xs">

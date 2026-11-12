@@ -934,20 +934,6 @@ class PmoController extends Controller
 
         $currentProgressPercent = $actualEV > 0 ? $actualEV : (float) ($project->progress ?: 0.0);
 
-        // Weekly Weight distribution per task untuk PPATK sesuai Gambar Excel Resmi (3 Minggu / 20 Hari)
-        $ppatkWeeklyDistMap = [
-            'MOS - Material On Site'         => [1 => 5.0, 2 => 0.0, 3 => 0.0],
-            'Stagging'                       => [1 => 25.0, 2 => 0.0, 3 => 0.0],
-            'Installation and Configuration' => [1 => 0.0, 2 => 10.0, 3 => 0.0],
-            'Integrasi'                      => [1 => 0.0, 2 => 10.0, 3 => 0.0],
-            'Migrasi'                        => [1 => 0.0, 2 => 10.0, 3 => 0.0],
-            'User Acceptance'                => [1 => 0.0, 2 => 10.0, 3 => 0.0],
-            'Monitoring'                     => [1 => 0.0, 2 => 0.0, 3 => 10.0],
-            'Project Documentation'          => [1 => 0.0, 2 => 0.0, 3 => 10.0],
-            'Documentation'                  => [1 => 0.0, 2 => 0.0, 3 => 10.0],
-            'BAST'                           => [1 => 0.0, 2 => 0.0, 3 => 10.0],
-        ];
-
         // 1. Matriks Weekly Weight (plan) per task (Waterfall & Hybrid Distribution)
         $weeklyWeightMatrix = [];
         $totalWeeklyWeightPlan = array_fill(1, $totalWeeks, 0.0);
@@ -958,44 +944,35 @@ class PmoController extends Controller
             $duration = $pt['duration'];
             $bobot = $pt['bobot'];
 
-            // Khusus PPATK bawaan seeder jika Waterfall dan ada mapping static
-            if ($isPpatkProject && $scheduleType === 'waterfall' && isset($ppatkWeeklyDistMap[$tTitle])) {
-                $wDist = $ppatkWeeklyDistMap[$tTitle];
-                for ($w = 1; $w <= $totalWeeks; $w++) {
-                    $wVal = (float) ($wDist[$w] ?? 0.0);
-                    $totalWeeklyWeightPlan[$w] += $wVal;
-                }
-            } else {
-                $tStartDay = $pt['starting_day'];
-                $tFinishDay = $pt['finish_day'];
-                $taskAllocatedWeight = 0.0;
-                $lastActiveWeek = null;
+            $tStartDay = $pt['starting_day'];
+            $tFinishDay = $pt['finish_day'];
+            $taskAllocatedWeight = 0.0;
+            $lastActiveWeek = null;
 
-                for ($w = 1; $w <= $totalWeeks; $w++) {
-                    $wStartDay = ($w - 1) * 7;
-                    $wEndDay = $w * 7;
-                    $overlapStart = max($tStartDay, $wStartDay);
-                    $overlapEnd = min($tFinishDay, $wEndDay);
-                    $overlapDays = max(0, $overlapEnd - $overlapStart);
+            for ($w = 1; $w <= $totalWeeks; $w++) {
+                $wStartDay = ($w - 1) * 7;
+                $wEndDay = $w * 7;
+                $overlapStart = max($tStartDay, $wStartDay);
+                $overlapEnd = min($tFinishDay, $wEndDay);
+                $overlapDays = max(0, $overlapEnd - $overlapStart);
 
-                    $wVal = 0.0;
-                    if ($duration > 0 && $overlapDays > 0) {
-                        $wVal = round(($overlapDays / $duration) * $bobot, 2);
-                        $lastActiveWeek = $w;
-                    }
-                    $wDist[$w] = $wVal;
-                    $taskAllocatedWeight += $wVal;
+                $wVal = 0.0;
+                if ($duration > 0 && $overlapDays > 0) {
+                    $wVal = round(($overlapDays / $duration) * $bobot, 2);
+                    $lastActiveWeek = $w;
                 }
+                $wDist[$w] = $wVal;
+                $taskAllocatedWeight += $wVal;
+            }
 
-                // Normalisasi pembulatan per baris task agar check tepat = bobot task
-                if ($lastActiveWeek !== null && abs($taskAllocatedWeight - $bobot) > 0.001) {
-                    $diff = round($bobot - $taskAllocatedWeight, 2);
-                    $wDist[$lastActiveWeek] = round($wDist[$lastActiveWeek] + $diff, 2);
-                }
+            // Normalisasi pembulatan per baris task agar check tepat = bobot task
+            if ($lastActiveWeek !== null && abs($taskAllocatedWeight - $bobot) > 0.001) {
+                $diff = round($bobot - $taskAllocatedWeight, 2);
+                $wDist[$lastActiveWeek] = round($wDist[$lastActiveWeek] + $diff, 2);
+            }
 
-                for ($w = 1; $w <= $totalWeeks; $w++) {
-                    $totalWeeklyWeightPlan[$w] += $wDist[$w];
-                }
+            for ($w = 1; $w <= $totalWeeks; $w++) {
+                $totalWeeklyWeightPlan[$w] += $wDist[$w];
             }
 
             $weeklyWeightMatrix[] = [
@@ -1159,13 +1136,6 @@ class PmoController extends Controller
             'tasks_count'    => 1,
         ];
 
-        // Mapping WBS tasks per week
-        $ppatkWeeklyTaskMap = [
-            1 => ['MOS - Material On Site', 'Stagging'],
-            2 => ['Installation and Configuration', 'Integrasi', 'Migrasi', 'User Acceptance'],
-            3 => ['Monitoring', 'Project Documentation', 'Documentation', 'BAST'],
-        ];
-
         for ($w = 1; $w <= $totalWeeks; $w++) {
             $wStart = $wbsStartDate->copy()->addWeeks($w - 1)->startOfDay();
             if ($w == $totalWeeks) {
@@ -1176,9 +1146,6 @@ class PmoController extends Controller
             $dateRange = $weekDateRanges[$w] ?? ($wStart->format('d M') . ' - ' . $wEnd->format('d M Y'));
 
             $tasksInThisWeek = [];
-            if ($isPpatkProject && isset($ppatkWeeklyTaskMap[$w])) {
-                $tasksInThisWeek = $ppatkWeeklyTaskMap[$w];
-            }
             foreach ($parsedTasks as $pt) {
                 if (!in_array($pt['title'], $tasksInThisWeek)) {
                     $tStart = $pt['start_date'];
