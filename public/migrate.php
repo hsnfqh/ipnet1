@@ -3,8 +3,19 @@
 
 define('LARAVEL_START', microtime(true));
 
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+// Auto-detect base path for both Local Development and cPanel hosting
+if (file_exists(__DIR__ . '/../web-ipnet-final/vendor/autoload.php')) {
+    $basePath = __DIR__ . '/../web-ipnet-final';
+} elseif (file_exists(__DIR__ . '/../web-ipnet/vendor/autoload.php')) {
+    $basePath = __DIR__ . '/../web-ipnet';
+} elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    $basePath = __DIR__ . '/..';
+} else {
+    $basePath = __DIR__;
+}
+
+require $basePath . '/vendor/autoload.php';
+$app = require_once $basePath . '/bootstrap/app.php';
 
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();

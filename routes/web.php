@@ -71,7 +71,7 @@ Route::get('/fix-cpanel-deploy', function () {
     }
 
     return '<pre>' . implode("\n", $output) . '</pre>';
-});
+})->withoutMiddleware('web');
 
 Route::get('/debug-db-projects', function () {
     $projects = DB::table('projects')->get(['id', 'name', 'client', 'project_type', 'stage', 'status', 'handover_target', 'ms_handover_status']);
@@ -740,7 +740,7 @@ Route::get('/get-recent-log', function () {
     $logFile = storage_path('logs/laravel.log');
     if (!file_exists($logFile)) return 'No log file';
     return '<pre>' . htmlspecialchars(substr(file_get_contents($logFile), -4000)) . '</pre>';
-});
+})->withoutMiddleware('web');
 
 // Route Backup Database Lengkap & Unduh File .SQL
 Route::get('/system-backup-full', function () {
@@ -2120,7 +2120,7 @@ Route::get('/git-pull-deploy', function () {
         'migrate_output' => trim($migrateOutput),
         'message' => 'Kode terbaru dari GitHub telah ditarik dan cache tampilan telah dibersihkan!',
     ]);
-});
+})->withoutMiddleware('web');
 
 // Route aman untuk menjalankan migration saja tanpa mereset data
 Route::get('/migrate-only', function () {
