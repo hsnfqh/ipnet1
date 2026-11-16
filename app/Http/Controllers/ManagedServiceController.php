@@ -40,6 +40,37 @@ class ManagedServiceController extends Controller
         return;
     }
 
+    /**
+     * Query Proyek Resmi Managed Service yang Terintegrasi Real-Time
+     * Digunakan secara konsisten oleh Dashboard, Daftar Proyek, dan Monitoring SLA
+     */
+    public static function getManagedServiceProjectsQuery()
+    {
+        $dummyNames = self::getDummyProjectNames();
+        return Project::with(['creator', 'pmCycles', 'managedServiceTickets', 'msAcceptedBy'])
+            ->whereNotIn('name', array_merge(['DAY OFF', 'Day Off', 'Day Off / Cuti'], $dummyNames))
+            ->where(function($q) {
+                $q->whereNull('project_type')
+                  ->orWhere(function($p) {
+                      $p->where('project_type', 'not like', '%Implementation%')
+                        ->where('project_type', 'not like', '%One-Time%');
+                  });
+            })
+            ->where(function($q) {
+                $q->whereNull('handover_target')
+                  ->orWhere('handover_target', '!=', 'pmo');
+            })
+            ->where(function($q) {
+                $q->where('ms_handover_status', 'Accepted')
+                  ->orWhere('stage', 'Operate')
+                  ->orWhere('status', 'Active')
+                  ->orWhere('handover_target', 'managed_service')
+                  ->orWhere('project_type', 'like', '%Managed Service%')
+                  ->orWhere('project_type', 'like', '%Maintenance%')
+                  ->orWhere('created_by', auth()->id());
+            });
+    }
+
     private function ensureTablesExist(): void
     {
         self::cleanupDummyManagedServiceData();
@@ -123,27 +154,16 @@ class ManagedServiceController extends Controller
         $slaMetCount     = $tickets->where('sla_met', true)->whereNotNull('resolved_at')->count();
         $slaScore        = $totalSlaChecked > 0 ? round(($slaMetCount / $totalSlaChecked) * 100, 1) : 0;
 
-        // Proyek di Tahap Operate / Managed Service (Selesai Serah Terima ke Managed Service)
-        $operateProjects = Project::whereNotIn('name', array_merge(['DAY OFF', 'Day Off', 'Day Off / Cuti'], $dummyNames))
-            ->where(function($q) {
-                $q->where('ms_handover_status', 'Accepted')
-                  ->orWhere(function($sub) {
-                      $sub->where('stage', 'Operate')
-                          ->where(function($s) {
-                              $s->whereNull('handover_target')
-                                ->orWhere('handover_target', '!=', 'pmo');
-                          });
-                  });
-            })
-            ->where(function($q) {
-                $q->whereNull('project_type')
-                  ->orWhere('project_type', 'not like', '%One-Time%');
-            })
-            ->where(function($q) {
-                $q->whereNull('handover_target')
-                  ->orWhere('handover_target', '!=', 'pmo');
-            })
-            ->get();
+        // Proyek Resmi Managed Service (Terintegrasi 100% Real-Time dengan Daftar Proyek)
+        $operateProjects = self::getManagedServiceProjectsQuery()->get();
+
+        // Pastikan setiap proyek memiliki siklus PM (pmCycles) yang terinisialisasi
+        foreach ($operateProjects as $proj) {
+            if (!$proj->pmCycles || $proj->pmCycles->isEmpty()) {
+                self::initPmCycles($proj);
+                $proj->load('pmCycles');
+            }
+        }
 
         // SLA Tier counts
         $tierCounts = [
@@ -152,6 +172,18 @@ class ManagedServiceController extends Controller
             'Silver'   => $operateProjects->where('sla_tier', 'Silver')->count(),
             'Bronze'   => $operateProjects->where('sla_tier', 'Bronze')->count(),
         ];
+
+        // Self-heal: Rapihkan judul schedule dan task yang double "PM PM"
+        if (Schema::hasTable('schedules')) {
+            Schedule::where('title', 'like', 'PM PM %')->get()->each(function($s) {
+                $s->update(['title' => preg_replace('/^PM\s+PM\s+/i', 'PM ', $s->title)]);
+            });
+        }
+        if (Schema::hasTable('tasks')) {
+            Task::where('title', 'like', 'PM PM %')->get()->each(function($t) {
+                $t->update(['title' => preg_replace('/^PM\s+PM\s+/i', 'PM ', $t->title)]);
+            });
+        }
 
         // Jadwal Preventive Maintenance Terdekat (Hanya dari proyek Managed Service aktif)
         $upcomingPmSchedules = $operateProjects->isNotEmpty()
@@ -164,7 +196,7 @@ class ManagedServiceController extends Controller
                       ->orWhere('title', 'like', '%Managed Service%');
                 })
                 ->latest('date')
-                ->take(3)
+                ->take(5)
                 ->get()
             : collect([]);
 
@@ -1389,7 +1421,8 @@ class ManagedServiceController extends Controller
         }
 
         $project = $cycle->project;
-        $title = 'PM ' . $cycle->cycle_label . ': ' . ($project ? $project->name : 'Proyek MS');
+        $cycleLabel = preg_replace('/^PM\s+/i', '', trim((string)$cycle->cycle_label));
+        $title = 'PM ' . $cycleLabel . ': ' . ($project ? $project->name : 'Proyek MS');
         $dateStr = Carbon::parse($cycle->scheduled_date)->toDateString();
 
         // Cari schedule yang sudah ada untuk siklus ini atau proyek ini
@@ -1440,7 +1473,7 @@ class ManagedServiceController extends Controller
 
         // Otomatis buat atau update Task di tabel tasks agar masuk ke "Team Tasks" (Penugasan & Aktivitas Lapangan)
         if (Schema::hasTable('tasks')) {
-            $taskTitle = 'PM ' . $cycle->cycle_label . ': ' . ($project ? $project->name : 'Maintenance Visit');
+            $taskTitle = 'PM ' . $cycleLabel . ': ' . ($project ? $project->name : 'Maintenance Visit');
             $pmTask = Task::where('project_id', $cycle->project_id)
                 ->where(function($q) use ($cycle, $taskTitle) {
                     $q->where('title', $taskTitle)
@@ -1888,29 +1921,7 @@ class ManagedServiceController extends Controller
             $perPage = 10;
         }
 
-        $dummyNames = self::getDummyProjectNames();
-        $query = Project::with(['creator', 'pmCycles', 'managedServiceTickets', 'msAcceptedBy'])
-            ->whereNotIn('name', array_merge(['DAY OFF', 'Day Off', 'Day Off / Cuti'], $dummyNames))
-            ->where(function($q) {
-                $q->whereNull('project_type')
-                  ->orWhere(function($p) {
-                      $p->where('project_type', 'not like', '%Implementation%')
-                        ->where('project_type', 'not like', '%One-Time%');
-                  });
-            })
-            ->where(function($q) {
-                $q->whereNull('handover_target')
-                  ->orWhere('handover_target', '!=', 'pmo');
-            })
-            ->where(function($q) {
-                $q->where('ms_handover_status', 'Accepted')
-                  ->orWhere('stage', 'Operate')
-                  ->orWhere('status', 'Active')
-                  ->orWhere('handover_target', 'managed_service')
-                  ->orWhere('project_type', 'like', '%Managed Service%')
-                  ->orWhere('project_type', 'like', '%Maintenance%')
-                  ->orWhere('created_by', auth()->id());
-            });
+        $query = self::getManagedServiceProjectsQuery();
 
         if ($request->filled('search')) {
             $s = $request->search;

@@ -227,18 +227,26 @@
 
                     {{-- Quick Action Buttons --}}
                     <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
-                        <a href="{{ route('ms.projects.index', ['action' => 'create']) }}" 
+                        <a href="{{ route('ms.projects.index') }}" 
                            class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-bold text-[12.5px] hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95"
-                           title="Tambah Kontrak / Proyek Managed Service">
+                           title="Buka Daftar Seluruh Proyek Managed Service">
                             <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span>Daftar Proyek</span>
+                        </a>
+                        <a href="{{ route('ms.projects.index', ['action' => 'create']) }}" 
+                           class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 hover:scale-[1.02] border border-white/25 text-white font-bold text-[12.5px] transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer active:scale-95"
+                           title="Tambah Kontrak / Proyek Managed Service">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
                             <span>Tambah Proyek</span>
                         </a>
                         <button type="button" 
                                 @click="isCreateModalOpen = true" 
-                                class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-bold text-[12.5px] hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95">
-                            <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 hover:scale-[1.02] border border-white/25 text-white font-bold text-[12.5px] transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer active:scale-95">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
                             <span>Buat Tiket Baru</span>
@@ -298,18 +306,21 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
                     
                     {{-- Metric 1: Proyek Aktif --}}
-                    <div class="ipnet-metric-card group block anim-fade-up anim-delay-1">
+                    <a href="{{ route('ms.projects.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-1" title="Buka & Kelola Seluruh Daftar Proyek Managed Service">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Proyek Aktif</span>
-                            <div class="w-7 h-7 rounded-lg bg-[#F1F5F9] text-[#475569] flex items-center justify-center border border-[#E2E8F0]">
+                            <span class="text-[11px] font-bold text-[#64748B] group-hover:text-[#8F0A0D] uppercase tracking-wider transition-colors">Proyek Aktif</span>
+                            <div class="w-7 h-7 rounded-lg bg-[#F1F5F9] text-[#475569] flex items-center justify-center border border-[#E2E8F0] group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[24px] font-extrabold text-[#1E293B] tracking-tight">{{ $operateProjects->count() }}</div>
-                        <p class="text-[11px] text-[#64748B] mt-0.5">Proyek Maintenance</p>
-                    </div>
+                        <div class="text-[24px] font-extrabold text-[#1E293B] group-hover:text-[#8F0A0D] transition-colors tracking-tight">{{ $operateProjects->count() }}</div>
+                        <div class="flex items-center justify-between mt-0.5">
+                            <p class="text-[11px] text-[#64748B]">Proyek Maintenance</p>
+                            <span class="text-[10.5px] font-bold text-[#8F0A0D] opacity-0 group-hover:opacity-100 transition-opacity">Kelola &rarr;</span>
+                        </div>
+                    </a>
 
                     {{-- Metric 2: Jadwal PM Bulan Ini --}}
                     <a href="{{ route('ms.maintenance.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-2">
@@ -362,20 +373,23 @@
                     </a>
 
                     {{-- Metric 5: SLA Availability (Network Uptime) --}}
-                    <div class="ipnet-metric-card group block anim-fade-up anim-delay-5">
+                    <a href="{{ route('ms.monitoring.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-5" title="Buka Detail Monitoring SLA & Kepatuhan Layanan">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">SLA Availability</span>
-                            <div class="w-7 h-7 rounded-lg {{ $slaUptimeScore >= $targetSla ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-[#8F0A0D] border border-red-200' }} flex items-center justify-center">
+                            <span class="text-[11px] font-bold text-[#64748B] group-hover:text-[#8F0A0D] uppercase tracking-wider transition-colors">SLA Availability</span>
+                            <div class="w-7 h-7 rounded-lg {{ $slaUptimeScore >= $targetSla ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-[#8F0A0D] border border-red-200' }} flex items-center justify-center group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[24px] font-extrabold text-[#1E293B] tracking-tight">{{ number_format($slaUptimeScore, 1) }}%</div>
-                        <p class="text-[11px] mt-0.5 {{ $slaUptimeScore >= $targetSla ? 'text-emerald-700 font-semibold' : 'text-[#8F0A0D] font-bold' }}">
-                            {{ $totalDowntimeHours > 0 ? number_format($totalDowntimeHours, 1) . ' Jam Downtime' : 'Target ' . number_format($targetSla, 1) . '%' }}
-                        </p>
-                    </div>
+                        <div class="text-[24px] font-extrabold text-[#1E293B] group-hover:text-[#8F0A0D] transition-colors tracking-tight">{{ number_format($slaUptimeScore, 1) }}%</div>
+                        <div class="flex items-center justify-between mt-0.5">
+                            <p class="text-[11px] {{ $slaUptimeScore >= $targetSla ? 'text-emerald-700 font-semibold' : 'text-[#8F0A0D] font-bold' }}">
+                                {{ $totalDowntimeHours > 0 ? number_format($totalDowntimeHours, 1) . ' Jam Down' : 'Target ' . number_format($targetSla, 1) . '%' }}
+                            </p>
+                            <span class="text-[10.5px] font-bold text-[#8F0A0D] opacity-0 group-hover:opacity-100 transition-opacity">Pantau &rarr;</span>
+                        </div>
+                    </a>
 
                 </div>
             </div>
@@ -396,7 +410,7 @@
                                 </p>
                                 <h3 class="text-[16px] font-bold text-[#292929]">Status Operasional Layanan SLA</h3>
                             </div>
-                            <a href="{{ route('ms.tickets.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">Lihat Semua &rarr;</a>
+                            <a href="{{ route('ms.projects.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline" title="Lihat Seluruh Daftar Proyek Managed Service">Lihat Semua Proyek &rarr;</a>
                         </div>
 
                         <div class="overflow-x-auto">
@@ -503,22 +517,28 @@
                     </div>
                     <div class="p-2 divide-y divide-[#F1F5F9] flex-1">
                         @forelse($tickets->take(5) as $ticket)
-                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors">
+                        @php
+                            $ticketLink = $ticket->project_id 
+                                ? route('ms.projects.show', ['project' => $ticket->project_id, 'tab' => 'cm']) 
+                                : route('ms.tickets.index', ['search' => $ticket->ticket_number]);
+                        @endphp
+                        <a href="{{ $ticketLink }}" class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors group" title="Buka Detail Tiket / Proyek">
                             <div class="min-w-0 flex-1">
-                                <div class="text-[13px] font-bold text-[#1E293B] truncate" title="{{ $ticket->title }}">
+                                <div class="text-[13px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D] transition-colors truncate" title="{{ $ticket->title }}">
                                     <span class="font-mono text-[11px] text-[#8F0A0D] mr-1">{{ $ticket->ticket_number }}</span> {{ $ticket->title }}
                                 </div>
                                 <div class="text-[11.5px] text-[#64748B] truncate mt-0.5" title="{{ $ticket->client_name }}">
                                     {{ $ticket->client_name }} &bull; PIC: <strong class="text-[#8F0A0D]">{{ $ticket->assignedEngineer?->name ?: 'Belum Ditugaskan' }}</strong>
                                 </div>
                             </div>
-                            <div class="shrink-0">
+                            <div class="shrink-0 flex items-center gap-2">
                                 <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold 
                                     {{ $ticket->status === 'Resolved' || $ticket->status === 'Closed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
                                     {{ $ticket->status }}
                                 </span>
+                                <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-[#8F0A0D] group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </div>
-                        </div>
+                        </a>
                         @empty
                         <div class="text-center py-8 text-[#64748B]">
                             <p class="text-[13px]">Belum ada tiket insiden</p>
@@ -542,11 +562,15 @@
                             $isToday = $sch->date && $sch->date->isToday();
                             $dateLabel = $sch->date ? ($isToday ? 'Hari ini' : $sch->date->format('d M')) : '-';
                             $timeLabel = $sch->start_time ? substr($sch->start_time, 0, 5) . ' WIB' : '';
+                            $cleanTitle = preg_replace('/^PM\s+PM\s+/i', 'PM ', $sch->title);
+                            $schLink = $sch->project_id 
+                                ? route('ms.projects.show', ['project' => $sch->project_id, 'tab' => 'pm']) 
+                                : route('ms.maintenance.index');
                         @endphp
-                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors">
+                        <a href="{{ $schLink }}" class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors group" title="Buka Detail Jadwal PM / Proyek: {{ $cleanTitle }}">
                             <div class="min-w-0 flex-1">
-                                <div class="text-[13px] font-bold text-[#292929] truncate" title="{{ $sch->title }}">
-                                    {{ $sch->title }}
+                                <div class="text-[13px] font-bold text-[#292929] group-hover:text-[#8F0A0D] transition-colors truncate" title="{{ $cleanTitle }}">
+                                    {{ $cleanTitle }}
                                 </div>
                                 <div class="text-[11.5px] text-[#75727C] flex items-center gap-1.5 mt-0.5 min-w-0">
                                     <span class="shrink-0 whitespace-nowrap {{ $isToday ? 'text-[#8F0A0D] font-bold' : 'font-medium' }}">
@@ -558,12 +582,13 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="shrink-0">
+                            <div class="shrink-0 flex items-center gap-2">
                                 <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                                     Preventive
                                 </span>
+                                <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-[#8F0A0D] group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </div>
-                        </div>
+                        </a>
                         @empty
                         <div class="text-center py-8 text-[#75727C]">
                             <p class="text-[13px]">Belum ada agenda kunjungan</p>
