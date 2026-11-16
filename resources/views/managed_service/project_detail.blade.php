@@ -2428,7 +2428,7 @@
                                 <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Managed Service</label>
                                 <select name="assigned_to" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
                                     <option value="">Pilih PIC Managed Service</option>
-                                    @foreach($engineers as $eng)
+                                    @foreach($picMsUsers as $eng)
                                         <option value="{{ $eng->id }}">{{ $eng->name }}</option>
                                     @endforeach
                                 </select>
@@ -2579,7 +2579,7 @@
                                 <label class="block text-xs font-semibold text-[#334155] mb-1">PIC Managed Service</label>
                                 <select name="assigned_to" :value="activeCmTicket ? activeCmTicket.assigned_to : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
                                     <option value="">Pilih PIC Managed Service</option>
-                                    @foreach($engineers as $eng)
+                                    @foreach($picMsUsers as $eng)
                                         <option value="{{ $eng->id }}">{{ $eng->name }}</option>
                                     @endforeach
                                 </select>
