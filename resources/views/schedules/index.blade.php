@@ -19,6 +19,18 @@
         display: inline-block;
         margin-right: 8px;
     }
+    .modal-pill-badge {
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        padding: 2px 8px !important;
+        border-radius: 6px !important;
+        line-height: 1.4 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        box-sizing: border-box !important;
+    }
     @keyframes fadeUpStagger {
         0% { opacity: 0; transform: translateY(16px); }
         100% { opacity: 1; transform: translateY(0); }
@@ -806,7 +818,7 @@
                                         </svg>
                                         <span x-text="currentProjectName || 'Tanpa Project / Internal'"></span>
                                     </span>
-                                    <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; line-height:1.4; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;"
+                                    <span class="modal-pill-badge"
                                           :style="categoryBadgeStyle(form.category)"
                                           x-text="categoryLabel(form.category)"></span>
                                 </div>
@@ -819,7 +831,8 @@
                                     <span style="font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
                                         <span x-text="form.category === 'Day Off' ? 'PERSONEL YANG CUTI / DAY OFF' : (form.category === 'PoC & Demo' ? 'TIM PRESALES & PIC POC' : 'TIM PELAKSANA & PERSONEL LAPANGAN')"></span>
                                     </span>
-                                    <span style="font-size:10px; font-weight:700; color:#8F0A0D; background:#FEF2F2; padding:2px 8px; border-radius:6px; border:1px solid #FECACA; line-height:1.4;" 
+                                    <span class="modal-pill-badge" 
+                                          style="font-size:10px !important; font-weight:700 !important; color:#8F0A0D !important; background:#FEF2F2 !important; padding:2px 8px !important; border-radius:6px !important; border:1px solid #FECACA !important; line-height:1.4 !important;" 
                                           x-text="getAssignedEngineersList().length + ' Personil'"></span>
                                 </div>
                                 <div style="display:flex; flex-wrap:wrap; gap:6px;">
@@ -892,8 +905,8 @@
                                     <template x-if="form.status">
                                         <div style="text-align:right;">
                                             <span style="display:block; font-size:9.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px;">STATUS REALISASI</span>
-                                            <span style="display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; line-height:1.4; margin-top:2px;"
-                                                  :style="form.status === 'Completed' ? 'background:#DCFCE7; color:#166534; border:1px solid #BBF7D0;' : (form.status === 'In Progress' ? 'background:#FEF3C7; color:#92400E; border:1px solid #FDE68A;' : 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;')"
+                                            <span class="modal-pill-badge"
+                                                  :style="statusBadgeStyle(form.status)"
                                                   x-text="form.status"></span>
                                         </div>
                                     </template>
@@ -2676,24 +2689,35 @@
                     return null;
                 },
                 categoryBadgeStyle: function(cat) {
-                    if (!cat) return 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
+                    var base = 'font-size:10px !important; font-weight:700 !important; padding:2px 8px !important; border-radius:6px !important; line-height:1.4 !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; flex-shrink:0 !important; ';
+                    if (!cat) return base + 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
                     var lower = String(cat).toLowerCase();
                     if (lower.includes('cuti') || lower.includes('day off')) {
-                        return 'background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;';
+                        return base + 'background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;';
                     }
                     if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('maintenance')) {
-                        return 'background:#FEF2F2; color:#8F0A0D; border:1px solid #FECACA;';
+                        return base + 'background:#FEF2F2; color:#8F0A0D; border:1px solid #FECACA;';
                     }
                     if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) {
-                        return 'background:#FDF1F2; color:#8F0A0D; border:1px solid #FECDD3;';
+                        return base + 'background:#FDF1F2; color:#8F0A0D; border:1px solid #FECDD3;';
                     }
                     if (lower.includes('desain') || lower.includes('sow') || lower.includes('review')) {
-                        return 'background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE;';
+                        return base + 'background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE;';
                     }
                     if (lower.includes('meeting') || lower.includes('principal') || lower.includes('klien')) {
-                        return 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
+                        return base + 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
                     }
-                    return 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
+                    return base + 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
+                },
+                statusBadgeStyle: function(status) {
+                    var base = 'font-size:10px !important; font-weight:700 !important; padding:2px 8px !important; border-radius:6px !important; line-height:1.4 !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; flex-shrink:0 !important; margin-top:2px !important; ';
+                    if (status === 'Completed') {
+                        return base + 'background:#DCFCE7; color:#166534; border:1px solid #BBF7D0;';
+                    }
+                    if (status === 'In Progress') {
+                        return base + 'background:#FEF3C7; color:#92400E; border:1px solid #FDE68A;';
+                    }
+                    return base + 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
                 },
                 categoryDotColor: function(cat) {
                     if (!cat) return '#2563EB';
