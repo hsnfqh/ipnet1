@@ -550,7 +550,7 @@
                                     </span>
                                     <span class="text-gray-400 shrink-0">&bull;</span>
                                     <span class="truncate text-[#8F0A0D] font-semibold">
-                                        {{ ($sch->engineers && $sch->engineers->isNotEmpty()) ? $sch->engineers->pluck('name')->implode(', ') : ($sch->engineer?->name ?: 'Doris / Tim Maintenance') }}
+                                        {{ !empty($sch->engineer_name) ? $sch->engineer_name : ((isset($sch->engineers) && $sch->engineers && $sch->engineers->isNotEmpty()) ? $sch->engineers->pluck('name')->implode(', ') : ($sch->engineer?->name ?: 'Tim Maintenance')) }}
                                     </span>
                                 </div>
                             </div>
