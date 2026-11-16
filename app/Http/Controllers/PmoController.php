@@ -760,7 +760,14 @@ class PmoController extends Controller
 
             $wbsWeek = $t->week ? (int)$t->week : (preg_match('/Week:\s*(\d+)/i', $t->description ?? '', $wm) ? (int)$wm[1] : max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7)));
 
-            $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 2) : 0.0;
+            $dailyWeight = null;
+            if (preg_match('/DailyWeight:\s*([\d\.]+)%/i', $t->description ?? '', $dwm)) {
+                $dailyWeight = (float) $dwm[1];
+            } elseif ($duration > 0) {
+                $dailyWeight = round($bobotVal / $duration, 2);
+            } else {
+                $dailyWeight = 0.0;
+            }
             $prog = (float) ($t->progress ?: (in_array($t->status, ['Done', 'Completed']) ? 100 : 0));
 
             $parsedTasks[] = [
@@ -876,7 +883,9 @@ class PmoController extends Controller
         } else {
             // Gunakan nilai bobot manual yang diisi user secara murni tanpa diubah atau di-override
             foreach ($parsedTasks as &$pt) {
-                $pt['daily_weight'] = $pt['duration'] > 0 ? round($pt['bobot'] / $pt['duration'], 2) : 0.0;
+                if (!isset($pt['daily_weight']) || $pt['daily_weight'] === null) {
+                    $pt['daily_weight'] = $pt['duration'] > 0 ? round($pt['bobot'] / $pt['duration'], 2) : 0.0;
+                }
             }
             unset($pt);
         }
@@ -992,6 +1001,7 @@ class PmoController extends Controller
                 'starting_day'  => $pt['starting_day'],
                 'finish_day'    => $pt['finish_day'],
                 'weight'        => $pt['bobot'],
+                'daily_weight'  => $pt['daily_weight'] ?? ($pt['duration'] > 0 ? round($pt['bobot'] / $pt['duration'], 2) : 0.0),
                 'weeks'         => $wDist,
                 'check'         => round(array_sum($wDist), 2),
             ];
@@ -2752,6 +2762,7 @@ class PmoController extends Controller
             'start_date'    => 'nullable|date',
             'deadline'      => 'nullable|date',
             'bobot'         => 'nullable|numeric|min:0|max:100',
+            'daily_weight'  => 'nullable|numeric|min:0|max:100',
             'progress'      => 'nullable|numeric|min:0|max:100',
             'status'        => 'nullable|string|max:50',
             'priority'      => 'nullable|in:Low,Medium,High',
@@ -2766,7 +2777,7 @@ class PmoController extends Controller
         $duration = max(1, $finishDay - $startingDay);
         $week = $request->filled('week') 
             ? (int) $request->input('week') 
-            : ($task->week ? (int) $task->week : (preg_match('/Week:\s*(\d+)/i', $oldDesc, $wm) ? (int)$wm[1] : max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7))));
+            : max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7));
 
         $projStart = $project->start_date ? Carbon::parse($project->start_date)->startOfDay() : now()->startOfDay();
         $startDate = !empty($validated['start_date']) ? Carbon::parse($validated['start_date']) : $projStart->copy()->addDays($startingDay);
@@ -2780,7 +2791,9 @@ class PmoController extends Controller
         $status = $validated['status'] ?? ($progress >= 100 ? 'Completed' : ($progress > 0 ? 'In Progress' : 'Not Started'));
 
         $bobotVal = isset($validated['bobot']) && is_numeric($validated['bobot']) ? (float) $validated['bobot'] : 0.0;
-        $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 2) : 0.0;
+        $dailyWeight = (isset($validated['daily_weight']) && is_numeric($validated['daily_weight']) && $validated['daily_weight'] !== '')
+            ? round((float) $validated['daily_weight'], 2)
+            : ($duration > 0 ? round($bobotVal / $duration, 2) : 0.0);
 
         $desc = $validated['description'] ?? '';
         $metaParts = [
@@ -2841,6 +2854,7 @@ class PmoController extends Controller
             'start_date'    => 'nullable|date',
             'deadline'      => 'nullable|date',
             'bobot'         => 'nullable|numeric|min:0|max:100',
+            'daily_weight'  => 'nullable|numeric|min:0|max:100',
             'progress'      => 'nullable|numeric|min:0|max:100',
             'status'        => 'nullable|string|max:50',
             'priority'      => 'nullable|in:Low,Medium,High',
@@ -2872,7 +2886,13 @@ class PmoController extends Controller
         $status = $validated['status'] ?? ($progress >= 100 ? 'Completed' : ($progress > 0 ? 'In Progress' : 'Not Started'));
 
         $bobotVal = (isset($validated['bobot']) && is_numeric($validated['bobot'])) ? (float) $validated['bobot'] : (preg_match('/Bobot:\s*([\d\.]+)%/i', $oldDesc, $bm) ? (float)$bm[1] : 0.0);
-        $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 2) : 0.0;
+        if (isset($validated['daily_weight']) && is_numeric($validated['daily_weight']) && $validated['daily_weight'] !== '') {
+            $dailyWeight = round((float) $validated['daily_weight'], 2);
+        } elseif (preg_match('/DailyWeight:\s*([\d\.]+)%/i', $oldDesc, $dwm) && !isset($validated['bobot'])) {
+            $dailyWeight = (float) $dwm[1];
+        } else {
+            $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 2) : 0.0;
+        }
 
         $desc = $validated['description'] ?? ($task->description ?? '');
         $metaParts = [

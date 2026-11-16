@@ -97,6 +97,9 @@
          newTaskStartingDay: {{ $maxTaskFinishDay ?? 0 }},
          newTaskPlannedStart: {{ $maxTaskFinishDay ?? 0 }},
          newTaskDuration: 1,
+         newTaskBobot: 10.0,
+         newTaskDailyWeight: 10.0,
+         manualNewDailyWeight: false,
          newTaskFinishDay: {{ ($maxTaskFinishDay ?? 0) + 1 }},
          showEditTaskModal: false,
          editTaskId: null,
@@ -106,6 +109,8 @@
          editTaskPlannedStart: 0,
          editTaskFinishDay: 1,
          editTaskBobot: 0,
+         editTaskDailyWeight: 0,
+         manualEditDailyWeight: false,
          editTaskProgress: 0,
          editTaskStatus: 'In Progress',
          editTaskPriority: 'Medium',
@@ -118,7 +123,11 @@
              this.editTaskStartingDay = task.starting_day !== undefined ? parseInt(task.starting_day, 10) : 0;
              this.editTaskPlannedStart = task.planned_start !== undefined ? parseInt(task.planned_start, 10) : this.editTaskStartingDay;
              this.editTaskFinishDay = task.finish_day !== undefined ? parseInt(task.finish_day, 10) : (this.editTaskStartingDay + this.editTaskDuration);
-             this.editTaskBobot = task.bobot;
+             this.editTaskBobot = task.bobot !== undefined ? task.bobot : 0;
+             this.editTaskDailyWeight = (task.daily_weight !== undefined && task.daily_weight !== null) 
+                 ? task.daily_weight 
+                 : (this.editTaskDuration > 0 ? parseFloat((this.editTaskBobot / this.editTaskDuration).toFixed(2)) : 0);
+             this.manualEditDailyWeight = false;
              this.editTaskProgress = task.progress;
              this.editTaskStatus = task.status;
              this.editTaskPriority = task.priority || 'Medium';
@@ -669,7 +678,11 @@
                                         $totDur += $row['duration'];
                                         $totActW += $row['weight'];
                                         $t = $project->tasks->firstWhere('id', $row['id']) ?? $project->tasks->firstWhere('title', $row['title']);
-                                        $dWeight = $row['duration'] > 0 ? round($row['weight'] / $row['duration'], 2) : 0.0;
+                                        $dWeight = isset($row['daily_weight']) && $row['daily_weight'] !== null
+                                            ? (float) $row['daily_weight']
+                                            : ($t && preg_match('/DailyWeight:\s*([\d\.]+)%/i', $t->description ?? '', $dwm)
+                                                ? (float) $dwm[1]
+                                                : ($row['duration'] > 0 ? round($row['weight'] / $row['duration'], 2) : 0.0));
                                         $wWeek = 1;
                                         if (isset($row['weeks'])) {
                                             foreach ($row['weeks'] as $wk => $wv) {
@@ -730,6 +743,7 @@
                                                                 start_date: '{{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '' }}',
                                                                 deadline: '{{ $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '' }}',
                                                                 bobot: {{ $row['weight'] }},
+                                                                daily_weight: {{ $dWeight }},
                                                                 progress: {{ (int)($t->progress ?: 0) }},
                                                                 status: '{{ $t->status }}',
                                                                 priority: '{{ $t->priority ?: 'Medium' }}',
@@ -1154,6 +1168,7 @@
                                                                     start_date: '{{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '' }}',
                                                                     deadline: '{{ $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '' }}',
                                                                     bobot: {{ $row['weight'] }},
+                                                                daily_weight: {{ $dWeight }},
                                                                     progress: taskProgress[{{ $row['id'] }}] !== undefined ? taskProgress[{{ $row['id'] }}] : {{ (int)($t->progress ?: 0) }},
                                                                     status: '{{ $t->status }}',
                                                                     priority: '{{ $t->priority ?: 'Medium' }}',
@@ -2094,7 +2109,7 @@
                         <input type="number" 
                                name="duration_days" 
                                x-model.number="newTaskDuration"
-                               @input="newTaskFinishDay = newTaskPlannedStart + newTaskDuration"
+                               @input="newTaskFinishDay = newTaskPlannedStart + newTaskDuration; if(!manualNewDailyWeight && newTaskDuration > 0) { newTaskDailyWeight = (newTaskBobot / newTaskDuration).toFixed(2); }"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
@@ -2105,7 +2120,7 @@
                         <input type="number" 
                                name="finish_day" 
                                x-model.number="newTaskFinishDay"
-                               @input="newTaskDuration = Math.max(1, newTaskFinishDay - newTaskPlannedStart)"
+                               @input="newTaskDuration = Math.max(1, newTaskFinishDay - newTaskPlannedStart); if(!manualNewDailyWeight && newTaskDuration > 0) { newTaskDailyWeight = (newTaskBobot / newTaskDuration).toFixed(2); }"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
@@ -2113,23 +2128,42 @@
                     </div>
                 </div>
 
-                {{-- Row 3: Bobot (%) --}}
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-bold text-slate-700">Activity Weight / Bobot (%)</label>
-                        <span class="text-[10.5px] text-slate-400 font-medium">Bisa desimal, misal: 3.05</span>
+                {{-- Row 3: Bobot (%) & Daily Weight (%) --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700">Activity Weight / Bobot (%)</label>
+                            <span class="text-[10px] text-slate-400 font-medium">Bisa desimal</span>
+                        </div>
+                        <input type="number" 
+                               name="bobot" 
+                               x-model="newTaskBobot"
+                               @input="if(!manualNewDailyWeight && newTaskDuration > 0) { newTaskDailyWeight = (newTaskBobot / newTaskDuration).toFixed(2); }"
+                               step="any" 
+                               min="0" 
+                               max="100" 
+                               onwheel="this.blur()"
+                               placeholder="Contoh: 10.0 atau 3.05"
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
                     </div>
-                    <input type="number" 
-                           name="bobot" 
-                           value="10.0" 
-                           step="any" 
-                           min="0" 
-                           max="100" 
-                           onwheel="this.blur()"
-                           placeholder="Contoh: 10.0 atau 3.05"
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
-                    <span class="text-[10.5px] text-slate-400 mt-1 block">Persentase bobot deliverable terhadap total proyek (0 - 100%). Mendukung angka desimal seperti 3.05. Roll up / roll down dinonaktifkan.</span>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700">Daily Weight (%)</label>
+                            <span class="text-[10px] text-blue-600 font-semibold">Input Manual</span>
+                        </div>
+                        <input type="number" 
+                               name="daily_weight" 
+                               x-model="newTaskDailyWeight"
+                               @input="manualNewDailyWeight = true"
+                               step="any" 
+                               min="0" 
+                               max="100" 
+                               onwheel="this.blur()"
+                               placeholder="Contoh: 3.33 atau 1.25"
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
                 </div>
+                <span class="text-[10.5px] text-slate-400 block -mt-1">Daily Weight dapat diisi manual secara fleksibel atau otomatis terhitung dari Bobot / Durasi.</span>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi &amp; Instruksi Teknis PM (Opsional)</label>
@@ -2218,7 +2252,7 @@
                         <input type="number" 
                                name="duration_days" 
                                x-model.number="editTaskDuration" 
-                               @input="editTaskFinishDay = editTaskPlannedStart + editTaskDuration"
+                               @input="editTaskFinishDay = editTaskPlannedStart + editTaskDuration; if(!manualEditDailyWeight && editTaskDuration > 0) { editTaskDailyWeight = parseFloat((editTaskBobot / editTaskDuration).toFixed(2)); }"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
@@ -2229,7 +2263,7 @@
                         <input type="number" 
                                name="finish_day" 
                                x-model.number="editTaskFinishDay" 
-                               @input="editTaskDuration = Math.max(1, editTaskFinishDay - editTaskPlannedStart)"
+                               @input="editTaskDuration = Math.max(1, editTaskFinishDay - editTaskPlannedStart); if(!manualEditDailyWeight && editTaskDuration > 0) { editTaskDailyWeight = parseFloat((editTaskBobot / editTaskDuration).toFixed(2)); }"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
@@ -2237,21 +2271,38 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <label class="block text-xs font-bold text-slate-700">Bobot (%)</label>
-                            <span class="text-[10px] text-slate-400 font-medium">Bisa desimal, misal: 3.05</span>
+                            <span class="text-[10px] text-slate-400 font-medium">Activity</span>
                         </div>
                         <input type="number" 
                                name="bobot" 
                                x-model="editTaskBobot" 
+                               @input="if(!manualEditDailyWeight && editTaskDuration > 0) { editTaskDailyWeight = parseFloat((editTaskBobot / editTaskDuration).toFixed(2)); }"
                                step="any" 
                                min="0" 
                                max="100" 
                                onwheel="this.blur()"
-                               placeholder="Contoh: 3.05"
+                               placeholder="Contoh: 10.0"
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700">Daily Weight (%)</label>
+                            <span class="text-[10px] text-blue-600 font-semibold">Manual Input</span>
+                        </div>
+                        <input type="number" 
+                               name="daily_weight" 
+                               x-model="editTaskDailyWeight" 
+                               @input="manualEditDailyWeight = true"
+                               step="any" 
+                               min="0" 
+                               max="100" 
+                               onwheel="this.blur()"
+                               placeholder="Contoh: 3.33"
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-1">
