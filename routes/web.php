@@ -1508,11 +1508,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/monitoring/corrective/{project?}', [\App\Http\Controllers\ManagedServiceController::class, 'monitoringCm'])->name('ms.monitoring.cm');
         Route::get('/monitoring/{project?}', [\App\Http\Controllers\ManagedServiceController::class, 'monitoring'])->name('ms.monitoring.index');
         Route::post('/monitoring/pm-cycles/{cycle}', [\App\Http\Controllers\ManagedServiceController::class, 'updatePmCycle'])->name('ms.monitoring.pm.update');
+        Route::post('/monitoring/pm-cycles/{cycle}/delete-report-file', [\App\Http\Controllers\ManagedServiceController::class, 'deletePmReportFile'])->name('ms.monitoring.pm.delete_report_file');
         Route::get('/monitoring/pm-cycles/{cycle}/report', [\App\Http\Controllers\ManagedServiceController::class, 'showPmReport'])->name('ms.monitoring.pm.report');
         Route::post('/monitoring/cm-tickets', [\App\Http\Controllers\ManagedServiceController::class, 'storeCmTicket'])->name('ms.monitoring.cm.store');
         Route::get('/monitoring/cm-tickets/{ticket}/bap', [\App\Http\Controllers\ManagedServiceController::class, 'showCmBap'])->name('ms.monitoring.cm.bap');
         Route::post('/monitoring/cm-tickets/{ticket}/upload-bap', [\App\Http\Controllers\ManagedServiceController::class, 'uploadCmBap'])->name('ms.monitoring.cm.upload_bap');
         Route::post('/monitoring/cm-tickets/{ticket}/update', [\App\Http\Controllers\ManagedServiceController::class, 'updateCmTicket'])->name('ms.monitoring.cm.update');
+        Route::post('/monitoring/cm-tickets/{ticket}/delete', [\App\Http\Controllers\ManagedServiceController::class, 'destroyCmTicket'])->name('ms.monitoring.cm.destroy_post');
+        Route::delete('/monitoring/cm-tickets/{ticket}', [\App\Http\Controllers\ManagedServiceController::class, 'destroyCmTicket'])->name('ms.monitoring.cm.destroy');
         
         // Assets Management (Internal Perusahaan & External Klien)
         Route::get('/assets/internal', [\App\Http\Controllers\ManagedServiceController::class, 'internalAssets'])->name('ms.assets.internal');

@@ -122,12 +122,89 @@
             if (this.$refs.pmFileInput2) this.$refs.pmFileInput2.value = '';
             this.isPmModalOpen = true;
         },
+        async deleteSavedPmFile(filePath, fIdx) {
+            if (!confirm('Apakah Anda yakin ingin menghapus berkas laporan ini?')) return;
+            this.isDeletingFile = true;
+            try {
+                const formData = new FormData();
+                formData.append('file_path', filePath);
+                formData.append('_token', '{{ csrf_token() }}');
+
+                const res = await fetch('/managed-service/monitoring/pm-cycles/' + (this.activeCycle ? this.activeCycle.id : '') + '/delete-report-file', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (this.activeCycle.all_report_files) {
+                        this.activeCycle.all_report_files = this.activeCycle.all_report_files.filter(f => {
+                            const p = typeof f === 'object' ? f.path : f;
+                            return p !== filePath;
+                        });
+                    }
+                    if (this.activeCycle.report_file === filePath) {
+                        this.activeCycle.report_file = data.report_file || null;
+                        this.activeCycle.report_filename = data.report_filename || null;
+                    }
+                } else {
+                    alert(data.message || 'Gagal menghapus berkas.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Terjadi kendala saat menghapus berkas.');
+            } finally {
+                this.isDeletingFile = false;
+            }
+        },
         isCmModalOpen: false,
         isCmDetailModalOpen: false,
+        isCmViewModalOpen: false,
         activeCmTicket: null,
+        viewCmTicket: null,
         selectedCmSlot: null,
         isUploadBapModalOpen: false,
-        selectedUploadTicket: { id: null, number: '' }
+        selectedUploadTicket: { id: null, number: '' },
+        cmStartTime: '09:00',
+        cmEndTime: '',
+        cmDurationHours: '',
+        isDeletingFile: false,
+
+        openViewTicket(t) {
+            this.viewCmTicket = t;
+            this.isCmViewModalOpen = true;
+        },
+
+        openEditTicket(t) {
+            this.activeCmTicket = t;
+            this.cmStartTime = t.start_time || '09:00';
+            this.cmEndTime = t.end_time || '';
+            this.cmDurationHours = t.duration_hours !== null && t.duration_hours !== undefined ? t.duration_hours : '';
+            this.isCmDetailModalOpen = true;
+        },
+
+        calculateCmDuration() {
+            if (!this.cmStartTime || !this.cmEndTime) return;
+            try {
+                const [sh, sm] = this.cmStartTime.split(':').map(Number);
+                const [eh, em] = this.cmEndTime.split(':').map(Number);
+                let sMin = sh * 60 + (sm || 0);
+                let eMin = eh * 60 + (em || 0);
+                if (eMin < sMin) eMin += 24 * 60;
+                const diff = (eMin - sMin) / 60;
+                this.cmDurationHours = Math.round(diff * 10) / 10;
+            } catch(e) {}
+        },
+
+        getCmSlaHours(priority) {
+            const p = (priority || '').toLowerCase();
+            if (p === 'critical' || p === 'platinum') return 1;
+            if (p === 'high' || p === 'gold' || p === 'major') return 4;
+            if (p === 'medium' || p === 'silver' || p === 'minor') return 8;
+            return 24;
+        }
      }">
     @include('components.sidebar')
     
@@ -1276,21 +1353,77 @@
                             <p class="text-[11.5px] text-[#64748B] max-w-sm mx-auto">Semua perangkat dan sistem berjalan normal. Kuota tiket masih utuh sebanyak {{ $cmRemaining }} tiket.</p>
                         </div>
                     @else
+                        {{-- Ringkasan Metrik SLA & Durasi CM --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                            <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Tiket Masuk</p>
+                                    <p class="text-base font-bold text-[#1E293B]">{{ $cmUsed }} Tiket <span class="text-xs font-normal text-slate-500">/ {{ $cmQuota >= 999 ? '∞' : $cmQuota }} kuota</span></p>
+                                </div>
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Rata-Rata Durasi MTTR</p>
+                                    <p class="text-base font-bold text-blue-700">{{ $cmAvgDurationHours }} Jam <span class="text-xs font-semibold text-slate-500">/ tiket</span></p>
+                                </div>
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between shadow-2xs">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kepatuhan SLA</p>
+                                    <p class="text-base font-bold text-emerald-700">{{ $cmSlaCompliancePercent }}% <span class="text-xs font-semibold text-emerald-600">({{ $cmSlaMetCount }}/{{ max(1, $cmResolvedCount) }} selesai)</span></p>
+                                </div>
+                                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs border-collapse">
                                 <thead>
                                     <tr class="bg-[#F8FAFC] text-[10.5px] font-bold tracking-wider text-[#64748B] uppercase border-b border-[#E2E8F0]">
                                         <th class="py-3 px-4">No. Tiket & Tanggal</th>
-                                        <th class="py-3 px-4">Judul Insiden / Masalah</th>
+                                        <th class="py-3 px-4">Judul Insiden & Masalah</th>
                                         <th class="py-3 px-4">Prioritas & SLA</th>
-                                        <th class="py-3 px-4">Pelapor & Kontak</th>
+                                        <th class="py-3 px-4">SLA & Durasi Penanganan</th>
                                         <th class="py-3 px-4">PIC Managed Service</th>
                                         <th class="py-3 px-4 text-center">Status</th>
-                                        <th class="py-3 px-4 text-right">Lampiran BAP</th>
+                                        <th class="py-3 px-4 text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[#F1F5F9]">
                                     @foreach($cmTickets as $t)
+                                        @php
+                                            $rawSt = strtolower(trim((string)$t->status));
+                                            $isStResolved = in_array($rawSt, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+                                            $isStInProg = !$isStResolved && in_array($rawSt, ['in progress', 'assigned', 'open', 'investigating', 'on progress']);
+
+                                            $pVal = match(strtolower($t->priority ?? '')) {
+                                                'critical', 'platinum'      => 'Critical',
+                                                'high', 'gold', 'major'     => 'High',
+                                                'medium', 'silver', 'minor' => 'Medium',
+                                                'low', 'bronze'             => 'Low',
+                                                default                     => ucfirst(strtolower($t->priority ?? 'Medium')),
+                                            };
+                                            $pColor = match($pVal) {
+                                                'Critical' => 'bg-purple-50 text-purple-700 border-purple-200',
+                                                'High'     => 'bg-rose-50 text-rose-700 border-rose-200',
+                                                'Medium'   => 'bg-blue-50 text-blue-700 border-blue-200',
+                                                default    => 'bg-slate-100 text-slate-700 border-slate-200',
+                                            };
+                                            $slaTargetHours = match($pVal) {
+                                                'Critical' => 1,
+                                                'High'     => 4,
+                                                'Medium'   => 8,
+                                                default    => 24,
+                                            };
+                                        @endphp
                                         <tr class="hover:bg-[#F8FAFC]/80 transition">
                                             <td class="py-3.5 px-4 whitespace-nowrap">
                                                 <div class="font-mono font-bold text-[#1E293B] text-[12px]">{{ $t->ticket_number }}</div>
@@ -1301,38 +1434,60 @@
                                                 <div class="text-[11px] text-[#64748B] mt-0.5 line-clamp-1">{{ $t->description ?: '—' }}</div>
                                             </td>
                                             <td class="py-3.5 px-4 whitespace-nowrap">
-                                                @php
-                                                    $pVal = match(strtolower($t->priority ?? '')) {
-                                                        'critical', 'platinum'      => 'Critical',
-                                                        'high', 'gold', 'major'     => 'High',
-                                                        'medium', 'silver', 'minor' => 'Medium',
-                                                        'low', 'bronze'             => 'Low',
-                                                        default                     => ucfirst(strtolower($t->priority ?? 'Medium')),
-                                                    };
-                                                    $pColor = match($pVal) {
-                                                        'Critical' => 'bg-purple-50 text-purple-700 border-purple-200',
-                                                        'High'     => 'bg-rose-50 text-rose-700 border-rose-200',
-                                                        'Medium'   => 'bg-blue-50 text-blue-700 border-blue-200',
-                                                        default    => 'bg-slate-100 text-slate-700 border-slate-200',
-                                                    };
-                                                @endphp
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $pColor }}">
-                                                    {{ $pVal }}
-                                                </span>
+                                                <div class="flex flex-col gap-1 items-start">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $pColor }}">
+                                                        {{ $pVal }}
+                                                    </span>
+                                                    <span class="text-[10px] text-slate-500 font-medium">MTTR: {{ $slaTargetHours }} Jam</span>
+                                                </div>
                                             </td>
-                                            <td class="py-3.5 px-4">
-                                                <div class="font-medium text-[#1E293B] text-[12px]">{{ $t->reported_by ?: 'PIC Klien' }}</div>
-                                                <div class="text-[10.5px] text-[#64748B]">{{ $t->contact_phone ?: '—' }}</div>
+                                            <td class="py-3.5 px-4 whitespace-nowrap">
+                                                <div class="flex flex-col gap-1">
+                                                    <div class="flex items-center gap-1.5 text-xs text-[#1E293B]">
+                                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                        <span class="font-bold">
+                                                            @if($t->start_time || $t->end_time)
+                                                                {{ $t->start_time ?: '—' }} s/d {{ $t->end_time ?: '...' }}
+                                                            @else
+                                                                {{ $t->incident_date ? \Carbon\Carbon::parse($t->incident_date)->format('d/m/Y') : '—' }}
+                                                            @endif
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-[11px] font-semibold text-slate-500">
+                                                            Durasi: <span class="text-slate-800 font-bold">{{ $t->duration_hours !== null ? $t->duration_hours . ' Jam' : ($isStResolved ? '2 Jam' : '—') }}</span>
+                                                        </span>
+                                                        @if($isStResolved)
+                                                            @if($t->sla_met || $t->sla_met === null)
+                                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                    SLA Terpenuhi
+                                                                </span>
+                                                            @else
+                                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                                                    Over SLA
+                                                                </span>
+                                                            @endif
+                                                        @else
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                                Dalam Penanganan
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             </td>
-                                            <td class="py-3.5 px-4 text-[#334155] font-medium whitespace-nowrap">
-                                                {{ $t->assignedEngineer?->name ?: '—' }}
+                                            <td class="py-3.5 px-4 whitespace-nowrap">
+                                                @if($t->assignedEngineer)
+                                                    <div class="flex items-center gap-2 max-w-[130px]" title="{{ $t->assignedEngineer->name }}">
+                                                        <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-[10px] flex items-center justify-center shrink-0">
+                                                            {{ strtoupper(substr($t->assignedEngineer->name, 0, 1)) }}
+                                                        </div>
+                                                        <span class="text-xs font-semibold text-slate-700 truncate">{{ $t->assignedEngineer->name }}</span>
+                                                    </div>
+                                                @else
+                                                    <span class="text-xs text-slate-400 italic">Belum ada PIC</span>
+                                                @endif
                                             </td>
                                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                                @php
-                                                    $rawSt = strtolower(trim((string)$t->status));
-                                                    $isStResolved = in_array($rawSt, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
-                                                    $isStInProg = !$isStResolved && in_array($rawSt, ['in progress', 'assigned', 'open', 'investigating', 'on progress']);
-                                                @endphp
                                                 @if($isStResolved)
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                         Resolved
@@ -1347,23 +1502,34 @@
                                                     </span>
                                                 @endif
                                             </td>
-                                            <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                                                <div class="flex items-center justify-end gap-1.5">
-                                                    <button type="button" @click="activeCmTicket = {{ json_encode($t) }}; isCmDetailModalOpen = true" title="Detail & Update Tiket" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold border border-slate-300 transition cursor-pointer">
-                                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                        <span>Update</span>
+                                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                                <div class="flex items-center justify-center gap-1.5">
+                                                    {{-- 1. View Detail (Icon Mata) --}}
+                                                    <button type="button" 
+                                                            @click="openViewTicket({{ json_encode($t) }})" 
+                                                            class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-center transition cursor-pointer shadow-2xs" 
+                                                            title="Lihat Detail Tiket">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                     </button>
-                                                    @if($t->attachment_path)
-                                                        <a href="{{ asset('storage/' . $t->attachment_path) }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold border border-emerald-200 transition shadow-2xs">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                            <span>Lihat BAP</span>
-                                                        </a>
-                                                    @else
-                                                        <button type="button" @click="selectedUploadTicket = { id: {{ $t->id }}, number: '{{ $t->ticket_number }}' }; isUploadBapModalOpen = true;" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold border border-slate-300 transition cursor-pointer">
-                                                            <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                            <span>Upload</span>
+
+                                                    {{-- 2. Edit / Update (Icon Pensil) --}}
+                                                    <button type="button" 
+                                                            @click="openEditTicket({{ json_encode($t) }})" 
+                                                            class="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 flex items-center justify-center transition cursor-pointer shadow-2xs" 
+                                                            title="Edit / Update Progres Tiket">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                    </button>
+
+                                                    {{-- 3. Delete (Icon Sampah) --}}
+                                                    <form action="{{ route('ms.monitoring.cm.destroy', $t->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket {{ $t->ticket_number }} ini?')" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" 
+                                                                class="w-7 h-7 rounded-lg bg-rose-50 text-[#8F0A0D] hover:bg-rose-100 border border-rose-200 flex items-center justify-center transition cursor-pointer shadow-2xs" 
+                                                                title="Hapus Tiket CM">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                         </button>
-                                                    @endif
+                                                    </form>
                                                 </div>
                                             </td>
                                         </tr>
@@ -2090,6 +2256,10 @@
                                                     <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                     <span>Unduh</span>
                                                 </a>
+                                                <button type="button" @click="deleteSavedPmFile(file.path, fIdx)" :disabled="isDeletingFile" class="inline-flex items-center gap-1 px-2 py-1 bg-rose-50 hover:bg-rose-100 text-[#8F0A0D] rounded-md text-[10.5px] font-bold border border-rose-200 transition cursor-pointer disabled:opacity-50" title="Hapus / Ganti Berkas">
+                                                    <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    <span>Hapus</span>
+                                                </button>
                                             </div>
                                         </div>
                                     </template>
@@ -2186,6 +2356,10 @@
     <!-- ========================================================== -->
     <!-- MODAL 3: CATAT TIKET CM                                    -->
     <!-- ========================================================== -->
+    @php
+        $cmDefaultPhone = $customerPhone ?: ($project->customer_pic_phone ?: ($project->customer_phone ?: ($project->clientRecord?->phone ?: '')));
+        $cmDefaultPic = $project->customer_pic_technical ?: ($project->customer_pic ?: ($project->client ?: ''));
+    @endphp
     <template x-teleport="body">
         <div x-show="isCmModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden" @click.away="isCmModalOpen = false">
@@ -2210,32 +2384,42 @@
                             <input type="text" name="title" required placeholder="Contoh: Penggantian SFP Module Port 2 Core Switch" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        {{-- Prioritas SLA, Tanggal Mulai & Jam Mulai --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-xs font-semibold text-[#334155] mb-1">Prioritas & SLA <span class="text-[#8F0A0D]">*</span></label>
                                 <select name="priority" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
-                                    <option value="Critical">Critical (P1 - MTTR 1 Jam)</option>
-                                    <option value="High" selected>High (P2 - MTTR 4 Jam)</option>
-                                    <option value="Medium">Medium (P3 - MTTR 8 Jam)</option>
-                                    <option value="Low">Low (P4 - MTTR 24 Jam)</option>
+                                    <option value="Critical">Critical (P1 - 1 Jam)</option>
+                                    <option value="High" selected>High (P2 - 4 Jam)</option>
+                                    <option value="Medium">Medium (P3 - 8 Jam)</option>
+                                    <option value="Low">Low (P4 - 24 Jam)</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-[#334155] mb-1">Tanggal Mulai Insiden / Pelaksanaan <span class="text-[#8F0A0D]">*</span></label>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Tanggal Mulai <span class="text-[#8F0A0D]">*</span></label>
                                 <input type="date" name="incident_date" value="{{ date('Y-m-d') }}" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Jam Mulai <span class="text-[#8F0A0D]">*</span></label>
+                                <input type="time" name="start_time" value="{{ date('H:i') }}" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
                             </div>
                         </div>
 
+                        {{-- Pelapor & Nomor Kontak (Otomatis Terhubung dari Data Proyek Awal) --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                             <div>
                                 <label class="block text-xs font-semibold text-[#334155] mb-1">Nama Pelapor / PIC Klien</label>
-                                <input type="text" name="reported_by" value="{{ $project->customer_pic_technical ?: ($project->client ?: '') }}" placeholder="Nama PIC" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                                <input type="text" name="reported_by" value="{{ $cmDefaultPic }}" placeholder="Nama PIC" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-[#334155] mb-1">Kontak Telepon / WA</label>
-                                <input type="text" name="contact_phone" placeholder="08xxxxxxxxxx" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                                <label class="block text-xs font-semibold text-[#334155] mb-1 flex items-center justify-between">
+                                    <span>Kontak Telepon / WA</span>
+                                    <span class="text-[10px] text-emerald-600 font-bold">Terhubung Otomatis</span>
+                                </label>
+                                <input type="text" name="contact_phone" value="{{ $cmDefaultPhone }}" placeholder="08xxxxxxxxxx" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
                             </div>
                         </div>
 
@@ -2286,7 +2470,7 @@
     </template>
 
     <!-- ========================================================== -->
-    <!-- MODAL 3B: DETAIL & UPDATE TIKET CM (KLIK NODE TIKET / AKSI)-->
+    <!-- MODAL 3B: DETAIL & UPDATE TIKET CM                         -->
     <!-- ========================================================== -->
     <template x-teleport="body">
         <div x-show="isCmDetailModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -2294,7 +2478,7 @@
                 <div class="flex items-center justify-between border-b border-[#E2E8F0] px-6 py-4 shrink-0 bg-white">
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Detail &amp; Update Tiket CM</span>
+                            <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Update Tiket CM</span>
                             <span class="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200" x-text="activeCmTicket ? activeCmTicket.ticket_number : ''"></span>
                         </div>
                         <h3 class="text-[15px] font-bold text-[#1E293B] mt-0.5" x-text="activeCmTicket ? activeCmTicket.title : 'Tiket CM'"></h3>
@@ -2314,7 +2498,9 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                             <div>
                                 <label class="block text-xs font-semibold text-[#334155] mb-1">Status Tiket <span class="text-[#8F0A0D]">*</span></label>
-                                <select name="status" :value="activeCmTicket ? activeCmTicket.status : 'Resolved'" required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                                <select name="status" :value="activeCmTicket ? activeCmTicket.status : 'Resolved'" 
+                                        @change="if (['Resolved', 'Closed'].includes($event.target.value) && !cmEndTime) { const now = new Date(); cmEndTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'); calculateCmDuration(); }" 
+                                        required class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
                                     <option value="In Progress">In Progress (Sedang Ditangani)</option>
                                     <option value="Resolved">Resolved (Selesai Perbaikan)</option>
                                     <option value="Closed">Closed (Ditutup Resmi)</option>
@@ -2347,6 +2533,44 @@
                                     Tanggal Selesai Restorasi
                                 </label>
                                 <input type="date" name="resolved_at" :value="activeCmTicket ? (activeCmTicket.resolved_at ? String(activeCmTicket.resolved_at).split('T')[0] : '') : ''" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                            </div>
+                        </div>
+
+                        {{-- Jam Mulai, Jam Selesai, dan Total Durasi Penanganan (SLA MTTR) --}}
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Waktu Penanganan &amp; Kepatuhan SLA</span>
+                                </span>
+                                <span class="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full" x-text="'Target MTTR: ' + getCmSlaHours(activeCmTicket ? activeCmTicket.priority : '') + ' Jam'"></span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-[#334155] mb-1">Jam Mulai <span class="text-[#8F0A0D]">*</span></label>
+                                    <input type="time" name="start_time" x-model="cmStartTime" @input="calculateCmDuration()" class="w-full px-2.5 py-1.5 bg-white border border-[#CBD5E1] rounded-lg text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-[#334155] mb-1">Jam Selesai</label>
+                                    <input type="time" name="end_time" x-model="cmEndTime" @input="calculateCmDuration()" class="w-full px-2.5 py-1.5 bg-white border border-[#CBD5E1] rounded-lg text-xs font-bold text-[#1E293B] outline-none focus:border-[#8F0A0D]">
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-[#334155] mb-1">Total Durasi (Jam)</label>
+                                    <input type="number" step="0.1" min="0" name="duration_hours" x-model="cmDurationHours" placeholder="Otomatis" class="w-full px-2.5 py-1.5 bg-white border border-[#CBD5E1] rounded-lg text-xs font-bold text-blue-700 outline-none focus:border-[#8F0A0D]">
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-200 text-slate-500">
+                                <span>Status Kepatuhan:</span>
+                                <template x-if="cmDurationHours > 0">
+                                    <span :class="Number(cmDurationHours) <= getCmSlaHours(activeCmTicket ? activeCmTicket.priority : '') ? 'text-emerald-700 font-bold' : 'text-red-600 font-bold'" x-text="Number(cmDurationHours) <= getCmSlaHours(activeCmTicket ? activeCmTicket.priority : '') ? '✓ SLA Terpenuhi (' + cmDurationHours + ' Jam ≤ ' + getCmSlaHours(activeCmTicket ? activeCmTicket.priority : '') + ' Jam)' : '⚠ Over SLA (' + cmDurationHours + ' Jam > ' + getCmSlaHours(activeCmTicket ? activeCmTicket.priority : '') + ' Jam)'"></span>
+                                </template>
+                                <template x-if="!cmDurationHours">
+                                    <span class="text-slate-400 italic">Masukkan Jam Selesai untuk kalkulasi otomatis</span>
+                                </template>
                             </div>
                         </div>
 
@@ -2397,6 +2621,123 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </template>
+
+    <!-- ========================================================== -->
+    <!-- MODAL 3C: VIEW DETAIL TIKET CM (MODAL BACA / PREVIEW)      -->
+    <!-- ========================================================== -->
+    <template x-teleport="body">
+        <div x-show="isCmViewModalOpen" x-cloak class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden" @click.away="isCmViewModalOpen = false">
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] px-6 py-4 shrink-0 bg-white">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Detail Tiket CM</span>
+                                <span class="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200" x-text="viewCmTicket ? viewCmTicket.ticket_number : ''"></span>
+                            </div>
+                            <h3 class="text-sm font-bold text-[#1E293B] mt-0.5" x-text="viewCmTicket ? viewCmTicket.title : ''"></h3>
+                        </div>
+                    </div>
+                    <button @click="isCmViewModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg text-lg font-bold leading-none">&times;</button>
+                </div>
+
+                <div class="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
+                    {{-- Status & Prioritas Cards --}}
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Status Tiket</span>
+                            <span class="font-bold text-[13px] mt-1 inline-block" :class="(viewCmTicket && ['resolved', 'closed', 'selesai'].includes(String(viewCmTicket.status).toLowerCase())) ? 'text-emerald-700' : 'text-amber-700'" x-text="viewCmTicket ? viewCmTicket.status : ''"></span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Prioritas & SLA</span>
+                            <span class="font-bold text-[13px] text-slate-800 mt-1 inline-block" x-text="viewCmTicket ? (viewCmTicket.priority + ' (MTTR ' + getCmSlaHours(viewCmTicket.priority) + ' Jam)') : ''"></span>
+                        </div>
+                    </div>
+
+                    {{-- Waktu & Durasi --}}
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                        <span class="text-[10.5px] text-slate-700 font-bold uppercase tracking-wider block">Jadwal &amp; Durasi Penanganan</span>
+                        <div class="grid grid-cols-3 gap-2 pt-1 text-slate-700">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">Jam Mulai</span>
+                                <span class="font-bold text-xs" x-text="viewCmTicket && viewCmTicket.start_time ? viewCmTicket.start_time : (viewCmTicket && viewCmTicket.created_at ? String(viewCmTicket.created_at).substring(11,16) : '—')"></span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">Jam Selesai</span>
+                                <span class="font-bold text-xs" x-text="viewCmTicket && viewCmTicket.end_time ? viewCmTicket.end_time : (viewCmTicket && viewCmTicket.resolved_at ? String(viewCmTicket.resolved_at).substring(11,16) : '—')"></span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">Total Durasi</span>
+                                <span class="font-bold text-xs text-blue-700" x-text="viewCmTicket && viewCmTicket.duration_hours ? (viewCmTicket.duration_hours + ' Jam') : '—'"></span>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px]">
+                            <span class="text-slate-500 font-semibold">Kepatuhan SLA:</span>
+                            <template x-if="viewCmTicket && (viewCmTicket.sla_met || viewCmTicket.sla_met === null)">
+                                <span class="px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">✓ SLA Terpenuhi</span>
+                            </template>
+                            <template x-if="viewCmTicket && viewCmTicket.sla_met === false">
+                                <span class="px-2 py-0.5 rounded-full font-bold bg-rose-100 text-[#8F0A0D]">⚠ Over SLA</span>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- PIC & Pelapor --}}
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 bg-white rounded-xl border border-slate-200">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">PIC Managed Service</span>
+                            <span class="font-bold text-slate-800 mt-1 block truncate" x-text="(viewCmTicket && viewCmTicket.assigned_engineer) ? viewCmTicket.assigned_engineer.name : (viewCmTicket && viewCmTicket.assigned_to ? 'Teknisi MS' : '—')"></span>
+                        </div>
+                        <div class="p-3 bg-white rounded-xl border border-slate-200">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Pelapor & Kontak</span>
+                            <span class="font-bold text-slate-800 mt-1 block truncate" x-text="(viewCmTicket && viewCmTicket.reported_by) ? viewCmTicket.reported_by : 'PIC Klien'"></span>
+                            <span class="text-[10.5px] text-slate-500 block truncate" x-text="(viewCmTicket && viewCmTicket.contact_phone) ? viewCmTicket.contact_phone : ''"></span>
+                        </div>
+                    </div>
+
+                    {{-- Rincian Masalah --}}
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Rincian Masalah / Gangguan</span>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 leading-relaxed" x-text="viewCmTicket && viewCmTicket.description ? viewCmTicket.description : 'Tidak ada catatan rincian.'"></div>
+                    </div>
+
+                    {{-- Catatan Resolusi --}}
+                    <template x-if="viewCmTicket && viewCmTicket.resolution_notes">
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Catatan Tindakan / Resolusi</span>
+                            <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 text-emerald-900 leading-relaxed" x-text="viewCmTicket.resolution_notes"></div>
+                        </div>
+                    </template>
+
+                    {{-- Berkas BAP --}}
+                    <template x-if="viewCmTicket && viewCmTicket.attachment_path">
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span class="font-bold text-slate-800 text-xs">Berita Acara Perbaikan (BAP)</span>
+                            </div>
+                            <a :href="'/storage/' + viewCmTicket.attachment_path" target="_blank" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">
+                                Buka Berkas
+                            </a>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="flex items-center justify-between px-6 py-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
+                    <button type="button" @click="isCmViewModalOpen = false; openEditTicket(viewCmTicket)" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-blue-700 hover:bg-blue-50 border border-blue-200 transition flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <span>Edit Tiket Ini</span>
+                    </button>
+                    <button type="button" @click="isCmViewModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-200 transition cursor-pointer">
+                        Tutup
+                    </button>
+                </div>
             </div>
         </div>
     </template>

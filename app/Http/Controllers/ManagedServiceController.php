@@ -2926,7 +2926,7 @@ class ManagedServiceController extends Controller
         $ticketSeq = 1;
         foreach ($cmTickets as $t) {
             $year = $t->created_at ? $t->created_at->format('Y') : date('Y');
-            $expectedNum = 'CM-' . $projectCode . '-' . $year . '-' . str_pad($ticketSeq, 3, '0', STR_PAD_LEFT);
+            $expectedNum = 'CM-PROJ-' . $project->id . '-' . $year . '-' . str_pad($ticketSeq, 3, '0', STR_PAD_LEFT);
             $needsSave = false;
 
             if ($t->ticket_number !== $expectedNum) {
@@ -2962,6 +2962,16 @@ class ManagedServiceController extends Controller
         $cmQuota = $project->cm_quota ?: 12;
         $cmUsed = $cmTickets->count();
         $cmRemaining = max(0, $cmQuota - $cmUsed);
+
+        $cmResolvedCount = $cmTickets->filter(fn($t) => in_array(strtolower($t->status ?? ''), ['resolved', 'closed', 'solved', 'completed', 'selesai']))->count();
+        $cmSlaMetCount = $cmTickets->filter(function($t) {
+            $isResolved = in_array(strtolower($t->status ?? ''), ['resolved', 'closed', 'solved', 'completed', 'selesai']);
+            return $isResolved && ($t->sla_met || $t->sla_met === null);
+        })->count();
+        $cmSlaCompliancePercent = $cmResolvedCount > 0 ? round(($cmSlaMetCount / $cmResolvedCount) * 100, 1) : 100.0;
+        
+        $validDurations = $cmTickets->filter(fn($t) => $t->duration_hours !== null && $t->duration_hours > 0)->pluck('duration_hours');
+        $cmAvgDurationHours = $validDurations->count() > 0 ? round($validDurations->avg(), 1) : ($cmResolvedCount > 0 ? 2.0 : 0.0);
 
         // Auto-heal / sinkronisasi jika siklus di DB melebihi target pm_total_cycles proyek
         if ($project->pm_total_cycles && $project->pm_total_cycles > 0) {
@@ -3170,7 +3180,8 @@ class ManagedServiceController extends Controller
             'project', 'allProjects', 'documents', 'additionalDocs', 'availableDocCount', 'cmQuota', 'cmUsed', 'cmRemaining', 'cmTickets',
             'pmCycles', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers', 'groupedEngineers', 'allEngineers', 'picMsUsers', 'leadEngineers', 'activeTab',
             'daysInMonth', 'totalPeriodHours', 'targetSla', 'totalProjDowntimeHours', 'downtimeDeviceList',
-            'projectSlaUptime', 'maxAllowedDowntimeHours', 'remainingBufferHours', 'isSlaMet'
+            'projectSlaUptime', 'maxAllowedDowntimeHours', 'remainingBufferHours', 'isSlaMet',
+            'cmResolvedCount', 'cmSlaMetCount', 'cmSlaCompliancePercent', 'cmAvgDurationHours'
         ));
     }
 
@@ -3441,6 +3452,78 @@ class ManagedServiceController extends Controller
     }
 
     /**
+     * Hapus Berkas Laporan PM Tertentu
+     */
+    public function deletePmReportFile(Request $request, $cycleId)
+    {
+        $cycle = ManagedServicePmCycle::findOrFail($cycleId);
+        $filePath = $request->input('file_path');
+
+        if (!$filePath) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Path berkas tidak ditemukan.'], 400);
+            }
+            return redirect()->back()->with('error', 'Path berkas tidak ditemukan.');
+        }
+
+        $files = is_array($cycle->report_files) ? $cycle->report_files : [];
+        $newFiles = [];
+        $deleted = false;
+
+        foreach ($files as $f) {
+            $path = is_array($f) ? ($f['path'] ?? '') : (string)$f;
+            if ($path === $filePath) {
+                $deleted = true;
+                try {
+                    $diskPath = storage_path('app/public/' . $filePath);
+                    if (file_exists($diskPath) && !is_dir($diskPath)) {
+                        @unlink($diskPath);
+                    }
+                } catch (\Throwable $e) {}
+            } else {
+                $newFiles[] = $f;
+            }
+        }
+
+        if (!$deleted && $cycle->report_file === $filePath) {
+            $deleted = true;
+            try {
+                $diskPath = storage_path('app/public/' . $filePath);
+                if (file_exists($diskPath) && !is_dir($diskPath)) {
+                    @unlink($diskPath);
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        $cycle->report_files = array_values($newFiles);
+        if (!empty($newFiles)) {
+            $latest = end($newFiles);
+            $cycle->report_file = is_array($latest) ? ($latest['path'] ?? null) : $latest;
+            $cycle->report_filename = is_array($latest) ? ($latest['filename'] ?? basename($cycle->report_file)) : basename($cycle->report_file);
+        } else {
+            $cycle->report_file = null;
+            $cycle->report_filename = null;
+            if ($cycle->report_status === 'Submitted') {
+                $cycle->report_status = 'Pending';
+            }
+        }
+        $cycle->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Berkas laporan berhasil dihapus.',
+                'remaining_files' => $cycle->report_files,
+                'report_file' => $cycle->report_file,
+                'report_filename' => $cycle->report_filename,
+                'report_status' => $cycle->report_status,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Berkas laporan berhasil dihapus.');
+    }
+
+    /**
      * Tampilkan Berkas Laporan PM Asli
      */
     public function showPmReport($cycleId)
@@ -3561,6 +3644,18 @@ class ManagedServiceController extends Controller
             ];
         }
 
+        // Hapus file yang ditandai untuk dihapus jika ada
+        $deletedReportFiles = $request->input('deleted_report_files', []);
+        if (is_string($deletedReportFiles)) {
+            $deletedReportFiles = json_decode($deletedReportFiles, true) ?: [$deletedReportFiles];
+        }
+        if (!empty($deletedReportFiles) && is_array($deletedReportFiles)) {
+            $existingFiles = array_values(array_filter($existingFiles, function($item) use ($deletedReportFiles) {
+                $p = is_array($item) ? ($item['path'] ?? '') : (string)$item;
+                return !in_array($p, $deletedReportFiles);
+            }));
+        }
+
         if ($request->hasFile('report_file')) {
             $file = $request->file('report_file');
             if ($file && $file->isValid()) {
@@ -3601,6 +3696,13 @@ class ManagedServiceController extends Controller
             $validated['report_filename'] = $latest['filename'];
             if (empty($validated['report_status']) || $validated['report_status'] === 'Pending') {
                 $validated['report_status'] = 'Submitted';
+            }
+        } else {
+            $validated['report_files'] = [];
+            $validated['report_file'] = null;
+            $validated['report_filename'] = null;
+            if (($validated['report_status'] ?? '') === 'Submitted') {
+                $validated['report_status'] = 'Pending';
             }
         }
 
@@ -3659,14 +3761,19 @@ class ManagedServiceController extends Controller
     public function storeCmTicket(Request $request)
     {
         $validated = $request->validate([
-            'project_id'    => 'required|exists:projects,id',
-            'title'         => 'required|string|max:255',
-            'description'   => 'nullable|string',
-            'priority'      => 'required|string|in:Critical,High,Medium,Low,Platinum,Gold,Silver,Bronze',
-            'status'        => 'nullable|string|in:Open,In Progress,Resolved,Closed',
-            'assigned_to'   => 'nullable|exists:users,id',
-            'incident_date' => 'nullable|date',
-            'attachment'    => 'nullable|file|max:51200',
+            'project_id'     => 'required|exists:projects,id',
+            'title'          => 'required|string|max:255',
+            'description'    => 'nullable|string',
+            'priority'       => 'required|string|in:Critical,High,Medium,Low,Platinum,Gold,Silver,Bronze',
+            'status'         => 'nullable|string|in:Open,In Progress,Resolved,Closed',
+            'assigned_to'    => 'nullable|exists:users,id',
+            'incident_date'  => 'nullable|date',
+            'start_time'     => 'nullable|string|max:20',
+            'end_time'       => 'nullable|string|max:20',
+            'duration_hours' => 'nullable|numeric|min:0',
+            'reported_by'    => 'nullable|string|max:255',
+            'contact_phone'  => 'nullable|string|max:50',
+            'attachment'     => 'nullable|file|max:51200',
         ]);
 
         $project = Project::findOrFail($validated['project_id']);
@@ -3684,28 +3791,14 @@ class ManagedServiceController extends Controller
 
         $ticketDate = !empty($validated['incident_date']) ? Carbon::parse($validated['incident_date']) : now();
 
-        $projectCode = 'NET';
-        if (!empty($project->client)) {
-            if (stripos($project->client, 'Telkom') !== false) {
-                $projectCode = 'TLK';
-            } elseif (stripos($project->client, 'Angkasa Pura') !== false) {
-                $projectCode = 'APS';
-            } elseif (stripos($project->client, 'PLN') !== false) {
-                $projectCode = 'PLN';
-            } elseif (stripos($project->client, 'Bank Rakyat Indonesia') !== false || stripos($project->client, 'BRI') !== false) {
-                $projectCode = 'BRI';
-            } elseif (stripos($project->client, 'Mandiri') !== false) {
-                $projectCode = 'MDR';
-            }
-        }
-
         $count = ManagedServiceTicket::where('project_id', $project->id)
             ->where(function($q) {
                 $q->where('type', 'like', '%Corrective%')
                   ->orWhere('type', 'like', '%Incident%');
             })->count() + 1;
 
-        $ticketNumber = 'CM-' . $projectCode . '-' . $ticketDate->year . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        // Format tiket standar: CM-PROJ-{project_id}-{year}-{00x}
+        $ticketNumber = 'CM-PROJ-' . $project->id . '-' . $ticketDate->year . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
 
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
@@ -3729,7 +3822,44 @@ class ManagedServiceController extends Controller
         };
 
         $status = $validated['status'] ?? 'In Progress';
-        $resolvedAt = in_array($status, ['Resolved', 'Closed']) ? $ticketDate->copy()->addHours(2) : null;
+        $startTime = $validated['start_time'] ?: now()->format('H:i');
+        $endTime = $validated['end_time'] ?? null;
+        $durationHours = (isset($validated['duration_hours']) && $validated['duration_hours'] !== '') ? (float)$validated['duration_hours'] : null;
+
+        $resolvedAt = null;
+        if (in_array($status, ['Resolved', 'Closed'])) {
+            $resolvedAt = $ticketDate->copy();
+            if ($endTime) {
+                try {
+                    $parts = explode(':', $endTime);
+                    $resolvedAt->setTime((int)$parts[0], (int)($parts[1] ?? 0));
+                } catch (\Throwable $e) {}
+            } else {
+                $resolvedAt = now();
+            }
+
+            if ($startTime && $endTime && $durationHours === null) {
+                try {
+                    $s = Carbon::parse($ticketDate->toDateString() . ' ' . $startTime);
+                    $e = Carbon::parse($resolvedAt->toDateString() . ' ' . $endTime);
+                    if ($e->lt($s)) {
+                        $e->addDay();
+                    }
+                    $durationHours = round($s->diffInMinutes($e) / 60, 2);
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        $slaMet = true;
+        if ($durationHours !== null) {
+            $slaMet = ($durationHours <= $slaHours);
+        } elseif ($resolvedAt) {
+            $slaMet = $resolvedAt->lte($ticketDate->copy()->addHours($slaHours));
+        }
+
+        // Hubungkan nomor telepon & pelapor secara otomatis jika tidak diisi manual
+        $reportedBy = !empty($validated['reported_by']) ? $validated['reported_by'] : ($project->customer_pic_technical ?: ($project->customer_pic ?: ($project->client ?: 'Klien')));
+        $contactPhone = !empty($validated['contact_phone']) ? $validated['contact_phone'] : ($project->customer_pic_phone ?: ($project->customer_phone ?: ($project->clientRecord?->phone ?: null)));
 
         $ticket = ManagedServiceTicket::create([
             'ticket_number'   => $ticketNumber,
@@ -3738,17 +3868,21 @@ class ManagedServiceController extends Controller
             'title'           => $validated['title'],
             'description'     => $validated['description'] ?? 'Pekerjaan perbaikan insiden Corrective Maintenance.',
             'incident_date'   => $ticketDate->toDateString(),
+            'start_time'      => $startTime,
+            'end_time'        => $endTime,
+            'duration_hours'  => $durationHours,
             'type'            => 'Corrective Maintenance',
             'category'        => 'Troubleshooting',
             'priority'        => $normalizedPriority,
             'status'          => $status,
             'source'          => 'Portal',
-            'reported_by'     => $project->customer_pic_technical ?: ($project->client ?: 'Klien'),
+            'reported_by'     => $reportedBy,
+            'contact_phone'   => $contactPhone,
             'assigned_to'     => $validated['assigned_to'] ?: auth()->id(),
             'attachment_path' => $attachmentPath,
             'sla_deadline'    => $ticketDate->copy()->addHours($slaHours),
             'resolved_at'     => $resolvedAt,
-            'sla_met'         => true,
+            'sla_met'         => $slaMet,
             'created_by'      => auth()->id(),
         ]);
 
@@ -3769,6 +3903,9 @@ class ManagedServiceController extends Controller
             'status'           => 'required|string|in:Open,In Progress,Pending Vendor,Resolved,Closed',
             'priority'         => 'nullable|string|in:Critical,High,Medium,Low,Platinum,Gold,Silver,Bronze',
             'incident_date'    => 'nullable|date',
+            'start_time'       => 'nullable|string|max:20',
+            'end_time'         => 'nullable|string|max:20',
+            'duration_hours'   => 'nullable|numeric|min:0',
             'resolved_at'      => 'nullable|date',
             'assigned_to'      => 'nullable|exists:users,id',
             'reported_by'      => 'nullable|string|max:255',
@@ -3797,6 +3934,28 @@ class ManagedServiceController extends Controller
             $ticket->incident_date = Carbon::parse($validated['incident_date']);
         }
 
+        if (array_key_exists('start_time', $validated)) {
+            $ticket->start_time = $validated['start_time'];
+        }
+
+        if (array_key_exists('end_time', $validated)) {
+            $ticket->end_time = $validated['end_time'];
+        }
+
+        if (array_key_exists('duration_hours', $validated) && $validated['duration_hours'] !== null && $validated['duration_hours'] !== '') {
+            $ticket->duration_hours = (float)$validated['duration_hours'];
+        } elseif (!empty($ticket->start_time) && !empty($ticket->end_time)) {
+            try {
+                $incDate = $ticket->incident_date ? Carbon::parse($ticket->incident_date)->toDateString() : now()->toDateString();
+                $s = Carbon::parse($incDate . ' ' . $ticket->start_time);
+                $e = Carbon::parse($incDate . ' ' . $ticket->end_time);
+                if ($e->lt($s)) {
+                    $e->addDay();
+                }
+                $ticket->duration_hours = round($s->diffInMinutes($e) / 60, 2);
+            } catch (\Throwable $e) {}
+        }
+
         if (array_key_exists('assigned_to', $validated)) {
             $ticket->assigned_to = $validated['assigned_to'];
         }
@@ -3819,6 +3978,14 @@ class ManagedServiceController extends Controller
 
         $ticket->status = $validated['status'];
 
+        $slaHours = match($ticket->priority) {
+            'Critical' => 1,
+            'High'     => 4,
+            'Medium'   => 8,
+            'Low'      => 24,
+            default    => 4,
+        };
+
         if (in_array($validated['status'], ['Resolved', 'Closed'])) {
             if (!empty($validated['resolved_at'])) {
                 $ticket->resolved_at = Carbon::parse($validated['resolved_at']);
@@ -3826,7 +3993,9 @@ class ManagedServiceController extends Controller
                 $ticket->resolved_at = now();
             }
 
-            if ($ticket->sla_deadline && $ticket->resolved_at) {
+            if ($ticket->duration_hours !== null) {
+                $ticket->sla_met = ($ticket->duration_hours <= $slaHours);
+            } elseif ($ticket->sla_deadline && $ticket->resolved_at) {
                 $ticket->sla_met = $ticket->resolved_at->lte($ticket->sla_deadline);
             }
         } else {
@@ -3844,6 +4013,18 @@ class ManagedServiceController extends Controller
         self::syncTicketToTaskAndSchedule($ticket);
 
         return redirect()->back()->with('success', 'Data Tiket Corrective Maintenance ' . $ticket->ticket_number . ' berhasil diperbarui.');
+    }
+
+    /**
+     * Hapus Tiket Corrective Maintenance (CM)
+     */
+    public function destroyCmTicket($ticketId)
+    {
+        $ticket = ManagedServiceTicket::findOrFail($ticketId);
+        $num = $ticket->ticket_number;
+        $ticket->delete();
+
+        return redirect()->back()->with('success', 'Tiket Corrective Maintenance ' . $num . ' berhasil dihapus.');
     }
 
     /**
