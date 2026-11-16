@@ -34,6 +34,8 @@ class ProjectRequest extends FormRequest
             'description'    => 'nullable|string',
             'start_date'     => 'required|date',
             'deadline'       => 'required|date|after_or_equal:start_date',
+            'so_number'      => 'nullable|string|max:100',
+            'po_spk_number'  => 'nullable|string|max:100',
             'status'         => 'nullable|string|in:Planning,On Progress,Completed,Pending,Opportunity,Draft',
             'progress'       => 'nullable|integer|min:0|max:100',
         ];

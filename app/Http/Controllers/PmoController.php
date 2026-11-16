@@ -2153,8 +2153,9 @@ class PmoController extends Controller
             return [
                 'id'                            => $p->id,
                 'name'                          => $p->name,
-                'so_code'                       => $p->so_number ?: ($p->po_number ?: 'SO-IPNET-' . str_pad($p->id, 4, '0', STR_PAD_LEFT)),
-                'po_number'                     => $p->po_number ?: ($p->so_number ?: '-'),
+                'so_code'                       => $p->so_number ?: null,
+                'so_number'                     => $p->so_number ?: '',
+                'po_number'                     => $p->po_spk_number ?: ($p->po_number ?: '-'),
                 'po_file'                       => $p->po_file ? asset('storage/' . $p->po_file) : null,
                 'client'                        => $p->client,
                 'sales_name'                    => $p->sales_name ?: '-',
@@ -3383,6 +3384,7 @@ class PmoController extends Controller
             'custom_team_name'  => 'nullable|string|max:100',
             'teams'             => 'nullable|array',
             'pm_id'             => 'required|exists:users,id',
+            'so_number'         => 'nullable|string|max:100',
             'contract_value'    => 'nullable|string',
             'po_spk_number'     => 'nullable|string|max:100',
             'project_type'      => 'nullable|string|max:100',
@@ -3486,11 +3488,13 @@ class PmoController extends Controller
             : Carbon::parse($startDate)->addMonth()->format('Y-m-d 18:00:00');
 
         $customerPic = !empty($validated['customer_pic']) ? trim($validated['customer_pic']) : null;
+        $soNumber = !empty($validated['so_number']) ? trim($validated['so_number']) : null;
 
         // 4. Buat Proyek (Projek Aktif Bersih / Canvas Kosong)
         $handoverData = [
             'assigned_teams'    => $cleanTeams,
             'checklist'         => [],
+            'so_number'         => $soNumber,
             'customer_contacts' => [
                 'name' => $customerPic,
                 'note' => $customerPic,
@@ -3505,6 +3509,7 @@ class PmoController extends Controller
             'division_id'                 => $divisionId,
             'pm_id'                       => $validated['pm_id'],
             'contract_value'              => $contractValue,
+            'so_number'                   => $soNumber,
             'po_spk_number'               => $validated['po_spk_number'] ?? null,
             'project_type'                => $validated['project_type'] ?: 'One-Time Project',
             'start_date'                  => $startDate,
@@ -3621,6 +3626,7 @@ class PmoController extends Controller
             'sales_name'     => 'nullable|string|max:255',
             'customer_pic'   => 'nullable|string|max:255',
             'pm_id'          => 'nullable|exists:users,id',
+            'so_number'      => 'nullable|string|max:100',
             'po_spk_number'  => 'nullable|string|max:100',
             'contract_value' => 'nullable',
             'project_type'   => 'nullable|string|max:100',
@@ -3650,6 +3656,9 @@ class PmoController extends Controller
         if (!empty($validated['pm_id'])) {
             $project->pm_id = $validated['pm_id'];
         }
+        if (array_key_exists('so_number', $validated)) {
+            $project->so_number = !empty($validated['so_number']) ? trim($validated['so_number']) : null;
+        }
         if (isset($validated['po_spk_number'])) {
             $project->po_spk_number = $validated['po_spk_number'];
         }
@@ -3670,12 +3679,15 @@ class PmoController extends Controller
             $project->description = $validated['description'];
         }
 
+        $hd = is_array($project->handover_data) ? $project->handover_data : [];
+        if (array_key_exists('so_number', $validated)) {
+            $hd['so_number'] = $project->so_number;
+        }
         if (!empty($validated['assigned_teams'])) {
             $cleanTeams = array_values(array_filter($validated['assigned_teams']));
-            $hd = is_array($project->handover_data) ? $project->handover_data : [];
             $hd['assigned_teams'] = $cleanTeams;
-            $project->handover_data = $hd;
         }
+        $project->handover_data = $hd;
 
         $project->save();
 

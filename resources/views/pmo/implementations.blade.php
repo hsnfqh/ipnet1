@@ -189,7 +189,7 @@
                                             </a>
                                             <div class="flex items-center gap-2 text-[11px] text-[#64748B] flex-wrap">
                                                 <span class="font-bold text-[#8F0A0D]" x-text="'Sales: ' + (project.sales_name || '-')"></span>
-                                                <template x-if="project.so_code || project.po_number">
+                                                <template x-if="project.so_code || (project.po_number && project.po_number !== '-')">
                                                     <span class="flex items-center gap-1.5">
                                                         <span class="text-slate-300">&bull;</span>
                                                         <span class="font-mono text-[10.5px] text-slate-500" x-text="project.so_code || project.po_number"></span>
@@ -308,7 +308,7 @@
                                 <div class="space-y-3">
                                     {{-- Header Card: Status & SO --}}
                                     <div class="flex items-center justify-between gap-2">
-                                        <span class="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" x-text="project.so_code || 'SO-IPNET'"></span>
+                                        <span class="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" x-text="project.so_code || (project.po_number && project.po_number !== '-' ? project.po_number : '-')"></span>
                                         
                                         <template x-if="project.handover_status === 'Submitted'">
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-300">
@@ -1828,8 +1828,8 @@
                         <p x-show="teamError" x-text="teamError" class="text-[11px] text-rose-600 font-semibold"></p>
                     </div>
 
-                    {{-- Baris 3: Nilai Kontrak, No SPK/PO, Tipe Proyek --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {{-- Baris 3: Nilai Kontrak, No Sales Order, No SPK/PO, Tipe Proyek --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="space-y-1">
                             <label class="block text-xs font-bold text-slate-800">
                                 Nilai Kontrak / Budget (Rp)
@@ -1848,6 +1848,16 @@
                                        class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                                 <input type="hidden" name="contract_value" :value="rawContractValue">
                             </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-800">
+                                No. Sales Order (SO)
+                            </label>
+                            <input type="text" 
+                                   name="so_number" 
+                                   placeholder="Contoh: SO-2026-0034"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                         </div>
 
                         <div class="space-y-1">
@@ -2113,8 +2123,8 @@
                             </div>
                         </div>
 
-                        {{-- Baris 5: Nilai Kontrak & No PO/SPK --}}
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- Baris 5: Nilai Kontrak, No Sales Order & No PO/SPK --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="space-y-1">
                                 <label class="block text-xs font-bold text-slate-800">
                                     Nilai Kontrak (Rp)
@@ -2128,6 +2138,17 @@
                                            class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono font-semibold text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                                     <input type="hidden" name="contract_value" :value="editContractValueRaw">
                                 </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Nomor Sales Order (SO)
+                                </label>
+                                <input type="text" 
+                                       name="so_number" 
+                                       x-model="editProject.so_number"
+                                       placeholder="Contoh: SO-2026-0034"
+                                       class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 outline-none transition">
                             </div>
 
                             <div class="space-y-1">
@@ -2922,6 +2943,7 @@
                     customer_pic: (p.customer_pic && p.customer_pic !== '-') ? p.customer_pic : '',
                     sales_name: (p.sales_name && p.sales_name !== '-') ? p.sales_name : '',
                     pm_id: p.pm_id || '',
+                    so_number: p.so_number || p.so_code || '',
                     po_spk_number: p.po_spk_number || p.po_number || '',
                     project_type: p.project_type || 'One-Time Project',
                     start_date: p.start_date_raw || '',

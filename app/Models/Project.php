@@ -64,6 +64,7 @@ class Project extends Model
         'quotation_amount',
         'quotation_file',
         'po_spk_number',
+        'so_number',
         'po_spk_date',
         'po_spk_file',
         'billing_terms',
@@ -137,6 +138,17 @@ class Project extends Model
         $value = (float) ($this->contract_value ?? $this->quotation_amount ?? 0);
         $prob = (int) ($this->win_probability ?? 10);
         return round($value * ($prob / 100), 2);
+    }
+
+    public function getSoNumberAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+        if (is_array($this->handover_data) && !empty($this->handover_data['so_number'])) {
+            return $this->handover_data['so_number'];
+        }
+        return null;
     }
 
     public function expenses()
