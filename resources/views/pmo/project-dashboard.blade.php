@@ -2130,10 +2130,7 @@
                 {{-- Row 3: Bobot (%) & Daily Weight (%) --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-slate-700">Activity Weight / Bobot (%)</label>
-                            <span class="text-[10px] text-slate-400 font-medium">Bisa desimal</span>
-                        </div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Bobot (%)</label>
                         <input type="number" 
                                name="bobot" 
                                x-model="newTaskBobot"
@@ -2146,10 +2143,7 @@
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-slate-700">Daily Weight (%)</label>
-                            <span class="text-[10px] text-blue-600 font-semibold">Input Manual</span>
-                        </div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Daily Weight (%)</label>
                         <input type="number" 
                                name="daily_weight" 
                                x-model="newTaskDailyWeight"
@@ -2162,7 +2156,6 @@
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                 </div>
-                <span class="text-[10.5px] text-slate-400 block -mt-1">Daily Weight dapat diisi manual secara fleksibel atau otomatis terhitung dari Bobot / Durasi.</span>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi &amp; Instruksi Teknis PM (Opsional)</label>
@@ -2272,10 +2265,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-slate-700">Bobot (%)</label>
-                            <span class="text-[10px] text-slate-400 font-medium">Activity</span>
-                        </div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Bobot (%)</label>
                         <input type="number" 
                                name="bobot" 
                                x-model="editTaskBobot" 
@@ -2288,10 +2278,7 @@
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-slate-700">Daily Weight (%)</label>
-                            <span class="text-[10px] text-blue-600 font-semibold">Manual Input</span>
-                        </div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Daily Weight (%)</label>
                         <input type="number" 
                                name="daily_weight" 
                                x-model="editTaskDailyWeight" 
@@ -2304,10 +2291,7 @@
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-slate-700">Progres Aktual (%)</label>
-                            <span class="text-[10px] text-slate-400 font-medium">0 - 100%</span>
-                        </div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Progres Aktual (%)</label>
                         <input type="number" 
                                name="progress" 
                                x-model="editTaskProgress" 
