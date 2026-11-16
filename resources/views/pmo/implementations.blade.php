@@ -2,6 +2,38 @@
 
 @section('title', 'Projects - PMO Project Delivery & Serah Terima')
 
+@push('styles')
+<style>
+    [x-cloak] { display: none !important; }
+
+    .ipnet-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 20px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ipnet-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #8F0A0D;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    @keyframes fadeUpStagger {
+        0% { opacity: 0; transform: translateY(16px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade-up {
+        animation: fadeUpStagger 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .anim-delay-1 { animation-delay: 0.06s !important; }
+    .anim-delay-2 { animation-delay: 0.12s !important; }
+    .anim-delay-3 { animation-delay: 0.18s !important; }
+</style>
+@endpush
+
 @section('content')
 <div class="flex h-screen overflow-hidden" x-data="pmoDashboard()" x-cloak>
     @include('components.sidebar')
@@ -9,16 +41,16 @@
     <div class="flex-1 min-w-0 overflow-y-auto bg-[#F8FAFC]">
         @include('components.topbar', ['title' => 'Projects'])
         
-        <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1680px] mx-auto">
+        <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto">
             
             <!-- ========================================================== -->
-            <!-- 1. HEADER CARD (WITH SEGMENTED TAB SWITCHER)               -->
+            <!-- 1. HEADER CARD                                             -->
             <!-- ========================================================== -->
-            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-2xs">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
+            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div class="min-w-0 flex-1 pr-0 lg:pr-4">
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> MANAJEMEN PORTOFOLIO &amp; PROJECT DELIVERY
+                            <span class="ipnet-badge-dot"></span> MANAJEMEN PORTOFOLIO &amp; PROJECT DELIVERY
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Daftar Proyek &amp; Project Delivery</h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5 leading-relaxed">Kelola pelaksanaan proyek aktif, verifikasi serah terima (handover) dari Sales, dan kontrol implementasi lapangan</p>
@@ -27,58 +59,81 @@
                     {{-- Action Button (Buat Proyek Baru) --}}
                     <div class="flex items-center gap-3 shrink-0 self-start lg:self-center">
                         <button type="button" 
-                                @click="showCreateProjectModal = true"
-                                class="h-10 px-4 rounded-xl btn-ipnet-primary text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95 whitespace-nowrap shrink-0">
+                                @click="showCreateProjectModal = true" 
+                                class="btn-ipnet-gradient inline-flex items-center justify-center gap-2 px-4 py-2.5 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap active:scale-95"
+                                title="Tambah Proyek Baru">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
-                            <span>Buat Proyek Baru</span>
+                            <span>+ Buat Proyek Baru</span>
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <!-- Filter Controls -->
-                <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3">
-                    <div class="relative flex-1 min-w-[240px] w-full sm:w-auto">
-                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        <input type="text" 
-                               x-model="search"
-                               @input="currentPage = 1"
-                               placeholder="Cari nama project, nomor SO, client, sales, atau PIC..." 
-                               class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
+            <!-- ========================================================== -->
+            <!-- 2. FILTER CONTROLS                                         -->
+            <!-- ========================================================== -->
+            <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2">
+                <div class="flex flex-col md:flex-row flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full md:w-auto flex-1">
+                        {{-- Search Input --}}
+                        <div class="relative flex-1 min-w-[240px] w-full sm:w-auto">
+                            <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" 
+                                   x-model="search"
+                                   @input="currentPage = 1"
+                                   placeholder="Cari nama project, nomor SO, client, sales, atau lokasi..." 
+                                   class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
+                        </div>
+                        
+                        {{-- Tab / Status Filter --}}
+                        <select x-model="activeTab" @change="currentPage = 1" 
+                                class="w-full sm:w-60 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-bold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                            <option value="all">Projek Aktif ({{ $formattedProjects->where('handover_status', '!=', 'Submitted')->where('handover_status', '!=', 'Conditional')->count() }})</option>
+                            <option value="pending_handover">Incoming Handover ({{ ($handoverPendingCount ?? 0) + ($handoverConditionalCount ?? 0) }})</option>
+                        </select>
+
+                        {{-- Tim Teknis --}}
+                        <select x-model="selectedDivision" @change="currentPage = 1" 
+                                class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                            <option value="all">Semua Tim Teknis</option>
+                            @foreach($divisions ?? [] as $div)
+                                <option value="{{ $div->id }}">{{ preg_replace('/^Divisi\s+/i', 'Tim ', $div->name) }}</option>
+                            @endforeach
+                        </select>
+
+                        {{-- Project Manager --}}
+                        <select x-model="selectedPm" @change="currentPage = 1" 
+                                class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                            <option value="all">Semua Project Manager</option>
+                            @foreach($pmList ?? [] as $pm)
+                                <option value="{{ $pm->id }}">{{ $pm->name }}</option>
+                            @endforeach
+                        </select>
+
+                        {{-- Reset Button --}}
+                        <button type="button"
+                                x-show="search || activeTab !== 'all' || selectedDivision !== 'all' || selectedPm !== 'all'"
+                                @click="search = ''; activeTab = 'all'; selectedDivision = 'all'; selectedPm = 'all'; currentPage = 1;"
+                                class="px-3 py-2 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
+                            Reset Filter
+                        </button>
                     </div>
-                    
-                    <select x-model="activeTab" @change="currentPage = 1" 
-                            class="w-full sm:w-56 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="all">Projek Aktif</option>
-                        <option value="pending_handover">Incoming Handover</option>
-                    </select>
 
-                    <select x-model="selectedDivision" @change="currentPage = 1" 
-                            class="w-full sm:w-48 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="all">Semua Tim Teknis</option>
-                        @foreach($divisions ?? [] as $div)
-                            <option value="{{ $div->id }}">{{ preg_replace('/^Divisi\s+/i', 'Tim ', $div->name) }}</option>
-                        @endforeach
-                    </select>
-
-                    <select x-model="selectedPm" @change="currentPage = 1" 
-                            class="w-full sm:w-48 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="all">Semua Project Manager</option>
-                        @foreach($pmList ?? [] as $pm)
-                            <option value="{{ $pm->id }}">{{ $pm->name }}</option>
-                        @endforeach
-                    </select>
-
-                    {{-- Reset Button --}}
-                    <button type="button"
-                            x-show="search || activeTab !== 'all' || selectedDivision !== 'all' || selectedPm !== 'all'"
-                            @click="search = ''; activeTab = 'all'; selectedDivision = 'all'; selectedPm = 'all'; currentPage = 1;"
-                            class="px-3.5 py-2.5 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
-                        Reset Filter
-                    </button>
+                    {{-- Tampilkan per halaman --}}
+                    <div class="flex items-center gap-2 self-end md:self-center shrink-0">
+                        <span class="text-[12px] font-semibold text-[#64748B]">Tampilkan:</span>
+                        <select x-model="perPage" @change="currentPage = 1" class="px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] text-[12px] font-bold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] cursor-pointer shadow-xs">
+                            <option value="5">5 baris</option>
+                            <option value="10">10 baris</option>
+                            <option value="25">25 baris</option>
+                            <option value="50">50 baris</option>
+                            <option value="all">Semua</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -110,130 +165,131 @@
             </template>
 
             <!-- ========================================================== -->
-            <!-- 4. DAFTAR PORTOFOLIO PROYEK & KONTROL IMPLEMENTASI        -->
+            <!-- 3. DAFTAR PORTOFOLIO PROYEK IMPLEMENTASI                   -->
             <!-- ========================================================== -->
-            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-                
-                {{-- A. TABLE HEADER & VIEW TOGGLE --}}
-                <div class="p-3.5 sm:px-6 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/50">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
-                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide" 
-                            x-text="activeTab === 'pending_handover' ? 'Daftar Berkas Serah Terima Masuk (Sales)' : 'Daftar Portofolio Proyek Implementasi'"></h3>
-                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-white text-slate-600 border border-slate-200" 
-                              x-text="filteredProjects.length + ' Proyek'"></span>
-                    </div>
-
-                    {{-- View Mode Toggle (Table vs Cards) --}}
-                    <div class="flex items-center gap-1 bg-slate-200/60 p-1 rounded-xl shrink-0">
-                        <button type="button" 
-                                @click="viewMode = 'table'" 
-                                :class="viewMode === 'table' ? 'bg-white text-[#8F0A0D] shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'"
-                                title="Tampilan Tabel Rinci"
-                                class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                            <span class="hidden sm:inline">Tabel</span>
-                        </button>
-                        <button type="button" 
-                                @click="viewMode = 'cards'" 
-                                :class="viewMode === 'cards' ? 'bg-white text-[#8F0A0D] shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'"
-                                title="Tampilan Kartu Portofolio"
-                                class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                            <span class="hidden sm:inline">Kartu</span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- B. Table Info Bar: Counter & Pagination Context --}}
-                <div class="px-5 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-white">
-                    <div class="flex items-center gap-2 text-xs text-slate-500">
-                        <span>Menampilkan:</span>
-                        <span class="px-2.5 py-0.5 rounded-md bg-red-50 text-[#8F0A0D] font-extrabold" x-text="filteredProjects.length + ' Proyek'"></span>
-                        <span class="text-slate-400">&bull;</span>
-                        <span class="text-slate-500" x-text="'Halaman ' + currentPage + ' dari ' + (totalPages || 1)"></span>
-                    </div>
-
-                    <div class="flex items-center gap-2 text-xs text-slate-500">
-                        <span class="hidden sm:inline text-slate-400">Tampilkan per halaman:</span>
-                        <select x-model="perPage" @change="currentPage = 1" class="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 outline-none hover:border-slate-300">
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="all">Semua</option>
-                        </select>
-                    </div>
-                </div>
-
-                {{-- C1. TAMPILAN TABEL MODERN & LEGA (Fits 100% with No Ugly Wrapping) --}}
-                <div x-show="viewMode === 'table'" class="overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
+            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[900px] border-collapse text-[13px] text-left">
                         <thead>
-                            <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                <th class="py-3.5 px-4 sm:px-6 w-[27%]">PROYEK</th>
-                                <th class="py-3.5 px-4 w-[25%]">KLIEN &amp; PIC KLIEN</th>
-                                <th class="py-3.5 px-4 w-[18%]">TIM TEKNIS</th>
-                                <th class="py-3.5 px-4 w-[14%]">TENGGAT</th>
-                                <th class="py-3.5 px-4 sm:px-6 text-right w-[16%]">TINDAKAN</th>
+                            <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Nama Project &amp; Tipe</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Client &amp; Sales</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Project Manager</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Lokasi</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Durasi &amp; Deadline</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Progress &amp; WBS</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Status</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#F1F5F9] font-medium text-[#1E293B]">
+                        <tbody class="divide-y divide-[#F1F5F9]">
                             <template x-for="project in paginatedProjects" :key="project.id">
-                                <tr class="hover:bg-[#F8FAFC]/80 transition-colors" :class="project.handover_status === 'Submitted' ? 'bg-amber-50/20' : ''">
-                                    
-                                    {{-- Kolom 1: Proyek --}}
-                                    <td class="py-3.5 px-4 sm:px-6 align-middle">
-                                        <div class="max-w-xs space-y-1">
-                                            <a :href="'/pmo/projects/' + project.id" class="font-bold text-[#1E293B] hover:text-[#8F0A0D] text-[13px] leading-snug block transition" :title="project.name">
-                                                <span x-text="project.name"></span>
-                                            </a>
-                                            <div class="flex items-center gap-2 text-[11px] text-[#64748B] flex-wrap">
-                                                <span class="font-bold text-[#8F0A0D]" x-text="'Sales: ' + (project.sales_name || '-')"></span>
-                                                <template x-if="project.so_code || (project.po_number && project.po_number !== '-')">
-                                                    <span class="flex items-center gap-1.5">
-                                                        <span class="text-slate-300">&bull;</span>
-                                                        <span class="font-mono text-[10.5px] text-slate-500" x-text="project.so_code || project.po_number"></span>
-                                                    </span>
-                                                </template>
-                                            </div>
+                                <tr class="hover:bg-[#F8FAFC]/80 transition-colors duration-150" :class="project.handover_status === 'Submitted' ? 'bg-amber-50/20' : ''">
+                                    {{-- Kolom 1: Nama Project & Tipe --}}
+                                    <td class="py-3 px-4">
+                                        <a :href="'/pmo/projects/' + project.id" class="font-bold text-[#1E293B] text-[13px] leading-snug hover:text-[#8F0A0D] transition block" :title="project.name">
+                                            <span x-text="project.name"></span>
+                                        </a>
+                                        <div class="flex items-center gap-1.5 flex-wrap mt-1">
+                                            <template x-if="project.so_code || (project.po_number && project.po_number !== '-')">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-mono font-semibold bg-slate-100 text-slate-700 border border-slate-200"
+                                                      x-text="project.so_code || project.po_number"></span>
+                                            </template>
+                                            <template x-if="project.project_type">
+                                                <span class="inline-block text-[10.5px] font-medium text-[#4F46E5] bg-[#EEF2FF] border border-[#E0E7FF] px-2 py-0.5 rounded-md"
+                                                      x-text="project.project_type"></span>
+                                            </template>
+                                            <template x-if="project.division">
+                                                <span class="inline-block text-[10.5px] font-normal text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded border border-[#E2E8F0]"
+                                                      x-text="project.division"></span>
+                                            </template>
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 2: Klien & PIC Klien (Pendamping Diskusi PM) --}}
-                                    <td class="py-3.5 px-4 align-middle">
-                                        <div class="space-y-1 max-w-xs">
-                                            <div class="font-bold text-[#1E293B] text-[12px] truncate" :title="project.client" x-text="project.client || '-'"></div>
-                                            <div class="text-[11px] text-[#64748B] flex items-start gap-1.5">
-                                                <span class="text-slate-400 font-semibold shrink-0">PIC:</span>
-                                                <span class="text-slate-700 leading-snug line-clamp-2" 
-                                                      x-text="project.customer_pic && project.customer_pic !== '-' ? project.customer_pic : 'Belum Ditentukan'">
+                                    {{-- Kolom 2: Client & Sales --}}
+                                    <td class="py-3 px-4">
+                                        <div class="font-medium text-[#334155] text-[13px]" x-text="project.client || '-'"></div>
+                                        <div class="text-[11px] text-[#64748B] flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                            <span class="text-[#94A3B8]">Sales:</span>
+                                            <span class="text-[#475569] font-medium" x-text="project.sales_name || '-'"></span>
+                                            <template x-if="project.customer_pic && project.customer_pic !== '-'">
+                                                <span class="flex items-center gap-1 text-slate-400">
+                                                    <span>&bull;</span>
+                                                    <span class="text-slate-600 truncate max-w-[150px]" :title="'PIC: ' + project.customer_pic" x-text="'PIC: ' + project.customer_pic"></span>
                                                 </span>
+                                            </template>
+                                        </div>
+                                    </td>
+
+                                    {{-- Kolom 3: Project Manager --}}
+                                    <td class="py-3 px-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-7 h-7 rounded-full bg-red-50 border border-red-200 text-[#8F0A0D] flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs"
+                                                 x-text="(project.pm ? project.pm.charAt(0) : 'R').toUpperCase()">
+                                            </div>
+                                            <span class="font-bold text-[#1E293B] text-[12.5px] leading-tight" x-text="project.pm || 'Rizki'"></span>
+                                        </div>
+                                    </td>
+
+                                    {{-- Kolom 4: Lokasi --}}
+                                    <td class="py-3 px-4 text-[#475569] text-[12px] leading-snug max-w-[200px]" :title="project.location || '—'">
+                                        <div class="line-clamp-3 break-words" x-text="project.location || '—'"></div>
+                                    </td>
+
+                                    {{-- Kolom 5: Durasi & Deadline --}}
+                                    <td class="py-3 px-4 whitespace-nowrap">
+                                        <div class="font-mono text-[12px] text-[#334155]" x-text="project.deadline || '—'"></div>
+                                        <div class="text-[11px] text-[#64748B] mt-0.5 flex items-center gap-1">
+                                            <span>Durasi:</span>
+                                            <span class="font-medium text-[#8F0A0D]" x-text="project.duration || '—'"></span>
+                                        </div>
+                                    </td>
+
+                                    {{-- Kolom 6: Progress & WBS --}}
+                                    <td class="py-3 px-4 whitespace-nowrap">
+                                        <div class="w-32">
+                                            <div class="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-full h-2 overflow-hidden mb-1">
+                                                <div class="h-full rounded-full transition-all duration-300"
+                                                     :style="'background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: ' + Math.min(100, Math.max(0, project.progress || 0)) + '%;'"></div>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[10.5px]">
+                                                <span class="font-bold text-[#1E293B]" x-text="(project.progress || 0) + '%'"></span>
+                                                <span class="text-[#64748B] font-medium text-[10px]" x-text="(project.completed_tasks || 0) + '/' + (project.total_tasks || 0) + ' WBS Tasks'"></span>
                                             </div>
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 3: Tim Teknis & PM --}}
-                                    <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                        <div class="font-bold text-[#1E293B] text-[12px]" x-text="project.division_name || project.division || 'Tim Network & Security'"></div>
-                                        <div class="text-[11px] text-[#64748B] flex items-center gap-1 mt-0.5">
-                                            <span>PM:</span>
-                                            <span class="font-semibold text-slate-700" x-text="project.pm || 'Rizki'"></span>
-                                        </div>
+                                    {{-- Kolom 7: Status --}}
+                                    <td class="py-3 px-4 whitespace-nowrap">
+                                        <template x-if="project.handover_status === 'Submitted' || project.handover_status === 'Conditional'">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                Review Handover
+                                            </span>
+                                        </template>
+                                        <template x-if="project.handover_status !== 'Submitted' && project.handover_status !== 'Conditional' && (project.progress >= 100 || project.status === 'Completed' || project.process_status === 'Selesai')">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                                                Completed
+                                            </span>
+                                        </template>
+                                        <template x-if="project.handover_status !== 'Submitted' && project.handover_status !== 'Conditional' && (project.progress < 100 && project.status !== 'Completed' && project.process_status !== 'Selesai')">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                                                Active
+                                            </span>
+                                        </template>
                                     </td>
 
-                                    {{-- Kolom 4: Tenggat --}}
-                                    <td class="py-3.5 px-4 align-middle whitespace-nowrap">
-                                        <span class="font-semibold text-slate-700 text-xs" x-text="project.deadline ? project.deadline : '30 Okt 2027'"></span>
-                                    </td>
-
-                                    {{-- Kolom 5: Tindakan --}}
-                                    <td class="py-3.5 px-4 sm:px-6 align-middle text-right whitespace-nowrap">
-                                        <div class="flex items-center justify-end gap-1.5">
-                                            {{-- Handover MS: Hanya muncul jika proyek memang memiliki alur Managed Service --}}
+                                    {{-- Kolom 8: Aksi --}}
+                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                        <div class="flex justify-center items-center gap-1.5">
+                                            {{-- Handover MS: Muncul jika eligible --}}
                                             <template x-if="project.has_ms && project.stage === 'Deliver' && (!project.ms_handover_status || project.ms_handover_status === 'Pending')">
                                                 <button type="button"
                                                         @click="openHandoverToMsModal(project)"
-                                                        class="px-2.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-lg text-[11px] font-bold transition shadow-xs cursor-pointer flex items-center gap-1 active:scale-95">
+                                                        class="px-2.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-lg text-[11px] font-bold transition shadow-xs cursor-pointer flex items-center gap-1 active:scale-95"
+                                                        title="Handover ke Managed Service">
                                                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                     <span>Handover MS</span>
                                                 </button>
@@ -243,7 +299,8 @@
                                             <template x-if="project.handover_status === 'Submitted' || project.handover_status === 'Conditional'">
                                                 <button type="button"
                                                         @click="openHandoverReviewModal(project)"
-                                                        class="px-2.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-lg text-[11px] font-bold transition shadow-xs cursor-pointer flex items-center gap-1 active:scale-95">
+                                                        class="px-2.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-lg text-[11px] font-bold transition shadow-xs cursor-pointer flex items-center gap-1 active:scale-95"
+                                                        title="Verifikasi Dokumen Handover">
                                                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                     <span>Verifikasi</span>
                                                 </button>
@@ -285,9 +342,9 @@
 
                             <template x-if="paginatedProjects.length === 0">
                                 <tr>
-                                    <td colspan="5" class="py-16 text-center text-slate-400">
-                                        <div class="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto mb-3 text-slate-400 shadow-2xs">
-                                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                    <td colspan="8" class="py-12 text-center text-[#64748B] text-[13px]">
+                                        <div class="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto mb-2.5 text-slate-400 shadow-2xs">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                             </svg>
                                         </div>
@@ -300,195 +357,26 @@
                     </table>
                 </div>
 
-                {{-- C2. TAMPILAN KARTU GRID INTERAKTIF (Cards View Mode) --}}
-                <div x-show="viewMode === 'cards'" class="p-5 bg-slate-50/50">
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                        <template x-for="project in paginatedProjects" :key="project.id">
-                            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-red-200 transition-all p-5 flex flex-col justify-between group">
-                                <div class="space-y-3">
-                                    {{-- Header Card: Status & SO --}}
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" x-text="project.so_code || (project.po_number && project.po_number !== '-' ? project.po_number : '-')"></span>
-                                        
-                                        <template x-if="project.handover_status === 'Submitted'">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-300">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                <span>Menunggu Review</span>
-                                            </span>
-                                        </template>
-                                        <template x-if="project.handover_status === 'Approved' && project.progress < 100">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                                <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                                <span>Handover Approved</span>
-                                            </span>
-                                        </template>
-                                        <template x-if="project.stage === 'Deliver' && project.progress >= 100">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
-                                                <span>Siap Transisi MS</span>
-                                            </span>
-                                        </template>
-                                        <template x-if="project.handover_status !== 'Submitted' && project.handover_status !== 'Approved' && project.progress < 100">
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
-                                                <span>Dalam Pelaksanaan</span>
-                                            </span>
-                                        </template>
-                                    </div>
-
-                                    {{-- Project Title --}}
-                                    <div>
-                                        <a :href="'/pmo/projects/' + project.id" class="font-extrabold text-slate-900 text-sm hover:text-[#8F0A0D] transition block line-clamp-2" x-text="project.name"></a>
-                                    </div>
-
-                                    {{-- Client & Sales Chips --}}
-                                    <div class="flex items-center gap-1.5 flex-wrap text-xs">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
-                                            <span x-text="project.client"></span>
-                                        </span>
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 text-[#8F0A0D] text-[11px] font-bold border border-red-100">
-                                            <svg class="w-3 h-3 text-[#8F0A0D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                            <span x-text="project.sales_name"></span>
-                                        </span>
-                                    </div>
-
-                                    {{-- Tim Teknis & PM Info --}}
-                                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
-                                        <div>
-                                            <span class="text-[10px] text-slate-400 block font-bold uppercase">Tim Teknis:</span>
-                                            <span class="font-bold text-slate-800 text-[11px]" x-text="(project.division || 'Belum Ditentukan Sales').replace(/divisi\s*/gi, 'Tim ')"></span>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="text-[10px] text-slate-400 block font-bold uppercase">PIC PM:</span>
-                                            <span class="font-bold text-slate-800 text-[11px]" x-text="project.pm || 'Belum Ada PM'"></span>
-                                        </div>
-                                    </div>
-
-                                    {{-- Deadline & SLA --}}
-                                    <div class="flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-1 text-slate-600 font-semibold text-[11.5px]">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                            <span x-text="project.deadline || '-'"></span>
-                                        </div>
-                                    </div>
-
-
-                                </div>
-
-                                {{-- Card Footer Actions --}}
-                                <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-end gap-2">
-                                    <div class="flex items-center gap-1.5">
-                                        {{-- Khusus Incoming Handover: HANYA tombol Verifikasi Dokumen warna merah --}}
-                                        <template x-if="activeTab === 'pending_handover' || project.handover_status === 'Submitted' || project.handover_status === 'Conditional'">
-                                            <button type="button"
-                                                    @click="openHandoverReviewModal(project)"
-                                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95">
-                                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                </svg>
-                                                <span>Verifikasi Dokumen</span>
-                                            </button>
-                                        </template>
-
-                                        {{-- Khusus Projek Aktif (Setelah Verifikasi Sah): Tampilkan tombol Handover MS & Detail --}}
-                                        <template x-if="activeTab !== 'pending_handover' && project.handover_status !== 'Submitted' && project.handover_status !== 'Conditional'">
-                                            <div class="flex items-center gap-1.5">
-                                                <template x-if="project.ms_handover_status === 'Submitted'">
-                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200/80 rounded-xl text-xs font-bold shadow-2xs">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                        <span>Menunggu Review MS</span>
-                                                    </span>
-                                                </template>
-                                                <template x-if="project.ms_handover_status === 'Accepted'">
-                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200/80 rounded-xl text-xs font-bold shadow-2xs">
-                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                        <span>Diserahkan ke MS</span>
-                                                    </span>
-                                                </template>
-                                                <template x-if="project.has_ms && project.stage === 'Deliver' && (!project.ms_handover_status || project.ms_handover_status === 'Pending')">
-                                                    <button type="button"
-                                                            @click="openHandoverToMsModal(project)"
-                                                            class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95">
-                                                        <span>Handover MS</span>
-                                                    </button>
-                                                </template>
-
-                                                {{-- 1. View / Lihat Detail Proyek (Icon Mata) --}}
-                                                <a :href="'/pmo/projects/' + project.id" 
-                                                   title="Lihat Detail Proyek" 
-                                                   class="w-8 h-8 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                                    </svg>
-                                                </a>
-
-                                                {{-- 2. Edit / Ubah Proyek (Icon Pensil) --}}
-                                                <button type="button" 
-                                                        @click="openEditModal(project)"
-                                                        title="Ubah Data Proyek" 
-                                                        class="w-8 h-8 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer active:scale-95">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                                                    </svg>
-                                                </button>
-
-                                                {{-- 3. Hapus Proyek (Icon Sampah) --}}
-                                                <button type="button" 
-                                                        @click="openDeleteModal(project)"
-                                                        title="Hapus Proyek" 
-                                                        class="w-8 h-8 rounded-lg text-[#64748B] hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all flex items-center justify-center shadow-2xs cursor-pointer active:scale-95">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-
-                    <template x-if="paginatedProjects.length === 0">
-                        <div class="py-16 text-center text-slate-400">
-                            <p class="font-bold text-slate-800 text-sm">Tidak ada proyek yang sesuai dengan kriteria filter</p>
-                            <p class="text-xs text-slate-400 mt-1">Silakan sesuaikan kata kunci pencarian atau tab di atas.</p>
-                        </div>
-                    </template>
-                </div>
-
-                {{-- D. Table Footer Pagination --}}
-                <div class="p-4 sm:px-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 bg-white">
-                    <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
-                        <span>Tampilkan:</span>
-                        <select x-model="perPage" @change="currentPage = 1" class="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 outline-none hover:border-slate-300 transition cursor-pointer">
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="30">30</option>
-                            <option value="all">Semua</option>
-                        </select>
-                        <span class="text-slate-300">&bull;</span>
-                        <div>
-                            Menampilkan 
-                            <span class="font-bold text-slate-800" x-text="filteredProjects.length > 0 ? (perPage === 'all' ? 1 : (currentPage - 1) * (parseInt(perPage) || 10) + 1) : 0"></span> &ndash; 
-                            <span class="font-bold text-slate-800" x-text="perPage === 'all' ? filteredProjects.length : Math.min(currentPage * (parseInt(perPage) || 10), filteredProjects.length)"></span> 
-                            dari <span class="font-bold text-slate-800" x-text="filteredProjects.length"></span> proyek
-                        </div>
+                {{-- Table Footer Pagination matching Managed Service --}}
+                <div class="p-4 border-t border-[#E2E8F0] bg-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                    <div class="text-[12px] text-[#64748B]">
+                        Menampilkan <span class="font-bold text-slate-800" x-text="filteredProjects.length > 0 ? (perPage === 'all' ? 1 : (currentPage - 1) * (parseInt(perPage) || 10) + 1) : 0"></span> &ndash; 
+                        <span class="font-bold text-slate-800" x-text="perPage === 'all' ? filteredProjects.length : Math.min(currentPage * (parseInt(perPage) || 10), filteredProjects.length)"></span> 
+                        dari total <span class="font-bold text-slate-800" x-text="filteredProjects.length"></span> proyek
                     </div>
 
                     <div class="flex items-center gap-1" x-show="totalPages > 1 && perPage !== 'all'">
-                        <button @click="prevPage()" :disabled="currentPage === 1" title="Sebelumnya" class="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition">
+                        <button @click="prevPage()" :disabled="currentPage === 1" title="Sebelumnya" class="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                         </button>
                         <template x-for="p in totalPages" :key="p">
                             <button @click="goToPage(p)" 
                                     :class="currentPage === p ? 'bg-[#8F0A0D] text-white border-[#8F0A0D] font-bold shadow-xs' : 'border-slate-200 hover:bg-slate-50 text-slate-700'"
-                                    class="w-8 h-8 rounded-lg border text-xs font-semibold flex items-center justify-center transition"
+                                    class="w-8 h-8 rounded-lg border text-xs font-semibold flex items-center justify-center transition cursor-pointer"
                                     x-text="p">
                             </button>
                         </template>
-                        <button @click="nextPage()" :disabled="currentPage === totalPages" title="Berikutnya" class="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition">
+                        <button @click="nextPage()" :disabled="currentPage === totalPages" title="Berikutnya" class="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
