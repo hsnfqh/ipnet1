@@ -88,77 +88,7 @@
             </div>
 
             <!-- ========================================================== -->
-            <!-- 2. KPI / METRIC SUMMARY CARDS                              -->
-            <!-- ========================================================== -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 anim-fade-up anim-delay-1">
-                {{-- KPI 1: Total Proyek --}}
-                <div class="p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Total Proyek MS</p>
-                        <p class="text-2xl font-bold text-[#1E293B] mt-0.5">{{ $totalProjectsCount }} <span class="text-xs font-semibold text-slate-500">Kontrak Layanan</span></p>
-                        <p class="text-[11.5px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span>Operasional Aktif &amp; Terintegrasi</span>
-                        </p>
-                    </div>
-                    <div class="w-11 h-11 rounded-xl bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    </div>
-                </div>
-
-                {{-- KPI 2: Realisasi Siklus PM --}}
-                <div class="p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Progress Siklus PM</p>
-                        <p class="text-2xl font-bold text-blue-700 mt-0.5">{{ $totalPmCompleted }} <span class="text-xs font-semibold text-slate-500">/ {{ $totalPmCycles }} Kunjungan</span></p>
-                        <div class="flex items-center gap-2 mt-1.5">
-                            <div class="w-24 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
-                                <div class="bg-blue-600 h-2 rounded-full transition-all" style="width: {{ $portfolioPmProgress }}%"></div>
-                            </div>
-                            <span class="text-[11.5px] font-bold text-blue-700">{{ $portfolioPmProgress }}% Selesai</span>
-                        </div>
-                    </div>
-                    <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </div>
-                </div>
-
-                {{-- KPI 3: Target SLA Portofolio --}}
-                <div class="p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Rata-Rata Target SLA</p>
-                        <p class="text-2xl font-bold text-emerald-700 mt-0.5">{{ number_format($avgSlaTarget, 2) }}%</p>
-                        <p class="text-[11.5px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            <span>Standar Uptime Tinggi</span>
-                        </p>
-                    </div>
-                    <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                </div>
-
-                {{-- KPI 4: Tiket Aktif vs Tiket Closed --}}
-                <div class="p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Tiket Insiden CM</p>
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <span class="text-2xl font-bold text-amber-600">{{ $totalActiveTickets }}</span>
-                            <span class="text-xs text-slate-400">Aktif</span>
-                            <span class="text-slate-300">|</span>
-                            <span class="text-2xl font-bold text-emerald-600">{{ $totalClosedTickets }}</span>
-                            <span class="text-xs text-slate-400">Closed</span>
-                        </div>
-                        <p class="text-[11.5px] text-slate-500 font-medium mt-1">Total {{ $totalActiveTickets + $totalClosedTickets }} Tiket Insiden</p>
-                    </div>
-                    <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========================================================== -->
-            <!-- 3. FILTER CONTROLS                                         -->
+            <!-- 2. FILTER CONTROLS                                         -->
             <!-- ========================================================== -->
             <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2">
                 <form method="GET" action="{{ route('ms.reporting.index') }}" class="flex flex-col md:flex-row flex-wrap items-center justify-between gap-3">
