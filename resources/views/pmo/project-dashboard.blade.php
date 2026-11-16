@@ -2088,9 +2088,9 @@
 
                 {{-- Row 2: Planned Start / Starting Day, Durasi & Finish Day (3 Kolom Otomatis Sinkron) --}}
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div :class="scheduleType === 'hybrid' ? 'p-1.5 rounded-xl bg-blue-50/70 border border-blue-200' : ''">
+                    <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">
-                            <span x-show="scheduleType === 'hybrid'" class="text-blue-800">Planned Start (Hari ke-) *</span>
+                            <span x-show="scheduleType === 'hybrid'">Planned Start (Hari ke-)</span>
                             <span x-show="scheduleType !== 'hybrid'">Starting Day (Hari ke-)</span>
                         </label>
                         <input type="number" 
@@ -2102,7 +2102,6 @@
                                onwheel="this.blur()"
                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                         <input type="hidden" name="starting_day" :value="newTaskPlannedStart">
-                        <span x-show="scheduleType === 'hybrid'" class="text-[10px] text-blue-600 block mt-0.5">Mode Hybrid: Task dapat overlap</span>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
@@ -2232,9 +2231,9 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div :class="scheduleType === 'hybrid' ? 'p-1.5 rounded-xl bg-blue-50/70 border border-blue-200' : ''">
+                    <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">
-                            <span x-show="scheduleType === 'hybrid'" class="text-blue-800">Planned Start (Hari ke-)</span>
+                            <span x-show="scheduleType === 'hybrid'">Planned Start (Hari ke-)</span>
                             <span x-show="scheduleType !== 'hybrid'">Starting Day</span>
                         </label>
                         <input type="number" 
