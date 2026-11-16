@@ -1227,17 +1227,109 @@ class ManagedServiceController extends Controller
     }
 
     /**
+     * Halaman Reporting Kinerja & SLA Layanan Proyek (Real-time Terintegrasi)
+     */
+    public function reporting(Request $request)
+    {
+        $this->ensureTablesExist();
+        $this->ensureSampleProjectExists();
+
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 25, 50, 100])) {
+            $perPage = 10;
+        }
+
+        $query = self::getManagedServiceProjectsQuery();
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('client', 'like', "%{$s}%")
+                  ->orWhere('sales_name', 'like', "%{$s}%")
+                  ->orWhere('location', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('tier') && $request->tier !== 'all') {
+            $query->where('sla_tier', $request->tier);
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where(function($q) use ($request) {
+                $q->where('status', $request->status)
+                  ->orWhere('stage', $request->status);
+            });
+        }
+
+        $projects = $query->latest('id')->paginate($perPage)->withQueryString();
+
+        // Hitung metrik real-time portofolio
+        $allActiveProjects = self::getManagedServiceProjectsQuery()->get();
+        $totalProjectsCount = $allActiveProjects->count();
+
+        $totalPmCompleted = 0;
+        $totalPmCycles = 0;
+        $totalActiveTickets = 0;
+        $totalClosedTickets = 0;
+        $slaTargetScores = [];
+
+        foreach ($allActiveProjects as $p) {
+            $cycles = $p->pmCycles ?: collect();
+            $pTotal = $p->pm_total_cycles ?: max($cycles->count(), 1);
+            $pDone = $cycles->filter(function($c) {
+                $act = strtolower($c->activity_status ?? '');
+                $rep = strtolower($c->report_status ?? '');
+                return in_array($act, ['completed', 'solved']) 
+                    || in_array($rep, ['approved', 'submitted', 'signed', 'invoiced']) 
+                    || !empty($c->actual_date);
+            })->count();
+
+            $totalPmCompleted += $pDone;
+            $totalPmCycles += $pTotal;
+
+            $tickets = $p->managedServiceTickets ?: collect();
+            $activeT = $tickets->filter(function($t) {
+                $st = strtolower(trim((string)$t->status));
+                $isResolved = in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+                return !$isResolved;
+            })->count();
+
+            $closedT = $tickets->filter(function($t) {
+                $st = strtolower(trim((string)$t->status));
+                return in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+            })->count();
+
+            $totalActiveTickets += $activeT;
+            $totalClosedTickets += $closedT;
+
+            if ($p->sla_target_percentage) {
+                $slaTargetScores[] = (float) $p->sla_target_percentage;
+            }
+        }
+
+        $avgSlaTarget = !empty($slaTargetScores) ? round(array_sum($slaTargetScores) / count($slaTargetScores), 2) : 99.50;
+        $portfolioPmProgress = $totalPmCycles > 0 ? round(($totalPmCompleted / $totalPmCycles) * 100) : 0;
+
+        return view('managed_service.reporting', compact(
+            'projects',
+            'perPage',
+            'totalProjectsCount',
+            'totalPmCompleted',
+            'totalPmCycles',
+            'portfolioPmProgress',
+            'totalActiveTickets',
+            'totalClosedTickets',
+            'avgSlaTarget'
+        ));
+    }
+
+    /**
      * Reports & SLA Compliance
      */
     public function reports(Request $request)
     {
-        $this->ensureTablesExist();
-
-        $reports = Schema::hasTable('managed_service_reports') ? ManagedServiceReport::latest()->paginate(15) : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
-        $clients = $this->getClients();
-        $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->get();
-
-        return view('managed_service.reports', compact('reports', 'clients', 'projects'));
+        return $this->reporting($request);
     }
 
     public function storeReport(Request $request)
