@@ -2415,10 +2415,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-[#334155] mb-1 flex items-center justify-between">
-                                    <span>Kontak Telepon / WA</span>
-                                    <span class="text-[10px] text-emerald-600 font-bold">Terhubung Otomatis</span>
-                                </label>
+                                <label class="block text-xs font-semibold text-[#334155] mb-1">Kontak Telepon / WA</label>
                                 <input type="text" name="contact_phone" value="{{ $cmDefaultPhone }}" placeholder="08xxxxxxxxxx" class="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D]">
                             </div>
                         </div>
