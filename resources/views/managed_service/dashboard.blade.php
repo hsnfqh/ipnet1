@@ -532,12 +532,11 @@
                         @forelse($upcomingPmSchedules->take(5) as $sch)
                         @php
                             $isToday = $sch->date && $sch->date->isToday();
-                            $dateLabel = $sch->date ? ($isToday ? 'Hari ini' : $sch->date->format('d M')) : '-';
-                            $timeLabel = $sch->start_time ? substr($sch->start_time, 0, 5) . ' WIB' : '';
+                            $dateLabel = $sch->date ? $sch->date->format('d M Y') : ($sch->target_date ?? '-');
                             $cleanTitle = preg_replace('/^PM\s+PM\s+/i', 'PM ', $sch->title);
                             $schLink = $sch->project_id 
                                 ? route('ms.projects.show', ['project' => $sch->project_id, 'tab' => 'pm']) 
-                                : route('ms.maintenance.index');
+                                : '#';
                         @endphp
                         <a href="{{ $schLink }}" class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors group" title="Buka Detail Jadwal PM / Proyek: {{ $cleanTitle }}">
                             <div class="min-w-0 flex-1">
@@ -545,12 +544,9 @@
                                     {{ $cleanTitle }}
                                 </div>
                                 <div class="text-[11.5px] text-[#75727C] flex items-center gap-1.5 mt-0.5 min-w-0">
-                                    <span class="shrink-0 whitespace-nowrap {{ $isToday ? 'text-[#8F0A0D] font-bold' : 'font-medium' }}">
-                                        {{ $dateLabel }}{{ $timeLabel ? ', ' . $timeLabel : '' }}
-                                    </span>
-                                    <span class="text-gray-400 shrink-0">&bull;</span>
-                                    <span class="truncate text-[#8F0A0D] font-semibold">
-                                        {{ !empty($sch->engineer_name) ? $sch->engineer_name : ((isset($sch->engineers) && $sch->engineers && $sch->engineers->isNotEmpty()) ? $sch->engineers->pluck('name')->implode(', ') : ($sch->engineer?->name ?: 'Tim Maintenance')) }}
+                                    <span class="inline-flex items-center gap-1 text-[11.5px] font-medium text-slate-600">
+                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <span>Target: <strong class="{{ $isToday ? 'text-[#8F0A0D]' : 'text-slate-800 font-bold' }}">{{ $dateLabel }}</strong></span>
                                     </span>
                                 </div>
                             </div>
@@ -563,7 +559,7 @@
                         </a>
                         @empty
                         <div class="text-center py-8 text-[#75727C]">
-                            <p class="text-[13px]">Belum ada agenda kunjungan</p>
+                            <p class="text-[13px]">Belum ada target jadwal PM</p>
                         </div>
                         @endforelse
                     </div>

@@ -186,14 +186,14 @@ class ManagedServiceController extends Controller
         }
 
         // Jadwal Preventive Maintenance Terdekat (PM)
-        // Ditarik LANGSUNG dari Jadwal Target (scheduled_date) Siklus PM proyek resmi (managed_service_pm_cycles)
+        // Murni ditarik HANYA dari Tanggal Jadwal Target (scheduled_date) Siklus PM proyek resmi (managed_service_pm_cycles)
+        // Tidak disinkronkan / tidak ngelink ke tabel schedules atau modul lain
         $upcomingPmSchedules = collect([]);
         if ($operateProjects->isNotEmpty() && Schema::hasTable('managed_service_pm_cycles')) {
             $projectIds = $operateProjects->pluck('id');
 
-            // 1. Ambil seluruh siklus PM yang memiliki jadwal target (scheduled_date)
-            // Prioritaskan siklus yang belum selesai (Scheduled / In Progress)
-            $pendingCycles = ManagedServicePmCycle::with(['project', 'assignedEngineer', 'leadEngineer', 'picMs'])
+            // 1. Ambil seluruh siklus PM yang memiliki jadwal target (scheduled_date) dan belum selesai
+            $pendingCycles = ManagedServicePmCycle::with(['project'])
                 ->whereIn('project_id', $projectIds)
                 ->whereNotNull('scheduled_date')
                 ->where(function($q) {
@@ -203,31 +203,37 @@ class ManagedServiceController extends Controller
                 ->orderBy('scheduled_date', 'asc')
                 ->get();
 
-            // Pisahkan jadwal target mendatang (>= hari ini) dan jadwal target lewat yang belum selesai
+            // Pisahkan jadwal target mendatang (>= hari ini) dan jadwal target pending terdekat
             $today = now()->startOfDay()->toDateString();
-            $futureCycles = $pendingCycles->filter(fn($c) => Carbon::parse($c->scheduled_date)->toDateString() >= $today)->values();
-            $pastPendingCycles = $pendingCycles->filter(fn($c) => Carbon::parse($c->scheduled_date)->toDateString() < $today)->sortByDesc('scheduled_date')->values();
+            $futureCycles = $pendingCycles->filter(fn($c) => Carbon::parse($c->scheduled_date)->toDateString() >= $today);
+            $pastPendingCycles = $pendingCycles->filter(fn($c) => Carbon::parse($c->scheduled_date)->toDateString() < $today)->sortByDesc('scheduled_date');
 
-            // Urutan prioritas: target mendatang terdekat, diikuti target pending terdekat
-            $targetCycles = $futureCycles->concat($pastPendingCycles)->take(5);
+            // Ambil siklus target terdekat untuk setiap proyek (1 target terdekat per proyek agar tidak didominasi 1 proyek saja)
+            $sortedCycles = $futureCycles->concat($pastPendingCycles);
+            $uniqueProjectCycles = $sortedCycles->unique('project_id')->values();
 
-            // 2. Fallback jika seluruh siklus PM sudah selesai atau belum ada tanggal target pending
+            // Jika proyek aktif kurang dari 5, tambahkan siklus target berikutnya
+            if ($uniqueProjectCycles->count() < 5) {
+                $additionalCycles = $sortedCycles->whereNotIn('id', $uniqueProjectCycles->pluck('id'))->take(5 - $uniqueProjectCycles->count());
+                $targetCycles = $uniqueProjectCycles->concat($additionalCycles)->sortBy('scheduled_date')->take(5)->values();
+            } else {
+                $targetCycles = $uniqueProjectCycles->take(5);
+            }
+
+            // Fallback jika tidak ada yang pending
             if ($targetCycles->isEmpty()) {
-                $targetCycles = ManagedServicePmCycle::with(['project', 'assignedEngineer', 'leadEngineer', 'picMs'])
+                $targetCycles = ManagedServicePmCycle::with(['project'])
                     ->whereIn('project_id', $projectIds)
                     ->whereNotNull('scheduled_date')
                     ->orderBy('scheduled_date', 'desc')
+                    ->get()
+                    ->unique('project_id')
                     ->take(5)
-                    ->get();
+                    ->values();
             }
 
-            // Map data siklus PM ke format objek yang siap dipakai oleh view Dashboard
+            // Map HANYA data target siklus PM murni
             $upcomingPmSchedules = $targetCycles->map(function($cycle) {
-                // Sinkronkan ke tabel schedules agar kalender tim juga terupdate secara otomatis
-                try {
-                    self::syncPmCycleToSchedule($cycle);
-                } catch (\Throwable $e) {}
-
                 $project = $cycle->project;
                 $projectName = $project ? $project->name : 'Proyek Managed Service';
                 $cleanLabel = trim((string)$cycle->cycle_label);
@@ -235,39 +241,6 @@ class ManagedServiceController extends Controller
                     $cleanLabel = 'PM ' . $cleanLabel;
                 }
                 $title = "{$cleanLabel}: {$projectName}";
-
-                // Resolusi Nama Engineer / Tim Teknisi Lapangan yang Bertugas
-                $engineerName = null;
-                if (!empty($cycle->assigned_engineers) && is_array($cycle->assigned_engineers)) {
-                    $names = [];
-                    foreach ($cycle->assigned_engineers as $ae) {
-                        if (!empty($ae['name'])) {
-                            $names[] = explode(' ', trim($ae['name']))[0];
-                        }
-                    }
-                    if (!empty($names)) {
-                        $engineerName = implode(', ', $names);
-                    }
-                }
-                if (!$engineerName && $cycle->assignedEngineer) {
-                    $engineerName = explode(' ', trim($cycle->assignedEngineer->name))[0];
-                }
-                if (!$engineerName && $cycle->leadEngineer) {
-                    $engineerName = explode(' ', trim($cycle->leadEngineer->name))[0];
-                }
-                if (!$engineerName && $cycle->picMs) {
-                    $engineerName = explode(' ', trim($cycle->picMs->name))[0];
-                }
-                if (!$engineerName && $project && is_array($project->handover_data)) {
-                    $assigned = $project->handover_data['assigned_engineers'] ?? [];
-                    if (!empty($assigned) && isset($assigned[0]['name'])) {
-                        $engineerName = explode(' ', trim($assigned[0]['name']))[0];
-                    }
-                }
-                if (!$engineerName) {
-                    $engineerName = 'Tim Managed Service';
-                }
-
                 $dateObj = $cycle->scheduled_date ? Carbon::parse($cycle->scheduled_date) : null;
 
                 return (object) [
@@ -277,8 +250,7 @@ class ManagedServiceController extends Controller
                     'title'         => $title,
                     'clean_title'   => $title,
                     'date'          => $dateObj,
-                    'start_time'    => '09:00:00',
-                    'engineer_name' => $engineerName,
+                    'target_date'   => $dateObj ? $dateObj->translatedFormat('d M Y') : '-',
                     'status'        => $cycle->activity_status ?: 'Scheduled',
                     'is_cycle'      => true,
                 ];
