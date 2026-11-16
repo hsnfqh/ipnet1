@@ -806,11 +806,9 @@
                                         </svg>
                                         <span x-text="currentProjectName || 'Tanpa Project / Internal'"></span>
                                     </span>
-                                    <span style="display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; letter-spacing:0.4px; flex-shrink:0; line-height:1.4;"
-                                          :style="categoryBadgeStyle(form.category)">
-                                        <span style="width:6px; height:6px; border-radius:50%; flex-shrink:0; display:inline-block;" :style="{ background: categoryDotColor(form.category) }"></span>
-                                        <span x-text="categoryLabel(form.category)"></span>
-                                    </span>
+                                    <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; line-height:1.4; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;"
+                                          :style="categoryBadgeStyle(form.category)"
+                                          x-text="categoryLabel(form.category)"></span>
                                 </div>
                                 <h4 style="margin:4px 0 0; font-size:15.5px; font-weight:800; color:#0F172A; line-height:1.4; word-break:break-word;" x-text="form.title || 'Tanpa Judul'"></h4>
                             </div>
@@ -894,7 +892,7 @@
                                     <template x-if="form.status">
                                         <div style="text-align:right;">
                                             <span style="display:block; font-size:9.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px;">STATUS REALISASI</span>
-                                            <span style="display:inline-block; font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:6px; margin-top:2px;"
+                                            <span style="display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; line-height:1.4; margin-top:2px;"
                                                   :style="form.status === 'Completed' ? 'background:#DCFCE7; color:#166534; border:1px solid #BBF7D0;' : (form.status === 'In Progress' ? 'background:#FEF3C7; color:#92400E; border:1px solid #FDE68A;' : 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;')"
                                                   x-text="form.status"></span>
                                         </div>
