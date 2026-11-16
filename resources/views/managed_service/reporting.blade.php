@@ -66,7 +66,7 @@
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> IP NETWORK SOLUSINDO • MANAGED SERVICE &amp; SLA
+                            <span class="ipnet-badge-dot"></span> MONITORING SLA &amp; MANAGED SERVICE
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">Reporting Kinerja &amp; Rekapitulasi Proyek</h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">Monitoring real-time siklus Preventive Maintenance (PM), pencapaian SLA operasional, serta tiket Corrective Maintenance (CM) aktif dan closed.</p>
