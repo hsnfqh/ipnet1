@@ -66,7 +66,7 @@
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> PT IP NETWORK SOLUSINDO • MANAGED SERVICE &amp; SLA
+                            <span class="ipnet-badge-dot"></span> IP NETWORK SOLUSINDO • MANAGED SERVICE &amp; SLA
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">Reporting Kinerja &amp; Rekapitulasi Proyek</h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">Monitoring real-time siklus Preventive Maintenance (PM), pencapaian SLA operasional, serta tiket Corrective Maintenance (CM) aktif dan closed.</p>
@@ -74,14 +74,9 @@
 
                     <div class="flex items-center gap-3 shrink-0 self-start lg:self-center">
                         <a href="{{ route('ms.projects.index') }}" 
-                           class="px-4 py-2 text-xs font-bold text-[#1E293B] bg-white hover:bg-slate-50 border border-[#CBD5E1] rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                           class="btn-ipnet-gradient px-4 py-2 text-xs font-bold text-white rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer active:scale-95">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                             <span>Daftar Proyek</span>
-                        </a>
-                        <a href="{{ route('ms.tickets.index') }}" 
-                           class="btn-ipnet-gradient px-4 py-2 text-xs font-bold text-white rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            <span>Daftar Tiket SLA</span>
                         </a>
                     </div>
                 </div>
