@@ -707,6 +707,254 @@
 
             </div>
 
+            {{-- =========================================================================
+                 WORK SCHEDULES - VIEW MONTHLY (KALENDER BULANAN INTERAKTIF DASHBOARD)
+                 ========================================================================= --}}
+            <div class="ipnet-card overflow-hidden flex flex-col mt-6 shadow-sm border border-[#E2E8F0]" x-data="monthlyWorkSchedule()">
+                {{-- Calendar Header Bar --}}
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-4 bg-[#8F0A0D] rounded-full inline-block"></span>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Work Schedules &amp; Agenda Kunjungan Bulanan</h3>
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#8F0A0D]/10 text-[#8F0A0D] border border-[#8F0A0D]/20">
+                                View Monthly
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-[#64748B] mt-0.5 pl-4">
+                            Monitoring terintegrasi jadwal Field Engineer, siklus Preventive Maintenance (PM), dan penanganan Corrective Maintenance (CM).
+                        </p>
+                    </div>
+
+                    {{-- Legend & Month Navigation --}}
+                    <div class="flex flex-wrap items-center gap-3">
+                        {{-- Legend Badges --}}
+                        <div class="hidden sm:flex items-center gap-2.5 text-[11px] font-semibold text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span>Field Schedule</span>
+                            </span>
+                            <span class="text-slate-300">|</span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                <span>Preventive (PM)</span>
+                            </span>
+                            <span class="text-slate-300">|</span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                <span>Corrective (CM)</span>
+                            </span>
+                        </div>
+
+                        {{-- Month Navigation Controls --}}
+                        <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+                            <button type="button" @click="prevMonth()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition cursor-pointer" title="Bulan Sebelumnya">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <span class="px-3 text-[13px] font-bold text-slate-800 min-w-[140px] text-center" x-text="monthYearLabel"></span>
+                            <button type="button" @click="nextMonth()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition cursor-pointer" title="Bulan Berikutnya">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                            <button type="button" @click="goToToday()" class="px-2.5 py-1 text-[11px] font-bold text-[#8F0A0D] hover:bg-red-50 rounded-lg transition border-l border-slate-200 ml-1 cursor-pointer">
+                                Bulan Ini
+                            </button>
+                        </div>
+
+                        {{-- Button ke Work Schedule Penuh --}}
+                        <a href="{{ route('schedules.index') }}" class="px-3.5 py-1.5 text-[11.5px] font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl transition shadow-2xs flex items-center gap-1.5 cursor-pointer">
+                            <span>Buka Work Schedule</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Filter & Keterangan Bar --}}
+                <div class="px-4 py-2.5 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center flex-wrap gap-1.5">
+                        <span class="text-slate-500 font-medium">Filter Tipe:</span>
+                        <button type="button" @click="filterType = 'all'" 
+                                :class="filterType === 'all' ? 'bg-[#8F0A0D] text-white shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                class="px-2.5 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer">
+                            Semua (<span x-text="countEvents('all')"></span>)
+                        </button>
+                        <button type="button" @click="filterType = 'schedule'" 
+                                :class="filterType === 'schedule' ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'"
+                                class="px-2.5 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer">
+                            Field Schedules (<span x-text="countEvents('schedule')"></span>)
+                        </button>
+                        <button type="button" @click="filterType = 'pm'" 
+                                :class="filterType === 'pm' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'"
+                                class="px-2.5 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer">
+                            Preventive Maintenance (<span x-text="countEvents('pm')"></span>)
+                        </button>
+                        <button type="button" @click="filterType = 'cm'" 
+                                :class="filterType === 'cm' ? 'bg-rose-600 text-white shadow-2xs' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'"
+                                class="px-2.5 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer">
+                            Tiket CM (<span x-text="countEvents('cm')"></span>)
+                        </button>
+                    </div>
+
+                    <div class="text-[11.5px] text-slate-500 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Klik pada tanggal atau card event untuk melihat rincian agenda harian.</span>
+                    </div>
+                </div>
+
+                {{-- Monthly Calendar Grid --}}
+                <div class="p-3 sm:p-5 bg-white">
+                    {{-- Weekday Header --}}
+                    <div class="grid grid-cols-7 gap-1.5 sm:gap-2 mb-2 text-center text-[11.5px] font-bold text-slate-600 uppercase tracking-wider">
+                        <div class="py-1.5 bg-slate-50 rounded-lg">Senin</div>
+                        <div class="py-1.5 bg-slate-50 rounded-lg">Selasa</div>
+                        <div class="py-1.5 bg-slate-50 rounded-lg">Rabu</div>
+                        <div class="py-1.5 bg-slate-50 rounded-lg">Kamis</div>
+                        <div class="py-1.5 bg-slate-50 rounded-lg">Jumat</div>
+                        <div class="py-1.5 bg-slate-50 text-amber-600 rounded-lg">Sabtu</div>
+                        <div class="py-1.5 bg-slate-50 text-rose-600 rounded-lg">Minggu</div>
+                    </div>
+
+                    {{-- Days Grid (35-42 boxes) --}}
+                    <div class="grid grid-cols-7 gap-1.5 sm:gap-2">
+                        <template x-for="(cell, index) in calendarDays" :key="index">
+                            <div class="min-h-[105px] sm:min-h-[125px] p-2 rounded-xl border transition-all flex flex-col justify-between cursor-pointer"
+                                 :class="{
+                                     'bg-slate-50/50 border-slate-100 text-slate-400': !cell.isCurrentMonth,
+                                     'bg-white border-slate-200 hover:border-[#8F0A0D]/40 hover:shadow-sm': cell.isCurrentMonth && !cell.isToday,
+                                     'bg-red-50/30 border-[#8F0A0D]/50 ring-1 ring-[#8F0A0D]/30 shadow-xs': cell.isToday
+                                 }"
+                                 @click="openDayModal(cell)">
+                                {{-- Date Number Header --}}
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-[9.5px] font-semibold text-slate-400" x-show="cell.isWeekend">Libur</span>
+                                    <span class="text-xs" x-show="!cell.isWeekend"></span>
+
+                                    <span class="inline-flex items-center justify-center text-[12px] font-bold w-6 h-6 rounded-full transition"
+                                          :class="{
+                                              'bg-[#8F0A0D] text-white shadow-2xs': cell.isToday,
+                                              'text-slate-800 font-extrabold': cell.isCurrentMonth && !cell.isToday,
+                                              'text-slate-400 font-normal': !cell.isCurrentMonth
+                                          }"
+                                          x-text="cell.date">
+                                    </span>
+                                </div>
+
+                                {{-- Events Stack --}}
+                                <div class="flex-1 space-y-1 overflow-hidden">
+                                    <template x-for="(evt, evtIdx) in cell.events.slice(0, 3)" :key="evt.id">
+                                        <div class="px-1.5 py-0.5 rounded text-[10.5px] font-semibold truncate flex items-center gap-1 transition hover:opacity-85 shadow-2xs"
+                                             :class="{
+                                                 'bg-emerald-50 text-emerald-800 border border-emerald-200': evt.type === 'schedule',
+                                                 'bg-blue-50 text-blue-800 border border-blue-200': evt.type === 'pm',
+                                                 'bg-rose-50 text-rose-800 border border-rose-200': evt.type === 'cm'
+                                             }"
+                                             :title="evt.title + ' (' + evt.time + ')'"
+                                             @click.stop="openEventModal(evt, cell)">
+                                            <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                                                  :class="{
+                                                      'bg-emerald-500': evt.type === 'schedule',
+                                                      'bg-blue-500': evt.type === 'pm',
+                                                      'bg-rose-500': evt.type === 'cm'
+                                                  }"></span>
+                                            <span class="truncate" x-text="evt.title"></span>
+                                        </div>
+                                    </template>
+
+                                    {{-- Overflow Indicator --}}
+                                    <div x-show="cell.events.length > 3" 
+                                         class="text-[10px] font-bold text-slate-600 hover:text-[#8F0A0D] pt-0.5 text-center bg-slate-100 rounded py-0.5">
+                                        +<span x-text="cell.events.length - 3"></span> agenda lainnya
+                                    </div>
+                                </div>
+
+                                {{-- Bottom Indicator --}}
+                                <div class="pt-1 flex items-center justify-between text-[9.5px] text-slate-400" x-show="cell.events.length > 0">
+                                    <span class="font-bold text-slate-500" x-text="cell.events.length + ' Agenda'"></span>
+                                    <span class="text-[#8F0A0D] font-bold text-[9px] uppercase tracking-wider">&bull; Lihat</span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                {{-- Modal Detail Agenda Hari Terpilih --}}
+                <div x-show="isDayModalOpen" 
+                     x-cloak 
+                     class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden" @click.away="isDayModalOpen = false">
+                        <div class="p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                            <div>
+                                <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                    <span>Work Schedules Detail</span>
+                                </p>
+                                <h4 class="text-[16px] font-bold text-slate-900 mt-0.5" x-text="selectedDayLabel"></h4>
+                            </div>
+                            <button @click="isDayModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200 transition cursor-pointer">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <div class="p-5 max-h-[60vh] overflow-y-auto space-y-3">
+                            <template x-if="selectedDayEvents.length === 0">
+                                <div class="text-center py-8 text-slate-400">
+                                    <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <p class="text-xs font-semibold">Tidak ada jadwal agenda atau penugasan pada tanggal ini.</p>
+                                </div>
+                            </template>
+
+                            <template x-for="item in selectedDayEvents" :key="item.id">
+                                <div class="p-3.5 rounded-xl border transition-all"
+                                     :class="{
+                                         'bg-emerald-50/50 border-emerald-200': item.type === 'schedule',
+                                         'bg-blue-50/50 border-blue-200': item.type === 'pm',
+                                         'bg-rose-50/50 border-rose-200': item.type === 'cm'
+                                     }">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div>
+                                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-1"
+                                                  :class="{
+                                                      'bg-emerald-100 text-emerald-800': item.type === 'schedule',
+                                                      'bg-blue-100 text-blue-800': item.type === 'pm',
+                                                      'bg-rose-100 text-rose-800': item.type === 'cm'
+                                                  }"
+                                                  x-text="item.badge">
+                                            </span>
+                                            <h5 class="text-[13.5px] font-bold text-slate-900 leading-snug" x-text="item.title"></h5>
+                                        </div>
+                                        <span class="text-[11px] font-mono font-bold text-slate-600 shrink-0 bg-white px-2 py-0.5 rounded border border-slate-200" x-text="item.time"></span>
+                                    </div>
+
+                                    <div class="mt-2.5 pt-2 border-t border-slate-200/60 grid grid-cols-2 gap-2 text-[11.5px] text-slate-600">
+                                        <div>
+                                            <span class="text-slate-400 block text-[10px] uppercase font-bold">Klien / Proyek</span>
+                                            <span class="font-semibold text-slate-800 truncate block" x-text="item.client + ' &bull; ' + item.project"></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-400 block text-[10px] uppercase font-bold">Teknisi / PIC</span>
+                                            <span class="font-bold text-[#8F0A0D] truncate block" x-text="item.engineer"></span>
+                                        </div>
+                                        <div class="col-span-2 flex items-center justify-between pt-1">
+                                            <span class="text-slate-500 truncate" x-text="'Lokasi: ' + item.location"></span>
+                                            <a :href="item.link" class="text-[#8F0A0D] font-bold hover:underline flex items-center gap-1 text-[11px]">
+                                                <span>Buka Detail</span>
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                            <button type="button" @click="isDayModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs hover:bg-slate-900 transition cursor-pointer">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
         </div>
     </div>
 </div>
@@ -762,6 +1010,149 @@
     function msDashboard() {
         return {
             isCreateModalOpen: false,
+        };
+    }
+
+    function monthlyWorkSchedule() {
+        return {
+            currentDate: new Date(),
+            filterType: 'all',
+            isDayModalOpen: false,
+            selectedDayLabel: '',
+            selectedDayEvents: [],
+            events: @json($calendarEvents ?? []),
+            monthNames: [
+                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ],
+
+            get currentYear() {
+                return this.currentDate.getFullYear();
+            },
+
+            get currentMonth() {
+                return this.currentDate.getMonth();
+            },
+
+            get monthYearLabel() {
+                return this.monthNames[this.currentMonth] + ' ' + this.currentYear;
+            },
+
+            prevMonth() {
+                this.currentDate = new Date(this.currentYear, this.currentMonth - 1, 1);
+            },
+
+            nextMonth() {
+                this.currentDate = new Date(this.currentYear, this.currentMonth + 1, 1);
+            },
+
+            goToToday() {
+                this.currentDate = new Date();
+            },
+
+            countEvents(type) {
+                if (type === 'all') return this.events.length;
+                return this.events.filter(e => e.type === type).length;
+            },
+
+            get filteredEvents() {
+                if (this.filterType === 'all') return this.events;
+                return this.events.filter(e => e.type === this.filterType);
+            },
+
+            get calendarDays() {
+                const year = this.currentYear;
+                const month = this.currentMonth;
+                const firstDayOfMonth = new Date(year, month, 1);
+                const lastDayOfMonth = new Date(year, month + 1, 0);
+                const daysInMonth = lastDayOfMonth.getDate();
+
+                // Monday = 0, Tuesday = 1, ..., Sunday = 6
+                let startDay = (firstDayOfMonth.getDay() + 6) % 7;
+
+                const days = [];
+                const today = new Date();
+                const todayStr = today.getFullYear() + '-' + 
+                    String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(today.getDate()).padStart(2, '0');
+
+                // Days from previous month
+                const prevMonthLastDate = new Date(year, month, 0).getDate();
+                for (let i = startDay - 1; i >= 0; i--) {
+                    const prevDate = prevMonthLastDate - i;
+                    const prevMonthObj = new Date(year, month - 1, prevDate);
+                    const dateStr = prevMonthObj.getFullYear() + '-' + 
+                        String(prevMonthObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(prevDate).padStart(2, '0');
+                    const dayEvents = this.filteredEvents.filter(e => e.date === dateStr);
+
+                    days.push({
+                        date: prevDate,
+                        fullDate: dateStr,
+                        isCurrentMonth: false,
+                        isToday: dateStr === todayStr,
+                        isWeekend: prevMonthObj.getDay() === 0 || prevMonthObj.getDay() === 6,
+                        dayName: prevMonthObj.getDay() === 0 ? 'Min' : (prevMonthObj.getDay() === 6 ? 'Sab' : ''),
+                        events: dayEvents
+                    });
+                }
+
+                // Days of current month
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateObj = new Date(year, month, d);
+                    const dateStr = year + '-' + 
+                        String(month + 1).padStart(2, '0') + '-' + 
+                        String(d).padStart(2, '0');
+                    const dayEvents = this.filteredEvents.filter(e => e.date === dateStr);
+
+                    days.push({
+                        date: d,
+                        fullDate: dateStr,
+                        isCurrentMonth: true,
+                        isToday: dateStr === todayStr,
+                        isWeekend: dateObj.getDay() === 0 || dateObj.getDay() === 6,
+                        dayName: dateObj.getDay() === 0 ? 'Min' : (dateObj.getDay() === 6 ? 'Sab' : ''),
+                        events: dayEvents
+                    });
+                }
+
+                // Days of next month to fill complete weeks (35 or 42 cells)
+                const totalCells = days.length <= 35 ? 35 : 42;
+                const remaining = totalCells - days.length;
+                for (let n = 1; n <= remaining; n++) {
+                    const nextMonthObj = new Date(year, month + 1, n);
+                    const dateStr = nextMonthObj.getFullYear() + '-' + 
+                        String(nextMonthObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(n).padStart(2, '0');
+                    const dayEvents = this.filteredEvents.filter(e => e.date === dateStr);
+
+                    days.push({
+                        date: n,
+                        fullDate: dateStr,
+                        isCurrentMonth: false,
+                        isToday: dateStr === todayStr,
+                        isWeekend: nextMonthObj.getDay() === 0 || nextMonthObj.getDay() === 6,
+                        dayName: nextMonthObj.getDay() === 0 ? 'Min' : (nextMonthObj.getDay() === 6 ? 'Sab' : ''),
+                        events: dayEvents
+                    });
+                }
+
+                return days;
+            },
+
+            openDayModal(cell) {
+                const parts = cell.fullDate.split('-');
+                const dayNum = parseInt(parts[2], 10);
+                const monthNum = parseInt(parts[1], 10) - 1;
+                const yearNum = parseInt(parts[0], 10);
+                this.selectedDayLabel = dayNum + ' ' + this.monthNames[monthNum] + ' ' + yearNum;
+                this.selectedDayEvents = cell.events;
+                this.isDayModalOpen = true;
+            },
+
+            openEventModal(evt, cell) {
+                this.openDayModal(cell);
+            }
         };
     }
 </script>

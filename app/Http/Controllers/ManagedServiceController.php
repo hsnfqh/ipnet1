@@ -593,6 +593,108 @@ class ManagedServiceController extends Controller
             ? max(0, min(100, round((($totalPeriodHours - $totalDowntimeHours) / $totalPeriodHours) * 100, 1))) 
             : 100.0;
 
+        // =========================================================================
+        // 10. WORK SCHEDULES & EVENTS UNTUK KALENDER BULANAN DI DASHBOARD
+        // =========================================================================
+        $calendarEvents = collect([]);
+
+        // A. Data Schedule Engineer & Lapangan
+        if (Schema::hasTable('schedules')) {
+            $schedulesQuery = Schedule::with(['project', 'engineer', 'engineers'])
+                ->whereDate('date', '>=', now()->subMonths(3)->startOfMonth())
+                ->whereDate('date', '<=', now()->addMonths(6)->endOfMonth())
+                ->get();
+
+            foreach ($schedulesQuery as $sch) {
+                $dateStr = $sch->date ? Carbon::parse($sch->date)->toDateString() : null;
+                if (!$dateStr) continue;
+
+                $engNames = $sch->engineers && $sch->engineers->isNotEmpty() 
+                    ? $sch->engineers->pluck('name')->join(', ') 
+                    : ($sch->engineer->name ?? 'Tim Engineer');
+
+                $calendarEvents->push([
+                    'id'          => 'sch-' . $sch->id,
+                    'title'       => $sch->title,
+                    'project'     => $sch->project->name ?? '-',
+                    'client'      => $sch->project->client ?? ($sch->project->name ?? '-'),
+                    'engineer'    => $engNames,
+                    'date'        => $dateStr,
+                    'time'        => ($sch->start_time ?: '08:00') . ($sch->end_time ? ' - ' . $sch->end_time : ''),
+                    'location'    => $sch->location ?: '-',
+                    'type'        => 'schedule',
+                    'category'    => $sch->category ?: 'Field Work',
+                    'color'       => '#10B981', // green
+                    'badge'       => 'Schedule',
+                    'link'        => route('schedules.index') . '?date=' . $dateStr,
+                ]);
+            }
+        }
+
+        // B. Data Siklus Preventive Maintenance (PM Cycles)
+        if (Schema::hasTable('managed_service_pm_cycles')) {
+            $pmCyclesQuery = ManagedServicePmCycle::with(['project', 'assignedEngineer', 'picMs'])
+                ->whereNotNull('scheduled_date')
+                ->whereDate('scheduled_date', '>=', now()->subMonths(3)->startOfMonth())
+                ->whereDate('scheduled_date', '<=', now()->addMonths(6)->endOfMonth())
+                ->get();
+
+            foreach ($pmCyclesQuery as $pmc) {
+                $dateStr = Carbon::parse($pmc->scheduled_date)->toDateString();
+                $projectName = $pmc->project->name ?? 'Proyek Managed Service';
+                $clientName = $pmc->project->client ?? $projectName;
+                $engName = $pmc->assignedEngineer->name ?? ($pmc->picMs->name ?? 'Lead Engineer');
+                $isDone = in_array(strtolower($pmc->activity_status ?? ''), ['completed', 'solved']) || !empty($pmc->actual_date);
+
+                $calendarEvents->push([
+                    'id'          => 'pm-' . $pmc->id,
+                    'title'       => ($pmc->cycle_label ?: 'Siklus #' . $pmc->cycle_number) . ': ' . $projectName,
+                    'project'     => $projectName,
+                    'client'      => $clientName,
+                    'engineer'    => $engName,
+                    'date'        => $dateStr,
+                    'time'        => '09:00 - Selesai',
+                    'location'    => $pmc->project->location ?? 'Site Klien',
+                    'type'        => 'pm',
+                    'category'    => 'Preventive Maintenance',
+                    'color'       => $isDone ? '#059669' : '#2563EB', // blue / emerald
+                    'badge'       => $isDone ? 'PM Selesai' : 'PM Visit',
+                    'link'        => $pmc->project_id ? route('ms.projects.show', ['project' => $pmc->project_id, 'tab' => 'pm']) : '#',
+                ]);
+            }
+        }
+
+        // C. Data Tiket Insiden / Corrective Maintenance (CM)
+        if (Schema::hasTable('managed_service_tickets')) {
+            $cmTicketsQuery = ManagedServiceTicket::with(['project', 'assignedEngineer'])
+                ->whereNotNull('incident_date')
+                ->whereDate('incident_date', '>=', now()->subMonths(3)->startOfMonth())
+                ->whereDate('incident_date', '<=', now()->addMonths(6)->endOfMonth())
+                ->get();
+
+            foreach ($cmTicketsQuery as $tck) {
+                $dateStr = Carbon::parse($tck->incident_date)->toDateString();
+                $projectName = $tck->project->name ?? ($tck->client_name ?: 'Insiden CM');
+                $isClosed = in_array(strtolower($tck->status ?? ''), ['resolved', 'closed', 'solved', 'completed']);
+
+                $calendarEvents->push([
+                    'id'          => 'cm-' . $tck->id,
+                    'title'       => $tck->ticket_number . ' - ' . $tck->title,
+                    'project'     => $projectName,
+                    'client'      => $tck->client_name ?: $projectName,
+                    'engineer'    => $tck->assignedEngineer->name ?? 'NOC / Field Engineer',
+                    'date'        => $dateStr,
+                    'time'        => Carbon::parse($tck->incident_date)->format('H:i'),
+                    'location'    => $tck->project->location ?? 'Site Klien',
+                    'type'        => 'cm',
+                    'category'    => 'Corrective Maintenance',
+                    'color'       => $isClosed ? '#64748B' : '#DC2626', // red / slate
+                    'badge'       => $isClosed ? 'CM Resolved' : 'CM Incident',
+                    'link'        => $tck->project_id ? route('ms.projects.show', ['project' => $tck->project_id, 'tab' => 'cm']) : '#',
+                ]);
+            }
+        }
+
         return view('managed_service.dashboard', compact(
             'assets',
             'tickets',
@@ -613,6 +715,7 @@ class ManagedServiceController extends Controller
             'clients',
             'maintenanceEngineers',
             'upcomingPmSchedules',
+            'calendarEvents',
             'maintenanceLoadMonthData',
             'maintenanceLoadWeekData',
             'totalPmSchedulesCount',
@@ -784,6 +887,66 @@ class ManagedServiceController extends Controller
 
     public function storeAsset(Request $request)
     {
+        // Mendukung pendaftaran batch / multiple perangkat sekaligus untuk 1 client/project
+        if ($request->has('devices') && is_array($request->devices) && !empty($request->devices)) {
+            $clientName = trim($request->input('client_name', ''));
+            $projectId  = $request->input('project_id') ?: null;
+            $locationSite = $request->input('location_site') ?: null;
+
+            if (empty($clientName)) {
+                return redirect()->back()->with('error', 'Nama Customer / Klien wajib diisi.');
+            }
+
+            $createdCount = 0;
+            foreach ($request->devices as $dev) {
+                $devName = trim($dev['device_name'] ?? '');
+                if (empty($devName)) {
+                    $devName = trim(($dev['brand'] ?? 'Perangkat') . ' ' . ($dev['category'] ?? 'Jaringan'));
+                }
+
+                $supportExp = !empty($dev['support_expiry_date']) ? $dev['support_expiry_date'] : (!empty($dev['warranty_expiry']) ? $dev['warranty_expiry'] : null);
+                $supportDesc = !empty($dev['service_support_desc']) ? $dev['service_support_desc'] : ($dev['product_description'] ?? null);
+
+                $assetData = [
+                    'client_name'          => $clientName,
+                    'project_id'           => $projectId,
+                    'owner_type'           => $request->input('owner_type', 'client'),
+                    'device_name'          => $devName,
+                    'product_description'  => $supportDesc,
+                    'category'             => $dev['category'] ?? 'Switch',
+                    'brand'                => $dev['brand'] ?? null,
+                    'model'                => $dev['model'] ?? null,
+                    'os_version'           => $dev['os_version'] ?? null,
+                    'quantity'             => max(1, (int) ($dev['quantity'] ?? 1)),
+                    'serial_number'        => $dev['serial_number'] ?? null,
+                    'ip_address'           => $dev['ip_address'] ?? null,
+                    'location_site'        => $dev['location_site'] ?? $locationSite,
+                    'rack_position'        => $dev['rack_position'] ?? null,
+                    'status'               => $dev['status'] ?? 'Online',
+                    'warranty_expiry'      => $supportExp,
+                    'eol_date'             => $dev['eol_date'] ?? null,
+                    'eos_date'             => $dev['eos_date'] ?? null,
+                    'support_status'       => $dev['support_status'] ?? 'Active',
+                    'support_expiry_date'  => $supportExp,
+                    'service_support_type' => $dev['service_support_type'] ?? 'PAR-ND',
+                    'backup_status'        => $dev['backup_status'] ?? 'Not Backed Up',
+                    'last_backup_date'     => $dev['last_backup_date'] ?? null,
+                    'backup_notes'         => $dev['backup_notes'] ?? null,
+                    'notes'                => $dev['notes'] ?? null,
+                    'created_by'           => auth()->id(),
+                ];
+
+                ManagedServiceAsset::create($assetData);
+                $createdCount++;
+            }
+
+            return redirect()->back()->with('success', "{$createdCount} data aset perangkat berhasil didaftarkan untuk {$clientName}.");
+        }
+
+        if ($request->filled('service_support_desc') && empty($request->product_description)) {
+            $request->merge(['product_description' => $request->service_support_desc]);
+        }
+
         $validated = $request->validate([
             'client_name'          => 'required|string|max:255',
             'owner_type'           => 'nullable|string|in:internal,client',
@@ -905,6 +1068,10 @@ class ManagedServiceController extends Controller
         if (empty($validated['owner_type'])) {
             $isIpnet = str_contains(strtolower($validated['client_name']), 'ipnet') || str_contains(strtolower($validated['client_name']), 'internal');
             $validated['owner_type'] = $isIpnet ? 'internal' : 'client';
+        }
+
+        if ($request->filled('service_support_desc') && empty($validated['product_description'])) {
+            $validated['product_description'] = $request->service_support_desc;
         }
 
         $asset->update($validated);
