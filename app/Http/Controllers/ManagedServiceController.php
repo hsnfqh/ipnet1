@@ -96,10 +96,23 @@ class ManagedServiceController extends Controller
 
     private function getClients()
     {
+        $names = collect([]);
         if (Schema::hasTable('clients')) {
-            return Client::orderBy('name')->get();
+            $names = $names->concat(Client::pluck('name'));
         }
-        return collect([]);
+        if (Schema::hasTable('managed_service_assets')) {
+            $names = $names->concat(ManagedServiceAsset::whereNotNull('client_name')->where('client_name', '!=', '')->pluck('client_name'));
+        }
+        if (Schema::hasTable('projects')) {
+            $names = $names->concat(Project::whereNotNull('client')->where('client', '!=', '')->pluck('client'));
+        }
+
+        return $names->map(fn($n) => trim($n))
+            ->filter(fn($n) => !empty($n))
+            ->unique(fn($n) => strtolower($n))
+            ->sort(SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->map(fn($name) => (object)['name' => $name]);
     }
 
     /**
@@ -857,7 +870,33 @@ class ManagedServiceController extends Controller
                       ->where('client_name', 'not like', '%Internal%');
                 });
             } else {
-                $query->where('client_name', 'like', "%{$owner}%");
+                $query->where(function($q) use ($owner) {
+                    $q->where('client_name', 'like', "%{$owner}%")
+                      ->orWhereHas('project', function($pq) use ($owner) {
+                          $pq->where('client', 'like', "%{$owner}%")
+                             ->orWhere('name', 'like', "%{$owner}%");
+                      });
+                });
+            }
+        }
+
+        if ($request->filled('project_id') && $request->project_id !== 'all') {
+            $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->filled('lifecycle') && $request->lifecycle !== 'all') {
+            if ($request->lifecycle === 'eol') {
+                $query->whereNotNull('eol_date')->where('eol_date', '<=', now()->toDateString());
+            } elseif ($request->lifecycle === 'eos') {
+                $query->whereNotNull('eos_date')->where('eos_date', '<=', now()->toDateString());
+            } elseif ($request->lifecycle === 'passed' || $request->lifecycle === 'warning') {
+                $query->where(function($q) {
+                    $q->where(function($sub) {
+                        $sub->whereNotNull('eol_date')->where('eol_date', '<=', now()->toDateString());
+                    })->orWhere(function($sub) {
+                        $sub->whereNotNull('eos_date')->where('eos_date', '<=', now()->toDateString());
+                    });
+                });
             }
         }
 
@@ -910,8 +949,17 @@ class ManagedServiceController extends Controller
                 return redirect()->back()->with('error', 'Nama Customer / Klien wajib diisi.');
             }
 
+            if (Schema::hasTable('clients') && !empty($clientName)) {
+                try {
+                    $existing = Client::where('name', $clientName)->first();
+                    if (!$existing) {
+                        Client::create(['name' => $clientName]);
+                    }
+                } catch (\Throwable $e) {}
+            }
+
             $createdCount = 0;
-            foreach ($request->devices as $dev) {
+            foreach ($request->devices as $idx => $dev) {
                 $devName = trim($dev['device_name'] ?? '');
                 if (empty($devName)) {
                     $devName = trim(($dev['brand'] ?? 'Perangkat') . ' ' . ($dev['category'] ?? 'Jaringan'));
@@ -919,6 +967,25 @@ class ManagedServiceController extends Controller
 
                 $supportExp = !empty($dev['support_expiry_date']) ? $dev['support_expiry_date'] : (!empty($dev['warranty_expiry']) ? $dev['warranty_expiry'] : null);
                 $supportDesc = !empty($dev['service_support_desc']) ? $dev['service_support_desc'] : ($dev['product_description'] ?? null);
+
+                $backupStatus = $dev['backup_status'] ?? 'Not Backed Up';
+                $lastBackupDate = $dev['last_backup_date'] ?? null;
+                $backupNotes = $dev['backup_notes'] ?? null;
+                $backupFilePath = null;
+                $backupFileName = null;
+
+                if ($request->hasFile("devices.{$idx}.backup_file")) {
+                    $file = $request->file("devices.{$idx}.backup_file");
+                    if ($file->isValid()) {
+                        $backupFileName = $file->getClientOriginalName();
+                        $storedName = time() . '_' . $idx . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $backupFileName);
+                        $backupFilePath = $file->storeAs('asset_backups', $storedName, 'public');
+                        $backupStatus = 'Backed Up';
+                        if (empty($lastBackupDate)) {
+                            $lastBackupDate = now()->toDateString();
+                        }
+                    }
+                }
 
                 $assetData = [
                     'client_name'          => $clientName,
@@ -937,14 +1004,16 @@ class ManagedServiceController extends Controller
                     'rack_position'        => $dev['rack_position'] ?? null,
                     'status'               => $dev['status'] ?? 'Online',
                     'warranty_expiry'      => $supportExp,
-                    'eol_date'             => $dev['eol_date'] ?? null,
-                    'eos_date'             => $dev['eos_date'] ?? null,
+                    'eol_date'             => !empty($dev['eol_date']) ? $dev['eol_date'] : null,
+                    'eos_date'             => !empty($dev['eos_date']) ? $dev['eos_date'] : null,
                     'support_status'       => $dev['support_status'] ?? 'Active',
                     'support_expiry_date'  => $supportExp,
                     'service_support_type' => $dev['service_support_type'] ?? 'PAR-ND',
-                    'backup_status'        => $dev['backup_status'] ?? 'Not Backed Up',
-                    'last_backup_date'     => $dev['last_backup_date'] ?? null,
-                    'backup_notes'         => $dev['backup_notes'] ?? null,
+                    'backup_status'        => $backupStatus,
+                    'last_backup_date'     => $lastBackupDate,
+                    'backup_notes'         => $backupNotes,
+                    'backup_file_path'     => $backupFilePath,
+                    'backup_file_name'     => $backupFileName,
                     'notes'                => $dev['notes'] ?? null,
                     'created_by'           => auth()->id(),
                 ];
@@ -1004,6 +1073,18 @@ class ManagedServiceController extends Controller
             $validated['backup_status'] = 'Not Backed Up';
         }
 
+        $validated['eol_date'] = !empty($validated['eol_date']) ? $validated['eol_date'] : null;
+        $validated['eos_date'] = !empty($validated['eos_date']) ? $validated['eos_date'] : null;
+
+        if (Schema::hasTable('clients') && !empty($validated['client_name'])) {
+            try {
+                $existing = Client::where('name', $validated['client_name'])->first();
+                if (!$existing) {
+                    Client::create(['name' => $validated['client_name']]);
+                }
+            } catch (\Throwable $e) {}
+        }
+
         if (!empty($validated['support_expiry_date']) && empty($validated['warranty_expiry'])) {
             $validated['warranty_expiry'] = $validated['support_expiry_date'];
         } elseif (!empty($validated['warranty_expiry']) && empty($validated['support_expiry_date'])) {
@@ -1013,6 +1094,19 @@ class ManagedServiceController extends Controller
         if (empty($validated['owner_type'])) {
             $isIpnet = str_contains(strtolower($validated['client_name']), 'ipnet') || str_contains(strtolower($validated['client_name']), 'internal');
             $validated['owner_type'] = $isIpnet ? 'internal' : 'client';
+        }
+
+        if ($request->hasFile('backup_file')) {
+            $file = $request->file('backup_file');
+            if ($file->isValid()) {
+                $validated['backup_file_name'] = $file->getClientOriginalName();
+                $storedName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $validated['backup_file_name']);
+                $validated['backup_file_path'] = $file->storeAs('asset_backups', $storedName, 'public');
+                $validated['backup_status'] = 'Backed Up';
+                if (empty($validated['last_backup_date'])) {
+                    $validated['last_backup_date'] = now()->toDateString();
+                }
+            }
         }
 
         $validated['created_by'] = auth()->id();
@@ -1072,6 +1166,18 @@ class ManagedServiceController extends Controller
             $validated['backup_status'] = $asset->backup_status ?: 'Not Backed Up';
         }
 
+        $validated['eol_date'] = !empty($validated['eol_date']) ? $validated['eol_date'] : null;
+        $validated['eos_date'] = !empty($validated['eos_date']) ? $validated['eos_date'] : null;
+
+        if (Schema::hasTable('clients') && !empty($validated['client_name'])) {
+            try {
+                $existing = Client::where('name', $validated['client_name'])->first();
+                if (!$existing) {
+                    Client::create(['name' => $validated['client_name']]);
+                }
+            } catch (\Throwable $e) {}
+        }
+
         if (!empty($validated['support_expiry_date']) && empty($validated['warranty_expiry'])) {
             $validated['warranty_expiry'] = $validated['support_expiry_date'];
         } elseif (!empty($validated['warranty_expiry']) && empty($validated['support_expiry_date'])) {
@@ -1087,9 +1193,36 @@ class ManagedServiceController extends Controller
             $validated['product_description'] = $request->service_support_desc;
         }
 
+        if ($request->hasFile('backup_file')) {
+            $file = $request->file('backup_file');
+            if ($file->isValid()) {
+                if ($asset->backup_file_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($asset->backup_file_path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($asset->backup_file_path);
+                }
+                $validated['backup_file_name'] = $file->getClientOriginalName();
+                $storedName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $validated['backup_file_name']);
+                $validated['backup_file_path'] = $file->storeAs('asset_backups', $storedName, 'public');
+                $validated['backup_status'] = 'Backed Up';
+                if (empty($validated['last_backup_date'])) {
+                    $validated['last_backup_date'] = now()->toDateString();
+                }
+            }
+        }
+
         $asset->update($validated);
 
         return redirect()->back()->with('success', 'Data Aset berhasil diperbarui.');
+    }
+
+    public function downloadBackupConfig($id)
+    {
+        $asset = ManagedServiceAsset::findOrFail($id);
+        if (!$asset->backup_file_path || !\Illuminate\Support\Facades\Storage::disk('public')->exists($asset->backup_file_path)) {
+            return redirect()->back()->with('error', 'File backup konfigurasi belum diupload atau file fisik tidak ditemukan.');
+        }
+
+        $downloadName = $asset->backup_file_name ?: ('backup_' . ($asset->serial_number ?: $asset->id) . '.cfg');
+        return \Illuminate\Support\Facades\Storage::disk('public')->download($asset->backup_file_path, $downloadName);
     }
 
     public function destroyAsset($id)

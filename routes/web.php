@@ -1529,6 +1529,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/assets', [\App\Http\Controllers\ManagedServiceController::class, 'storeAsset'])->name('ms.assets.store');
         Route::get('/assets/{asset}', fn() => redirect()->route('ms.assets.external'));
         Route::put('/assets/{asset}', [\App\Http\Controllers\ManagedServiceController::class, 'updateAsset'])->name('ms.assets.update');
+        Route::get('/assets/{asset}/download-backup', [\App\Http\Controllers\ManagedServiceController::class, 'downloadBackupConfig'])->name('ms.assets.download_backup');
         Route::delete('/assets/{asset}', [\App\Http\Controllers\ManagedServiceController::class, 'destroyAsset'])->name('ms.assets.destroy');
 
         // Incident & Service Request Tickets

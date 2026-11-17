@@ -34,6 +34,8 @@ class ManagedServiceAsset extends Model
         'backup_status',
         'last_backup_date',
         'backup_notes',
+        'backup_file_path',
+        'backup_file_name',
         'notes',
         'created_by',
     ];

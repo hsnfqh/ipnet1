@@ -134,18 +134,23 @@
                     </div>
 
                     {{-- Metric 3: EOL / EOS Reached --}}
-                    <div class="p-3.5 rounded-xl {{ ($eolEosCount ?? 0) > 0 ? 'bg-red-50/60 border-red-200/80' : 'bg-slate-50 border-slate-200/80' }} border flex items-center justify-between">
+                    <a href="{{ route('ms.assets.external', array_merge(request()->query(), ['lifecycle' => request('lifecycle') === 'passed' ? null : 'passed'])) }}" 
+                       title="Klik untuk memfilter perangkat yang telah mencapai EOL / EOS"
+                       class="p-3.5 rounded-xl {{ ($eolEosCount ?? 0) > 0 ? 'bg-red-50/60 border-red-200/80 hover:bg-red-100/70' : 'bg-slate-50 border-slate-200/80 hover:bg-slate-100/70' }} border flex items-center justify-between transition cursor-pointer group">
                         <div>
                             <span class="text-[10.5px] font-bold {{ ($eolEosCount ?? 0) > 0 ? 'text-[#8F0A0D]' : 'text-slate-500' }} uppercase tracking-wider block">Siklus EOL / EOS</span>
                             <div class="text-[20px] font-extrabold {{ ($eolEosCount ?? 0) > 0 ? 'text-[#8F0A0D]' : 'text-slate-900' }} mt-0.5">{{ $eolEosCount ?? 0 }}</div>
                             <span class="text-[11px] {{ ($eolEosCount ?? 0) > 0 ? 'text-[#8F0A0D] font-bold' : 'text-slate-500' }}">
                                 {{ ($eolEosCount ?? 0) > 0 ? 'Perlu Peremajaan' : 'Semua Aman' }}
+                                @if(request('lifecycle') === 'passed')
+                                    <span class="text-[10px] text-red-600 font-bold block">(Filter Aktif)</span>
+                                @endif
                             </span>
                         </div>
-                        <div class="w-9 h-9 rounded-lg {{ ($eolEosCount ?? 0) > 0 ? 'bg-red-100 text-[#8F0A0D] border border-red-200' : 'bg-white text-slate-700 border border-slate-200' }} flex items-center justify-center shadow-2xs">
+                        <div class="w-9 h-9 rounded-lg {{ ($eolEosCount ?? 0) > 0 ? 'bg-red-100 text-[#8F0A0D] border border-red-200 group-hover:scale-105' : 'bg-white text-slate-700 border border-slate-200 group-hover:scale-105' }} flex items-center justify-center shadow-2xs transition-transform">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         </div>
-                    </div>
+                    </a>
 
                     {{-- Metric 4: Backup Perangkat --}}
                     <div class="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/80 flex items-center justify-between">
@@ -163,7 +168,7 @@
                 <!-- Filter Controls with Per Page Selector (5, 10, 25, 50) -->
                 <form method="GET" action="{{ route('ms.assets.external') }}" class="flex flex-col md:flex-row flex-wrap items-center justify-between gap-3">
                     <div class="flex flex-col sm:flex-row flex-wrap items-center gap-2.5 w-full md:w-auto flex-1">
-                        <div class="relative w-full sm:w-64">
+                        <div class="relative w-full sm:w-60">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             </div>
@@ -171,20 +176,21 @@
                                    class="w-full pl-10 pr-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-medium text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs">
                         </div>
 
-                        <select name="category" onchange="this.form.submit()" class="w-full sm:w-40 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <select name="category" onchange="this.form.submit()" class="w-full sm:w-36 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                             <option value="all">Semua Tipe</option>
                             @foreach(['Router', 'Switch', 'Firewall', 'Server', 'Access Point', 'UPS', 'Storage', 'Testing Tool', 'Fusion Splicer', 'Toolkit', 'Laptop / Device', 'Other'] as $cat)
                                 <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                             @endforeach
                         </select>
 
-                        <select name="support_status" onchange="this.form.submit()" class="w-full sm:w-40 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <select name="support_status" onchange="this.form.submit()" class="w-full sm:w-36 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                             <option value="all">Semua Support</option>
                             <option value="Active" {{ request('support_status') == 'Active' ? 'selected' : '' }}>Support Active</option>
                             <option value="Expired" {{ request('support_status') == 'Expired' ? 'selected' : '' }}>Support Expired</option>
                             <option value="Pending Renewal" {{ request('support_status') == 'Pending Renewal' ? 'selected' : '' }}>Pending Renewal</option>
                         </select>
 
+                        {{-- Filter Semua Klien (Mencakup Semua Klien di Aset & Proyek Termasuk BRI) --}}
                         <select name="owner" onchange="this.form.submit()" class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                             <option value="">Semua Klien</option>
                             @foreach($clients as $c)
@@ -192,7 +198,17 @@
                             @endforeach
                         </select>
 
-                        @if(request('search') || (request('category') && request('category') !== 'all') || (request('support_status') && request('support_status') !== 'all') || request('owner') || (request('per_page') && request('per_page') != 10))
+                        {{-- Filter Berdasarkan Proyek Terkait --}}
+                        <select name="project_id" onchange="this.form.submit()" class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                            <option value="">Semua Proyek</option>
+                            @foreach($projects ?? [] as $p)
+                                <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>
+                                    {{ Str::limit($p->name, 30) }} {{ $p->client ? '('.Str::limit($p->client, 15).')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        @if(request('search') || (request('category') && request('category') !== 'all') || (request('support_status') && request('support_status') !== 'all') || request('owner') || request('project_id') || request('lifecycle') || (request('per_page') && request('per_page') != 10))
                             <a href="{{ route('ms.assets.external') }}" class="px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 self-center">
                                 Reset Filter
                             </a>
@@ -353,6 +369,16 @@
                                                 Belum Pernah
                                             @endif
                                         </div>
+                                        @if($asset->backup_file_path)
+                                            <div class="mt-1.5">
+                                                <a href="{{ route('ms.assets.download_backup', $asset->id) }}" 
+                                                   class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold text-[10.5px] transition shadow-2xs"
+                                                   title="Download File Konfigurasi: {{ $asset->backup_file_name ?: 'backup.cfg' }}">
+                                                    <svg class="w-3 h-3 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                    <span class="truncate max-w-[120px]">{{ $asset->backup_file_name ?: 'Download CFG' }}</span>
+                                                </a>
+                                            </div>
+                                        @endif
                                     </td>
 
                                     {{-- 7. Pemilik & Lokasi --}}
@@ -450,7 +476,7 @@
                 </div>
 
                 <!-- Form -->
-                <form :action="isEdit ? '/managed-service/assets/' + form.id : '{{ route('ms.assets.store') }}'" method="POST" @submit="validateBeforeSubmit($event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                <form :action="isEdit ? '/managed-service/assets/' + form.id : '{{ route('ms.assets.store') }}'" method="POST" enctype="multipart/form-data" @submit="validateBeforeSubmit($event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
                     <template x-if="isEdit">
                         <input type="hidden" name="_method" value="PUT">
@@ -614,6 +640,35 @@
                                                   class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D] resize-none leading-relaxed"></textarea>
                                     </div>
 
+                                    {{-- Siklus Hidup Perangkat (EOL & EOS) --}}
+                                    <div class="p-3.5 rounded-xl bg-amber-50/40 border border-amber-200/80 space-y-2.5">
+                                        <div class="flex items-center justify-between pb-1.5 border-b border-amber-200/60">
+                                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-amber-900 uppercase tracking-wider">
+                                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                <span>Siklus Hidup Perangkat (Lifecycle EOL &amp; EOS)</span>
+                                            </div>
+                                            <span class="text-[10px] font-semibold text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded border border-amber-200/80">Opsional / Siklus Vendor</span>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                                    End of Life (Tgl EOL)
+                                                </label>
+                                                <input type="date" name="eol_date" x-model="form.eol_date"
+                                                       class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
+                                                <span class="text-[10px] text-slate-500 mt-1 block">Tgl vendor resmi menyetop penjualan perangkat</span>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                                    End of Support (Tgl EOS)
+                                                </label>
+                                                <input type="date" name="eos_date" x-model="form.eos_date"
+                                                       class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
+                                                <span class="text-[10px] text-slate-500 mt-1 block">Tgl berakhirnya dukungan firmware &amp; patch vendor</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
                                             <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Lokasi Rak / Posisi</label>
@@ -627,6 +682,58 @@
                                                 <option value="Offline">Offline</option>
                                                 <option value="Maintenance">Maintenance</option>
                                             </select>
+                                        </div>
+                                    </div>
+
+                                    {{-- Backup Konfigurasi Perangkat (Config Backup) --}}
+                                    <div class="p-3.5 rounded-xl bg-blue-50/40 border border-blue-200/80 space-y-3 mt-1">
+                                        <div class="flex items-center justify-between pb-1.5 border-b border-blue-200/60">
+                                            <div class="flex items-center gap-2 text-[11px] font-bold text-blue-900 uppercase tracking-wider">
+                                                <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                                                <span>Backup Konfigurasi Perangkat (Config Backup)</span>
+                                            </div>
+                                            <span class="text-[10px] text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded font-semibold border border-blue-200">
+                                                Disimpan Aman
+                                            </span>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <div>
+                                                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Status Backup</label>
+                                                <select name="backup_status" x-model="form.backup_status" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
+                                                    <option value="Not Backed Up">Not Backed Up (Belum)</option>
+                                                    <option value="Backed Up">Backed Up (Sudah Backup)</option>
+                                                    <option value="Scheduled">Scheduled (Terjadwal)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tgl Terakhir Backup</label>
+                                                <input type="date" name="last_backup_date" x-model="form.last_backup_date" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Upload File Backup Config</label>
+                                                <input type="file" name="backup_file" accept=".txt,.cfg,.conf,.backup,.rsc,.bin,.zip,.tar.gz,.log"
+                                                       class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-700 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-blue-50 file:text-blue-800 hover:file:bg-blue-100 cursor-pointer shadow-2xs">
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between gap-2" x-show="form.backup_file_name">
+                                            <div class="flex items-center gap-1.5 text-xs text-slate-700">
+                                                <span class="text-slate-500">File Tersimpan:</span>
+                                                <span class="font-mono font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-blue-200" x-text="form.backup_file_name"></span>
+                                            </div>
+                                            <template x-if="form.backup_file_url">
+                                                <a :href="form.backup_file_url" target="_blank" class="text-blue-700 hover:underline text-xs font-bold flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                    <span>Download File</span>
+                                                </a>
+                                            </template>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Catatan Backup / Keterangan</label>
+                                            <input type="text" name="backup_notes" x-model="form.backup_notes" placeholder="Contoh: Backup config stabil sebelum update OS"
+                                                   class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                         </div>
                                     </div>
                                 </div>
@@ -826,6 +933,35 @@
                                                               placeholder="Keterangan otomatis sesuai kode support..."
                                                               class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D] resize-none leading-relaxed"></textarea>
                                                 </div>
+
+                                                {{-- Siklus Hidup Perangkat (EOL & EOS) --}}
+                                                <div class="p-3.5 rounded-xl bg-amber-50/40 border border-amber-200/80 space-y-2.5">
+                                                    <div class="flex items-center justify-between pb-1.5 border-b border-amber-200/60">
+                                                        <div class="flex items-center gap-1.5 text-[11px] font-bold text-amber-900 uppercase tracking-wider">
+                                                            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                            <span>Siklus Hidup Perangkat (Lifecycle EOL &amp; EOS)</span>
+                                                        </div>
+                                                        <span class="text-[10px] font-semibold text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded border border-amber-200/80">Opsional / Siklus Vendor</span>
+                                                    </div>
+                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                                                End of Life (Tgl EOL)
+                                                            </label>
+                                                            <input type="date" :name="'devices[' + idx + '][eol_date]'" x-model="dev.eol_date"
+                                                                   class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
+                                                            <span class="text-[10px] text-slate-500 mt-1 block">Tgl vendor resmi menyetop penjualan perangkat</span>
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                                                End of Support (Tgl EOS)
+                                                            </label>
+                                                            <input type="date" :name="'devices[' + idx + '][eos_date]'" x-model="dev.eos_date"
+                                                                   class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
+                                                            <span class="text-[10px] text-slate-500 mt-1 block">Tgl berakhirnya dukungan firmware &amp; patch vendor</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             {{-- Lokasi Rak & Status Operasional Perangkat --}}
@@ -844,6 +980,47 @@
                                                         <option value="Offline">Offline</option>
                                                         <option value="Maintenance">Maintenance</option>
                                                     </select>
+                                                </div>
+                                            </div>
+
+                                            {{-- Backup Konfigurasi Perangkat (Config Backup) --}}
+                                            <div class="p-3.5 rounded-xl bg-blue-50/40 border border-blue-200/80 space-y-3 mt-1">
+                                                <div class="flex items-center justify-between pb-1.5 border-b border-blue-200/60">
+                                                    <div class="flex items-center gap-2 text-[11px] font-bold text-blue-900 uppercase tracking-wider">
+                                                        <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                                                        <span>Backup Konfigurasi Perangkat (Config Backup)</span>
+                                                    </div>
+                                                    <span class="text-[10px] text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded font-semibold border border-blue-200">
+                                                        Upload .cfg / .conf / .txt / .backup
+                                                    </span>
+                                                </div>
+
+                                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                    <div>
+                                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Status Backup</label>
+                                                        <select :name="'devices[' + idx + '][backup_status]'" x-model="dev.backup_status"
+                                                                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
+                                                            <option value="Not Backed Up">Not Backed Up (Belum)</option>
+                                                            <option value="Backed Up">Backed Up (Sudah Backup)</option>
+                                                            <option value="Scheduled">Scheduled (Terjadwal)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tgl Terakhir Backup</label>
+                                                        <input type="date" :name="'devices[' + idx + '][last_backup_date]'" x-model="dev.last_backup_date"
+                                                               class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Upload File Backup Config</label>
+                                                        <input type="file" :name="'devices[' + idx + '][backup_file]'" accept=".txt,.cfg,.conf,.backup,.rsc,.bin,.zip,.tar.gz,.log"
+                                                               class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-700 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-blue-50 file:text-blue-800 hover:file:bg-blue-100 cursor-pointer shadow-2xs">
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Catatan Backup / Keterangan</label>
+                                                    <input type="text" :name="'devices[' + idx + '][backup_notes]'" x-model="dev.backup_notes" placeholder="Contoh: Initial config, VLAN & IP binding"
+                                                           class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                 </div>
                                             </div>
 
@@ -1022,6 +1199,8 @@
                 backup_status: 'Not Backed Up',
                 last_backup_date: '',
                 backup_notes: '',
+                backup_file_name: '',
+                backup_file_url: '',
                 notes: '',
             },
             devices: [],
@@ -1045,6 +1224,9 @@
                     support_expiry_date: '',
                     eol_date: '',
                     eos_date: '',
+                    backup_status: 'Not Backed Up',
+                    last_backup_date: '',
+                    backup_notes: '',
                 };
             },
 
@@ -1072,6 +1254,9 @@
                         support_expiry_date: base.support_expiry_date || '',
                         eol_date: base.eol_date || '',
                         eos_date: base.eos_date || '',
+                        backup_status: base.backup_status || 'Not Backed Up',
+                        last_backup_date: base.last_backup_date || '',
+                        backup_notes: base.backup_notes || '',
                     };
                 } else {
                     newDev = this.createEmptyDevice();
@@ -1132,7 +1317,7 @@
             onProjectChange() {
                 if (!this.form.project_id) return;
                 const found = this.projectsList.find(p => String(p.id) === String(this.form.project_id));
-                if (found && found.client && (!this.form.client_name || this.form.client_name.trim() === '')) {
+                if (found && found.client) {
                     this.form.client_name = found.client;
                 }
             },
