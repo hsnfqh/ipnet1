@@ -380,7 +380,7 @@
                                 <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                                     <span class="ipnet-badge-dot"></span> PORTOFOLIO KLIEN SLA
                                 </p>
-                                <h3 class="text-[16px] font-bold text-[#292929]">Status Operasional Layanan SLA</h3>
+                                <h3 class="text-[16px] font-bold text-[#292929]">Status Operasional Layanan Klien</h3>
                             </div>
                             <a href="{{ route('ms.projects.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline" title="Lihat Seluruh Daftar Proyek Managed Service">Lihat Semua Proyek &rarr;</a>
                         </div>
@@ -462,7 +462,7 @@
                                 <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                                     <span class="ipnet-badge-dot"></span> DISTRIBUSI LAYANAN
                                 </p>
-                                <h3 class="text-[16px] font-bold text-[#292929]">Status Layanan Customer</h3>
+                                <h3 class="text-[16px] font-bold text-[#292929]">Status Layanan Klien</h3>
                             </div>
                         </div>
                         <div style="height: 260px;" class="flex items-center justify-center">
