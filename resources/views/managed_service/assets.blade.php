@@ -430,19 +430,21 @@
     <template x-teleport="body">
         <div x-show="isModalOpen" 
              x-cloak 
-             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-            <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-slate-200 max-h-[94vh] flex flex-col overflow-hidden" @click.away="isModalOpen = false">
-                <!-- Header -->
-                <div class="flex items-center justify-between border-b border-slate-200 p-5 pb-4 shrink-0 bg-white">
+             class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden" @click.away="isModalOpen = false">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
                     <div>
-                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                            <span>Informasi Perangkat Customer &bull; Managed Service</span>
-                        </p>
-                        <h3 class="text-[18px] font-bold text-slate-900" x-text="isEdit ? 'Perbarui Data Aset Perangkat' : 'Tambah Aset Perangkat Customer'"></h3>
-                        <p class="text-xs text-slate-500 mt-0.5" x-text="isEdit ? 'Perbarui spesifikasi perangkat, OS, siklus EOL/EOS, serta kontrak service support.' : 'Daftarkan nama klien, proyek terkait, dan satu atau banyak perangkat sekaligus.'"></p>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-4 bg-[#8F0A0D] rounded-full inline-block"></span>
+                            <h3 class="text-[16px] font-bold text-[#1E293B]" x-text="isEdit ? 'Perbarui Data Aset Perangkat' : 'Tambah Aset Perangkat Customer'"></h3>
+                            <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-[#8F0A0D]/10 text-[#8F0A0D] border border-[#8F0A0D]/20">
+                                Managed Service
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5 pl-4" x-text="isEdit ? 'Perbarui spesifikasi teknis, siklus hidup, dan service support perangkat.' : 'Daftarkan nama klien, proyek terkait, serta satu atau beberapa perangkat customer sekaligus.'"></p>
                     </div>
-                    <button @click="isModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                    <button type="button" @click="isModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200 transition cursor-pointer" title="Tutup">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -455,73 +457,73 @@
                     </template>
                     <input type="hidden" name="owner_type" value="client">
 
-                    <div class="p-5 sm:p-6 overflow-y-auto space-y-6 text-[13px] flex-1">
+                    <div class="p-5 sm:p-6 overflow-y-auto space-y-5 text-[13px] flex-1">
                         
                         {{-- =========================================================
-                             BAGIAN ATAS: INFORMASI KLIEN & PROYEK TERKAIT
+                             BAGIAN 1: INFORMASI CUSTOMER & PROJECT
                              ========================================================= --}}
-                        <div class="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-3.5">
-                            <div class="flex items-center gap-2 pb-1 border-b border-slate-200 text-xs font-bold text-[#8F0A0D] uppercase tracking-wider">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                <span>Informasi Customer &amp; Project</span>
+                        <div class="bg-[#F8FAFC] p-4 sm:p-5 rounded-xl border border-[#E2E8F0] space-y-3.5">
+                            <div class="flex items-center gap-2 text-[11px] font-bold text-[#64748B] uppercase tracking-wider pb-1 border-b border-slate-200">
+                                <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <span>Informasi Customer &amp; Project Terkait</span>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {{-- Nama Customer / Klien --}}
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                                         Nama Customer (Klien) <span class="text-[#8F0A0D]">*</span>
                                     </label>
                                     <input type="text" name="client_name" x-model="form.client_name" list="clientNameCatalog" required placeholder="Contoh: Bank Raya, Telkom, PT APS"
-                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
                                     <datalist id="clientNameCatalog">
                                         @foreach($clients ?? [] as $cl)
                                             <option value="{{ $cl }}"></option>
                                         @endforeach
                                     </datalist>
-                                    <p class="text-[11px] text-slate-400 mt-1">Pilih dari klien terdaftar atau ketik nama klien baru.</p>
+                                    <span class="text-[10.5px] text-slate-400 mt-1 block">Ketik nama klien atau pilih dari daftar klien yang ada.</span>
                                 </div>
 
                                 {{-- Nama Proyek (Terkoneksi) --}}
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                                         Nama Project Terkait (Opsional)
                                     </label>
                                     <select name="project_id" x-model="form.project_id" @change="onProjectChange()"
-                                            class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
+                                            class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
                                         <option value="">-- Tanpa Proyek Terkait (Standalone Asset) --</option>
                                         @foreach($projects ?? [] as $p)
                                             <option value="{{ $p->id }}">{{ $p->name }} {{ $p->client ? '('.$p->client.')' : '' }}</option>
                                         @endforeach
                                     </select>
-                                    <p class="text-[11px] text-slate-400 mt-1">Memilih proyek otomatis mengisi nama klien jika bersesuaian.</p>
+                                    <span class="text-[10.5px] text-slate-400 mt-1 block">Memilih proyek otomatis mengisi nama klien yang sesuai.</span>
                                 </div>
                             </div>
 
                             {{-- Lokasi Site / DC Utama --}}
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                                     Lokasi Site / Data Center Utama
                                 </label>
-                                <input type="text" name="location_site" x-model="form.location_site" placeholder="Contoh: Cyber 1 Lantai 3 / Kantor Pusat Klien"
-                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                <input type="text" name="location_site" x-model="form.location_site" placeholder="Contoh: Gedung Cyber 1 Lantai 3, DC Utama / Kantor Cabang"
+                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
                             </div>
                         </div>
 
                         {{-- =========================================================
-                             MODE EDIT: FORM SINGLE PERANGKAT
+                             BAGIAN 2: MODE EDIT (SINGLE PERANGKAT)
                              ========================================================= --}}
                         <template x-if="isEdit">
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-2 pb-1 border-b border-slate-100 text-xs font-bold text-[#8F0A0D] uppercase tracking-wider">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                            <div class="bg-white p-4 sm:p-5 rounded-xl border border-[#E2E8F0] space-y-4 shadow-2xs">
+                                <div class="flex items-center gap-2 text-[11px] font-bold text-[#64748B] uppercase tracking-wider pb-1 border-b border-slate-100">
+                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
                                     <span>Identitas &amp; Spesifikasi Perangkat</span>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tipe Perangkat <span class="text-[#8F0A0D]">*</span></label>
-                                        <select name="category" x-model="form.category" required class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
+                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tipe <span class="text-[#8F0A0D]">*</span></label>
+                                        <select name="category" x-model="form.category" required class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                             <option value="Switch">Switch</option>
                                             <option value="Router">Router</option>
                                             <option value="Firewall">Firewall</option>
@@ -533,58 +535,41 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Brand</label>
-                                        <input type="text" name="brand" x-model="form.brand" placeholder="Juniper, Cisco, Fortinet..." class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800">
+                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Brand</label>
+                                        <input type="text" name="brand" x-model="form.brand" placeholder="Juniper, Cisco, Fortinet..." class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800">
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Nama Perangkat / Model <span class="text-[#8F0A0D]">*</span></label>
-                                        <input type="text" name="device_name" x-model="form.device_name" required placeholder="Contoh: EX3400-24T" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 font-semibold">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                                     <div class="sm:col-span-2">
-                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Serial Number</label>
-                                        <input type="text" name="serial_number" x-model="form.serial_number" placeholder="SN: FOC223419LK / JN12345" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono text-slate-800">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Quantity</label>
-                                        <input type="number" name="quantity" x-model="form.quantity" min="1" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-800">
+                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Nama Perangkat / Model <span class="text-[#8F0A0D]">*</span></label>
+                                        <input type="text" name="device_name" x-model="form.device_name" required placeholder="Contoh: EX3400-24T" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800">
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Version OS</label>
-                                        <input type="text" name="os_version" x-model="form.os_version" placeholder="Junos 20.4R3-S5..." class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800">
+                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Serial Number</label>
+                                        <input type="text" name="serial_number" x-model="form.serial_number" placeholder="SN: JN123456" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-800">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">IP Address Manajemen</label>
-                                        <input type="text" name="ip_address" x-model="form.ip_address" placeholder="192.168.1.1" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono text-slate-800">
+                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Quantity</label>
+                                        <input type="number" name="quantity" x-model="form.quantity" min="1" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Status Operasional</label>
-                                        <select name="status" x-model="form.status" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800">
-                                            <option value="Online">Online / Normal</option>
-                                            <option value="Warning">Warning / Issue</option>
-                                            <option value="Offline">Offline</option>
-                                            <option value="Maintenance">Maintenance</option>
-                                        </select>
+                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Version OS</label>
+                                        <input type="text" name="os_version" x-model="form.os_version" placeholder="Junos 20.4R3..." class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">IP Address</label>
+                                        <input type="text" name="ip_address" x-model="form.ip_address" placeholder="192.168.10.1" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-800">
                                     </div>
                                 </div>
 
                                 {{-- Dukungan Vendor & Service Support (Juniper PAR Dropdown) --}}
-                                <div class="p-4 rounded-xl bg-amber-50/40 border border-amber-200/70 space-y-3">
-                                    <div class="flex items-center gap-2 text-xs font-bold text-[#8F0A0D] uppercase tracking-wider">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                        <span>Dukungan Vendor / Service Support (Katalog Juniper PAR)</span>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                                <div class="p-3.5 sm:p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div>
-                                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Kode Service Support</label>
+                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Service Support (Juniper PAR)</label>
                                             <select name="service_support_type" x-model="form.service_support_type" @change="onSupportTypeChange(form)"
-                                                    class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-800 focus:border-[#8F0A0D]">
+                                                    class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:border-[#8F0A0D] cursor-pointer">
                                                 <optgroup label="Juniper Support (PAR)">
                                                     <option value="PAR-SUP">PAR-SUP (Basic Support)</option>
                                                     <option value="PAR-RTF">PAR-RTF (Return to Factory)</option>
@@ -605,38 +590,43 @@
                                             </select>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Status Support</label>
-                                            <select name="support_status" x-model="form.support_status" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800">
+                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Status Support</label>
+                                            <select name="support_status" x-model="form.support_status" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800">
                                                 <option value="Active">Active (Berlaku)</option>
                                                 <option value="Expired">Expired (Habis)</option>
                                                 <option value="Pending Renewal">Pending Renewal</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tgl Expired Support</label>
-                                            <input type="date" name="support_expiry_date" x-model="form.support_expiry_date" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800">
+                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tgl Expired Support</label>
+                                            <input type="date" name="support_expiry_date" x-model="form.support_expiry_date" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800">
                                         </div>
                                     </div>
 
                                     {{-- Kolom Keterangan Service Support (Auto Default) --}}
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
-                                            <span>Keterangan Service Support (Otomatis Default Sesuai Kode)</span>
-                                            <span class="text-[11px] text-amber-700 font-normal">Auto-update saat kode dipilih</span>
-                                        </label>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">Keterangan Support (Auto Default Sesuai Kode)</label>
+                                            <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Auto-update standar</span>
+                                        </div>
                                         <textarea name="service_support_desc" x-model="form.service_support_desc" rows="2"
                                                   placeholder="Keterangan otomatis sesuai kode support..."
-                                                  class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-[#8F0A0D]"></textarea>
+                                                  class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D] resize-none leading-relaxed"></textarea>
                                     </div>
 
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
-                                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tanggal EOL (End of Life)</label>
-                                            <input type="date" name="eol_date" x-model="form.eol_date" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800">
+                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Lokasi Rak / Posisi</label>
+                                            <input type="text" name="rack_position" x-model="form.rack_position" placeholder="Contoh: Rack 04 - U12" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800">
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tanggal EOS (End of Support)</label>
-                                            <input type="date" name="eos_date" x-model="form.eos_date" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800">
+                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Status Operasional</label>
+                                            <select name="status" x-model="form.status" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800">
+                                                <option value="Online">Online / Normal</option>
+                                                <option value="Warning">Warning / Issue</option>
+                                                <option value="Offline">Offline</option>
+                                                <option value="Maintenance">Maintenance</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -644,45 +634,43 @@
                         </template>
 
                         {{-- =========================================================
-                             MODE CREATE: MULTIPLE PERANGKAT (REPEATER)
-                             1 CUSTOMER BISA DAFTARKAN LEBIH DARI 1 PERANGKAT
+                             BAGIAN 3: MODE CREATE (MULTI PERANGKAT / REPEATER)
+                             HANYA SATU TOMBOL TAMBAH DI BAWAH (TIDAK ADA TOMBOL DOBEL)
                              ========================================================= --}}
                         <template x-if="!isEdit">
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between pb-1 border-b border-slate-200">
-                                    <div class="flex items-center gap-2 text-xs font-bold text-[#8F0A0D] uppercase tracking-wider">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                                        <span>Daftar Perangkat Yang Didaftarkan (<span x-text="devices.length"></span> Perangkat)</span>
+                                    <div class="flex items-center gap-2 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                                        <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                        <span>Daftar Perangkat Yang Didaftarkan (<span x-text="devices.length" class="text-[#8F0A0D]"></span> Unit)</span>
                                     </div>
-                                    <button type="button" @click="addDevice()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                        <span>+ Tambah Perangkat Lain</span>
-                                    </button>
+                                    <span class="text-[11px] text-slate-400 font-medium">1 Customer bisa memiliki &gt;1 perangkat</span>
                                 </div>
 
                                 {{-- Repeater Devices Loop --}}
                                 <div class="space-y-4">
                                     <template x-for="(dev, idx) in devices" :key="dev._uid">
-                                        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-4 transition hover:border-slate-300">
+                                        <div class="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-4 transition hover:border-slate-300">
                                             {{-- Perangkat Header & Remove Button --}}
                                             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                                                 <div class="flex items-center gap-2">
-                                                    <span class="px-2.5 py-0.5 rounded-lg text-xs font-extrabold bg-[#8F0A0D] text-white">
-                                                        Perangkat #<span x-text="idx + 1"></span>
+                                                    <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#FEF2F2] text-[#8F0A0D] border border-[#FECACA]">
+                                                        PERANGKAT #<span x-text="idx + 1"></span>
                                                     </span>
-                                                    <span class="text-xs font-semibold text-slate-700" x-text="dev.device_name ? dev.device_name : 'Perangkat Baru'"></span>
+                                                    <span class="text-xs font-bold text-slate-800" x-text="dev.device_name ? dev.device_name : 'Perangkat Baru'"></span>
+                                                    <span class="text-[11px] text-slate-400" x-show="dev.brand" x-text="'&bull; ' + dev.brand"></span>
                                                 </div>
                                                 <button type="button" @click="removeDevice(idx)" x-show="devices.length > 1"
-                                                        class="text-rose-600 hover:text-rose-800 text-xs font-semibold flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Hapus Perangkat Ini">
+                                                        class="text-rose-600 hover:text-rose-800 text-xs font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Hapus Perangkat Ini">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    <span>Hapus</span>
+                                                    <span>Hapus Perangkat</span>
                                                 </button>
                                             </div>
 
                                             {{-- Row 1: Identitas Dasar --}}
                                             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                                 <div>
-                                                    <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Tipe <span class="text-[#8F0A0D]">*</span></label>
+                                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tipe <span class="text-[#8F0A0D]">*</span></label>
                                                     <select :name="'devices[' + idx + '][category]'" x-model="dev.category" required
                                                             class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                         <option value="Switch">Switch</option>
@@ -696,46 +684,46 @@
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Brand</label>
+                                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Brand</label>
                                                     <input type="text" :name="'devices[' + idx + '][brand]'" x-model="dev.brand" placeholder="Juniper, Cisco..."
                                                            class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                 </div>
                                                 <div class="sm:col-span-2">
-                                                    <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Nama Perangkat / Model <span class="text-[#8F0A0D]">*</span></label>
+                                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Nama Perangkat / Model <span class="text-[#8F0A0D]">*</span></label>
                                                     <input type="text" :name="'devices[' + idx + '][device_name]'" x-model="dev.device_name" required placeholder="Contoh: EX3400-24T / FortiGate 100F"
-                                                           class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
+                                                           class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                 </div>
                                             </div>
 
                                             {{-- Row 2: Serial Number, Qty, OS, IP --}}
                                             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                                 <div>
-                                                    <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Serial Number</label>
+                                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Serial Number</label>
                                                     <input type="text" :name="'devices[' + idx + '][serial_number]'" x-model="dev.serial_number" placeholder="SN: JN123456"
                                                            class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                 </div>
                                                 <div>
-                                                    <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Quantity</label>
+                                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Quantity</label>
                                                     <input type="number" :name="'devices[' + idx + '][quantity]'" x-model="dev.quantity" min="1"
                                                            class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                 </div>
                                                 <div>
-                                                    <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Version OS</label>
+                                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Version OS</label>
                                                     <input type="text" :name="'devices[' + idx + '][os_version]'" x-model="dev.os_version" placeholder="Junos 20.4..."
                                                            class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                 </div>
                                                 <div>
-                                                    <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">IP Address</label>
+                                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">IP Address</label>
                                                     <input type="text" :name="'devices[' + idx + '][ip_address]'" x-model="dev.ip_address" placeholder="192.168.10.1"
                                                            class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                 </div>
                                             </div>
 
                                             {{-- Row 3: Service Support (Katalog Juniper PAR Gambar 4) --}}
-                                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
+                                            <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
                                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                                     <div>
-                                                        <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Service Support (Juniper PAR)</label>
+                                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Service Support (Juniper PAR)</label>
                                                         <select :name="'devices[' + idx + '][service_support_type]'" x-model="dev.service_support_type" @change="onSupportTypeChange(dev)"
                                                                 class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:border-[#8F0A0D] cursor-pointer">
                                                             <optgroup label="Juniper Support (PAR)">
@@ -758,7 +746,7 @@
                                                         </select>
                                                     </div>
                                                     <div>
-                                                        <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Status Support</label>
+                                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Status Support</label>
                                                         <select :name="'devices[' + idx + '][support_status]'" x-model="dev.support_status"
                                                                 class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                             <option value="Active">Active (Berlaku)</option>
@@ -767,7 +755,7 @@
                                                         </select>
                                                     </div>
                                                     <div>
-                                                        <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Tgl Expired Support</label>
+                                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tgl Expired Support</label>
                                                         <input type="date" :name="'devices[' + idx + '][support_expiry_date]'" x-model="dev.support_expiry_date"
                                                                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                     </div>
@@ -775,25 +763,25 @@
 
                                                 {{-- Kolom Keterangan Service Support Auto Default --}}
                                                 <div>
-                                                    <label class="block text-[11.5px] font-semibold text-slate-700 mb-1 flex items-center justify-between">
-                                                        <span>Keterangan Support (Auto Default Sesuai Kode)</span>
-                                                        <span class="text-[10.5px] text-emerald-700 font-medium">Otomatis terisi keterangan standar</span>
-                                                    </label>
+                                                    <div class="flex items-center justify-between mb-1">
+                                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">Keterangan Support (Auto Default Sesuai Kode)</label>
+                                                        <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Auto-update standar</span>
+                                                    </div>
                                                     <textarea :name="'devices[' + idx + '][service_support_desc]'" x-model="dev.service_support_desc" rows="2"
                                                               placeholder="Keterangan otomatis sesuai kode support..."
-                                                              class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]"></textarea>
+                                                              class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D] resize-none leading-relaxed"></textarea>
                                                 </div>
                                             </div>
 
                                             {{-- Lokasi Rak & Status Operasional Perangkat --}}
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                                                 <div>
-                                                    <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Lokasi Rak / Posisi</label>
+                                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Lokasi Rak / Posisi</label>
                                                     <input type="text" :name="'devices[' + idx + '][rack_position]'" x-model="dev.rack_position" placeholder="Contoh: Rack 04 - U12"
                                                            class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                 </div>
                                                 <div>
-                                                    <label class="block text-[11.5px] font-semibold text-slate-700 mb-1">Status Operasional</label>
+                                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Status Operasional</label>
                                                     <select :name="'devices[' + idx + '][status]'" x-model="dev.status"
                                                             class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                         <option value="Online">Online / Normal</option>
@@ -807,10 +795,13 @@
                                     </template>
                                 </div>
 
-                                {{-- Bottom Add Device Button --}}
-                                <div class="pt-2 flex justify-center">
-                                    <button type="button" @click="addDevice()" class="px-5 py-2.5 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#8F0A0D] text-slate-600 hover:text-[#8F0A0D] font-bold text-xs transition flex items-center gap-2 cursor-pointer bg-slate-50/50 hover:bg-red-50/30 w-full justify-center">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                {{-- SATU TOMBOL TAMBAH PERANGKAT DI BAWAH (ELEGAN, TIDAK ADA TOMBOL DOBEL) --}}
+                                <div class="pt-1">
+                                    <button type="button" @click="addDevice()" 
+                                            class="w-full py-3 px-4 rounded-xl border border-dashed border-slate-300 hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-red-50/40 text-slate-700 hover:text-[#8F0A0D] font-bold text-[12.5px] transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs group">
+                                        <div class="w-5 h-5 rounded-full bg-slate-200 group-hover:bg-[#8F0A0D] group-hover:text-white flex items-center justify-center transition text-slate-600">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        </div>
                                         <span>Tambah Perangkat Lain Untuk Klien Ini</span>
                                     </button>
                                 </div>
@@ -819,18 +810,18 @@
 
                     </div>
 
-                    <!-- Footer Action -->
-                    <div class="border-t border-slate-200 p-4 sm:p-5 flex items-center justify-between bg-slate-50 shrink-0">
+                    <!-- Footer Action Modal -->
+                    <div class="border-t border-[#E2E8F0] px-6 py-4 flex items-center justify-between bg-[#F8FAFC] shrink-0">
                         <div class="text-xs text-slate-500">
-                            <span x-show="!isEdit">Total: <strong class="text-slate-900" x-text="devices.length"></strong> perangkat akan didaftarkan</span>
-                            <span x-show="isEdit">Mode Perbarui Aset</span>
+                            <span x-show="!isEdit">Total: <strong class="text-slate-900 font-bold" x-text="devices.length"></strong> perangkat akan didaftarkan</span>
+                            <span x-show="isEdit" class="font-semibold text-slate-700">Mode Perbarui Aset</span>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <button type="button" @click="isModalOpen = false" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:text-slate-900 font-semibold text-sm hover:bg-white transition cursor-pointer">
+                        <div class="flex items-center gap-2.5">
+                            <button type="button" @click="isModalOpen = false" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-bold text-xs transition cursor-pointer shadow-2xs">
                                 Batal
                             </button>
-                            <button type="submit" class="px-6 py-2.5 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white font-semibold text-sm transition shadow-sm cursor-pointer flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <button type="submit" class="px-6 py-2.5 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-xs transition shadow-md cursor-pointer flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                 <span x-text="isEdit ? 'Simpan Perubahan' : 'Daftarkan Semua Aset'"></span>
                             </button>
                         </div>
