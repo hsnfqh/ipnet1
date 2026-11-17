@@ -2347,31 +2347,51 @@
         </div>
     </div>
 
-        {{-- MODAL IMPORT TASK WBS DARI EXCEL SPREADSHEET (ENTERPRISE REDESIGN) --}}
+        {{-- MODAL IMPORT TASK WBS DARI EXCEL SPREADSHEET (ENTERPRISE PROFESSIONAL REDESIGN) --}}
     <div x-show="showImportExcelModal" 
          x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
          x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
          style="display: none;"
-         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs overflow-hidden">
         
-        <div @click.outside="showImportExcelModal = false"
-             class="bg-white rounded-2xl shadow-2xl border border-slate-200/90 max-w-3xl lg:max-w-4xl w-full p-5 sm:p-7 space-y-4 my-auto max-h-[92vh] overflow-y-auto animate-fade-in-up">
+        <form action="{{ route('pmo.projects.tasks.import_excel', $project->id) }}" 
+              method="POST" 
+              enctype="multipart/form-data" 
+              @click.outside="showImportExcelModal = false"
+              x-data="{ 
+                  fileName: '', 
+                  fileSize: '',
+                  mode: 'append',
+                  showFormatGuide: false,
+                  handleFileSelect(e) {
+                      const file = e.target.files[0];
+                      if (file) {
+                          this.fileName = file.name;
+                          this.fileSize = (file.size / 1024).toFixed(1) + ' KB';
+                      } else {
+                          this.fileName = '';
+                          this.fileSize = '';
+                      }
+                  }
+              }"
+              class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl lg:max-w-3xl w-full flex flex-col h-[85vh] max-h-[640px] overflow-hidden select-none">
+            @csrf
             
-            {{-- Modal Header --}}
-            <div class="flex items-center justify-between pb-3.5 border-b border-slate-100">
+            {{-- Fixed Header (Tidak Ikut Ter-scroll) --}}
+            <div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0 z-10">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-red-50 text-[#8F0A0D] border border-red-100 flex items-center justify-center shrink-0 shadow-2xs">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <svg class="w-5 h-5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-base font-extrabold text-slate-900 tracking-tight">Import Task Kolektif Proyek (WBS Breakdown)</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Unggah dokumen spreadsheet rencana kerja untuk mengisi seluruh deliverable secara otomatis.</p>
+                        <h3 class="text-[15px] sm:text-base font-extrabold text-slate-900 tracking-tight">Import Task Kolektif Proyek (WBS Breakdown)</h3>
+                        <p class="text-[11.5px] text-slate-500 mt-0.5">Unggah dokumen spreadsheet rencana kerja untuk mengisi seluruh deliverable secara otomatis.</p>
                     </div>
                 </div>
                 <button type="button" @click="showImportExcelModal = false" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer">
@@ -2379,112 +2399,89 @@
                 </button>
             </div>
 
-            {{-- 1. Template Excel Download Banner --}}
-            <div class="p-3.5 bg-gradient-to-r from-emerald-50/70 via-slate-50 to-white rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 4h7v5h5v11H6V4zm2 8h2.5l1.5 2.5 1.5-2.5H16l-2.25 3.5L16 19h-2.5L12 16.5 10.5 19H8l2.25-3.5L8 12z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="text-xs font-bold text-slate-900 flex items-center gap-2">
-                            <span>Template Resmi Excel WBS Proyek</span>
-                            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Format Rekomendasi</span>
-                        </div>
-                        <p class="text-[11px] text-slate-500 mt-0.5">
-                            Gunakan acuan template resmi untuk mempermudah pemetaan bobot (%) dan durasi otomatis.
-                        </p>
-                    </div>
-                </div>
-                <a href="{{ route('pmo.projects.tasks.template_excel', $project->id) }}" 
-                   class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition hover:scale-[1.02] shrink-0 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    <span>Unduh Template (.xlsx)</span>
-                </a>
-            </div>
-
-            {{-- 2. Visual Spreadsheet Columns Structure --}}
-            <div class="space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                        <span>Struktur Kolom File Spreadsheet</span>
-                    </span>
-                    <span class="text-[10.5px] text-slate-400">Baris 1: Header / Nama Kolom</span>
-                </div>
-
-                <div class="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50/60 shadow-2xs">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="bg-slate-100/80 border-b border-slate-200 text-[10.5px] font-bold text-slate-600">
-                                <th class="py-2 px-2.5 text-center w-12 text-slate-400 border-r border-slate-200">A</th>
-                                <th class="py-2 px-2.5 border-r border-slate-200">B (Wajib)</th>
-                                <th class="py-2 px-2.5 border-r border-slate-200">C</th>
-                                <th class="py-2 px-2.5 border-r border-slate-200 text-center">D</th>
-                                <th class="py-2 px-2.5 border-r border-slate-200 text-right">E</th>
-                                <th class="py-2 px-2.5 text-right">F</th>
-                            </tr>
-                            <tr class="bg-white border-b border-slate-200 text-[11px] font-bold text-slate-800">
-                                <td class="py-2 px-2.5 text-center text-slate-400 border-r border-slate-200 font-mono">No</td>
-                                <td class="py-2 px-2.5 border-r border-slate-200 text-slate-900">
-                                    <span>Nama Tugas (WBS)</span>
-                                    <span class="text-rose-600 font-extrabold">*</span>
-                                </td>
-                                <td class="py-2 px-2.5 border-r border-slate-200 text-slate-700">Deskripsi Scope</td>
-                                <td class="py-2 px-2.5 border-r border-slate-200 text-center text-slate-700">Durasi (Hari)</td>
-                                <td class="py-2 px-2.5 border-r border-slate-200 text-right text-blue-700">Bobot (%)</td>
-                                <td class="py-2 px-2.5 text-right text-emerald-700">Progress (%)</td>
-                            </tr>
-                        </thead>
-                        <tbody class="text-[10.5px] text-slate-500 bg-white/70">
-                            <tr>
-                                <td class="py-1.5 px-2.5 text-center font-mono border-r border-slate-100">1</td>
-                                <td class="py-1.5 px-2.5 font-medium text-slate-800 border-r border-slate-100">Instalasi Switch & Router</td>
-                                <td class="py-1.5 px-2.5 truncate max-w-[140px] border-r border-slate-100">Pemasangan rak & patching IDF</td>
-                                <td class="py-1.5 px-2.5 text-center border-r border-slate-100">5</td>
-                                <td class="py-1.5 px-2.5 text-right font-bold text-blue-600 border-r border-slate-100">15.00</td>
-                                <td class="py-1.5 px-2.5 text-right font-bold text-emerald-600">0</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                {{-- Callout Note --}}
-                <div class="flex items-start gap-2 p-2.5 bg-amber-50/80 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed">
-                    <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <div>
-                        <strong>Catatan Penugasan:</strong> Kolom personel / assignee tidak perlu dicantumkan pada file Excel, karena alokasi teknisi dilakukan secara terpisah oleh <strong>Lead Engineer / Tim Lapangan</strong>.
-                    </div>
-                </div>
-            </div>
-
-            {{-- 3. Form Upload & Pilihan Mode --}}
-            <form action="{{ route('pmo.projects.tasks.import_excel', $project->id) }}" 
-                  method="POST" 
-                  enctype="multipart/form-data" 
-                  x-data="{ 
-                      fileName: '', 
-                      fileSize: '',
-                      mode: 'append',
-                      handleFileSelect(e) {
-                          const file = e.target.files[0];
-                          if (file) {
-                              this.fileName = file.name;
-                              this.fileSize = (file.size / 1024).toFixed(1) + ' KB';
-                          } else {
-                              this.fileName = '';
-                              this.fileSize = '';
-                          }
-                      }
-                  }"
-                  class="space-y-4 pt-1">
-                @csrf
+            {{-- Scrollable Modal Body (Hanya Bagian Ini yang Menggulung) --}}
+            <div class="flex-1 min-h-0 overflow-y-auto px-5 sm:px-6 py-4 space-y-3.5 custom-scrollbar text-xs">
                 
-                {{-- Input Periode Pelaksanaan Proyek (Task WBS) --}}
-                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-2.5">
+                {{-- 1. Template Resmi Download Card --}}
+                <div class="p-3 sm:p-3.5 bg-gradient-to-r from-emerald-50/80 via-slate-50 to-white rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 4h7v5h5v11H6V4zm2 8h2.5l1.5 2.5 1.5-2.5H16l-2.25 3.5L16 19h-2.5L12 16.5 10.5 19H8l2.25-3.5L8 12z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-900 flex items-center gap-2">
+                                <span>Template Resmi Excel WBS Proyek</span>
+                                <span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Format Standar</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-0.5">
+                                Gunakan template acuan untuk pemetaan otomatis nama tugas, bobot (%), dan durasi.
+                            </p>
+                        </div>
+                    </div>
+                    <a href="{{ route('pmo.projects.tasks.template_excel', $project->id) }}" 
+                       class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition hover:scale-[1.02] shrink-0 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        <span>Unduh Template (.xlsx)</span>
+                    </a>
+                </div>
+
+                {{-- 2. Panduan Format Kolom (Clean & Collapsible) --}}
+                <div class="rounded-xl border border-slate-200 overflow-hidden bg-slate-50/50">
+                    <button type="button" 
+                            @click="showFormatGuide = !showFormatGuide"
+                            class="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-slate-100/60 transition cursor-pointer select-none">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="font-bold text-slate-700 text-[11.5px]">Panduan Susunan Kolom Spreadsheet</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
+                            <span x-text="showFormatGuide ? 'Sembunyikan' : 'Lihat Susunan Kolom'"></span>
+                            <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="showFormatGuide ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    
+                    <div x-show="showFormatGuide" x-cloak class="p-3 bg-white border-t border-slate-200">
+                        <div class="overflow-x-auto rounded-lg border border-slate-200">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="bg-slate-100/80 border-b border-slate-200 text-[10px] font-bold text-slate-500">
+                                        <th class="py-1 px-2.5 text-center w-10 border-r border-slate-200">A</th>
+                                        <th class="py-1 px-2.5 border-r border-slate-200">B (Wajib)</th>
+                                        <th class="py-1 px-2.5 border-r border-slate-200">C</th>
+                                        <th class="py-1 px-2.5 border-r border-slate-200 text-center">D</th>
+                                        <th class="py-1 px-2.5 border-r border-slate-200 text-right">E</th>
+                                        <th class="py-1 px-2.5 text-right">F</th>
+                                    </tr>
+                                    <tr class="bg-white border-b border-slate-200 text-[11px] font-bold text-slate-800">
+                                        <td class="py-1.5 px-2.5 text-center text-slate-400 border-r border-slate-200 font-mono">No</td>
+                                        <td class="py-1.5 px-2.5 border-r border-slate-200 text-slate-900">Nama Tugas (WBS) *</td>
+                                        <td class="py-1.5 px-2.5 border-r border-slate-200 text-slate-700">Deskripsi Scope</td>
+                                        <td class="py-1.5 px-2.5 border-r border-slate-200 text-center text-slate-700">Durasi (Hari)</td>
+                                        <td class="py-1.5 px-2.5 border-r border-slate-200 text-right text-blue-700">Bobot (%)</td>
+                                        <td class="py-1.5 px-2.5 text-right text-emerald-700">Progress (%)</td>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-[10.5px] text-slate-500">
+                                    <tr>
+                                        <td class="py-1.5 px-2.5 text-center font-mono border-r border-slate-100">1</td>
+                                        <td class="py-1.5 px-2.5 font-medium text-slate-800 border-r border-slate-100">Instalasi Switch & Router</td>
+                                        <td class="py-1.5 px-2.5 truncate max-w-[140px] border-r border-slate-100">Pemasangan rak & patching IDF</td>
+                                        <td class="py-1.5 px-2.5 text-center border-r border-slate-100">5</td>
+                                        <td class="py-1.5 px-2.5 text-right font-bold text-blue-600 border-r border-slate-100">15.00</td>
+                                        <td class="py-1.5 px-2.5 text-right font-bold text-emerald-600">0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 3. Periode Pelaksanaan WBS --}}
+                <div class="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200 space-y-2.5">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                         <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                             <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -2493,135 +2490,125 @@
                             <span>Periode Pelaksanaan Pekerjaan (Task WBS)</span>
                         </label>
                         <span class="text-[10.5px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 self-start sm:self-auto">
-                            Maks Selesai Kontrak: {{ $deadlineDate ? $deadlineDate->format('d M Y') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('d M Y') : 'Sesuai Kontrak') }}
+                            Maks Kontrak: {{ $deadlineDate ? $deadlineDate->format('d M Y') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('d M Y') : 'Sesuai Kontrak') }}
                         </span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="space-y-1">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-bold text-slate-700">Tanggal Mulai Pelaksanaan <span class="text-[#8F0A0D]">*</span></span>
-                                <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
-                            </div>
+                            <span class="text-[11px] font-bold text-slate-700 block">Tanggal Mulai Pelaksanaan <span class="text-[#8F0A0D]">*</span></span>
                             <input type="text" 
                                    name="execution_start_date" 
                                    value="{{ $startDate ? $startDate->format('Y-m-d') : ($project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : date('Y-m-d')) }}" 
                                    required
-                                   placeholder="Pilih Tanggal Mulai (HH/BB/TTTT)"
+                                   placeholder="Pilih Tanggal Mulai"
                                    class="ipnet-datepicker w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
                         <div class="space-y-1">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-bold text-slate-700">Target Selesai Pelaksanaan <span class="text-[#8F0A0D]">*</span></span>
-                                <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
-                            </div>
+                            <span class="text-[11px] font-bold text-slate-700 block">Target Selesai Pelaksanaan <span class="text-[#8F0A0D]">*</span></span>
                             <input type="text" 
                                    name="execution_end_date" 
                                    value="{{ $deadlineDate ? $deadlineDate->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : '') }}" 
                                    max="{{ $deadlineDate ? $deadlineDate->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : '') }}"
                                    required
-                                   placeholder="Pilih Tanggal Selesai (HH/BB/TTTT)"
+                                   placeholder="Pilih Tanggal Selesai"
                                    class="ipnet-datepicker w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
                     </div>
-                    <p class="text-[10.5px] text-slate-500">
-                        * Durasi pengerjaan task WBS berjalan di dalam rentang pelaksanaan ini dan <strong>tidak boleh melebihi batas akhir kontrak</strong> proyek.
-                    </p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    {{-- Opsi Tindakan Impor (5 cols) --}}
-                    <div class="md:col-span-5 space-y-2">
-                        <label class="block text-xs font-bold text-slate-800">
-                            Opsi Pengolahan Data:
-                        </label>
-                        <div class="space-y-2">
-                            <label class="flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition"
-                                   :class="mode === 'append' ? 'border-[#8F0A0D] bg-red-50/40 text-slate-900 shadow-2xs ring-1 ring-[#8F0A0D]/20' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'">
-                                <input type="radio" name="mode" value="append" x-model="mode" class="mt-0.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
-                                <div class="text-xs leading-snug">
-                                    <div class="font-bold text-slate-900 flex items-center gap-1.5">
-                                        <span>Tambahkan (Append)</span>
-                                        <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-emerald-100 text-emerald-800">Default</span>
-                                    </div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5">Task baru ditambahkan, task lama tetap utuh.</div>
-                                </div>
-                            </label>
-
-                            <label class="flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition"
-                                   :class="mode === 'replace' ? 'border-rose-600 bg-rose-50/40 text-slate-900 shadow-2xs ring-1 ring-rose-600/20' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'">
-                                <input type="radio" name="mode" value="replace" x-model="mode" class="mt-0.5 text-rose-600 focus:ring-rose-600">
-                                <div class="text-xs leading-snug">
-                                    <div class="font-bold text-slate-900 flex items-center gap-1.5">
-                                        <span>Timpa / Reset (Replace)</span>
-                                        <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-rose-100 text-rose-700">Hapus Lama</span>
-                                    </div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5">Seluruh task lama dihapus dan diganti file baru.</div>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    {{-- Upload Dropzone (7 cols) --}}
-                    <div class="md:col-span-7 space-y-2">
-                        <label class="block text-xs font-bold text-slate-800">
-                            Pilih Berkas Spreadsheet <span class="text-rose-600">*</span>:
-                        </label>
+                {{-- 4. Upload File Spreadsheet Dropzone --}}
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-800">
+                        Pilih Berkas Spreadsheet <span class="text-rose-600">*</span>
+                    </label>
+                    
+                    <div class="relative border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition"
+                         :class="fileName ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-300 hover:border-[#8F0A0D] bg-slate-50/60 hover:bg-red-50/20'">
+                        <input type="file" 
+                               name="excel_file" 
+                               required 
+                               accept=".xlsx,.xls,.csv" 
+                               @change="handleFileSelect($event)" 
+                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                         
-                        <div class="relative border-2 border-dashed rounded-xl p-4 sm:p-5 text-center cursor-pointer transition"
-                             :class="fileName ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-300 hover:border-[#8F0A0D] bg-slate-50/50 hover:bg-red-50/20'">
-                            <input type="file" 
-                                   name="excel_file" 
-                                   required 
-                                   accept=".xlsx,.xls,.csv" 
-                                   @change="handleFileSelect($event)" 
-                                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                            
-                            {{-- State: No file chosen --}}
-                            <div x-show="!fileName" class="space-y-1.5 pointer-events-none">
-                                <div class="w-10 h-10 mx-auto rounded-full bg-red-50 text-[#8F0A0D] flex items-center justify-center">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                                    </svg>
-                                </div>
-                                <div class="text-xs font-bold text-slate-800">Pilih berkas spreadsheet atau seret ke sini</div>
-                                <div class="text-[10.5px] text-slate-400">Mendukung format .XLSX, .XLS, .CSV (Maksimal 10 MB)</div>
+                        {{-- State: No file chosen --}}
+                        <div x-show="!fileName" class="space-y-1.5 pointer-events-none">
+                            <div class="w-9 h-9 mx-auto rounded-full bg-red-50 text-[#8F0A0D] flex items-center justify-center">
+                                <svg class="w-5 h-5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-4 4m4-4l4 4"/>
+                                </svg>
                             </div>
+                            <div class="text-xs font-bold text-slate-800">Pilih berkas spreadsheet atau seret file ke sini</div>
+                            <div class="text-[10.5px] text-slate-400">Format .XLSX, .XLS, atau .CSV (Maksimal 10 MB)</div>
+                        </div>
 
-                            {{-- State: File selected --}}
-                            <div x-show="fileName" x-cloak class="space-y-1.5 pointer-events-none">
-                                <div class="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                </div>
-                                <div class="text-xs font-extrabold text-emerald-900 truncate max-w-xs mx-auto" x-text="fileName"></div>
-                                <div class="text-[11px] text-emerald-700" x-text="'Ukuran: ' + fileSize"></div>
-                                <div class="text-[10.5px] text-slate-400">Klik lagi untuk mengganti file</div>
+                        {{-- State: File selected --}}
+                        <div x-show="fileName" x-cloak class="space-y-1 pointer-events-none">
+                            <div class="w-8 h-8 mx-auto rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
                             </div>
+                            <div class="text-xs font-extrabold text-emerald-900 truncate max-w-sm mx-auto" x-text="fileName"></div>
+                            <div class="text-[11px] text-emerald-700" x-text="'Ukuran: ' + fileSize"></div>
+                            <div class="text-[10px] text-slate-400">Klik area untuk mengganti file</div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Modal Footer --}}
-                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-                    <div class="text-[11px] text-slate-400 hidden sm:block">
-                        Format didukung: <strong>.xlsx</strong>, <strong>.xls</strong>, <strong>.csv</strong>
-                    </div>
-                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                        <button type="button" @click="showImportExcelModal = false" class="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs flex items-center gap-2 cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12"/>
-                            </svg>
-                            <span>Unggah & Buat Task Otomatis</span>
-                        </button>
+                {{-- 5. Opsi Tindakan Impor (Append vs Replace) --}}
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-800">
+                        Opsi Pengolahan Data:
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <label class="flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition select-none"
+                               :class="mode === 'append' ? 'border-[#8F0A0D] bg-red-50/40 text-slate-900 shadow-2xs ring-1 ring-[#8F0A0D]/20' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'">
+                            <input type="radio" name="mode" value="append" x-model="mode" class="mt-0.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                            <div class="text-xs leading-snug">
+                                <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                                    <span>Tambahkan (Append)</span>
+                                    <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-emerald-100 text-emerald-800">Default</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500 mt-0.5">Task baru ditambahkan, task lama tetap utuh.</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition select-none"
+                               :class="mode === 'replace' ? 'border-rose-600 bg-rose-50/40 text-slate-900 shadow-2xs ring-1 ring-rose-600/20' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'">
+                            <input type="radio" name="mode" value="replace" x-model="mode" class="mt-0.5 text-rose-600 focus:ring-rose-600">
+                            <div class="text-xs leading-snug">
+                                <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                                    <span>Timpa / Reset (Replace)</span>
+                                    <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-rose-100 text-rose-700">Hapus Lama</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500 mt-0.5">Seluruh task lama diganti oleh berkas baru.</div>
+                            </div>
+                        </label>
                     </div>
                 </div>
-            </form>
-        </div>
+
+            </div>
+
+            {{-- Fixed Footer (Tidak Ikut Ter-scroll) --}}
+            <div class="px-5 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50/95 flex items-center justify-between shrink-0 z-10">
+                <div class="text-[11px] text-slate-400 hidden sm:block">
+                    Format didukung: <strong>.xlsx</strong>, <strong>.xls</strong>, <strong>.csv</strong>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button type="button" @click="showImportExcelModal = false" class="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-[#8F0A0D] to-[#A80D11] hover:from-[#A80D11] hover:to-[#B91C1C] text-white shadow-xs transition flex items-center gap-2 cursor-pointer active:scale-95">
+                        <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12l-4 4m4-4l4 4"/>
+                        </svg>
+                        <span>Unggah &amp; Buat Task Otomatis</span>
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 
         </div>
