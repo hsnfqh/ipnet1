@@ -4,138 +4,243 @@
     <meta charset="UTF-8">
     <title>Laporan Rekapitulasi Portofolio Managed Service &amp; SLA - PT IP Network Solusindo</title>
     <style>
+        /* ── Konfigurasi Halaman & Margin DomPDF A4 Landscape ── */
         @page {
-            margin: 14mm 12mm 14mm 12mm;
+            margin-top: 28mm;
+            margin-bottom: 18mm;
+            margin-left: 14mm;
+            margin-right: 14mm;
             size: a4 landscape;
         }
         * {
             box-sizing: border-box;
         }
         body {
-            font-family: 'Helvetica', Arial, sans-serif;
-            font-size: 8pt;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 7.5pt;
             color: #0F172A;
             line-height: 1.35;
             margin: 0;
             padding: 0;
         }
 
-        /* ── Header Dokumen ── */
-        .doc-header-table {
+        /* ── Fixed Running Header & Footer di Setiap Halaman ── */
+        header.page-header {
+            position: fixed;
+            top: -22mm;
+            left: 0;
+            right: 0;
+            height: 16mm;
+            border-bottom: 1.5px solid #8F0A0D;
+            padding-bottom: 3px;
+        }
+        footer.page-footer {
+            position: fixed;
+            bottom: -13mm;
+            left: 0;
+            right: 0;
+            height: 10mm;
+            border-top: 1px solid #CBD5E1;
+            padding-top: 3px;
+            font-size: 6.8pt;
+            color: #64748B;
+        }
+
+        .header-table {
             width: 100%;
             border-collapse: collapse;
             border: none;
-            margin-bottom: 8px;
         }
-        .doc-header-table td {
+        .header-table td {
             border: none;
             padding: 0;
             vertical-align: middle;
         }
-        .doc-logo {
-            max-width: 155px;
-            max-height: 48px;
-        }
-        .company-title {
-            font-size: 11pt;
+        .header-company-name {
+            font-size: 10pt;
             font-weight: bold;
             color: #8F0A0D;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .company-subtitle {
-            font-size: 7pt;
-            color: #64748B;
-            margin-top: 1px;
+        .header-company-sub {
+            font-size: 6.8pt;
+            color: #475569;
+        }
+        .header-doc-meta {
+            text-align: right;
+            font-size: 6.8pt;
+            color: #334155;
+            line-height: 1.3;
         }
 
-        /* ── Title Banner ── */
-        .title-banner {
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+        }
+        .footer-table td {
+            border: none;
+            padding: 0;
+            vertical-align: middle;
+        }
+
+        /* ── Kop Surat Resmi Halaman Pertama ── */
+        .official-letterhead {
+            margin-top: -3mm;
+            margin-bottom: 10px;
+            border-bottom: 2.5px solid #8F0A0D;
+            padding-bottom: 8px;
+        }
+        .letterhead-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+        }
+        .letterhead-table td {
+            border: none;
+            padding: 0;
+            vertical-align: middle;
+        }
+        .letterhead-logo {
+            max-width: 155px;
+            max-height: 48px;
+        }
+        .corp-name {
+            font-size: 13pt;
+            font-weight: 800;
+            color: #8F0A0D;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            line-height: 1.1;
+        }
+        .corp-tagline {
+            font-size: 7.5pt;
+            font-weight: bold;
+            color: #1E293B;
+            margin-top: 2px;
+            letter-spacing: 0.3px;
+        }
+        .corp-contact {
+            font-size: 6.8pt;
+            color: #475569;
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+        .corp-sub-bar {
+            height: 1px;
+            background-color: #1E293B;
+            margin-top: 2px;
+        }
+
+        /* ── Box Dokumen Resmi & Judul Berkas ── */
+        .doc-official-box {
             background-color: #F8FAFC;
             border: 1px solid #CBD5E1;
-            border-left: 4px solid #8F0A0D;
-            padding: 7px 12px;
-            margin-bottom: 10px;
+            border-left: 4.5px solid #8F0A0D;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            border-radius: 4px;
         }
-        .doc-title {
+        .doc-title-main {
             font-size: 11pt;
-            font-weight: bold;
+            font-weight: 800;
             color: #0F172A;
             text-transform: uppercase;
             letter-spacing: 0.4px;
             margin: 0;
         }
-        .doc-meta {
-            font-size: 7pt;
-            color: #64748B;
-            margin-top: 2px;
+        .doc-title-sub {
+            font-size: 7.2pt;
+            color: #475569;
+            margin-top: 3px;
+            line-height: 1.4;
         }
 
-        /* ── KPI Summary Cards (Table Layout) ── */
-        .kpi-table {
+        /* ── Section Titles ── */
+        .section-header {
+            font-size: 8.5pt;
+            font-weight: bold;
+            color: #0F172A;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            padding-bottom: 2px;
+            border-bottom: 1.5px solid #E2E8F0;
+        }
+        .section-num {
+            color: #8F0A0D;
+            font-weight: 800;
+            margin-right: 3px;
+        }
+
+        /* ── KPI Metrik Table ── */
+        .kpi-grid-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 12px;
         }
-        .kpi-table td {
+        .kpi-grid-table td {
             width: 25%;
             padding: 7px 10px;
             background-color: #FFFFFF;
             border: 1px solid #CBD5E1;
             vertical-align: top;
         }
-        .kpi-label {
+        .kpi-card-lbl {
             font-size: 6.8pt;
             font-weight: bold;
             color: #64748B;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
-        .kpi-value {
+        .kpi-card-val {
             font-size: 13pt;
-            font-weight: bold;
+            font-weight: 800;
             color: #0F172A;
             line-height: 1.1;
         }
-        .kpi-desc {
+        .kpi-card-sub {
             font-size: 6.8pt;
             color: #64748B;
             margin-top: 3px;
         }
 
-        /* ── Data Table ── */
-        .data-table {
+        /* ── Data Tables ── */
+        .grid-data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
+            page-break-inside: auto;
         }
-        .data-table th {
+        .grid-data-table th {
             background-color: #8F0A0D;
             color: #FFFFFF;
-            font-size: 7pt;
+            font-size: 6.8pt;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            padding: 5.5px 6px;
+            padding: 5px 6px;
             border: 1px solid #74080A;
             text-align: left;
             vertical-align: middle;
         }
-        .data-table td {
-            font-size: 7.2pt;
+        .grid-data-table td {
+            font-size: 7pt;
             padding: 4.5px 6px;
             border: 1px solid #E2E8F0;
             vertical-align: middle;
         }
-        .data-table tr:nth-child(even) td {
+        .grid-data-table tr:nth-child(even) td {
             background-color: #F8FAFC;
         }
 
         /* ── Badges ── */
         .badge {
             display: inline-block;
-            padding: 1.5px 4.5px;
+            padding: 1.5px 5px;
             border-radius: 3px;
             font-size: 6.5pt;
             font-weight: bold;
@@ -150,243 +255,258 @@
         .badge-warning  { background-color: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
         .badge-danger   { background-color: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
 
-        /* ── Sign-off Section ── */
-        .signature-table {
+        /* ── Lembar Pengesahan Formal (3 Pihak) ── */
+        .signature-section {
             width: 100%;
             border-collapse: collapse;
             border: none;
-            margin-top: 15px;
+            margin-top: 14px;
             page-break-inside: avoid;
         }
-        .signature-table td {
+        .signature-section td {
             border: none;
             width: 33.33%;
             vertical-align: top;
             text-align: center;
-            padding: 0 10px;
+            padding: 0 14px;
         }
-        .sig-title {
+        .sign-title {
             font-size: 7pt;
             font-weight: bold;
-            color: #64748B;
+            color: #475569;
             text-transform: uppercase;
-            margin-bottom: 45px;
+            letter-spacing: 0.3px;
+            margin-bottom: 44px;
         }
-        .sig-name {
+        .sign-line {
             font-size: 8pt;
             font-weight: bold;
             color: #0F172A;
-            border-bottom: 1px solid #CBD5E1;
+            border-bottom: 1.2px solid #0F172A;
             padding-bottom: 2px;
             display: inline-block;
             min-width: 160px;
         }
-        .sig-role {
+        .sign-dept {
             font-size: 6.8pt;
             color: #64748B;
             margin-top: 2px;
+            line-height: 1.25;
         }
-
-        /* ── Page Footer ── */
-        .page-footer {
-            margin-top: 10px;
-            border-top: 1px solid #E2E8F0;
-            padding-top: 4px;
-            font-size: 6.5pt;
-            color: #94A3B8;
-            display: table;
-            width: 100%;
-        }
-        .footer-left { display: table-cell; text-align: left; }
-        .footer-right { display: table-cell; text-align: right; }
     </style>
 </head>
 <body>
 
-    {{-- 1. Header Dokumen --}}
-    <table class="doc-header-table">
-        <tr>
-            <td style="width: 50%;">
-                @if(!empty($logoBase64))
-                    <img src="{{ $logoBase64 }}" class="doc-logo" alt="IPNET Logo">
-                @else
-                    <div class="company-title">PT IP NETWORK SOLUSINDO</div>
-                @endif
-                <div class="company-subtitle">Managed Service &amp; Network Operations Division • SLA Assurance Report</div>
-            </td>
-            <td style="width: 50%; text-align: right; font-size: 7pt; color: #475569;">
-                <div><strong>Tanggal Cetak:</strong> {{ $printedAt }}</div>
-                <div><strong>Dicetak Oleh:</strong> {{ $printedBy }}</div>
-                <div><strong>Kategori:</strong> Rekapitulasi Portofolio SLA Seluruh Proyek</div>
-            </td>
-        </tr>
-    </table>
+    {{-- FIXED RUNNING HEADER (MUNCUL DI SETIAP HALAMAN) --}}
+    <header class="page-header">
+        <table class="header-table">
+            <tr>
+                <td style="width: 60%;">
+                    <div class="header-company-name">PT IP NETWORK SOLUSINDO</div>
+                    <div class="header-company-sub">Managed Service &amp; Network Operations Division • Executive Portfolio SLA Summary</div>
+                </td>
+                <td style="width: 40%;" class="header-doc-meta">
+                    <div><strong>No. Dokumen:</strong> {{ $docNumber }}</div>
+                    <div><strong>Tanggal Terbit:</strong> {{ $printedAt }}</div>
+                </td>
+            </tr>
+        </table>
+    </header>
 
-    {{-- 2. Title Banner --}}
-    <div class="title-banner">
-        <h1 class="doc-title">Laporan Rekapitulasi Portofolio Managed Service &amp; Kinerja SLA</h1>
-        <div class="doc-meta">
-            Monitoring performa siklus Preventive Maintenance (PM), kepatuhan SLA kontrak operasional, serta tiket insiden Corrective Maintenance (CM).
-            @if(!empty($filterTier) && $filterTier !== 'all')
-                • <strong>Filter Tier:</strong> {{ $filterTier }}
-            @endif
-            @if(!empty($filterSearch))
-                • <strong>Kata Kunci:</strong> "{{ $filterSearch }}"
-            @endif
-        </div>
+    {{-- FIXED RUNNING FOOTER (MUNCUL DI SETIAP HALAMAN) --}}
+    <footer class="page-footer">
+        <table class="footer-table">
+            <tr>
+                <td style="width: 70%;">
+                    PT IP Network Solusindo • Dokumen Resmi Hasil Cetak Sistem ERP IPNET • Rahasia &amp; Terbatas (Confidential)
+                </td>
+                <td style="width: 30%; text-align: right;">
+                    Dicetak: {{ $printedAt }}
+                </td>
+            </tr>
+        </table>
+    </footer>
+
+    {{-- SCRIPT DOMPDF CANVAS UNTUK PENOMORAN HALAMAN OTOMATIS --}}
+    <script type="text/php">
+        if (isset($pdf)) {
+            $text = "Halaman " . $PAGE_NUM . " dari " . $PAGE_COUNT;
+            $font = $fontMetrics->get_font("Helvetica", "bold");
+            $size = 6.8;
+            $color = array(0.4, 0.45, 0.5);
+            $w = $fontMetrics->getTextWidth($text, $font, $size);
+            $x = 841.89 - 14 * 2.83465 - $w; // A4 landscape width 841.89pt
+            $y = 595.28 - 10 * 2.83465;
+            $pdf->page_text($x, $y, $text, $font, $size, $color);
+        }
+    </script>
+
+    {{-- KOP SURAT RESMI PERUSAHAAN (HALAMAN PERTAMA) --}}
+    <div class="official-letterhead">
+        <table class="letterhead-table">
+            <tr>
+                <td style="width: 20%; text-align: left;">
+                    @if(!empty($logoBase64))
+                        <img src="{{ $logoBase64 }}" class="letterhead-logo" alt="IPNET Logo">
+                    @else
+                        <div class="corp-name">IPNET</div>
+                    @endif
+                </td>
+                <td style="width: 80%; text-align: left; padding-left: 14px;">
+                    <div class="corp-name">PT IP NETWORK SOLUSINDO</div>
+                    <div class="corp-tagline">Network Solutions, IT Managed Services &amp; Telecommunication Infrastructure</div>
+                    <div class="corp-contact">
+                        Grand Slipi Tower Lt. 9, Jl. Letjen S. Parman Kav. 22-24, Slipi, Palmerah, Jakarta Barat 11480<br>
+                        Telepon: (021) 2986-6190 • E-mail: support@ipnetsolusindo.com • Website: www.ipnetsolusindo.com
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <div class="corp-sub-bar"></div>
     </div>
 
-    {{-- 3. Ringkasan Eksekutif KPI --}}
-    <table class="kpi-table">
+    {{-- BOX JUDUL BERKAS OPERASIONAL --}}
+    <div class="doc-official-box">
+        <table style="width: 100%; border-collapse: collapse; border: none;">
+            <tr>
+                <td style="border: none; padding: 0;">
+                    <h1 class="doc-title-main">Rekapitulasi Portofolio Klien Managed Service &amp; Kepatuhan SLA</h1>
+                    <div class="doc-title-sub">
+                        Dokumen eksekutif rekapitulasi seluruh kontrak pemeliharaan aktif, status kesehatan layanan, kepatuhan SLA ketersediaan (Availability), serta realisasi penugasan berkala di seluruh customer PT IP Network Solusindo.
+                    </div>
+                </td>
+                <td style="border: none; padding: 0; width: 160px; text-align: right; vertical-align: top;">
+                    <div style="font-size: 7pt; font-weight: bold; color: #8F0A0D; text-transform: uppercase;">Berkas Resmi Operasional</div>
+                    <div style="font-size: 6.8pt; color: #475569; margin-top: 2px;">Klasifikasi: <strong>CONFIDENTIAL</strong></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {{-- SECTION 1: RINGKASAN EKSEKUTIF --}}
+    <div class="section-header"><span class="section-num">[1]</span> Ringkasan Eksekutif Portofolio (Executive Summary)</div>
+    <table class="kpi-grid-table">
         <tr>
             <td>
-                <div class="kpi-label">Total Proyek Terkelola</div>
-                <div class="kpi-value" style="color: #8F0A0D;">{{ $totalProjectsCount }}</div>
-                <div class="kpi-desc">Kontrak Proyek Aktif</div>
+                <div class="kpi-card-lbl">Total Proyek MS Aktif</div>
+                <div class="kpi-card-val" style="color: #8F0A0D;">{{ $totalProjectsCount }}</div>
+                <div class="kpi-card-sub">Kontrak Layanan Berjalan</div>
             </td>
             <td>
-                <div class="kpi-label">Progress Siklus PM</div>
-                <div class="kpi-value" style="color: #059669;">{{ $portfolioPmProgress }}%</div>
-                <div class="kpi-desc">{{ $totalPmCompleted }} dari {{ $totalPmCycles }} Siklus Selesai</div>
-            </td>
-            <td>
-                <div class="kpi-label">Rata-rata Target SLA</div>
-                <div class="kpi-value" style="color: #1E293B;">{{ number_format($avgSlaTarget, 2) }}%</div>
-                <div class="kpi-desc">Kepatuhan Aktual: <strong>{{ number_format($avgSlaCompliance, 1) }}%</strong></div>
-            </td>
-            <td>
-                <div class="kpi-label">Tiket Insiden (CM)</div>
-                <div class="kpi-value" style="color: {{ $totalActiveTickets > 0 ? '#D97706' : '#059669' }};">
-                    {{ $totalActiveTickets }} <span style="font-size: 8.5pt; font-weight: normal; color: #64748B;">Aktif / {{ $totalClosedTickets }} Closed</span>
+                <div class="kpi-card-lbl">Rata-rata Kepatuhan SLA</div>
+                <div class="kpi-card-val" style="color: {{ $avgSla >= 99.0 ? '#059669' : '#D97706' }};">
+                    {{ number_format($avgSla, 1) }}%
                 </div>
-                <div class="kpi-desc">Total {{ $totalActiveTickets + $totalClosedTickets }} Tiket Masuk</div>
+                <div class="kpi-card-sub">Target Standar: &gt;= 99.50%</div>
+            </td>
+            <td>
+                <div class="kpi-card-lbl">Realisasi Siklus PM</div>
+                <div class="kpi-card-val" style="color: #059669;">{{ $totalPmCompleted }} / {{ $totalPmCycles }}</div>
+                <div class="kpi-card-sub">Persentase Capaian: <strong>{{ $pmProgressPercent }}%</strong></div>
+            </td>
+            <td>
+                <div class="kpi-card-lbl">Akumulasi Tiket Insiden (CM)</div>
+                <div class="kpi-card-val" style="color: {{ $totalActiveTickets > 0 ? '#D97706' : '#059669' }};">
+                    {{ $totalActiveTickets }} <span style="font-size: 8pt; font-weight: normal; color: #64748B;">Aktif / {{ $totalClosedTickets }} Selesai</span>
+                </div>
+                <div class="kpi-card-sub">Total {{ $totalTicketsAll }} Tiket Dilaporkan</div>
             </td>
         </tr>
     </table>
 
-    {{-- 4. Tabel Rekapitulasi Proyek & SLA --}}
-    <table class="data-table">
+    {{-- SECTION 2: TABEL PORTOFOLIO KLIEN & KINERJA SLA --}}
+    <div class="section-header"><span class="section-num">[2]</span> Status Layanan Customer &amp; Distribusi Proyek SLA</div>
+    <table class="grid-data-table">
         <thead>
             <tr>
                 <th style="width: 25px; text-align: center;">No</th>
-                <th style="width: 175px;">Nama Project &amp; Customer</th>
-                <th style="width: 55px; text-align: center;">Tier SLA</th>
-                <th style="width: 85px; text-align: center;">Siklus PM</th>
-                <th style="width: 65px; text-align: center;">Target SLA</th>
-                <th style="width: 80px; text-align: center;">Kepatuhan SLA</th>
-                <th style="width: 60px; text-align: center;">Tiket Aktif</th>
-                <th style="width: 60px; text-align: center;">Tiket Closed</th>
-                <th style="width: 75px; text-align: center;">Kuota &amp; Sisa CM</th>
+                <th style="width: 140px;">Customer / Klien</th>
+                <th>Nama Proyek Managed Service</th>
+                <th style="width: 65px; text-align: center;">Tier SLA</th>
+                <th style="width: 60px; text-align: center;">Target</th>
+                <th style="width: 65px; text-align: center;">SLA Aktual</th>
+                <th style="width: 65px; text-align: center;">Siklus PM</th>
+                <th style="width: 65px; text-align: center;">Tiket Aktif</th>
                 <th style="width: 75px; text-align: center;">Status Layanan</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($projects as $idx => $row)
+            @forelse($portfolioData as $idx => $item)
                 @php
-                    $p = $row['project'];
-                    $tier = strtolower($p->sla_tier ?? 'gold');
-                    $badgeTier = match($tier) {
+                    $p = $item['project'];
+                    $tierLower = strtolower($p->sla_tier ?? 'gold');
+                    $tierBadge = match($tierLower) {
                         'platinum' => 'badge-platinum',
-                        'gold'     => 'badge-gold',
                         'silver'   => 'badge-silver',
-                        default    => 'badge-bronze',
+                        'bronze'   => 'badge-bronze',
+                        default    => 'badge-gold',
                     };
-                    $isSlaMet = ($row['sla_compliance'] >= 90.0);
+                    $slaMet = $item['sla_score'] >= $item['target_sla'];
                 @endphp
                 <tr>
-                    <td style="text-align: center; font-weight: bold; color: #64748B;">{{ $idx + 1 }}</td>
+                    <td style="text-align: center;">{{ $idx + 1 }}</td>
+                    <td><strong>{{ $p->client ?: '-' }}</strong></td>
                     <td>
-                        <strong style="color: #0F172A; font-size: 7.5pt;">{{ $p->name }}</strong>
-                        <div style="font-size: 6.8pt; color: #64748B;">
-                            Customer: {{ $p->client ?: '-' }}
-                            @if($p->sales_name)
-                                • Sales: {{ $p->sales_name }}
-                            @endif
-                        </div>
+                        <strong style="color: #0F172A;">{{ $p->name }}</strong>
+                        <div style="font-size: 6.2pt; color: #64748B;">PIC: {{ $p->sales_name ?: ($p->creator->name ?? 'IPNET') }} • {{ $p->location ?: 'Site Customer' }}</div>
                     </td>
                     <td style="text-align: center;">
-                        <span class="badge {{ $badgeTier }}">{{ $p->sla_tier ?: 'Gold' }}</span>
+                        <span class="badge {{ $tierBadge }}">{{ strtoupper($p->sla_tier ?: 'Gold') }}</span>
+                    </td>
+                    <td style="text-align: center;">{{ number_format($item['target_sla'], 2) }}%</td>
+                    <td style="text-align: center; font-weight: bold; color: {{ $slaMet ? '#059669' : '#DC2626' }};">
+                        {{ number_format($item['sla_score'], 1) }}%
                     </td>
                     <td style="text-align: center;">
-                        <strong>{{ $row['completed_cycles'] }} / {{ $row['total_cycles'] }}</strong>
-                        <div style="font-size: 6.5pt; color: {{ $row['pm_percent'] >= 80 ? '#059669' : '#8F0A0D' }}; font-weight: bold;">
-                            ({{ $row['pm_percent'] }}%)
-                        </div>
-                    </td>
-                    <td style="text-align: center; font-weight: bold;">
-                        {{ number_format($row['target_sla'], 2) }}%
+                        <strong>{{ $item['pm_completed'] }}</strong> / {{ $item['pm_total'] }}
                     </td>
                     <td style="text-align: center;">
-                        <span class="badge {{ $isSlaMet ? 'badge-success' : 'badge-danger' }}">
-                            {{ number_format($row['sla_compliance'], 1) }}%
-                        </span>
+                        <strong style="color: {{ $item['active_tickets'] > 0 ? '#D97706' : '#059669' }};">
+                            {{ $item['active_tickets'] }}
+                        </strong>
+                        <span style="font-size: 6.2pt; color: #64748B;">({{ $item['closed_tickets'] }} selesai)</span>
                     </td>
                     <td style="text-align: center;">
-                        @if($row['active_tickets'] > 0)
-                            <span class="badge badge-warning">{{ $row['active_tickets'] }} Aktif</span>
+                        @if($item['health'] === 'Normal')
+                            <span class="badge badge-success">Aman (Normal)</span>
+                        @elseif($item['health'] === 'Preventive')
+                            <span class="badge badge-silver">Preventive</span>
                         @else
-                            <span style="color: #059669; font-weight: bold;">0</span>
-                        @endif
-                    </td>
-                    <td style="text-align: center; font-weight: bold; color: #059669;">
-                        {{ $row['closed_tickets'] }}
-                    </td>
-                    <td style="text-align: center;">
-                        <span style="font-weight: bold;">{{ $row['total_tickets'] }} / {{ $row['cm_quota'] >= 999 ? 'Unltd' : $row['cm_quota'] }}</span>
-                        <div style="font-size: 6.5pt; color: {{ $row['remaining_quota'] <= 2 ? '#DC2626' : '#64748B' }}; font-weight: bold;">
-                            Sisa: {{ $row['cm_quota'] >= 999 ? 'Unltd' : $row['remaining_quota'] }}
-                        </div>
-                    </td>
-                    <td style="text-align: center;">
-                        @if($row['active_tickets'] === 0 && $isSlaMet)
-                            <span class="badge badge-success">Optimal</span>
-                        @elseif($row['active_tickets'] > 0 && $isSlaMet)
-                            <span class="badge badge-warning">Ada Tiket</span>
-                        @else
-                            <span class="badge badge-danger">Perhatian</span>
+                            <span class="badge badge-danger">Corrective</span>
                         @endif
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="10" style="text-align: center; padding: 18px; color: #64748B;">
-                        Tidak ada data proyek yang sesuai kriteria filter.
+                    <td colspan="9" style="text-align: center; padding: 12px; color: #64748B;">
+                        Tidak ada data proyek Managed Service yang ditemukan.
                     </td>
                 </tr>
             @endforelse
         </tbody>
     </table>
 
-    {{-- 5. Lembar Pengesahan / Tanda Tangan --}}
-    <table class="signature-table">
+    {{-- SECTION 3: LEMBAR PENGESAHAN DOKUMEN --}}
+    <div class="section-header"><span class="section-num">[3]</span> Lembar Pengesahan Operasional</div>
+    <table class="signature-section">
         <tr>
             <td>
-                <div class="sig-title">Disiapkan Oleh</div>
-                <div class="sig-name">{{ $printedBy }}</div>
-                <div class="sig-role">Managed Service Coordinator / Delivery Lead</div>
+                <div class="sign-title">Disiapkan &amp; Dilaporkan Oleh:</div>
+                <div class="sign-line">{{ $printedBy }}</div>
+                <div class="sign-dept">Service Delivery Lead / Operations<br>PT IP Network Solusindo</div>
             </td>
             <td>
-                <div class="sig-title">Ditinjau &amp; Diverifikasi Oleh</div>
-                <div class="sig-name">Lead Network Engineer</div>
-                <div class="sig-role">NOC &amp; Field Infrastructure Lead</div>
+                <div class="sign-title">Diperiksa &amp; Diverifikasi Oleh:</div>
+                <div class="sign-line">Head of Managed Service</div>
+                <div class="sign-dept">Divisi Managed Service &amp; Operasional<br>PT IP Network Solusindo</div>
             </td>
             <td>
-                <div class="sig-title">Disetujui Oleh</div>
-                <div class="sig-name">Head of Managed Service</div>
-                <div class="sig-role">Group Leader Delivery &amp; Operation</div>
+                <div class="sign-title">Disetujui Oleh:</div>
+                <div class="sign-line">Direktur Operasional / VP Delivery</div>
+                <div class="sign-dept">Manajemen Eksekutif<br>PT IP Network Solusindo</div>
             </td>
         </tr>
     </table>
-
-    {{-- 6. Footer --}}
-    <div class="page-footer">
-        <div class="footer-left">
-            PT IP Network Solusindo • Dokumen Resmi Hasil Cetak Sistem ERP IPNET • Sifat: Terbatas &amp; Rahasia
-        </div>
-        <div class="footer-right">
-            Dicetak: {{ $printedAt }}
-        </div>
-    </div>
 
 </body>
 </html>

@@ -1760,11 +1760,26 @@ class ManagedServiceController extends Controller
             $slaCompliancePercent = $closedCount > 0 ? round(($slaMetTicketsCount / $closedCount) * 100, 1) : 100.0;
             $isSlaMet = ($slaCompliancePercent >= 90.0);
 
+            // Aset Perangkat Customer Terkait Proyek / Klien
+            $coveredAssets = collect();
+            if (Schema::hasTable('managed_service_assets')) {
+                $coveredAssets = ManagedServiceAsset::where(function($q) use ($project) {
+                    $q->where('project_id', $project->id);
+                    if (!empty($project->client)) {
+                        $q->orWhere('client_name', 'like', '%' . trim($project->client) . '%');
+                    }
+                })->get();
+            }
+
             $logoPath = public_path('images/ipnet1.png');
             if (!file_exists($logoPath)) {
                 $logoPath = public_path('images/ipnet.png');
             }
             $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+
+            $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
+            $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
+            $formalDocNumber = 'MS-SLA/' . now()->format('Y') . '/' . $romanMonth . '/' . str_pad($project->id, 4, '0', STR_PAD_LEFT);
 
             $pdf = Pdf::loadView('managed_service.exports.project_sla_pdf', [
                 'project' => $project,
@@ -1781,10 +1796,11 @@ class ManagedServiceController extends Controller
                 'targetSla' => $targetSla,
                 'slaCompliancePercent' => $slaCompliancePercent,
                 'isSlaMet' => $isSlaMet,
+                'coveredAssets' => $coveredAssets,
                 'logoBase64' => $logoBase64,
-                'printedBy' => auth()->user()->name ?? 'Administrator',
-                'printedAt' => now()->format('d/m/Y H:i'),
-                'docNumber' => 'RPT-MS-' . str_pad($project->id, 4, '0', STR_PAD_LEFT) . '-' . now()->format('ymd'),
+                'printedBy' => auth()->user()->name ?? 'Administrator Managed Service',
+                'printedAt' => now()->translatedFormat('d F Y H:i') . ' WIB',
+                'docNumber' => $formalDocNumber,
             ]);
 
             $pdf->setPaper('a4', 'portrait');
