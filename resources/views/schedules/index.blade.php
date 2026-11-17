@@ -3030,6 +3030,28 @@
                         return str;
                     };
 
+                    var normalizeTitle = function(str) {
+                        if (!str) return '';
+                        return String(str)
+                            .trim()
+                            .toLowerCase()
+                            .replace(/^(pm\s+)+/i, 'pm ')
+                            .replace(/^(\d{1,2}[:.]\d{2}\s+)/, '')
+                            .replace(/:\s+/g, ': ')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+                    };
+
+                    var getPmDedupKey = function(item, d) {
+                        var title = (item.title || item._displayTitle || '').trim();
+                        var projId = (item.project && item.project.id) ? item.project.id : (item.project_id || '');
+                        var pmMatch = title.match(/pm\s*(\d+)/i);
+                        if (pmMatch) {
+                            return 'pm-' + pmMatch[1] + (projId ? '-proj-' + projId : '') + '|' + d;
+                        }
+                        return null;
+                    };
+
                     // --- Jadwal biasa & Day Off ---
                     var filtered = this.engineerFilter
                         ? this.schedules.filter(function(s) { 
@@ -3073,12 +3095,14 @@
                         }
                         
                         // Cegah duplikasi agenda yang sama persis di tanggal yang sama
-                        var cleanTitle = (s.title || '').trim().toLowerCase();
+                        var cleanTitle = normalizeTitle(s.title);
                         var dedupKey = 'sch-' + s.id + '|' + d;
                         var titleDedupKey = cleanTitle + '|' + d;
-                        if (seenKeys[dedupKey] || (cleanTitle && seenKeys[titleDedupKey])) return;
+                        var pmDedupKey = getPmDedupKey(s, d);
+                        if (seenKeys[dedupKey] || (cleanTitle && seenKeys[titleDedupKey]) || (pmDedupKey && seenKeys[pmDedupKey])) return;
                         seenKeys[dedupKey] = true;
                         if (cleanTitle) seenKeys[titleDedupKey] = true;
+                        if (pmDedupKey) seenKeys[pmDedupKey] = true;
 
                         var engLabel = '';
                         if (s.engineers && s.engineers.length > 0) {
@@ -3104,7 +3128,7 @@
                             _uid: 'sch-' + s.id,
                             _type: eventType,
                             _color: eventColor,
-                            _displayTitle: s.title,
+                            _displayTitle: (s.title || '').replace(/^(PM\s+)+/i, 'PM '),
                             _timeLabel: timeLabel,
                             _tooltip: tooltipPrefix + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + (isTaskCompleted ? ' - (Selesai)' : ' - Klik untuk edit'),
                             _subLabel: engLabel,
@@ -3141,14 +3165,16 @@
                             if (!d) return;
                             if (!map[d]) map[d] = [];
 
-                            var cleanTaskTitle = (t.title || '').trim().toLowerCase();
+                            var cleanTaskTitle = normalizeTitle(t.title);
                             var taskDedupKey = 'task-' + t.id + '|' + d;
                             var taskTitleDedupKey = cleanTaskTitle + '|' + d;
+                            var taskPmDedupKey = getPmDedupKey(t, d);
                             
                             // Jangan tampilkan jika sudah ada di tanggal yang sama
-                            if (seenKeys[taskDedupKey] || (cleanTaskTitle && seenKeys[taskTitleDedupKey])) return;
+                            if (seenKeys[taskDedupKey] || (cleanTaskTitle && seenKeys[taskTitleDedupKey]) || (taskPmDedupKey && seenKeys[taskPmDedupKey])) return;
                             seenKeys[taskDedupKey] = true;
                             if (cleanTaskTitle) seenKeys[taskTitleDedupKey] = true;
+                            if (taskPmDedupKey) seenKeys[taskPmDedupKey] = true;
 
                             var dTime = t.deadline_time 
                                 ? t.deadline_time.substring(0, 5) 
@@ -3183,7 +3209,7 @@
                                 _uid: 'task-' + t.id,
                                 _type: 'task',
                                 _color: '#C81E2C',
-                                _displayTitle: t.title,
+                                _displayTitle: (t.title || '').replace(/^(PM\s+)+/i, 'PM '),
                                 _timeLabel: taskTimeLabel,
                                 _tooltip: tooltipText,
                                 _subLabel: taskEngLabel,

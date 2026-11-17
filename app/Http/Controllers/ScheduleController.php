@@ -110,6 +110,18 @@ class ScheduleController extends Controller
             Schedule::where('title', 'like', '%Implementasi Teknis%')->forceDelete();
         } catch (\Exception $e) {}
 
+        // Auto-cleanup: Bersihkan judul yang memiliki prefiks dobel PM PM di database
+        try {
+            Schedule::where('title', 'like', 'PM PM %')->get()->each(function($s) {
+                $s->update(['title' => preg_replace('/^PM\s+PM\s+/i', 'PM ', $s->title)]);
+            });
+            if (Schema::hasTable('tasks')) {
+                Task::where('title', 'like', 'PM PM %')->get()->each(function($t) {
+                    $t->update(['title' => preg_replace('/^PM\s+PM\s+/i', 'PM ', $t->title)]);
+                });
+            }
+        } catch (\Exception $e) {}
+
         // Auto-deduplikasi data ganda di database berdasarkan judul dan tanggal yang sama persis
         try {
             $duplicates = Schedule::select('title', 'date')
@@ -427,6 +439,26 @@ class ScheduleController extends Controller
                     $targetDateStr = $targetDate ? ($targetDate instanceof \Carbon\Carbon ? $targetDate->format('Y-m-d') : substr((string)$targetDate, 0, 10)) : null;
                     if (!$targetDateStr) continue;
 
+                    $cleanCycleLabel = preg_replace('/^PM\s+/i', '', trim((string)$cycle->cycle_label));
+                    $cleanCycleTitle = 'PM ' . $cleanCycleLabel . ': ' . $proj->name;
+
+                    // Hindari duplikasi jika agenda siklus PM ini sudah ada di daftar $schedules
+                    $existsInSchedules = $schedules->contains(function($s) use ($proj, $targetDateStr, $cleanCycleLabel) {
+                        $sDate = $s['date'] ?? '';
+                        if ($sDate !== $targetDateStr) return false;
+                        $sProjId = $s['project']['id'] ?? ($s['project_id'] ?? null);
+                        if ($sProjId && (int)$sProjId === (int)$proj->id) {
+                            $sTitle = (string)($s['title'] ?? '');
+                            if (stripos($sTitle, 'PM ' . $cleanCycleLabel) !== false || stripos($sTitle, $cleanCycleLabel) !== false) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                    if ($existsInSchedules) {
+                        continue;
+                    }
+
                     // Siapa yang buat / PIC inisiator PM:
                     $creator = $cycle->picMs ?: ($cycle->leadEngineer ?: ($proj->creator ?: null));
                     $creatorName = $creator ? $creator->name : ($proj->sales_name ?: 'Koordinator MS / PMO');
@@ -444,8 +476,8 @@ class ScheduleController extends Controller
 
                     $pmTasks->push([
                         'id'            => 'pm_' . $cycle->id,
-                        'title'         => 'PM ' . $cycle->cycle_label . ': ' . $proj->name,
-                        'cycle_label'   => $cycle->cycle_label,
+                        'title'         => $cleanCycleTitle,
+                        'cycle_label'   => 'PM ' . $cleanCycleLabel,
                         'cycle_number'  => $cycle->cycle_number,
                         'deadline'      => $targetDateStr,
                         'deadline_time' => '09:00',
@@ -464,7 +496,7 @@ class ScheduleController extends Controller
                         'engineer'      => $assignedEng ? ['id' => $assignedEng->id, 'name' => $assignedEng->name, 'position' => $assignedEng->position ?? ''] : null,
                         'creator'       => $creator ? ['id' => $creator->id, 'name' => $creatorName] : ['id' => 0, 'name' => $creatorName],
                         'creator_name'  => $creatorName,
-                        'description'   => "Jadwal Kunjungan Preventive Maintenance ({$cycle->cycle_label}) proyek '{$proj->name}' ({$proj->client}). Inisiator/Dibuat oleh: {$creatorName}. Target Realisasi: {$targetDateStr}. " . ($cycle->activity_notes ?: 'Pemeriksaan rutin perangkat, backup konfigurasi & uji performa jaringan.'),
+                        'description'   => "Jadwal Kunjungan Preventive Maintenance (PM {$cleanCycleLabel}) proyek '{$proj->name}' ({$proj->client}). Inisiator/Dibuat oleh: {$creatorName}. Target Realisasi: {$targetDateStr}. " . ($cycle->activity_notes ?: 'Pemeriksaan rutin perangkat, backup konfigurasi & uji performa jaringan.'),
                         'is_pm'         => true,
                     ]);
                 }
