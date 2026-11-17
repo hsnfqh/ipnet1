@@ -365,7 +365,7 @@
                 @php
                     $p = $item['project'] ?? null;
                     if (!$p) continue;
-                    $rowCustomer = trim((string)($p->client ?: ($p->clientRecord->name ?? '-')));
+                    $rowCustomer = trim((string)($p->client ?: '-'));
                     $targetVal = (float) ($item['target_sla'] ?? 99.50);
                     $actualVal = (float) ($item['sla_score'] ?? ($item['sla_compliance'] ?? 100.0));
                     $slaMet = $actualVal >= 90.0;

@@ -1,5 +1,5 @@
 @php
-    $customerName = trim((string)($project->client ?: ($project->clientRecord->name ?? '')));
+    $customerName = trim((string)($project->client ?: ''));
     if (empty($customerName)) {
         $customerName = 'Customer / Klien';
     }
