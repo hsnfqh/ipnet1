@@ -431,10 +431,48 @@ class ManagedServiceController extends Controller
                 : 100.0;
             $projectTargetSla = (float) ($project->sla_target_percentage ?: 99.50);
 
+            // Ekstrak Inisial Proyek untuk tampilan blok grid compact (hemat tempat)
+            $projectInitial = 'PROYEK';
+            if (!empty($project->name)) {
+                $rawName = trim($project->name);
+                // 1. Cek jika terdapat singkatan dalam tanda kurung, misal (PE LAN) atau (PSC-P3-AS1)
+                if (preg_match('/\(([^)]+)\)/', $rawName, $m)) {
+                    $inside = trim($m[1]);
+                    if (strlen($inside) <= 16) {
+                        $projectInitial = $inside;
+                    } else {
+                        $parts = preg_split('/\s+(?:dan|&|,)\s+/i', $inside);
+                        if (!empty($parts[0]) && strlen($parts[0]) <= 16) {
+                            $projectInitial = trim($parts[0]);
+                        } else {
+                            $projectInitial = \Illuminate\Support\Str::limit($inside, 14, '');
+                        }
+                    }
+                } else {
+                    // 2. Bersihkan kata awalan administratif umum
+                    $clean = preg_replace('/^(?:Pengadaan|Perpanjangan|Pemeliharaan|Penyediaan|Implementasi|Instalasi|Maintenance|Sewa|Jasa|Layanan)\s+/iu', '', $rawName);
+                    $clean = preg_replace('/^(?:Perangkat|Modul|Infrastruktur|Sistem|Aplikasi)\s+/iu', '', $clean);
+                    $clean = preg_replace('/(?:\s*[-–—]?\s*(?:Tahun\s*)?20\d\d(?:\s*[-–]\s*20\d\d)?)\s*$/iu', '', $clean);
+                    $clean = trim($clean);
+
+                    $words = preg_split('/\s+/', $clean);
+                    if (count($words) >= 2) {
+                        $short = $words[0] . ' ' . $words[1];
+                        if (strlen($short) < 8 && isset($words[2])) {
+                            $short .= ' ' . $words[2];
+                        }
+                        $projectInitial = \Illuminate\Support\Str::limit($short, 16, '');
+                    } else {
+                        $projectInitial = \Illuminate\Support\Str::limit($clean ?: $rawName, 16, '');
+                    }
+                }
+            }
+
             return [
                 'id'               => $project->id,
                 'name'             => $clientName,
                 'projectName'      => $project->name,
+                'projectInitial'   => $projectInitial,
                 'sla_tier'         => $project->sla_tier ?: 'Gold',
                 'sla_uptime'       => $projSlaUptime,
                 'target_sla'       => $projectTargetSla,

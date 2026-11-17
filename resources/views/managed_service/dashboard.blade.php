@@ -373,19 +373,73 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 anim-fade-up anim-delay-3">
                 
                 {{-- Left: Customer Operational Status List (lg:col-span-2) --}}
-                <div class="lg:col-span-2 ipnet-card p-5 sm:p-6 flex flex-col justify-between">
+                <div class="lg:col-span-2 ipnet-card p-5 sm:p-6 flex flex-col justify-between"
+                     x-data="{ 
+                         viewMode: 'grid', 
+                         selectedProject: null 
+                     }">
                     <div>
-                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0]">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-[#E2E8F0]">
                             <div>
                                 <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                                     <span class="ipnet-badge-dot"></span> PORTOFOLIO KLIEN SLA
                                 </p>
                                 <h3 class="text-[16px] font-bold text-[#292929]">Status Operasional Layanan Klien</h3>
                             </div>
-                            <a href="{{ route('ms.projects.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline" title="Lihat Seluruh Daftar Proyek Managed Service">Lihat Semua Proyek &rarr;</a>
+                            <div class="flex items-center gap-2.5">
+                                {{-- Switch View: Blok Grid (Gambar 2) / Tabel Detail --}}
+                                <div class="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+                                    <button type="button" 
+                                            @click="viewMode = 'grid'" 
+                                            :class="viewMode === 'grid' ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
+                                            class="px-2.5 py-1 rounded-md transition flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                                        <span>Blok Grid</span>
+                                    </button>
+                                    <button type="button" 
+                                            @click="viewMode = 'table'" 
+                                            :class="viewMode === 'table' ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
+                                            class="px-2.5 py-1 rounded-md transition flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                                        <span>Tabel Detail</span>
+                                    </button>
+                                </div>
+                                <a href="{{ route('ms.projects.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline shrink-0 ml-1" title="Lihat Seluruh Daftar Proyek Managed Service">Lihat Semua &rarr;</a>
+                            </div>
                         </div>
 
-                        <div class="overflow-x-auto">
+                        {{-- TAMPILAN 1: BLOK GRID MATRIX MERAH (SESUAI GAMBAR 2 - RAPIH & PRESISI) --}}
+                        <div x-show="viewMode === 'grid'" x-cloak>
+                            <div class="mb-2 text-[11px] text-slate-500 flex items-center justify-between">
+                                <span>Menampilkan <strong>{{ $clientHealthList->count() }}</strong> proyek aktif (klik kotak untuk detail):</span>
+                                <span class="hidden sm:inline-block text-[10.5px] text-slate-400">Scroll untuk lainnya &darr;</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-[280px] overflow-y-auto pr-1 py-0.5 custom-scrollbar">
+                                @forelse($clientHealthList as $client)
+                                <button type="button"
+                                        @click="selectedProject = {{ json_encode($client) }}"
+                                        title="{{ $client['projectName'] }} &bull; {{ $client['name'] }} (Klik untuk rincian)"
+                                        class="group relative h-8 sm:h-8.5 px-2 rounded-md bg-[#8F0A0D] hover:bg-[#A80D11] text-white font-bold text-[11px] leading-tight text-center flex items-center justify-center shadow-2xs hover:shadow-xs transition-all duration-150 border border-red-900/40 cursor-pointer select-none">
+                                    
+                                    {{-- Status dot indicator in top-right corner --}}
+                                    <span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full {{ $client['status_key'] === 'cm' ? 'bg-amber-400 ring-1 ring-white/60 animate-pulse' : ($client['status_key'] === 'pm' ? 'bg-sky-400 ring-1 ring-white/60' : 'bg-emerald-400 ring-1 ring-white/60') }}"
+                                          title="Status: {{ $client['status_label'] }}"></span>
+                                    
+                                    <span class="truncate px-1 max-w-full">
+                                        {{ $client['projectInitial'] }}
+                                    </span>
+                                </button>
+                                @empty
+                                <div class="col-span-full py-8 text-center text-slate-400 text-xs">
+                                    Belum ada portofolio klien SLA terdaftar.
+                                </div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        {{-- TAMPILAN 2: TABEL LENGKAP --}}
+                        <div x-show="viewMode === 'table'" x-cloak class="overflow-x-auto">
                             <table class="w-full text-left text-xs">
                                 <thead>
                                     <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -450,6 +504,92 @@
                                     @endforelse
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    {{-- POPUP MODAL DETAIL PROYEK SAAT BLOK DIKLIK (SESUAI GAMBAR 3) --}}
+                    <div x-show="selectedProject !== null" 
+                         x-cloak
+                         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs transition-opacity"
+                         @click.self="selectedProject = null"
+                         @keydown.escape.window="selectedProject = null">
+                        
+                        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full p-5 sm:p-6 transform transition-all anim-scale-up"
+                             @click.stop>
+                            {{-- Header Popup --}}
+                            <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10.5px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200 uppercase tracking-wider mb-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                        Detail Portofolio Proyek
+                                    </span>
+                                    <h4 class="text-[15px] sm:text-[16px] font-extrabold text-slate-900 leading-snug" x-text="selectedProject ? selectedProject.projectName : ''"></h4>
+                                </div>
+                                <button type="button" 
+                                        @click="selectedProject = null" 
+                                        class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition shrink-0 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+
+                            {{-- Info Body --}}
+                            <div class="py-4 space-y-3 text-xs" x-if="selectedProject">
+                                <div class="grid grid-cols-2 gap-3 bg-slate-50/80 p-3.5 rounded-xl border border-slate-100">
+                                    <div>
+                                        <span class="text-[10.5px] uppercase font-bold text-slate-400 block mb-0.5">Pelanggan / Klien</span>
+                                        <span class="font-extrabold text-slate-800 text-[12px]" x-text="selectedProject ? selectedProject.name : ''"></span>
+                                        <span class="block text-[11px] text-slate-500" x-text="selectedProject ? 'Kontrak ' + selectedProject.sla_tier : ''"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10.5px] uppercase font-bold text-slate-400 block mb-0.5">Urgensi Tiket</span>
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-extrabold border"
+                                              :class="selectedProject ? selectedProject.severity_badge : ''">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="selectedProject ? selectedProject.severity_dot : ''"></span>
+                                            <span x-text="selectedProject ? selectedProject.highest_severity : ''"></span>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10.5px] uppercase font-bold text-slate-400 block mb-0.5">Status Layanan</span>
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold border"
+                                              :class="selectedProject ? selectedProject.badge_bg : ''">
+                                            <span class="w-1.5 h-1.5 rounded-full" :class="selectedProject ? selectedProject.dot_color : ''"></span>
+                                            <span x-text="selectedProject ? selectedProject.status_label : ''"></span>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10.5px] uppercase font-bold text-slate-400 block mb-0.5">Realisasi SLA</span>
+                                        <span class="font-mono font-extrabold text-[13px] text-emerald-700" 
+                                              x-text="selectedProject ? selectedProject.sla_uptime + '% / ' + selectedProject.target_sla + '%' : ''"></span>
+                                        <span class="block text-[11px] text-slate-500" 
+                                              x-text="selectedProject ? (selectedProject.downtime_hours > 0 ? selectedProject.downtime_hours + ' Jam Down' : 'Zero Downtime') : ''"></span>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 bg-amber-50/60 border border-amber-100 rounded-xl flex items-center gap-2.5 text-amber-900">
+                                    <svg class="w-4 h-4 shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <div class="text-[11.5px] leading-tight">
+                                        <strong>Keterangan:</strong> <span x-text="selectedProject ? selectedProject.status_desc : ''"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Actions Footer --}}
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                                <button type="button" 
+                                        @click="selectedProject = null" 
+                                        class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                                    Tutup
+                                </button>
+                                <a :href="selectedProject ? '/managed-service/projects/' + selectedProject.id + '?tab=sla' : '#'" 
+                                   class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#8F0A0D] border border-red-200 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer">
+                                    <span>Perhitungan SLA</span>
+                                </a>
+                                <a :href="selectedProject ? '/managed-service/projects/' + selectedProject.id + '#lokasi-site' : '#'" 
+                                   class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#8F0A0D] to-[#A80D11] hover:from-[#A80D11] hover:to-[#B91C1C] text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                    <span>Buka Detail Proyek</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
