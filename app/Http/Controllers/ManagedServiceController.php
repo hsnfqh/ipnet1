@@ -112,7 +112,11 @@ class ManagedServiceController extends Controller
             ->unique(fn($n) => strtolower($n))
             ->sort(SORT_NATURAL | SORT_FLAG_CASE)
             ->values()
-            ->map(fn($name) => (object)['name' => $name]);
+            ->map(function($name) {
+                $client = new Client();
+                $client->name = $name;
+                return $client;
+            });
     }
 
     /**

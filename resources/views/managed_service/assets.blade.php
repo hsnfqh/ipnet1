@@ -504,7 +504,7 @@
                                            class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
                                     <datalist id="clientNameCatalog">
                                         @foreach($clients ?? [] as $cl)
-                                            <option value="{{ $cl }}"></option>
+                                            <option value="{{ is_object($cl) ? ($cl->name ?? '') : $cl }}"></option>
                                         @endforeach
                                     </datalist>
                                     <span class="text-[10.5px] text-slate-400 mt-1 block">Ketik nama klien atau pilih dari daftar klien yang ada.</span>
