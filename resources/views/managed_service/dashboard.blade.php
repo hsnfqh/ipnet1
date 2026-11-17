@@ -271,7 +271,7 @@
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> RINGKASAN OPERASIONAL
                         </p>
-                        <h2 class="text-[18px] font-bold text-[#292929] tracking-tight">Status & Distribusi Penugasan SLA</h2>
+                        <h2 class="text-[18px] font-bold text-[#292929] tracking-tight">Status Project dan Distribusi Layanan</h2>
                     </div>
                 </div>
 
@@ -382,9 +382,9 @@
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-[#E2E8F0]">
                             <div>
                                 <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                                    <span class="ipnet-badge-dot"></span> PORTOFOLIO KLIEN SLA
+                                    <span class="ipnet-badge-dot"></span> INFORMASI CUSTOMER
                                 </p>
-                                <h3 class="text-[16px] font-bold text-[#292929]">Status Operasional Layanan Klien</h3>
+                                <h3 class="text-[16px] font-bold text-[#292929]">Status Layanan Customer</h3>
                             </div>
                             <div class="flex items-center gap-2.5">
                                 {{-- Switch View: Blok Grid (Gambar 2) / Tabel Detail --}}
