@@ -25,6 +25,10 @@ class DashboardController extends Controller
     public function lead(Request $request)
     {
         $user = auth()->user();
+        if ($user && \App\Helpers\ScopeHelper::isMaintenance($user) && !\App\Helpers\ScopeHelper::isExecutive($user)) {
+            return redirect()->route('ms.dashboard');
+        }
+
         $isSusanto = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
         $isHariyadi = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
         $isExecutive = $isSusanto || $isHariyadi || \App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user);

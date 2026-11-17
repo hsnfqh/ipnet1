@@ -1328,6 +1328,11 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/tasks/{task}', [PmoController::class, 'destroyTask'])->name('pmo.tasks.destroy');
     });
 
+    // Generic /dashboard fallback -> redirect to user's dedicated home dashboard
+    Route::get('/dashboard', function () {
+        return redirect('/');
+    })->name('dashboard.redirect');
+
     // Lead & Executive Dashboard (Dashboard 2)
     Route::get('/dashboard/lead', [DashboardController::class, 'lead'])
         ->name('dashboard.lead')
@@ -1891,7 +1896,15 @@ Route::get('/', function () {
         if ($user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin']) || str_contains($pos, 'admin support') || str_contains($pos, 'admin')) {
             return redirect()->route('admin_support.dashboard');
         }
-        if ($user->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service']) || ($user->division && str_contains(strtolower($user->division->name), 'maintenance'))) {
+        if ($user->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service']) 
+            || \App\Helpers\ScopeHelper::isMaintenance($user)
+            || str_contains($pos, 'managed service')
+            || str_contains($pos, 'maintenance')
+            || str_contains($email, 'eris') 
+            || str_contains($email, 'doris') 
+            || str_contains($email, 'maryo') 
+            || str_contains($email, 'mario')
+            || ($user->division && str_contains(strtolower($user->division->name), 'maintenance'))) {
             return redirect()->route('ms.dashboard');
         }
         if (\App\Helpers\ScopeHelper::isManagerial($user)) {

@@ -159,6 +159,11 @@ class AuthController extends Controller
                 } elseif (str_contains($email, 'warehouse') || str_contains($pos, 'warehouse')) {
                     Role::firstOrCreate(['name' => 'Warehouse', 'guard_name' => 'web']);
                     $user->syncRoles(['Warehouse']);
+                } elseif (str_contains($pos, 'managed service') || str_contains($pos, 'maintenance') || str_contains($email, 'eris') || str_contains($email, 'doris') || str_contains($email, 'maryo') || str_contains($email, 'mario')) {
+                    Role::firstOrCreate(['name' => 'Managed Service', 'guard_name' => 'web']);
+                    Role::firstOrCreate(['name' => 'Lead Maintenance', 'guard_name' => 'web']);
+                    Role::firstOrCreate(['name' => 'Maintenance', 'guard_name' => 'web']);
+                    $user->syncRoles(['Managed Service', 'Lead Maintenance', 'Maintenance']);
                 }
                 $user->load('roles');
             } catch (\Throwable $e) {
@@ -229,7 +234,15 @@ class AuthController extends Controller
         }
 
         // Maintenance & Managed Service -> Dashboard Managed Service (Operate)
-        if ($user->hasAnyRole(['Lead Maintenance', 'Maintenance']) || ($user->division && str_contains(strtolower($user->division->name), 'maintenance'))) {
+        if ($user->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service']) 
+            || \App\Helpers\ScopeHelper::isMaintenance($user)
+            || str_contains($pos, 'managed service') 
+            || str_contains($pos, 'maintenance')
+            || str_contains($email, 'eris') 
+            || str_contains($email, 'doris') 
+            || str_contains($email, 'maryo') 
+            || str_contains($email, 'mario')
+            || ($user->division && str_contains(strtolower($user->division->name), 'maintenance'))) {
             return route('ms.dashboard');
         }
 
