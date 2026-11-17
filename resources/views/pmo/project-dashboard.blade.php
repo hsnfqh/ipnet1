@@ -633,8 +633,8 @@
                         </table>
                     </div>
 
-                    {{-- Personil Tim Lapangan Chips --}}
-                    @if(count($assignedEngineers) > 0)
+                    {{-- Personil Tim Lapangan Chips (Dihilangkan/Hide sesuai permintaan) --}}
+                    @if(false && count($assignedEngineers) > 0)
                         <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center gap-2 flex-wrap text-xs">
                             <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Personil Tim Lapangan:</span>
                             @foreach($assignedEngineers as $aeng)
@@ -1320,7 +1320,7 @@
                                 S-Curve: Plan vs Actual Cumulative Progress
                             </h4>
                             <span class="text-[11px] font-bold text-slate-500">
-                                Minggu ke-1 s/d {{ $totalWeeks }} ({{ $projectTimelineText }})
+                                Minggu ke-0 s/d {{ $totalWeeks }} ({{ $projectTimelineText }})
                             </span>
                         </div>
                         <div class="w-full" style="height: 380px;">
@@ -2784,7 +2784,7 @@
                 sCurveChartInstance.data.datasets[1].data = sCurveActual;
                 sCurveChartInstance.data.datasets[0].pointRadius = 3.5;
                 sCurveChartInstance.data.datasets[1].pointRadius = 5.0;
-                sCurveChartInstance.options.scales.x.title.text = 'Minggu Pelaksanaan (Minggu ke-1 s/d {{ $totalWeeks }})';
+                sCurveChartInstance.options.scales.x.title.text = 'Minggu Pelaksanaan (Minggu ke-0 s/d {{ $totalWeeks }})';
                 sCurveChartInstance.resize();
                 sCurveChartInstance.update();
             };
@@ -2828,7 +2828,7 @@
                 }
 
                 let accum = 0.0;
-                let chartActualData = [];
+                let chartActualData = [0.0]; // Week 0 selalu dimulai dari titik nol (0.0%)
 
                 for (let w = 1; w <= totalWeeksCount; w++) {
                     accum = Math.round((accum + weeklyActual[w]) * 10) / 10;

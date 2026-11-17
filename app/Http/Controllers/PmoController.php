@@ -1126,11 +1126,34 @@ class PmoController extends Controller
         // Data Progres Mingguan yang tersimpan (Catatan / override)
         $savedWeekly = $handoverData['s_curve_weekly'] ?? [];
 
-        // Generate Data Mingguan Lengkap (untuk Tabel & Grafik Kurva S - Jalannya tetap mulai dari Minggu 1)
+        // Generate Data Mingguan Lengkap (untuk Tabel & Grafik Kurva S - Termasuk Week 0 Baseline 0%)
         $weeklyRecords = [];
         $sCurveLabels = [];
         $sCurvePlan = [];
         $sCurveActual = [];
+
+        // Week 0: Baseline titik awal (0, 0%)
+        $weeklyRecords[] = [
+            'week'           => 0,
+            'date_range'     => $wbsStartDate->format('d M Y') . ' (Baseline)',
+            'plan_weekly'    => 0.0,
+            'plan_percent'   => 0.0,
+            'actual_weekly'  => 0.0,
+            'actual_percent' => 0.0,
+            'variance'       => 0.0,
+            'chart_helper'   => 0.0,
+            'is_current'     => false,
+            'is_passed'      => true,
+            'is_future'      => false,
+            'is_recorded'    => true,
+            'notes'          => 'Baseline Start Proyek (Titik Nol)',
+            'tasks_in_week'  => [],
+            'tasks_count'    => 0,
+        ];
+
+        $sCurveLabels[] = 0;
+        $sCurvePlan[] = 0.0;
+        $sCurveActual[] = 0.0;
 
         for ($w = 1; $w <= $totalWeeks; $w++) {
             $wStart = $wbsStartDate->copy()->addWeeks($w - 1)->startOfDay();
