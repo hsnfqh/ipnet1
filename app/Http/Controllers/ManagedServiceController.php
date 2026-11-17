@@ -602,9 +602,12 @@ class ManagedServiceController extends Controller
         // =========================================================================
         $calendarEvents = collect([]);
 
-        // A. Data Schedule Engineer & Lapangan
+        // A. Data Schedule Engineer & Lapangan (Non-PM agar tidak dobel dengan siklus PM di bagian B)
         if (Schema::hasTable('schedules')) {
             $schedulesQuery = Schedule::with(['project', 'engineer', 'engineers'])
+                ->where('category', '!=', 'Preventive Maintenance')
+                ->where('title', 'not like', 'PM %')
+                ->where('title', 'not like', 'PM:%')
                 ->whereDate('date', '>=', now()->subMonths(3)->startOfMonth())
                 ->whereDate('date', '<=', now()->addMonths(6)->endOfMonth())
                 ->get();
@@ -650,9 +653,15 @@ class ManagedServiceController extends Controller
                 $engName = $pmc->assignedEngineer->name ?? ($pmc->picMs->name ?? 'Lead Engineer');
                 $isDone = in_array(strtolower($pmc->activity_status ?? ''), ['completed', 'solved']) || !empty($pmc->actual_date);
 
+                $rawLabel = trim((string)($pmc->cycle_label ?: 'PM ' . $pmc->cycle_number));
+                $cleanLabel = preg_replace('/^(PM\s+)+/i', 'PM ', $rawLabel);
+                if (stripos($cleanLabel, 'PM') !== 0) {
+                    $cleanLabel = 'PM ' . $cleanLabel;
+                }
+
                 $calendarEvents->push([
                     'id'          => 'pm-' . $pmc->id,
-                    'title'       => ($pmc->cycle_label ?: 'Siklus #' . $pmc->cycle_number) . ': ' . $projectName,
+                    'title'       => $cleanLabel . ': ' . $projectName,
                     'project'     => $projectName,
                     'client'      => $clientName,
                     'engineer'    => $engName,

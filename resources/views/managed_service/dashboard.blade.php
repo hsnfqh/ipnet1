@@ -1040,14 +1040,25 @@
                 this.currentDate = new Date();
             },
 
+            get deduplicatedEvents() {
+                const seen = new Set();
+                return this.events.filter(e => {
+                    const normTitle = (e.title || '').trim().toLowerCase().replace(/^(pm\s+)+/i, 'pm ');
+                    const key = normTitle + '|' + e.date;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+            },
+
             countEvents(type) {
-                if (type === 'all') return this.events.length;
-                return this.events.filter(e => e.type === type).length;
+                if (type === 'all') return this.deduplicatedEvents.length;
+                return this.deduplicatedEvents.filter(e => e.type === type).length;
             },
 
             get filteredEvents() {
-                if (this.filterType === 'all') return this.events;
-                return this.events.filter(e => e.type === this.filterType);
+                if (this.filterType === 'all') return this.deduplicatedEvents;
+                return this.deduplicatedEvents.filter(e => e.type === this.filterType);
             },
 
             get calendarDays() {
