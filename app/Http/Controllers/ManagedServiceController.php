@@ -1635,10 +1635,22 @@ class ManagedServiceController extends Controller
                 $slaCompliancePercent = $closedT > 0 ? round(($slaMetTicketsCount / $closedT) * 100, 1) : 100.0;
                 $slaComplianceScores[] = $slaCompliancePercent;
 
+                // Menghitung status kesehatan layanan (Normal, Preventive, Corrective)
+                $hasActiveCm = $activeT > 0;
+                $hasPmSoon = $pDone < $pTotal;
+                $healthStatus = 'Normal';
+                if ($hasActiveCm) {
+                    $healthStatus = 'Corrective';
+                } elseif ($hasPmSoon) {
+                    $healthStatus = 'Preventive';
+                }
+
                 $projectRows[] = [
                     'project' => $p,
                     'total_cycles' => $pTotal,
                     'completed_cycles' => $pDone,
+                    'pm_total' => $pTotal,
+                    'pm_completed' => $pDone,
                     'pm_percent' => $pmPercent,
                     'cm_quota' => $cmQuota,
                     'total_tickets' => $totalTickets,
@@ -1646,13 +1658,20 @@ class ManagedServiceController extends Controller
                     'closed_tickets' => $closedT,
                     'remaining_quota' => $remainingQuota,
                     'target_sla' => $targetSla,
+                    'sla_score' => $slaCompliancePercent,
                     'sla_compliance' => $slaCompliancePercent,
+                    'health' => $healthStatus,
                 ];
             }
 
             $avgSlaTarget = !empty($slaTargetScores) ? round(array_sum($slaTargetScores) / count($slaTargetScores), 2) : 99.50;
             $avgSlaCompliance = !empty($slaComplianceScores) ? round(array_sum($slaComplianceScores) / count($slaComplianceScores), 1) : 100.0;
             $portfolioPmProgress = $totalPmCycles > 0 ? round(($totalPmCompleted / $totalPmCycles) * 100) : 0;
+            $totalTicketsAll = $totalActiveTickets + $totalClosedTickets;
+
+            $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
+            $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
+            $docNumber = 'MS-PORT/' . now()->format('Y') . '/' . $romanMonth . '/' . now()->format('dHi');
 
             $logoPath = public_path('images/ipnet1.png');
             if (!file_exists($logoPath)) {
@@ -1662,17 +1681,22 @@ class ManagedServiceController extends Controller
 
             $pdf = Pdf::loadView('managed_service.exports.portfolio_pdf', [
                 'projects' => $projectRows,
+                'portfolioData' => $projectRows,
                 'totalProjectsCount' => $totalProjectsCount,
                 'totalPmCompleted' => $totalPmCompleted,
                 'totalPmCycles' => $totalPmCycles,
                 'portfolioPmProgress' => $portfolioPmProgress,
+                'pmProgressPercent' => $portfolioPmProgress,
                 'totalActiveTickets' => $totalActiveTickets,
                 'totalClosedTickets' => $totalClosedTickets,
+                'totalTicketsAll' => $totalTicketsAll,
+                'avgSla' => $avgSlaCompliance,
                 'avgSlaTarget' => $avgSlaTarget,
                 'avgSlaCompliance' => $avgSlaCompliance,
                 'logoBase64' => $logoBase64,
-                'printedBy' => auth()->user()->name ?? 'Administrator',
-                'printedAt' => now()->format('d/m/Y H:i'),
+                'printedBy' => auth()->user()->name ?? 'Administrator Managed Service',
+                'printedAt' => now()->translatedFormat('d F Y H:i') . ' WIB',
+                'docNumber' => $docNumber,
                 'filterTier' => $request->input('tier', 'all'),
                 'filterSearch' => $request->input('search', ''),
             ]);

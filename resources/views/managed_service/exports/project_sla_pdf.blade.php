@@ -1,522 +1,377 @@
+@php
+    $targetSla = (float) ($targetSla ?? ($project->sla_target_percentage ?: 99.50));
+    $slaCompliancePercent = (float) ($slaCompliancePercent ?? ($slaUptimeScore ?? 100.0));
+    $isSlaMet = isset($isSlaMet) ? (bool) $isSlaMet : ($slaCompliancePercent >= 90.0);
+    $totalCycles = (int) ($totalCycles ?? ($project->pm_total_cycles ?: 12));
+    $completedCycles = (int) ($completedCycles ?? 0);
+    $pmPercent = (int) ($pmPercent ?? ($totalCycles > 0 ? round(($completedCycles / $totalCycles) * 100) : 0));
+    $totalTickets = (int) ($totalTickets ?? 0);
+    $activeCount = (int) ($activeCount ?? ($activeTickets ?? 0));
+    $closedCount = (int) ($closedCount ?? ($closedTickets ?? 0));
+    $cmQuota = (int) ($cmQuota ?? ($project->cm_quota ?: 18));
+    $remainingQuota = (int) ($remainingQuota ?? max(0, $cmQuota - $totalTickets));
+    $cycles = $cycles ?? ($project->pmCycles ?: collect([]));
+    $tickets = $tickets ?? ($project->managedServiceTickets ?: collect([]));
+    $coveredAssets = $coveredAssets ?? collect([]);
+    $docNumber = $docNumber ?? ('MS-SLA/' . date('Y/m/') . str_pad($project->id ?? 1, 4, '0', STR_PAD_LEFT));
+    $printedAt = $printedAt ?? (date('d F Y H:i') . ' WIB');
+    $printedBy = $printedBy ?? (auth()->user()->name ?? 'Administrator Managed Service');
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <title>Laporan Kinerja SLA &amp; Operasional - {{ $project->name }} - PT IP Network Solusindo</title>
     <style>
-        /* ── Konfigurasi Halaman & Margin DomPDF ── */
+        /* ── Konfigurasi Halaman & Margin DomPDF Sesuai Standar Activity Log ── */
         @page {
-            margin-top: 30mm;
-            margin-bottom: 20mm;
-            margin-left: 14mm;
-            margin-right: 14mm;
+            margin: 9mm 12mm 9mm 12mm;
             size: a4 portrait;
         }
         * {
             box-sizing: border-box;
         }
         body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 7.5pt;
-            color: #0F172A;
-            line-height: 1.35;
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 7.2pt;
+            color: #000000;
+            line-height: 1.28;
             margin: 0;
             padding: 0;
         }
 
-        /* ── Fixed Running Header & Footer di Setiap Halaman ── */
-        header.page-header {
-            position: fixed;
-            top: -24mm;
-            left: 0;
-            right: 0;
-            height: 18mm;
-            border-bottom: 1.5px solid #8F0A0D;
-            padding-bottom: 3px;
-        }
-        footer.page-footer {
-            position: fixed;
-            bottom: -14mm;
-            left: 0;
-            right: 0;
-            height: 10mm;
-            border-top: 1px solid #CBD5E1;
-            padding-top: 3px;
-            font-size: 6.8pt;
-            color: #64748B;
-        }
-
-        .header-table {
+        /* ── Header Dokumen Formal ── */
+        .doc-header-table {
             width: 100%;
             border-collapse: collapse;
             border: none;
+            margin-top: 0;
+            margin-bottom: 3px;
         }
-        .header-table td {
+        .doc-header-table td {
             border: none;
             padding: 0;
             vertical-align: middle;
         }
-        .header-logo {
-            max-width: 130px;
-            max-height: 38px;
+        .doc-logo {
+            max-width: 95px;
+            max-height: 40px;
+            display: block;
         }
-        .header-company-name {
-            font-size: 9.5pt;
+        .doc-title {
+            font-size: 12pt;
             font-weight: bold;
-            color: #8F0A0D;
+            color: #000000;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .header-company-sub {
-            font-size: 6.5pt;
-            color: #475569;
-            line-height: 1.25;
-        }
-        .header-doc-meta {
-            text-align: right;
-            font-size: 6.8pt;
-            color: #334155;
-            line-height: 1.3;
-        }
-
-        .footer-table {
-            width: 100%;
-            border-collapse: collapse;
-            border: none;
-        }
-        .footer-table td {
-            border: none;
-            padding: 0;
-            vertical-align: middle;
-        }
-
-        /* ── Kop Surat Resmi Halaman Pertama ── */
-        .official-letterhead {
-            margin-top: -3mm;
-            margin-bottom: 10px;
-            border-bottom: 2.5px solid #8F0A0D;
-            padding-bottom: 8px;
-            position: relative;
-        }
-        .letterhead-table {
-            width: 100%;
-            border-collapse: collapse;
-            border: none;
-        }
-        .letterhead-table td {
-            border: none;
-            padding: 0;
-            vertical-align: middle;
-        }
-        .letterhead-logo {
-            max-width: 155px;
-            max-height: 48px;
-        }
-        .corp-name {
-            font-size: 13pt;
-            font-weight: 800;
-            color: #8F0A0D;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            line-height: 1.1;
-        }
-        .corp-tagline {
-            font-size: 7.5pt;
-            font-weight: bold;
-            color: #1E293B;
-            margin-top: 2px;
             letter-spacing: 0.3px;
+            text-align: center;
+            line-height: 1.15;
         }
-        .corp-contact {
-            font-size: 6.8pt;
-            color: #475569;
-            margin-top: 2px;
-            line-height: 1.3;
-        }
-        .corp-sub-bar {
-            height: 1px;
-            background-color: #1E293B;
-            margin-top: 2px;
-        }
-
-        /* ── Box Dokumen Resmi & Judul Berkas ── */
-        .doc-official-box {
-            background-color: #F8FAFC;
-            border: 1px solid #CBD5E1;
-            border-left: 4.5px solid #8F0A0D;
-            padding: 8px 12px;
-            margin-bottom: 12px;
-            border-radius: 4px;
-        }
-        .doc-title-main {
-            font-size: 11pt;
-            font-weight: 800;
-            color: #0F172A;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            margin: 0;
-        }
-        .doc-title-sub {
-            font-size: 7.2pt;
-            color: #475569;
-            margin-top: 3px;
-            line-height: 1.4;
-        }
-
-        /* ── Section Titles ── */
-        .section-header {
-            font-size: 8.5pt;
+        .doc-sub-corp {
+            font-size: 7pt;
             font-weight: bold;
-            color: #0F172A;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            margin-top: 12px;
-            margin-bottom: 5px;
-            padding-bottom: 2px;
-            border-bottom: 1.5px solid #E2E8F0;
-        }
-        .section-num {
             color: #8F0A0D;
-            font-weight: 800;
-            margin-right: 3px;
-        }
-
-        /* ── Tabel Data & Formulir ── */
-        .table-form {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-            border: 1px solid #CBD5E1;
-        }
-        .table-form td {
-            font-size: 7.2pt;
-            padding: 4.5px 7px;
-            border: 1px solid #CBD5E1;
-            vertical-align: middle;
-        }
-        .lbl-col {
-            background-color: #F8FAFC;
-            font-weight: bold;
-            color: #475569;
-            width: 18%;
-        }
-        .val-col {
-            color: #0F172A;
-            width: 32%;
-        }
-
-        /* ── KPI Metrik Table ── */
-        .kpi-grid-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 12px;
-        }
-        .kpi-grid-table td {
-            width: 25%;
-            padding: 7px 9px;
-            background-color: #FFFFFF;
-            border: 1px solid #CBD5E1;
-            vertical-align: top;
-        }
-        .kpi-card-lbl {
-            font-size: 6.8pt;
-            font-weight: bold;
-            color: #64748B;
             text-transform: uppercase;
-            margin-bottom: 2px;
+            letter-spacing: 0.4px;
+            text-align: center;
+            margin-top: 2px;
         }
-        .kpi-card-val {
-            font-size: 13pt;
-            font-weight: 800;
-            color: #0F172A;
-            line-height: 1.1;
-        }
-        .kpi-card-sub {
+        .doc-intro {
             font-size: 6.8pt;
-            color: #64748B;
+            color: #1E293B;
             margin-top: 3px;
+            margin-bottom: 4px;
+            line-height: 1.25;
+            text-align: justify;
+        }
+        .doc-header-line {
+            width: 100%;
+            height: 0;
+            border-bottom: 1.5px solid #000000;
+            margin-top: 3px;
+            margin-bottom: 6px;
+            clear: both;
         }
 
-        /* ── Data Tables (PM, CM, Assets) ── */
-        .grid-data-table {
+        /* ── Judul Section Formal ── */
+        .section-title {
+            font-size: 7.8pt;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            margin-top: 6px;
+            margin-bottom: 2.5px;
+            letter-spacing: 0.2px;
+        }
+
+        /* ── Tabel Standar Resmi (Sesuai Activity Log) ── */
+        .report-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 12px;
+            margin-bottom: 4px;
+            table-layout: fixed;
             page-break-inside: auto;
         }
-        .grid-data-table th {
-            background-color: #1E293B;
-            color: #FFFFFF;
-            font-size: 6.8pt;
+        .report-table th {
+            background-color: #EBF3FB;
+            color: #000000;
             font-weight: bold;
+            font-size: 6.8pt;
+            padding: 3px 3.5px;
+            border: 1px solid #000000;
+            text-align: center;
+            vertical-align: middle;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
-            padding: 5px 6px;
-            border: 1px solid #0F172A;
-            text-align: left;
-            vertical-align: middle;
         }
-        .grid-data-table td {
-            font-size: 7pt;
-            padding: 4.5px 6px;
-            border: 1px solid #E2E8F0;
+        .report-table td {
+            font-size: 6.8pt;
+            padding: 2.5px 4px;
+            border: 1px solid #000000;
             vertical-align: middle;
+            color: #000000;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.22;
         }
-        .grid-data-table tr:nth-child(even) td {
+        .report-table td.label-cell {
+            font-weight: bold;
             background-color: #F8FAFC;
         }
+        .text-center { text-align: center; }
+        .text-left   { text-align: left; }
+        .text-right  { text-align: right; }
+        .align-top   { vertical-align: top !important; }
+        .report-table tr {
+            page-break-inside: avoid;
+        }
 
-        /* ── Badges ── */
-        .badge {
+        /* ── Checkbox / Badge Kotak Formal ── */
+        .badge-box {
             display: inline-block;
-            padding: 1.5px 5px;
-            border-radius: 3px;
-            font-size: 6.5pt;
+            font-size: 6.2pt;
             font-weight: bold;
+            padding: 1px 4px;
+            border: 1px solid #000000;
+            background-color: #FFFFFF;
             text-align: center;
         }
-        .badge-platinum { background-color: #F3E8FF; color: #6B21A8; border: 1px solid #D8B4FE; }
-        .badge-gold     { background-color: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
-        .badge-silver   { background-color: #F1F5F9; color: #334155; border: 1px solid #CBD5E1; }
-        .badge-bronze   { background-color: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; }
-        
-        .badge-success  { background-color: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
-        .badge-warning  { background-color: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
-        .badge-danger   { background-color: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
-
-        /* ── Rekomendasi & Catatan Box ── */
-        .notes-box {
-            background-color: #F8FAFC;
-            border: 1px solid #E2E8F0;
-            border-left: 3px solid #0284C7;
-            padding: 7px 10px;
-            margin-bottom: 12px;
-            font-size: 7pt;
-            line-height: 1.45;
-            color: #334155;
+        .badge-box-success {
+            background-color: #E6F4EA;
+            border: 1px solid #137333;
+            color: #137333;
+        }
+        .badge-box-warning {
+            background-color: #FEF7E0;
+            border: 1px solid #B06000;
+            color: #B06000;
+        }
+        .badge-box-danger {
+            background-color: #FCE8E6;
+            border: 1px solid #C5221F;
+            color: #C5221F;
         }
 
-        /* ── Lembar Pengesahan Formal (3 Pihak) ── */
-        .signature-section {
+        /* ── Kotak Pengesahan / Tanda Tangan Formal ── */
+        .sig-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000000;
+            margin-top: 6px;
+            page-break-inside: avoid;
+        }
+        .sig-table th {
+            background-color: #EBF3FB;
+            font-size: 6.8pt;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            padding: 3px;
+            border: 1px solid #000000;
+            text-align: center;
+            width: 33.33%;
+        }
+        .sig-table td {
+            border: 1px solid #000000;
+            padding: 4px;
+            text-align: center;
+            vertical-align: top;
+            width: 33.33%;
+        }
+        .sig-space {
+            height: 48px;
+        }
+        .sig-name {
+            font-weight: bold;
+            text-decoration: underline;
+            font-size: 7.2pt;
+            color: #000000;
+        }
+        .sig-role {
+            font-size: 6.2pt;
+            color: #334155;
+            margin-top: 1px;
+            line-height: 1.2;
+        }
+
+        /* ── Footer Dokumen ── */
+        .doc-footer-table {
             width: 100%;
             border-collapse: collapse;
             border: none;
-            margin-top: 14px;
-            page-break-inside: avoid;
+            margin-top: 8px;
+            padding-top: 3px;
+            border-top: 1px solid #000000;
         }
-        .signature-section td {
+        .doc-footer-table td {
             border: none;
-            width: 33.33%;
-            vertical-align: top;
-            text-align: center;
-            padding: 0 10px;
-        }
-        .sign-title {
-            font-size: 7pt;
-            font-weight: bold;
-            color: #475569;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 44px;
-        }
-        .sign-line {
-            font-size: 8pt;
-            font-weight: bold;
-            color: #0F172A;
-            border-bottom: 1.2px solid #0F172A;
-            padding-bottom: 2px;
-            display: inline-block;
-            min-width: 145px;
-        }
-        .sign-dept {
-            font-size: 6.8pt;
-            color: #64748B;
-            margin-top: 2px;
-            line-height: 1.25;
+            padding: 0;
+            vertical-align: middle;
+            font-size: 6pt;
+            color: #000000;
+            line-height: 1.2;
         }
     </style>
 </head>
 <body>
 
-    {{-- FIXED RUNNING HEADER (MUNCUL DI SETIAP HALAMAN) --}}
-    <header class="page-header">
-        <table class="header-table">
-            <tr>
-                <td style="width: 60%;">
-                    <div class="header-company-name">PT IP NETWORK SOLUSINDO</div>
-                    <div class="header-company-sub">Managed Service &amp; Network Operations Division • SLA Operational Document</div>
-                </td>
-                <td style="width: 40%;" class="header-doc-meta">
-                    <div><strong>No. Dok:</strong> {{ $docNumber }}</div>
-                    <div><strong>Project ID:</strong> #{{ $project->id }} • {{ $printedAt }}</div>
-                </td>
-            </tr>
-        </table>
-    </header>
-
-    {{-- FIXED RUNNING FOOTER (MUNCUL DI SETIAP HALAMAN) --}}
-    <footer class="page-footer">
-        <table class="footer-table">
-            <tr>
-                <td style="width: 70%;">
-                    PT IP Network Solusindo • Dokumen Resmi Hasil Cetak Sistem ERP IPNET • Rahasia &amp; Terbatas (Confidential)
-                </td>
-                <td style="width: 30%; text-align: right;">
-                    {{-- DomPDF Script Penomoran Halaman Otomatis --}}
-                    Dicetak: {{ $printedAt }}
-                </td>
-            </tr>
-        </table>
-    </footer>
-
-    {{-- SCRIPT DOMPDF CANVAS UNTUK PENOMORAN HALAMAN PERSISI (HALAMAN X DARI Y) --}}
+    {{-- SCRIPT DOMPDF CANVAS PENOMORAN HALAMAN PERSISI (HALAMAN X DARI Y) --}}
     <script type="text/php">
         if (isset($pdf)) {
             $text = "Halaman " . $PAGE_NUM . " dari " . $PAGE_COUNT;
-            $font = $fontMetrics->get_font("Helvetica", "bold");
-            $size = 6.8;
-            $color = array(0.4, 0.45, 0.5);
+            $font = $fontMetrics->get_font("Helvetica", "normal");
+            $size = 6.2;
+            $color = array(0.1, 0.1, 0.1);
             $w = $fontMetrics->getTextWidth($text, $font, $size);
-            $x = 595.28 - 14 * 2.83465 - $w;
-            $y = 841.89 - 11 * 2.83465;
+            $x = 595.28 - 12 * 2.83465 - $w;
+            $y = 841.89 - 6 * 2.83465;
             $pdf->page_text($x, $y, $text, $font, $size, $color);
         }
     </script>
 
-    {{-- KOP SURAT RESMI PERUSAHAAN (HALAMAN PERTAMA) --}}
-    <div class="official-letterhead">
-        <table class="letterhead-table">
-            <tr>
-                <td style="width: 25%; text-align: left;">
-                    @if(!empty($logoBase64))
-                        <img src="{{ $logoBase64 }}" class="letterhead-logo" alt="IPNET Logo">
-                    @else
-                        <div class="corp-name">IPNET</div>
-                    @endif
-                </td>
-                <td style="width: 75%; text-align: left; padding-left: 12px;">
-                    <div class="corp-name">PT IP NETWORK SOLUSINDO</div>
-                    <div class="corp-tagline">Network Solutions, IT Managed Services &amp; Telecommunication Infrastructure</div>
-                    <div class="corp-contact">
-                        Grand Slipi Tower Lt. 9, Jl. Letjen S. Parman Kav. 22-24, Slipi, Palmerah, Jakarta Barat 11480<br>
-                        Telepon: (021) 2986-6190 • E-mail: support@ipnetsolusindo.com • Website: www.ipnetsolusindo.com
-                    </div>
-                </td>
-            </tr>
-        </table>
-        <div class="corp-sub-bar"></div>
-    </div>
-
-    {{-- BOX JUDUL BERKAS / SURAT OPERASIONAL --}}
-    <div class="doc-official-box">
-        <table style="width: 100%; border-collapse: collapse; border: none;">
-            <tr>
-                <td style="border: none; padding: 0;">
-                    <h1 class="doc-title-main">Laporan Kinerja SLA &amp; Operasional Layanan Managed Service</h1>
-                    <div class="doc-title-sub">
-                        Dokumen resmi rekapitulasi performa pemenuhan Service Level Agreement (SLA), siklus kunjungan Preventive Maintenance (PM), histori tiket penanganan Corrective Maintenance (CM), dan daftar inventaris aset jaringan klien.
-                    </div>
-                </td>
-                <td style="border: none; padding: 0; width: 140px; text-align: right; vertical-align: top;">
-                    <div style="font-size: 7pt; font-weight: bold; color: #8F0A0D; text-transform: uppercase;">Berkas Resmi Operasional</div>
-                    <div style="font-size: 6.8pt; color: #475569; margin-top: 2px;">Klasifikasi: <strong>CONFIDENTIAL</strong></div>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    {{-- SECTION 1: IDENTITAS PROYEK & CUSTOMER --}}
-    <div class="section-header"><span class="section-num">[1]</span> Identitas Kontrak &amp; Informasi Customer</div>
-    <table class="table-form">
+    {{-- HEADER DOKUMEN RESMI (LOGO + JUDUL FORMAL) --}}
+    <table class="doc-header-table">
         <tr>
-            <td class="lbl-col">Nama Proyek</td>
-            <td class="val-col"><strong>{{ $project->name }}</strong></td>
-            <td class="lbl-col">Customer / Klien</td>
-            <td class="val-col"><strong>{{ $project->client ?: '-' }}</strong></td>
+            <td style="width: 16%; text-align: left; vertical-align: middle;">
+                @if(!empty($logoBase64))
+                    <img src="{{ $logoBase64 }}" class="doc-logo" alt="IPNET Logo">
+                @else
+                    <div style="font-size: 14pt; font-weight: bold; color: #8F0A0D;">IPNET</div>
+                @endif
+            </td>
+            <td style="width: 60%; text-align: center; vertical-align: middle;">
+                <div class="doc-title">LAPORAN KINERJA SLA &amp; OPERASIONAL MANAGED SERVICE</div>
+                <div class="doc-sub-corp">PT IP NETWORK SOLUSINDO – MANAGED SERVICE &amp; NETWORK OPERATIONS DIVISION</div>
+            </td>
+            <td style="width: 24%; text-align: right; vertical-align: middle; font-size: 6.5pt; line-height: 1.3;">
+                <div><strong>No. Laporan:</strong> {{ $docNumber }}</div>
+                <div><strong>Tanggal:</strong> {{ $printedAt }}</div>
+                <div><strong>PIC:</strong> {{ $printedBy }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="doc-intro">
+        Dokumen resmi pemantauan performa pemenuhan Service Level Agreement (SLA), siklus kunjungan berkala Preventive Maintenance (PM), histori tiket penanganan gangguan Corrective Maintenance (CM), serta status operasional aset perangkat jaringan klien.
+    </div>
+    <div class="doc-header-line"></div>
+
+    {{-- A. IDENTITAS KONTRAK & CUSTOMER --}}
+    <div class="section-title">A. IDENTITAS KONTRAK &amp; INFORMASI CUSTOMER</div>
+    <table class="report-table">
+        <tr>
+            <td class="label-cell" style="width: 18%;">Nama Proyek</td>
+            <td style="width: 32%;"><strong>{{ $project->name }}</strong></td>
+            <td class="label-cell" style="width: 18%;">Customer / Klien</td>
+            <td style="width: 32%;"><strong>{{ $project->client ?: '-' }}</strong></td>
         </tr>
         <tr>
-            <td class="lbl-col">Tier SLA Kontrak</td>
-            <td class="val-col">
-                @php
-                    $tierLower = strtolower($project->sla_tier ?? 'gold');
-                    $tierBadge = match($tierLower) {
-                        'platinum' => 'badge-platinum',
-                        'silver'   => 'badge-silver',
-                        'bronze'   => 'badge-bronze',
-                        default    => 'badge-gold',
-                    };
-                @endphp
-                <span class="badge {{ $tierBadge }}">{{ strtoupper($project->sla_tier ?: 'Gold') }} TIER</span>
-                <span style="font-size: 6.8pt; color: #64748B; margin-left: 4px;">({{ $project->pm_frequency_label ?: 'Rutin Berkala' }})</span>
+            <td class="label-cell">Tier SLA Kontrak</td>
+            <td>
+                <strong>{{ strtoupper($project->sla_tier ?: 'Gold') }} TIER</strong> 
+                <span style="font-size: 6pt; color: #475569;">({{ $project->pm_frequency_label ?: 'Rutin Berkala' }})</span>
             </td>
-            <td class="lbl-col">Periode Layanan</td>
-            <td class="val-col">
+            <td class="label-cell">Periode Layanan</td>
+            <td>
                 {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d/m/Y') : '-' }} s/d 
                 {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d/m/Y') : 'Kontrak Berjalan' }}
             </td>
         </tr>
         <tr>
-            <td class="lbl-col">Target Availability</td>
-            <td class="val-col"><strong>{{ number_format($targetSla, 2) }}%</strong></td>
-            <td class="lbl-col">Target MTTR &amp; Coverage</td>
-            <td class="val-col">{{ $project->mttr_hours ?: 4 }} Jam Respon • Coverage {{ $project->sla_coverage_hours ?: '24x7 Onsite' }}</td>
+            <td class="label-cell">Target Availability</td>
+            <td><strong>{{ number_format($targetSla, 2) }}%</strong></td>
+            <td class="label-cell">Target MTTR &amp; Coverage</td>
+            <td>{{ $project->mttr_hours ?: 4 }} Jam Respon • Coverage {{ $project->sla_coverage_hours ?: '24x7 Onsite' }}</td>
         </tr>
         <tr>
-            <td class="lbl-col">Account Manager / Sales</td>
-            <td class="val-col">{{ $project->sales_name ?: ($project->creator->name ?? 'Tim Komersial IPNET') }}</td>
-            <td class="lbl-col">Lokasi Site / DC Utama</td>
-            <td class="val-col">{{ $project->location ?: 'Site Customer / Kantor Pusat' }}</td>
+            <td class="label-cell">Account Manager / Sales</td>
+            <td>{{ $project->sales_name ?: ($project->creator->name ?? 'Tim Komersial IPNET') }}</td>
+            <td class="label-cell">Lokasi Site / DC Utama</td>
+            <td>{{ $project->location ?: 'Site Customer / Kantor Pusat' }}</td>
         </tr>
     </table>
 
-    {{-- SECTION 2: RINGKASAN EKSEKUTIF KINERJA & SLA --}}
-    <div class="section-header"><span class="section-num">[2]</span> Ringkasan Eksekutif Pencapaian Layanan (KPI Summary)</div>
-    <table class="kpi-grid-table">
-        <tr>
-            <td>
-                <div class="kpi-card-lbl">Pencapaian SLA Availability</div>
-                <div class="kpi-card-val" style="color: {{ $isSlaMet ? '#059669' : '#DC2626' }};">
-                    {{ number_format($slaCompliancePercent, 1) }}%
-                </div>
-                <div class="kpi-card-sub">
-                    Target: <strong>{{ number_format($targetSla, 2) }}%</strong> • Status: 
-                    <strong style="color: {{ $isSlaMet ? '#059669' : '#DC2626' }};">{{ $isSlaMet ? 'TERPENUHI (NORMAL)' : 'PERHATIAN (BREACH)' }}</strong>
-                </div>
-            </td>
-            <td>
-                <div class="kpi-card-lbl">Siklus Kunjungan PM</div>
-                <div class="kpi-card-val" style="color: #059669;">{{ $completedCycles }} / {{ $totalCycles }}</div>
-                <div class="kpi-card-sub">Realisasi: <strong>{{ $pmPercent }}%</strong> Terlaksana Sesuai Jadwal</div>
-            </td>
-            <td>
-                <div class="kpi-card-lbl">Tiket Insiden / Gangguan (CM)</div>
-                <div class="kpi-card-val" style="color: {{ $activeCount > 0 ? '#D97706' : '#059669' }};">
-                    {{ $activeCount }} <span style="font-size: 8pt; font-weight: normal; color: #64748B;">Aktif / {{ $closedCount }} Solved</span>
-                </div>
-                <div class="kpi-card-sub">Total {{ $totalTickets }} Tiket Gangguan Dilaporkan</div>
-            </td>
-            <td>
-                <div class="kpi-card-lbl">Sisa Kuota Tiket CM</div>
-                <div class="kpi-card-val" style="color: {{ $remainingQuota <= 2 ? '#DC2626' : '#1E293B' }};">
-                    {{ $cmQuota >= 999 ? 'Unlimited' : $remainingQuota }}
-                </div>
-                <div class="kpi-card-sub">Alokasi Kontrak: {{ $cmQuota >= 999 ? 'Unlimited' : $cmQuota }} Tiket/Tahun</div>
-            </td>
-        </tr>
-    </table>
-
-    {{-- SECTION 3: TABEL SIKLUS PREVENTIVE MAINTENANCE (PM) --}}
-    <div class="section-header"><span class="section-num">[3]</span> Siklus Pemeliharaan Berkala / Preventive Maintenance (PM)</div>
-    <table class="grid-data-table">
+    {{-- B. RINGKASAN EKSEKUTIF PENCAPAIAN LAYANAN & SLA --}}
+    <div class="section-title">B. RINGKASAN EKSEKUTIF PENCAPAIAN LAYANAN &amp; KEPATUHAN SLA</div>
+    <table class="report-table">
         <thead>
             <tr>
-                <th style="width: 38px; text-align: center;">Siklus</th>
-                <th style="width: 68px;">Tgl Rencana</th>
-                <th style="width: 68px;">Tgl Realisasi</th>
-                <th style="width: 82px; text-align: center;">Status Kunjungan</th>
-                <th style="width: 78px; text-align: center;">Status BAST / Lap.</th>
-                <th style="width: 105px;">Teknisi / PIC Lapangan</th>
-                <th>Scope Pekerjaan / Catatan Pemeriksaan</th>
+                <th style="width: 25%;">Pencapaian SLA Availability</th>
+                <th style="width: 25%;">Siklus Preventive Maintenance</th>
+                <th style="width: 25%;">Tiket Insiden / Gangguan (CM)</th>
+                <th style="width: 25%;">Alokasi Kuota Tiket CM</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-center" style="padding: 5px;">
+                    <div style="font-size: 13pt; font-weight: bold; color: {{ $isSlaMet ? '#137333' : '#C5221F' }};">
+                        {{ number_format($slaCompliancePercent, 1) }}%
+                    </div>
+                    <div style="font-size: 6.2pt; color: #334155; margin-top: 1px;">
+                        Target: {{ number_format($targetSla, 2) }}% &bull; 
+                        <strong style="color: {{ $isSlaMet ? '#137333' : '#C5221F' }};">{{ $isSlaMet ? 'TERPENUHI' : 'PERHATIAN' }}</strong>
+                    </div>
+                </td>
+                <td class="text-center" style="padding: 5px;">
+                    <div style="font-size: 13pt; font-weight: bold; color: #137333;">
+                        {{ $completedCycles }} / {{ $totalCycles }}
+                    </div>
+                    <div style="font-size: 6.2pt; color: #334155; margin-top: 1px;">
+                        Realisasi Kunjungan: <strong>{{ $pmPercent }}%</strong> Terlaksana
+                    </div>
+                </td>
+                <td class="text-center" style="padding: 5px;">
+                    <div style="font-size: 13pt; font-weight: bold; color: {{ $activeCount > 0 ? '#B06000' : '#137333' }};">
+                        {{ $activeCount }} <span style="font-size: 7.5pt; font-weight: normal;">Aktif</span> / {{ $closedCount }} <span style="font-size: 7.5pt; font-weight: normal;">Solved</span>
+                    </div>
+                    <div style="font-size: 6.2pt; color: #334155; margin-top: 1px;">
+                        Total {{ $totalTickets }} Tiket Gangguan Masuk
+                    </div>
+                </td>
+                <td class="text-center" style="padding: 5px;">
+                    <div style="font-size: 13pt; font-weight: bold; color: #000000;">
+                        {{ $cmQuota >= 999 ? 'Unlimited' : $remainingQuota }}
+                    </div>
+                    <div style="font-size: 6.2pt; color: #334155; margin-top: 1px;">
+                        Alokasi: {{ $cmQuota >= 999 ? 'Unlimited' : $cmQuota }} Tiket/Tahun
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    {{-- C. SIKLUS PREVENTIVE MAINTENANCE (PM) --}}
+    <div class="section-title">C. SIKLUS PEMELIHARAAN PREVENTIF / PREVENTIVE MAINTENANCE (PM)</div>
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th style="width: 32px;">Siklus</th>
+                <th style="width: 62px;">Tgl Rencana</th>
+                <th style="width: 62px;">Tgl Realisasi</th>
+                <th style="width: 78px;">Status Kunjungan</th>
+                <th style="width: 72px;">Status Laporan</th>
+                <th style="width: 95px;">Teknisi / PIC IPNET</th>
+                <th>Scope Pekerjaan &amp; Catatan Pemeriksaan</th>
             </tr>
         </thead>
         <tbody>
@@ -527,37 +382,27 @@
                     $engName = $c->assignedEngineer->name ?? ($c->leadEngineer->name ?? ($c->picMs->name ?? 'Tim Engineer IPNET'));
                 @endphp
                 <tr>
-                    <td style="text-align: center; font-weight: bold;">
-                        #{{ $c->cycle_number }}
-                    </td>
-                    <td>
-                        {{ $c->scheduled_date ? \Carbon\Carbon::parse($c->scheduled_date)->format('d/m/Y') : '-' }}
-                    </td>
-                    <td>
-                        {{ $c->actual_date ? \Carbon\Carbon::parse($c->actual_date)->format('d/m/Y') : ($isDone ? 'Selesai' : 'Belum') }}
-                    </td>
-                    <td style="text-align: center;">
+                    <td class="text-center"><strong>#{{ $c->cycle_number }}</strong></td>
+                    <td class="text-center">{{ $c->scheduled_date ? \Carbon\Carbon::parse($c->scheduled_date)->format('d/m/Y') : '-' }}</td>
+                    <td class="text-center">{{ $c->actual_date ? \Carbon\Carbon::parse($c->actual_date)->format('d/m/Y') : ($isDone ? 'Selesai' : 'Belum') }}</td>
+                    <td class="text-center">
                         @if($isDone)
-                            <span class="badge badge-success">Completed</span>
+                            <span class="badge-box badge-box-success">COMPLETED</span>
                         @elseif($actStatus === 'in_progress')
-                            <span class="badge badge-warning">In Progress</span>
+                            <span class="badge-box badge-box-warning">IN PROGRESS</span>
                         @else
-                            <span class="badge badge-silver">Scheduled</span>
+                            <span class="badge-box">SCHEDULED</span>
                         @endif
                     </td>
-                    <td style="text-align: center;">
-                        <span class="badge badge-silver">{{ ucfirst($c->report_status ?: 'Draft') }}</span>
+                    <td class="text-center">
+                        <span class="badge-box">{{ strtoupper($c->report_status ?: 'Draft') }}</span>
                     </td>
-                    <td>
-                        <strong style="font-size: 6.8pt; color: #1E293B;">{{ $engName }}</strong>
-                    </td>
-                    <td style="font-size: 6.8pt; color: #475569;">
-                        {{ $c->activity_notes ?: ($c->cycle_label ?: 'Pemeriksaan fisik, kelistrikan UPS, suhu perangkat, backup configuration, dan log inspection') }}
-                    </td>
+                    <td><strong>{{ $engName }}</strong></td>
+                    <td>{{ $c->activity_notes ?: ($c->cycle_label ?: 'Pemeriksaan fisik, pembersihan, cek kelistrikan & suhu, backup konfigurasi, log analysis') }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 10px; color: #64748B;">
+                    <td colspan="7" class="text-center" style="padding: 8px; color: #64748B;">
                         Belum ada jadwal siklus Preventive Maintenance terdaftar untuk proyek ini.
                     </td>
                 </tr>
@@ -565,18 +410,18 @@
         </tbody>
     </table>
 
-    {{-- SECTION 4: TABEL CORRECTIVE MAINTENANCE (CM) --}}
-    <div class="section-header"><span class="section-num">[4]</span> Histori Penanganan Gangguan / Corrective Maintenance (CM)</div>
-    <table class="grid-data-table">
+    {{-- D. HISTORI TIKET CORRECTIVE MAINTENANCE (CM) --}}
+    <div class="section-title">D. HISTORI PENANGANAN GANGGUAN / CORRECTIVE MAINTENANCE (CM)</div>
+    <table class="report-table">
         <thead>
             <tr>
-                <th style="width: 72px;">No. Tiket</th>
-                <th style="width: 65px;">Waktu Lapor</th>
-                <th>Judul Insiden &amp; Deskripsi Gangguan</th>
-                <th style="width: 50px; text-align: center;">Prioritas</th>
-                <th style="width: 52px; text-align: center;">MTTR (Jam)</th>
-                <th style="width: 58px; text-align: center;">SLA Met</th>
-                <th style="width: 62px; text-align: center;">Status</th>
+                <th style="width: 65px;">No. Tiket</th>
+                <th style="width: 58px;">Waktu Lapor</th>
+                <th>Judul Insiden &amp; Deskripsi Masalah</th>
+                <th style="width: 45px;">Prioritas</th>
+                <th style="width: 48px;">MTTR (Jam)</th>
+                <th style="width: 55px;">SLA Met</th>
+                <th style="width: 58px;">Status</th>
             </tr>
         </thead>
         <tbody>
@@ -584,80 +429,75 @@
                 @php
                     $isResolved = in_array(strtolower($t->status ?? ''), ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
                     $prio = strtolower($t->priority ?? 'medium');
-                    $badgePrio = match($prio) {
-                        'critical', 'high' => 'badge-danger',
-                        'medium'           => 'badge-warning',
-                        default            => 'badge-silver',
-                    };
                     $slaMet = ($t->sla_met === true || $t->sla_met === 1 || $t->sla_met === null);
                 @endphp
                 <tr>
                     <td><strong>{{ $t->ticket_number }}</strong></td>
-                    <td>{{ $t->incident_date ? \Carbon\Carbon::parse($t->incident_date)->format('d/m/y H:i') : '-' }}</td>
+                    <td class="text-center">{{ $t->incident_date ? \Carbon\Carbon::parse($t->incident_date)->format('d/m/y H:i') : '-' }}</td>
                     <td>
-                        <strong style="color: #0F172A; font-size: 7.2pt;">{{ $t->title }}</strong>
+                        <strong>{{ $t->title }}</strong>
                         @if($t->root_cause)
-                            <div style="font-size: 6.5pt; color: #64748B;"><strong>Penyebab:</strong> {{ $t->root_cause }}</div>
+                            <div style="font-size: 6pt; color: #475569;">Penyebab: {{ $t->root_cause }}</div>
                         @endif
                     </td>
-                    <td style="text-align: center;">
-                        <span class="badge {{ $badgePrio }}">{{ ucfirst($t->priority ?: 'Normal') }}</span>
-                    </td>
-                    <td style="text-align: center; font-weight: bold;">
-                        {{ $t->duration_hours ? number_format($t->duration_hours, 1) : '-' }}
-                    </td>
-                    <td style="text-align: center;">
-                        <span class="badge {{ $slaMet ? 'badge-success' : 'badge-danger' }}">
-                            {{ $slaMet ? 'Terpenuhi' : 'Breach' }}
+                    <td class="text-center">
+                        <span class="badge-box {{ $prio === 'critical' || $prio === 'high' ? 'badge-box-danger' : ($prio === 'medium' ? 'badge-box-warning' : '') }}">
+                            {{ strtoupper($t->priority ?: 'Normal') }}
                         </span>
                     </td>
-                    <td style="text-align: center;">
-                        <span class="badge {{ $isResolved ? 'badge-success' : 'badge-warning' }}">
-                            {{ ucfirst($t->status ?: 'Open') }}
+                    <td class="text-center font-bold">
+                        {{ $t->duration_hours ? number_format($t->duration_hours, 1) : '-' }}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge-box {{ $slaMet ? 'badge-box-success' : 'badge-box-danger' }}">
+                            {{ $slaMet ? 'TERPENUHI' : 'BREACH' }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge-box {{ $isResolved ? 'badge-box-success' : 'badge-box-warning' }}">
+                            {{ strtoupper($t->status ?: 'Open') }}
                         </span>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 10px; color: #059669; font-weight: bold;">
-                        Zero Incident • Tidak ada laporan tiket gangguan selama periode pemantauan berlangsung (SLA Availability 100%).
+                    <td colspan="7" class="text-center" style="padding: 8px; color: #137333; font-weight: bold;">
+                        Zero Incident &bull; Tidak ada tiket insiden / gangguan selama periode pemantauan (SLA Availability 100%).
                     </td>
                 </tr>
             @endforelse
         </tbody>
     </table>
 
-    {{-- SECTION 5: INVENTARIS PERANGKAT CUSTOMER (ASSET INVENTORY YANG DI-COVER) --}}
+    {{-- E. DAFTAR INVENTARIS PERANGKAT YANG DI-COVER --}}
     @if(isset($coveredAssets) && $coveredAssets->isNotEmpty())
-    <div class="section-header"><span class="section-num">[5]</span> Daftar Inventaris Perangkat yang Dikelola (Covered CI Assets)</div>
-    <table class="grid-data-table">
+    <div class="section-title">E. INVENTARIS PERANGKAT YANG DIKELOLA (COVERED CI ASSETS)</div>
+    <table class="report-table">
         <thead>
             <tr>
-                <th style="width: 25px; text-align: center;">No</th>
-                <th style="width: 60px;">Tipe</th>
-                <th style="width: 65px;">Brand</th>
+                <th style="width: 25px;">No</th>
+                <th style="width: 55px;">Tipe</th>
+                <th style="width: 60px;">Brand</th>
                 <th>Nama Perangkat / Model</th>
-                <th style="width: 85px;">Serial Number</th>
-                <th style="width: 75px;">IP Address</th>
-                <th style="width: 75px;">Support Service</th>
-                <th style="width: 55px; text-align: center;">Status</th>
+                <th style="width: 80px;">Serial Number</th>
+                <th style="width: 70px;">IP Address</th>
+                <th style="width: 70px;">Service Support</th>
+                <th style="width: 50px;">Status</th>
             </tr>
         </thead>
         <tbody>
             @foreach($coveredAssets as $idx => $asset)
             <tr>
-                <td style="text-align: center;">{{ $idx + 1 }}</td>
+                <td class="text-center">{{ $idx + 1 }}</td>
                 <td>{{ $asset->category ?: 'Switch' }}</td>
                 <td>{{ $asset->brand ?: '-' }}</td>
                 <td><strong>{{ $asset->device_name }}</strong></td>
-                <td style="font-family: monospace; font-size: 6.5pt;">{{ $asset->serial_number ?: '-' }}</td>
-                <td style="font-family: monospace; font-size: 6.5pt;">{{ $asset->ip_address ?: '-' }}</td>
-                <td>
-                    <span class="badge badge-silver">{{ $asset->service_support_type ?: 'PAR-ND' }}</span>
-                </td>
-                <td style="text-align: center;">
-                    <span class="badge {{ strtolower($asset->status ?? 'online') === 'online' ? 'badge-success' : 'badge-warning' }}">
-                        {{ $asset->status ?: 'Online' }}
+                <td style="font-family: monospace; font-size: 6.2pt;">{{ $asset->serial_number ?: '-' }}</td>
+                <td style="font-family: monospace; font-size: 6.2pt;">{{ $asset->ip_address ?: '-' }}</td>
+                <td class="text-center"><strong>{{ $asset->service_support_type ?: 'PAR-ND' }}</strong></td>
+                <td class="text-center">
+                    <span class="badge-box {{ strtolower($asset->status ?? 'online') === 'online' ? 'badge-box-success' : 'badge-box-warning' }}">
+                        {{ strtoupper($asset->status ?: 'Online') }}
                     </span>
                 </td>
             </tr>
@@ -666,33 +506,57 @@
     </table>
     @endif
 
-    {{-- SECTION 6: CATATAN & REKOMENDASI TEKNIS OPERASIONAL --}}
-    <div class="section-header"><span class="section-num">[{{ isset($coveredAssets) && $coveredAssets->isNotEmpty() ? '6' : '5' }}]</span> Catatan &amp; Rekomendasi Operasional Tim Managed Service</div>
-    <div class="notes-box">
-        <strong>Ringkasan Kepatuhan &amp; Rekomendasi Teknis:</strong><br>
-        1. Pemeliharaan preventif (PM) berjalan sesuai siklus jadwal kontrak. Seluruh backup konfigurasi perangkat telah diamankan secara berkala pada storage aman.<br>
-        2. Kepatuhan SLA Availability mencapai <strong>{{ number_format($slaCompliancePercent, 1) }}%</strong> dari target {{ number_format($targetSla, 2) }}%. Penanganan insiden dilakukan sesuai target MTTR {{ $project->mttr_hours ?: 4 }} jam.<br>
-        3. Direkomendasikan melakukan review masa berlaku lisensi perangkat lunak dan kontrak service support vendor secara proaktif sebelum tanggal expired.
-    </div>
-
-    {{-- SECTION 7: LEMBAR PENGESAHAN DOKUMEN (3 PIHAK RESMI) --}}
-    <div class="section-header"><span class="section-num">[{{ isset($coveredAssets) && $coveredAssets->isNotEmpty() ? '7' : '6' }}]</span> Lembar Pengesahan &amp; Verifikasi Dokumen</div>
-    <table class="signature-section">
+    {{-- F. CATATAN & REKOMENDASI TEKNIS OPERASIONAL --}}
+    <div class="section-title">{{ isset($coveredAssets) && $coveredAssets->isNotEmpty() ? 'F' : 'E' }}. CATATAN &amp; REKOMENDASI TEKNIS OPERASIONAL</div>
+    <table class="report-table">
         <tr>
-            <td>
-                <div class="sign-title">Disiapkan &amp; Dilaporkan Oleh:</div>
-                <div class="sign-line">{{ $printedBy }}</div>
-                <div class="sign-dept">Lead Engineer / Delivery PIC<br>PT IP Network Solusindo</div>
+            <td style="background-color: #FFFFFF; padding: 5px; line-height: 1.35;">
+                1. Kinerja ketersediaan jaringan (Availability SLA) mencapai <strong>{{ number_format($slaCompliancePercent, 1) }}%</strong> (Target: {{ number_format($targetSla, 2) }}%), respon penanganan insiden memenuhi standar MTTR {{ $project->mttr_hours ?: 4 }} jam.<br>
+                2. Pemeliharaan berkala (Preventive Maintenance) terlaksana sesuai jadwal. File backup konfigurasi dan checklist operasional tersimpan pada repositori FSM.<br>
+                3. Disarankan melakukan review status siklus hidup perangkat (EOL/EOS) serta perpanjangan kontrak dukungan vendor sebelum tanggal expired support.
             </td>
-            <td>
-                <div class="sign-title">Diperiksa &amp; Disetujui Oleh:</div>
-                <div class="sign-line">Head of Operations &amp; MS</div>
-                <div class="sign-dept">Service Delivery Manager<br>PT IP Network Solusindo</div>
+        </tr>
+    </table>
+
+    {{-- G. LEMBAR PENGESAHAN DOKUMEN (3 PIHAK FORMAL) --}}
+    <div class="section-title">{{ isset($coveredAssets) && $coveredAssets->isNotEmpty() ? 'G' : 'F' }}. LEMBAR PENGESAHAN DOKUMEN</div>
+    <table class="sig-table">
+        <thead>
+            <tr>
+                <th>Disiapkan Oleh:</th>
+                <th>Diperiksa &amp; Diverifikasi:</th>
+                <th>Diterima &amp; Dikonfirmasi:</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <div class="sig-space"></div>
+                    <div class="sig-name">{{ $printedBy }}</div>
+                    <div class="sig-role">Lead Engineer / Delivery PIC<br>PT IP Network Solusindo</div>
+                </td>
+                <td>
+                    <div class="sig-space"></div>
+                    <div class="sig-name">Head of Managed Service</div>
+                    <div class="sig-role">Service Delivery Manager<br>PT IP Network Solusindo</div>
+                </td>
+                <td>
+                    <div class="sig-space"></div>
+                    <div class="sig-name">{{ $project->client ?: 'PIC Customer / Representative' }}</div>
+                    <div class="sig-role">Customer IT PIC / Representative<br>{{ $project->name }}</div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    {{-- FOOTER BAWAH HALAMAN --}}
+    <table class="doc-footer-table">
+        <tr>
+            <td style="width: 70%;">
+                PT IP Network Solusindo &bull; Dokumen Resmi Sistem Field System Management (FSM) &bull; Rahasia &amp; Terbatas
             </td>
-            <td>
-                <div class="sign-title">Diterima &amp; Dikonfirmasi Oleh:</div>
-                <div class="sign-line">{{ $project->client ?: 'Perwakilan Resmi Klien' }}</div>
-                <div class="sign-dept">Authorized IT PIC / Representative<br>{{ $project->name }}</div>
+            <td style="width: 30%; text-align: right;">
+                Dicetak: {{ $printedAt }}
             </td>
         </tr>
     </table>
