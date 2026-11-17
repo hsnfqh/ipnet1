@@ -272,7 +272,7 @@
     </div>
 
     {{-- 3. Identitas Proyek & Customer --}}
-    <div class="section-heading"><span class="section-tag">■</span> 1. Identitas Proyek &amp; Informasi Customer</div>
+    <div class="section-heading"><span class="section-tag">[1]</span> Identitas Proyek &amp; Informasi Customer</div>
     <table class="info-table">
         <tr>
             <td class="info-label">Nama Proyek</td>
@@ -307,7 +307,7 @@
     </table>
 
     {{-- 4. Ringkasan Kinerja Eksekutif --}}
-    <div class="section-heading"><span class="section-tag">■</span> 2. Ringkasan Eksekutif Kinerja &amp; SLA</div>
+    <div class="section-heading"><span class="section-tag">[2]</span> Ringkasan Eksekutif Kinerja &amp; SLA</div>
     <table class="kpi-table">
         <tr>
             <td>
@@ -332,7 +332,7 @@
             <td>
                 <div class="kpi-label">Sisa Kuota Tiket CM</div>
                 <div class="kpi-value" style="color: {{ $remainingQuota <= 2 ? '#DC2626' : '#1E293B' }};">
-                    {{ $cmQuota >= 999 ? '∞' : $remainingQuota }}
+                    {{ $cmQuota >= 999 ? 'Unltd' : $remainingQuota }}
                 </div>
                 <div class="kpi-desc">Dari Kuota {{ $cmQuota >= 999 ? 'Unlimited' : $cmQuota }} Tiket/Tahun</div>
             </td>
@@ -340,7 +340,7 @@
     </table>
 
     {{-- 5. Tabel Siklus Preventive Maintenance (PM) --}}
-    <div class="section-heading"><span class="section-tag">■</span> 3. Siklus Preventive Maintenance (PM)</div>
+    <div class="section-heading"><span class="section-tag">[3]</span> Siklus Preventive Maintenance (PM)</div>
     <table class="data-table">
         <thead>
             <tr>
@@ -400,7 +400,7 @@
     </table>
 
     {{-- 6. Tabel Corrective Maintenance (CM) / Tiket Insiden --}}
-    <div class="section-heading"><span class="section-tag">■</span> 4. Riwayat Corrective Maintenance (CM) / Tiket Gangguan</div>
+    <div class="section-heading"><span class="section-tag">[4]</span> Riwayat Corrective Maintenance (CM) / Tiket Gangguan</div>
     <table class="data-table">
         <thead>
             <tr>

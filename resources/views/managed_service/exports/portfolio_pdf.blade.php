@@ -332,9 +332,9 @@
                         {{ $row['closed_tickets'] }}
                     </td>
                     <td style="text-align: center;">
-                        <span style="font-weight: bold;">{{ $row['total_tickets'] }} / {{ $row['cm_quota'] >= 999 ? '∞' : $row['cm_quota'] }}</span>
+                        <span style="font-weight: bold;">{{ $row['total_tickets'] }} / {{ $row['cm_quota'] >= 999 ? 'Unltd' : $row['cm_quota'] }}</span>
                         <div style="font-size: 6.5pt; color: {{ $row['remaining_quota'] <= 2 ? '#DC2626' : '#64748B' }}; font-weight: bold;">
-                            Sisa: {{ $row['cm_quota'] >= 999 ? '∞' : $row['remaining_quota'] }}
+                            Sisa: {{ $row['cm_quota'] >= 999 ? 'Unltd' : $row['remaining_quota'] }}
                         </div>
                     </td>
                     <td style="text-align: center;">
