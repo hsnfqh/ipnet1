@@ -49,7 +49,7 @@ class ManagedServiceController extends Controller
     public static function getManagedServiceProjectsQuery()
     {
         $dummyNames = self::getDummyProjectNames();
-        return Project::with(['creator', 'pmCycles', 'managedServiceTickets', 'msAcceptedBy'])
+        return Project::with(['creator', 'pmCycles', 'managedServiceTickets', 'msAcceptedBy', 'clientRecord'])
             ->whereNotIn('name', array_merge(['DAY OFF', 'Day Off', 'Day Off / Cuti'], $dummyNames))
             ->where(function($q) {
                 $q->whereNull('project_type')
@@ -75,18 +75,20 @@ class ManagedServiceController extends Controller
 
     private function ensureTablesExist(): void
     {
-        self::cleanupDummyManagedServiceData();
-        if (!Schema::hasTable('managed_service_assets') || 
-            !Schema::hasTable('managed_service_tickets') || 
-            !Schema::hasTable('managed_service_reports') || 
-            !Schema::hasTable('managed_service_pm_cycles') || 
-            !Schema::hasColumn('projects', 'cm_quota') ||
-            !Schema::hasColumn('managed_service_assets', 'os_version')) {
-            try {
-                Artisan::call('migrate', ['--force' => true]);
-            } catch (\Throwable $e) {
-                Log::warning('Auto migrate managed service tables: ' . $e->getMessage());
+        try {
+            self::cleanupDummyManagedServiceData();
+            if (!Schema::hasTable('managed_service_assets') || 
+                !Schema::hasTable('managed_service_tickets') || 
+                !Schema::hasTable('managed_service_reports') || 
+                !Schema::hasTable('managed_service_pm_cycles')) {
+                try {
+                    Artisan::call('migrate', ['--force' => true]);
+                } catch (\Throwable $e) {
+                    Log::warning('Auto migrate managed service tables: ' . $e->getMessage());
+                }
             }
+        } catch (\Throwable $e) {
+            Log::warning('ensureTablesExist check error: ' . $e->getMessage());
         }
     }
 
@@ -1438,97 +1440,113 @@ class ManagedServiceController extends Controller
      */
     public function reporting(Request $request)
     {
-        $this->ensureTablesExist();
-        $this->ensureSampleProjectExists();
+        try {
+            $this->ensureTablesExist();
+            $this->ensureSampleProjectExists();
 
-        $perPage = (int) $request->input('per_page', 10);
-        if (!in_array($perPage, [5, 10, 25, 50, 100])) {
-            $perPage = 10;
-        }
-
-        $query = self::getManagedServiceProjectsQuery();
-
-        if ($request->filled('search')) {
-            $s = $request->search;
-            $query->where(function($q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('client', 'like', "%{$s}%")
-                  ->orWhere('sales_name', 'like', "%{$s}%")
-                  ->orWhere('location', 'like', "%{$s}%");
-            });
-        }
-
-        if ($request->filled('tier') && $request->tier !== 'all') {
-            $query->where('sla_tier', $request->tier);
-        }
-
-        if ($request->filled('status') && $request->status !== 'all') {
-            $query->where(function($q) use ($request) {
-                $q->where('status', $request->status)
-                  ->orWhere('stage', $request->status);
-            });
-        }
-
-        $projects = $query->latest('id')->paginate($perPage)->withQueryString();
-
-        // Hitung metrik real-time portofolio
-        $allActiveProjects = self::getManagedServiceProjectsQuery()->get();
-        $totalProjectsCount = $allActiveProjects->count();
-
-        $totalPmCompleted = 0;
-        $totalPmCycles = 0;
-        $totalActiveTickets = 0;
-        $totalClosedTickets = 0;
-        $slaTargetScores = [];
-
-        foreach ($allActiveProjects as $p) {
-            $cycles = $p->pmCycles ?: collect();
-            $pTotal = $p->pm_total_cycles ?: max($cycles->count(), 1);
-            $pDone = $cycles->filter(function($c) {
-                $act = strtolower($c->activity_status ?? '');
-                $rep = strtolower($c->report_status ?? '');
-                return in_array($act, ['completed', 'solved']) 
-                    || in_array($rep, ['approved', 'submitted', 'signed', 'invoiced']) 
-                    || !empty($c->actual_date);
-            })->count();
-
-            $totalPmCompleted += $pDone;
-            $totalPmCycles += $pTotal;
-
-            $tickets = $p->managedServiceTickets ?: collect();
-            $activeT = $tickets->filter(function($t) {
-                $st = strtolower(trim((string)$t->status));
-                $isResolved = in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
-                return !$isResolved;
-            })->count();
-
-            $closedT = $tickets->filter(function($t) {
-                $st = strtolower(trim((string)$t->status));
-                return in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
-            })->count();
-
-            $totalActiveTickets += $activeT;
-            $totalClosedTickets += $closedT;
-
-            if ($p->sla_target_percentage) {
-                $slaTargetScores[] = (float) $p->sla_target_percentage;
+            $perPage = (int) $request->input('per_page', 10);
+            if (!in_array($perPage, [5, 10, 25, 50, 100])) {
+                $perPage = 10;
             }
+
+            $query = self::getManagedServiceProjectsQuery();
+
+            if ($request->filled('search')) {
+                $s = $request->search;
+                $query->where(function($q) use ($s) {
+                    $q->where('name', 'like', "%{$s}%")
+                      ->orWhere('client', 'like', "%{$s}%")
+                      ->orWhere('sales_name', 'like', "%{$s}%")
+                      ->orWhere('location', 'like', "%{$s}%");
+                });
+            }
+
+            if ($request->filled('tier') && $request->tier !== 'all') {
+                $query->where('sla_tier', $request->tier);
+            }
+
+            if ($request->filled('status') && $request->status !== 'all') {
+                $query->where(function($q) use ($request) {
+                    $q->where('status', $request->status)
+                      ->orWhere('stage', $request->status);
+                });
+            }
+
+            $projects = $query->latest('id')->paginate($perPage)->withQueryString();
+
+            // Hitung metrik real-time portofolio
+            $allActiveProjects = self::getManagedServiceProjectsQuery()->get();
+            $totalProjectsCount = $allActiveProjects->count();
+
+            $totalPmCompleted = 0;
+            $totalPmCycles = 0;
+            $totalActiveTickets = 0;
+            $totalClosedTickets = 0;
+            $slaTargetScores = [];
+
+            foreach ($allActiveProjects as $p) {
+                $cycles = $p->pmCycles ?: collect();
+                $pTotal = (int) ($p->pm_total_cycles ?: max($cycles->count(), 1));
+                $pDone = $cycles->filter(function($c) {
+                    $act = strtolower($c->activity_status ?? '');
+                    $rep = strtolower($c->report_status ?? '');
+                    return in_array($act, ['completed', 'solved']) 
+                        || in_array($rep, ['approved', 'submitted', 'signed', 'invoiced']) 
+                        || !empty($c->actual_date);
+                })->count();
+
+                $totalPmCompleted += $pDone;
+                $totalPmCycles += $pTotal;
+
+                $tickets = $p->managedServiceTickets ?: collect();
+                $activeT = $tickets->filter(function($t) {
+                    $st = strtolower(trim((string)$t->status));
+                    $isResolved = in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+                    return !$isResolved;
+                })->count();
+
+                $closedT = $tickets->filter(function($t) {
+                    $st = strtolower(trim((string)$t->status));
+                    return in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+                })->count();
+
+                $totalActiveTickets += $activeT;
+                $totalClosedTickets += $closedT;
+
+                if ($p->sla_target_percentage) {
+                    $slaTargetScores[] = (float) $p->sla_target_percentage;
+                }
+            }
+
+            $avgSlaTarget = !empty($slaTargetScores) ? round(array_sum($slaTargetScores) / count($slaTargetScores), 2) : 99.50;
+            $portfolioPmProgress = $totalPmCycles > 0 ? round(($totalPmCompleted / $totalPmCycles) * 100) : 0;
+
+            return view('managed_service.reporting', compact(
+                'projects',
+                'perPage',
+                'totalProjectsCount',
+                'totalPmCompleted',
+                'totalPmCycles',
+                'portfolioPmProgress',
+                'totalActiveTickets',
+                'totalClosedTickets',
+                'avgSlaTarget'
+            ));
+        } catch (\Throwable $e) {
+            Log::error('Error loading Managed Service reporting: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            $emptyProjects = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
+            return view('managed_service.reporting', [
+                'projects'            => $emptyProjects,
+                'perPage'             => 10,
+                'totalProjectsCount'  => 0,
+                'totalPmCompleted'    => 0,
+                'totalPmCycles'       => 0,
+                'portfolioPmProgress' => 0,
+                'totalActiveTickets'  => 0,
+                'totalClosedTickets'  => 0,
+                'avgSlaTarget'        => 99.50,
+            ])->with('error', 'Terjadi kendala saat memuat data: ' . $e->getMessage());
         }
-
-        $avgSlaTarget = !empty($slaTargetScores) ? round(array_sum($slaTargetScores) / count($slaTargetScores), 2) : 99.50;
-        $portfolioPmProgress = $totalPmCycles > 0 ? round(($totalPmCompleted / $totalPmCycles) * 100) : 0;
-
-        return view('managed_service.reporting', compact(
-            'projects',
-            'perPage',
-            'totalProjectsCount',
-            'totalPmCompleted',
-            'totalPmCycles',
-            'portfolioPmProgress',
-            'totalActiveTickets',
-            'totalClosedTickets',
-            'avgSlaTarget'
-        ));
     }
 
     /**
@@ -1744,7 +1762,8 @@ class ManagedServiceController extends Controller
                 'pmCycles.picMs',
                 'pmCycles.leadEngineer',
                 'managedServiceTickets.assignedEngineer',
-                'msAcceptedBy'
+                'msAcceptedBy',
+                'clientRecord'
             ]);
 
             // Perhitungan Siklus PM

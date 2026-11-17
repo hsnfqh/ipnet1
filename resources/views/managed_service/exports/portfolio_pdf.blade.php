@@ -22,7 +22,10 @@
     <style>
         /* ── Konfigurasi Halaman & Margin DomPDF Sesuai Standar Activity Log ── */
         @page {
-            margin: 8mm 10mm 8mm 10mm;
+            margin-top: 24mm;
+            margin-bottom: 16mm;
+            margin-left: 10mm;
+            margin-right: 10mm;
             size: a4 landscape;
         }
         * {
@@ -37,13 +40,33 @@
             padding: 0;
         }
 
-        /* ── Header Dokumen Formal Standar Activity Log ── */
+        /* ── Fixed Running Header (Muncul di Setiap Halaman) ── */
+        header.page-header {
+            position: fixed;
+            top: -19mm;
+            left: 0;
+            right: 0;
+            height: 15mm;
+            border-bottom: 1.5px solid #000000;
+            padding-bottom: 3px;
+        }
+
+        /* ── Fixed Running Footer (Muncul di Setiap Halaman) ── */
+        footer.page-footer {
+            position: fixed;
+            bottom: -11mm;
+            left: 0;
+            right: 0;
+            height: 8mm;
+            border-top: 1px solid #000000;
+            padding-top: 2px;
+        }
+
         .doc-header-table {
             width: 100%;
             border-collapse: collapse;
             border: none;
-            margin-top: 0;
-            margin-bottom: 3px;
+            margin: 0;
         }
         .doc-header-table td {
             border: none;
@@ -51,12 +74,12 @@
             vertical-align: middle;
         }
         .doc-logo {
-            max-width: 110px;
-            max-height: 42px;
+            max-width: 100px;
+            max-height: 38px;
             display: block;
         }
         .doc-title {
-            font-size: 13pt;
+            font-size: 12pt;
             font-weight: bold;
             color: #000000;
             text-transform: uppercase;
@@ -65,42 +88,36 @@
             line-height: 1.2;
         }
         .doc-sub-corp {
-            font-size: 7.2pt;
+            font-size: 7pt;
             font-weight: bold;
             color: #8F0A0D;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.3px;
             text-align: center;
-            margin-top: 2px;
+            margin-top: 1px;
         }
+
+        /* ── Intro Dokumen ── */
         .doc-intro {
-            font-size: 6.8pt;
+            font-size: 6.7pt;
             color: #1E293B;
-            margin-top: 3px;
-            margin-bottom: 4px;
+            margin-top: 2px;
+            margin-bottom: 5px;
             line-height: 1.25;
-        }
-        .doc-header-line {
-            width: 100%;
-            height: 0;
-            border-bottom: 1.5px solid #000000;
-            margin-top: 3px;
-            margin-bottom: 6px;
-            clear: both;
         }
 
         /* ── Judul Section Formal ── */
         .section-title {
-            font-size: 7.8pt;
+            font-size: 7.6pt;
             font-weight: bold;
             color: #000000;
             text-transform: uppercase;
-            margin-top: 6px;
-            margin-bottom: 2.5px;
+            margin-top: 5px;
+            margin-bottom: 2px;
             letter-spacing: 0.2px;
         }
 
-        /* ── Tabel Standar Resmi (Sesuai Activity Log) ── */
+        /* ── Tabel Standar Resmi (Sesuai Activity Log #EBF3FB) ── */
         .report-table {
             width: 100%;
             border-collapse: collapse;
@@ -112,15 +129,15 @@
             background-color: #EBF3FB;
             color: #000000;
             font-weight: bold;
-            font-size: 6.8pt;
+            font-size: 6.7pt;
             padding: 2.5px 3px;
             border: 1px solid #000000;
             text-align: center;
             vertical-align: middle;
         }
         .report-table td {
-            font-size: 6.8pt;
-            padding: 2.5px 3.5px;
+            font-size: 6.7pt;
+            padding: 2.2px 3.5px;
             border: 1px solid #000000;
             vertical-align: middle;
             color: #000000;
@@ -138,7 +155,7 @@
         .align-top { vertical-align: top !important; }
         .font-bold { font-weight: bold; }
 
-        /* ── Kotak Status / Badge Standar Hitam-Putih Resmi ── */
+        /* ── Badge Box Formal ── */
         .badge-box {
             display: inline-block;
             font-size: 6pt;
@@ -175,24 +192,24 @@
         }
         .sig-table th {
             background-color: #EBF3FB;
-            font-size: 6.8pt;
+            font-size: 6.7pt;
             font-weight: bold;
             color: #000000;
             text-transform: uppercase;
-            padding: 3px;
+            padding: 2.5px 3px;
             border: 1px solid #000000;
             text-align: center;
             width: 33.33%;
         }
         .sig-table td {
             border: 1px solid #000000;
-            padding: 4px;
+            padding: 3px;
             text-align: center;
             vertical-align: top;
             width: 33.33%;
         }
         .sig-space {
-            height: 44px;
+            height: 42px;
         }
         .sig-name {
             font-weight: bold;
@@ -201,26 +218,23 @@
             color: #000000;
         }
         .sig-role {
-            font-size: 6.2pt;
+            font-size: 6.1pt;
             color: #334155;
             margin-top: 1px;
             line-height: 1.2;
         }
 
-        /* ── Footer Dokumen ── */
+        /* ── Footer Table ── */
         .doc-footer-table {
             width: 100%;
             border-collapse: collapse;
             border: none;
-            margin-top: 6px;
-            padding-top: 3px;
-            border-top: 1px solid #000000;
         }
         .doc-footer-table td {
             border: none;
             padding: 0;
             vertical-align: middle;
-            font-size: 6pt;
+            font-size: 5.8pt;
             color: #000000;
             line-height: 1.2;
         }
@@ -228,12 +242,50 @@
 </head>
 <body>
 
+    {{-- FIXED RUNNING HEADER (BERULANG DI SETIAP HALAMAN) --}}
+    <header class="page-header">
+        <table class="doc-header-table">
+            <tr>
+                <td style="width: 16%; text-align: left; vertical-align: middle;">
+                    @if(!empty($logoBase64))
+                        <img src="{{ $logoBase64 }}" class="doc-logo" alt="IPNET Logo">
+                    @else
+                        <div style="font-size: 13pt; font-weight: bold; color: #8F0A0D;">IPNET</div>
+                    @endif
+                </td>
+                <td style="width: 58%; text-align: center; vertical-align: middle;">
+                    <div class="doc-title">REKAPITULASI PORTOFOLIO MANAGED SERVICE &amp; KEPATUHAN SLA</div>
+                    <div class="doc-sub-corp">PT IP NETWORK SOLUSINDO &bull; MANAGED SERVICE &amp; NETWORK OPERATIONS DIVISION</div>
+                </td>
+                <td style="width: 26%; text-align: right; vertical-align: middle; font-size: 6.1pt; line-height: 1.25;">
+                    <div><strong>No. Laporan:</strong> {{ $docNumber }}</div>
+                    <div><strong>Tanggal:</strong> {{ $printedAt }}</div>
+                    <div><strong>Penyusun:</strong> {{ $printedBy }}</div>
+                </td>
+            </tr>
+        </table>
+    </header>
+
+    {{-- FIXED RUNNING FOOTER (BERULANG DI SETIAP HALAMAN) --}}
+    <footer class="page-footer">
+        <table class="doc-footer-table">
+            <tr>
+                <td style="width: 70%;">
+                    PT IP Network Solusindo &bull; Dokumen Resmi Hasil Cetak Sistem FSM IPNET &bull; Rahasia &amp; Terbatas (Confidential)
+                </td>
+                <td style="width: 30%; text-align: right;">
+                    Dicetak: {{ $printedAt }}
+                </td>
+            </tr>
+        </table>
+    </footer>
+
     {{-- SCRIPT DOMPDF CANVAS PENOMORAN HALAMAN PERSISI (HALAMAN X DARI Y) --}}
     <script type="text/php">
         if (isset($pdf)) {
             $text = "Halaman " . $PAGE_NUM . " dari " . $PAGE_COUNT;
             $font = $fontMetrics->get_font("Helvetica", "normal");
-            $size = 6.2;
+            $size = 6.0;
             $color = array(0.1, 0.1, 0.1);
             $w = $fontMetrics->getTextWidth($text, $font, $size);
             $x = 841.89 - 10 * 2.83465 - $w; // A4 landscape width 841.89pt
@@ -242,32 +294,9 @@
         }
     </script>
 
-    {{-- HEADER DOKUMEN RESMI (LOGO + JUDUL FORMAL) --}}
-    <table class="doc-header-table">
-        <tr>
-            <td style="width: 18%; text-align: left; vertical-align: middle;">
-                @if(!empty($logoBase64))
-                    <img src="{{ $logoBase64 }}" class="doc-logo" alt="IPNET Logo">
-                @else
-                    <div style="font-size: 14pt; font-weight: bold; color: #8F0A0D;">IPNET</div>
-                @endif
-            </td>
-            <td style="width: 58%; text-align: center; vertical-align: middle;">
-                <div class="doc-title">REKAPITULASI PORTOFOLIO MANAGED SERVICE &amp; KEPATUHAN SLA</div>
-                <div class="doc-sub-corp">PT IP NETWORK SOLUSINDO – MANAGED SERVICE &amp; NETWORK OPERATIONS DIVISION</div>
-            </td>
-            <td style="width: 24%; text-align: right; vertical-align: middle; font-size: 6.5pt; line-height: 1.3;">
-                <div><strong>No. Laporan:</strong> {{ $docNumber }}</div>
-                <div><strong>Tanggal:</strong> {{ $printedAt }}</div>
-                <div><strong>Penyusun:</strong> {{ $printedBy }}</div>
-            </td>
-        </tr>
-    </table>
-
     <div class="doc-intro">
-        Dokumen resmi rekapitulasi portofolio seluruh proyek Managed Service yang aktif berjalan di bawah pengawasan PT IP Network Solusindo. Meliputi kepatuhan Service Level Agreement (SLA Availability), realisasi siklus kunjungan Preventive Maintenance (PM), akumulasi insiden Corrective Maintenance (CM), serta status kesehatan operasional tiap klien.
+        Dokumen resmi rekapitulasi portofolio seluruh proyek Managed Service yang aktif berjalan di bawah pengawasan PT IP Network Solusindo. Meliputi kepatuhan Service Level Agreement (SLA Availability), realisasi siklus kunjungan Preventive Maintenance (PM), akumulasi insiden Corrective Maintenance (CM), serta status kesehatan operasional tiap klien customer.
     </div>
-    <div class="doc-header-line"></div>
 
     {{-- A. RINGKASAN EKSEKUTIF PORTOFOLIO --}}
     <div class="section-title">A. RINGKASAN EKSEKUTIF PORTOFOLIO MANAGED SERVICE</div>
@@ -282,12 +311,12 @@
         </thead>
         <tbody>
             <tr>
-                <td class="text-center" style="padding: 5px;">
-                    <div style="font-size: 14pt; font-weight: bold; color: #000000;">{{ $totalProjectsCount }}</div>
+                <td class="text-center" style="padding: 4px;">
+                    <div style="font-size: 13pt; font-weight: bold; color: #000000;">{{ $totalProjectsCount }}</div>
                     <div style="font-size: 6.2pt; color: #334155; margin-top: 1px;">Kontrak Managed Service Berjalan</div>
                 </td>
-                <td class="text-center" style="padding: 5px;">
-                    <div style="font-size: 14pt; font-weight: bold; color: {{ $avgSla >= 99.0 ? '#137333' : '#B06000' }};">
+                <td class="text-center" style="padding: 4px;">
+                    <div style="font-size: 13pt; font-weight: bold; color: {{ $avgSla >= 99.0 ? '#137333' : '#B06000' }};">
                         {{ number_format($avgSla, 1) }}%
                     </div>
                     <div style="font-size: 6.2pt; color: #334155; margin-top: 1px;">
@@ -295,16 +324,16 @@
                         <strong style="color: {{ $avgSla >= 99.0 ? '#137333' : '#B06000' }};">{{ $avgSla >= 99.0 ? 'TERPENUHI' : 'PERHATIAN' }}</strong>
                     </div>
                 </td>
-                <td class="text-center" style="padding: 5px;">
-                    <div style="font-size: 14pt; font-weight: bold; color: #137333;">
+                <td class="text-center" style="padding: 4px;">
+                    <div style="font-size: 13pt; font-weight: bold; color: #137333;">
                         {{ $totalPmCompleted }} / {{ $totalPmCycles }}
                     </div>
                     <div style="font-size: 6.2pt; color: #334155; margin-top: 1px;">
                         Capaian Portofolio: <strong>{{ $pmProgressPercent }}%</strong> Terlaksana
                     </div>
                 </td>
-                <td class="text-center" style="padding: 5px;">
-                    <div style="font-size: 14pt; font-weight: bold; color: {{ $totalActiveTickets > 0 ? '#B06000' : '#137333' }};">
+                <td class="text-center" style="padding: 4px;">
+                    <div style="font-size: 13pt; font-weight: bold; color: {{ $totalActiveTickets > 0 ? '#B06000' : '#137333' }};">
                         {{ $totalActiveTickets }} <span style="font-size: 7.5pt; font-weight: normal;">Aktif</span> / {{ $totalClosedTickets }} <span style="font-size: 7.5pt; font-weight: normal;">Solved</span>
                     </div>
                     <div style="font-size: 6.2pt; color: #334155; margin-top: 1px;">
@@ -321,7 +350,7 @@
         <thead>
             <tr>
                 <th style="width: 25px;">No</th>
-                <th style="width: 135px;">Customer / Klien</th>
+                <th style="width: 140px;">Customer / Klien</th>
                 <th>Nama Proyek Managed Service</th>
                 <th style="width: 55px;">Tier SLA</th>
                 <th style="width: 50px;">Target</th>
@@ -336,6 +365,7 @@
                 @php
                     $p = $item['project'] ?? null;
                     if (!$p) continue;
+                    $rowCustomer = trim((string)($p->client ?: ($p->clientRecord->name ?? '-')));
                     $targetVal = (float) ($item['target_sla'] ?? 99.50);
                     $actualVal = (float) ($item['sla_score'] ?? ($item['sla_compliance'] ?? 100.0));
                     $slaMet = $actualVal >= 90.0;
@@ -347,7 +377,7 @@
                 @endphp
                 <tr>
                     <td class="text-center">{{ $idx + 1 }}</td>
-                    <td><strong>{{ $p->client ?: '-' }}</strong></td>
+                    <td><strong style="color: #000000;">{{ $rowCustomer }}</strong></td>
                     <td>
                         <strong>{{ $p->name }}</strong>
                         <div style="font-size: 6pt; color: #475569;">
@@ -408,8 +438,8 @@
                 </td>
                 <td>
                     <div class="sig-space"></div>
-                    <div class="sig-name">Head of Managed Service</div>
-                    <div class="sig-role">Service Operations Manager<br>PT IP Network Solusindo</div>
+                    <div class="sig-name">Susanto Djaya</div>
+                    <div class="sig-role">Head of Managed Service<br>PT IP Network Solusindo</div>
                 </td>
                 <td>
                     <div class="sig-space"></div>
@@ -418,18 +448,6 @@
                 </td>
             </tr>
         </tbody>
-    </table>
-
-    {{-- FOOTER BAWAH HALAMAN --}}
-    <table class="doc-footer-table">
-        <tr>
-            <td style="width: 70%;">
-                PT IP Network Solusindo &bull; Dokumen Resmi Hasil Cetak Sistem FSM IPNET &bull; Rahasia &amp; Terbatas (Confidential)
-            </td>
-            <td style="width: 30%; text-align: right;">
-                Dicetak: {{ $printedAt }}
-            </td>
-        </tr>
     </table>
 
 </body>
