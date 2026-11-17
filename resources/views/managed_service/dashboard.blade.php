@@ -711,141 +711,137 @@
                  WORK SCHEDULES - VIEW MONTHLY (KALENDER BULANAN INTERAKTIF DASHBOARD)
                  ========================================================================= --}}
             <div class="ipnet-card overflow-hidden flex flex-col mt-6 shadow-sm border border-[#E2E8F0]" x-data="monthlyWorkSchedule()">
-                {{-- Calendar Header Bar --}}
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                {{-- Calendar Header Bar (Satu Baris Sejajar & Proporsional) --}}
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-5 pb-4 border-b border-[#E2E8F0] bg-white">
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-4 bg-[#8F0A0D] rounded-full inline-block"></span>
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Work Schedules &amp; Agenda Kunjungan Bulanan</h3>
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#8F0A0D]/10 text-[#8F0A0D] border border-[#8F0A0D]/20">
-                                View Monthly
+                            <h3 class="text-[16px] font-bold text-[#1E293B]">Work Schedules (Monthly View)</h3>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-[#8F0A0D]/10 text-[#8F0A0D] border border-[#8F0A0D]/20">
+                                Agenda Bulanan
                             </span>
                         </div>
                         <p class="text-[12px] text-[#64748B] mt-0.5 pl-4">
-                            Monitoring terintegrasi jadwal Field Engineer, siklus Preventive Maintenance (PM), dan penanganan Corrective Maintenance (CM).
+                            Monitoring terintegrasi jadwal kerja Field Engineer, siklus Preventive Maintenance (PM), dan penanganan insiden (CM).
                         </p>
                     </div>
 
-                    {{-- Legend & Month Navigation --}}
-                    <div class="flex flex-wrap items-center gap-3">
-                        {{-- Legend Badges --}}
-                        <div class="hidden sm:flex items-center gap-2.5 text-[11px] font-semibold text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
-                            <span class="inline-flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                <span>Field Schedule</span>
-                            </span>
-                            <span class="text-slate-300">|</span>
-                            <span class="inline-flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                <span>Preventive (PM)</span>
-                            </span>
-                            <span class="text-slate-300">|</span>
-                            <span class="inline-flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                                <span>Corrective (CM)</span>
-                            </span>
-                        </div>
-
-                        {{-- Month Navigation Controls --}}
-                        <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
-                            <button type="button" @click="prevMonth()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition cursor-pointer" title="Bulan Sebelumnya">
+                    {{-- Navigation & Actions (Satu Baris Rapi di Kanan) --}}
+                    <div class="flex items-center gap-2.5 self-start lg:self-center">
+                        {{-- Month Navigator --}}
+                        <div class="flex items-center bg-[#F8FAFC] p-1 rounded-xl border border-slate-200 shadow-2xs">
+                            <button type="button" @click="prevMonth()" class="p-1.5 rounded-lg hover:bg-white text-slate-600 hover:text-slate-900 transition cursor-pointer" title="Bulan Sebelumnya">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             </button>
-                            <span class="px-3 text-[13px] font-bold text-slate-800 min-w-[140px] text-center" x-text="monthYearLabel"></span>
-                            <button type="button" @click="nextMonth()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition cursor-pointer" title="Bulan Berikutnya">
+                            <span class="px-3 text-[13px] font-bold text-slate-800 min-w-[135px] text-center" x-text="monthYearLabel"></span>
+                            <button type="button" @click="nextMonth()" class="p-1.5 rounded-lg hover:bg-white text-slate-600 hover:text-slate-900 transition cursor-pointer" title="Bulan Berikutnya">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </button>
-                            <button type="button" @click="goToToday()" class="px-2.5 py-1 text-[11px] font-bold text-[#8F0A0D] hover:bg-red-50 rounded-lg transition border-l border-slate-200 ml-1 cursor-pointer">
-                                Bulan Ini
                             </button>
                         </div>
 
-                        {{-- Button ke Work Schedule Penuh --}}
-                        <a href="{{ route('schedules.index') }}" class="px-3.5 py-1.5 text-[11.5px] font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl transition shadow-2xs flex items-center gap-1.5 cursor-pointer">
+                        {{-- Tombol Hari Ini --}}
+                        <button type="button" @click="goToToday()" class="px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-red-50 border border-slate-200 hover:border-[#8F0A0D]/30 rounded-xl transition shadow-2xs cursor-pointer">
+                            Hari Ini
+                        </button>
+
+                        {{-- Tombol ke Full Schedule --}}
+                        <a href="{{ route('schedules.index') }}" class="px-4 py-2 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer">
                             <span>Buka Work Schedule</span>
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                         </a>
                     </div>
                 </div>
 
-                {{-- Filter & Keterangan Bar --}}
-                <div class="px-4 py-2.5 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-                    <div class="flex items-center flex-wrap gap-1.5">
-                        <span class="text-slate-500 font-medium">Filter Tipe:</span>
+                {{-- Toolbar Filter & Legend Terpadu (Menyatu, Tidak Redundan) --}}
+                <div class="px-5 py-2.5 bg-[#F8FAFC] border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center flex-wrap gap-2">
+                        <span class="text-slate-500 font-semibold text-[11px] uppercase tracking-wider mr-1">Filter &amp; Kategori:</span>
+                        
+                        {{-- Filter Semua --}}
                         <button type="button" @click="filterType = 'all'" 
-                                :class="filterType === 'all' ? 'bg-[#8F0A0D] text-white shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                                class="px-2.5 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer">
-                            Semua (<span x-text="countEvents('all')"></span>)
+                                :class="filterType === 'all' ? 'bg-[#8F0A0D] text-white shadow-2xs font-bold' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium'"
+                                class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                            <span>Semua</span>
+                            <span class="opacity-80 font-bold" x-text="'(' + countEvents('all') + ')'"></span>
                         </button>
+
+                        {{-- Filter Field Schedule (Hijau) --}}
                         <button type="button" @click="filterType = 'schedule'" 
-                                :class="filterType === 'schedule' ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'"
-                                class="px-2.5 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer">
-                            Field Schedules (<span x-text="countEvents('schedule')"></span>)
+                                :class="filterType === 'schedule' ? 'bg-emerald-600 text-white shadow-2xs font-bold' : 'bg-white text-slate-700 hover:bg-emerald-50/60 border border-slate-200 font-medium'"
+                                class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>Field Schedules</span>
+                            <span class="opacity-80 font-bold" x-text="'(' + countEvents('schedule') + ')'"></span>
                         </button>
+
+                        {{-- Filter Preventive (Biru) --}}
                         <button type="button" @click="filterType = 'pm'" 
-                                :class="filterType === 'pm' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'"
-                                class="px-2.5 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer">
-                            Preventive Maintenance (<span x-text="countEvents('pm')"></span>)
+                                :class="filterType === 'pm' ? 'bg-blue-600 text-white shadow-2xs font-bold' : 'bg-white text-slate-700 hover:bg-blue-50/60 border border-slate-200 font-medium'"
+                                class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            <span>Preventive Maintenance</span>
+                            <span class="opacity-80 font-bold" x-text="'(' + countEvents('pm') + ')'"></span>
                         </button>
+
+                        {{-- Filter Tiket CM (Rose/Merah) --}}
                         <button type="button" @click="filterType = 'cm'" 
-                                :class="filterType === 'cm' ? 'bg-rose-600 text-white shadow-2xs' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'"
-                                class="px-2.5 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer">
-                            Tiket CM (<span x-text="countEvents('cm')"></span>)
+                                :class="filterType === 'cm' ? 'bg-rose-600 text-white shadow-2xs font-bold' : 'bg-white text-slate-700 hover:bg-rose-50/60 border border-slate-200 font-medium'"
+                                class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                            <span>Tiket CM</span>
+                            <span class="opacity-80 font-bold" x-text="'(' + countEvents('cm') + ')'"></span>
                         </button>
                     </div>
 
                     <div class="text-[11.5px] text-slate-500 flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Klik pada tanggal atau card event untuk melihat rincian agenda harian.</span>
+                        <span>Klik pada kotak tanggal untuk melihat rincian agenda harian.</span>
                     </div>
                 </div>
 
-                {{-- Monthly Calendar Grid --}}
-                <div class="p-3 sm:p-5 bg-white">
+                {{-- Monthly Calendar Grid (Layout Alami Terstruktur Dari Atas) --}}
+                <div class="p-4 sm:p-5 bg-white">
                     {{-- Weekday Header --}}
-                    <div class="grid grid-cols-7 gap-1.5 sm:gap-2 mb-2 text-center text-[11.5px] font-bold text-slate-600 uppercase tracking-wider">
-                        <div class="py-1.5 bg-slate-50 rounded-lg">Senin</div>
-                        <div class="py-1.5 bg-slate-50 rounded-lg">Selasa</div>
-                        <div class="py-1.5 bg-slate-50 rounded-lg">Rabu</div>
-                        <div class="py-1.5 bg-slate-50 rounded-lg">Kamis</div>
-                        <div class="py-1.5 bg-slate-50 rounded-lg">Jumat</div>
-                        <div class="py-1.5 bg-slate-50 text-amber-600 rounded-lg">Sabtu</div>
-                        <div class="py-1.5 bg-slate-50 text-rose-600 rounded-lg">Minggu</div>
+                    <div class="grid grid-cols-7 gap-2 mb-2 text-center text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Senin</div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Selasa</div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Rabu</div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Kamis</div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Jumat</div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Sabtu</div>
+                        <div class="py-2 bg-slate-50 rounded-lg border border-slate-100">Minggu</div>
                     </div>
 
                     {{-- Days Grid (35-42 boxes) --}}
-                    <div class="grid grid-cols-7 gap-1.5 sm:gap-2">
+                    <div class="grid grid-cols-7 gap-2">
                         <template x-for="(cell, index) in calendarDays" :key="index">
-                            <div class="min-h-[105px] sm:min-h-[125px] p-2 rounded-xl border transition-all flex flex-col justify-between cursor-pointer"
+                            <div class="min-h-[115px] p-2 rounded-xl border transition-all flex flex-col justify-start cursor-pointer"
                                  :class="{
-                                     'bg-slate-50/50 border-slate-100 text-slate-400': !cell.isCurrentMonth,
-                                     'bg-white border-slate-200 hover:border-[#8F0A0D]/40 hover:shadow-sm': cell.isCurrentMonth && !cell.isToday,
-                                     'bg-red-50/30 border-[#8F0A0D]/50 ring-1 ring-[#8F0A0D]/30 shadow-xs': cell.isToday
+                                     'bg-slate-50/40 border-slate-100/90 text-slate-400': !cell.isCurrentMonth,
+                                     'bg-white border-slate-200/90 hover:border-[#8F0A0D]/50 hover:bg-slate-50/30 hover:shadow-2xs': cell.isCurrentMonth && !cell.isToday,
+                                     'bg-red-50/20 border-[#8F0A0D]/60 ring-1 ring-[#8F0A0D]/20 shadow-xs': cell.isToday
                                  }"
                                  @click="openDayModal(cell)">
-                                {{-- Date Number Header --}}
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <span class="text-[9.5px] font-semibold text-slate-400" x-show="cell.isWeekend">Libur</span>
-                                    <span class="text-xs" x-show="!cell.isWeekend"></span>
-
-                                    <span class="inline-flex items-center justify-center text-[12px] font-bold w-6 h-6 rounded-full transition"
+                                {{-- Date Number Header (Pojok Kanan Atas) --}}
+                                <div class="flex items-center justify-end mb-1.5 shrink-0">
+                                    <span class="inline-flex items-center justify-center text-[11.5px] font-bold w-6 h-6 rounded-full transition"
                                           :class="{
-                                              'bg-[#8F0A0D] text-white shadow-2xs': cell.isToday,
+                                              'bg-[#8F0A0D] text-white shadow-xs': cell.isToday,
                                               'text-slate-800 font-extrabold': cell.isCurrentMonth && !cell.isToday,
-                                              'text-slate-400 font-normal': !cell.isCurrentMonth
+                                              'text-slate-300 font-normal': !cell.isCurrentMonth
                                           }"
                                           x-text="cell.date">
                                     </span>
                                 </div>
 
-                                {{-- Events Stack --}}
-                                <div class="flex-1 space-y-1 overflow-hidden">
+                                {{-- Events Stack (Menempel Langsung di Bawah Tanggal Secara Alami) --}}
+                                <div class="space-y-1 w-full flex-1">
                                     <template x-for="(evt, evtIdx) in cell.events.slice(0, 3)" :key="evt.id">
-                                        <div class="px-1.5 py-0.5 rounded text-[10.5px] font-semibold truncate flex items-center gap-1 transition hover:opacity-85 shadow-2xs"
+                                        <div class="px-2 py-1 rounded-md text-[11px] font-semibold truncate flex items-center gap-1.5 transition hover:brightness-95 shadow-2xs border"
                                              :class="{
-                                                 'bg-emerald-50 text-emerald-800 border border-emerald-200': evt.type === 'schedule',
-                                                 'bg-blue-50 text-blue-800 border border-blue-200': evt.type === 'pm',
-                                                 'bg-rose-50 text-rose-800 border border-rose-200': evt.type === 'cm'
+                                                 'bg-emerald-50 text-emerald-900 border-emerald-200': evt.type === 'schedule',
+                                                 'bg-blue-50 text-blue-900 border-blue-200': evt.type === 'pm',
+                                                 'bg-rose-50 text-rose-900 border-rose-200': evt.type === 'cm'
                                              }"
                                              :title="evt.title + ' (' + evt.time + ')'"
                                              @click.stop="openEventModal(evt, cell)">
@@ -859,17 +855,11 @@
                                         </div>
                                     </template>
 
-                                    {{-- Overflow Indicator --}}
+                                    {{-- Overflow Indicator (+X agenda lainnya) --}}
                                     <div x-show="cell.events.length > 3" 
-                                         class="text-[10px] font-bold text-slate-600 hover:text-[#8F0A0D] pt-0.5 text-center bg-slate-100 rounded py-0.5">
+                                         class="text-[10px] font-bold text-slate-500 hover:text-[#8F0A0D] px-1 py-0.5 rounded text-left">
                                         +<span x-text="cell.events.length - 3"></span> agenda lainnya
                                     </div>
-                                </div>
-
-                                {{-- Bottom Indicator --}}
-                                <div class="pt-1 flex items-center justify-between text-[9.5px] text-slate-400" x-show="cell.events.length > 0">
-                                    <span class="font-bold text-slate-500" x-text="cell.events.length + ' Agenda'"></span>
-                                    <span class="text-[#8F0A0D] font-bold text-[9px] uppercase tracking-wider">&bull; Lihat</span>
                                 </div>
                             </div>
                         </template>
