@@ -450,7 +450,7 @@
                 </div>
 
                 <!-- Form -->
-                <form :action="isEdit ? '/managed-service/assets/' + form.id : '{{ route('ms.assets.store') }}'" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                <form :action="isEdit ? '/managed-service/assets/' + form.id : '{{ route('ms.assets.store') }}'" method="POST" @submit="validateBeforeSubmit($event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
                     <template x-if="isEdit">
                         <input type="hidden" name="_method" value="PUT">
@@ -634,24 +634,81 @@
                         </template>
 
                         {{-- =========================================================
-                             BAGIAN 3: MODE CREATE (MULTI PERANGKAT / REPEATER)
-                             HANYA SATU TOMBOL TAMBAH DI BAWAH (TIDAK ADA TOMBOL DOBEL)
+                             BAGIAN 3: MODE CREATE (MULTI PERANGKAT DENGAN PAGINATION & AUTO-COPY)
+                             Mendukung input hingga 50+ perangkat tanpa scroll panjang ke bawah
                              ========================================================= --}}
                         <template x-if="!isEdit">
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between pb-1 border-b border-slate-200">
-                                    <div class="flex items-center gap-2 text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                                        <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                                        <span>Daftar Perangkat Yang Didaftarkan (<span x-text="devices.length" class="text-[#8F0A0D]"></span> Unit)</span>
+                            <div class="space-y-3.5">
+                                {{-- HEADER PAGINASI & NAVIGASI PERANGKAT --}}
+                                <div class="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-2xs">
+                                    {{-- Info Indikator Perangkat Aktif --}}
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
+                                            <span class="text-xs font-bold text-slate-800">Perangkat:</span>
+                                            <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-[#8F0A0D] text-white shadow-2xs"
+                                                  x-text="'#' + (currentDeviceIndex + 1) + ' dari ' + devices.length + ' Unit'"></span>
+                                        </div>
+                                        <span class="text-[11px] text-slate-500 font-semibold truncate max-w-[180px] sm:max-w-[220px]"
+                                              x-show="devices[currentDeviceIndex]?.device_name"
+                                              x-text="'(' + devices[currentDeviceIndex]?.device_name + ')'"></span>
                                     </div>
-                                    <span class="text-[11px] text-slate-400 font-medium">1 Customer bisa memiliki &gt;1 perangkat</span>
+
+                                    {{-- Bar Navigasi Pagination & Stepper --}}
+                                    <div class="flex items-center justify-between sm:justify-end gap-1.5 flex-wrap">
+                                        {{-- Tombol Prev --}}
+                                        <button type="button" @click="prevDevice()" :disabled="currentDeviceIndex === 0"
+                                                class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold transition flex items-center gap-1 shadow-2xs"
+                                                :class="currentDeviceIndex === 0 ? 'opacity-40 cursor-not-allowed bg-slate-100 text-slate-400' : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-[#8F0A0D] cursor-pointer'">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                            <span class="hidden sm:inline">Prev</span>
+                                        </button>
+
+                                        {{-- Quick Numbered Chips (Mendukung hingga 50+ perangkat dengan auto-scroll) --}}
+                                        <div class="flex items-center gap-1 max-w-[200px] sm:max-w-[260px] overflow-x-auto py-1 px-1 rounded-lg bg-slate-100 no-scrollbar">
+                                            <template x-for="(dev, pIdx) in devices" :key="'chip-' + dev._uid">
+                                                <button type="button" @click="goToDevice(pIdx)"
+                                                        class="min-w-[28px] h-7 px-1.5 rounded-md text-[11px] font-bold flex items-center justify-center transition shrink-0 cursor-pointer"
+                                                        :class="currentDeviceIndex === pIdx ? 'bg-[#8F0A0D] text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'"
+                                                        x-text="pIdx + 1"
+                                                        :title="'Ke Perangkat #' + (pIdx + 1) + (dev.device_name ? ' (' + dev.device_name + ')' : '')">
+                                                </button>
+                                            </template>
+                                        </div>
+
+                                        {{-- Tombol Next --}}
+                                        <button type="button" @click="nextDevice()" :disabled="currentDeviceIndex === devices.length - 1"
+                                                class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold transition flex items-center gap-1 shadow-2xs"
+                                                :class="currentDeviceIndex === devices.length - 1 ? 'opacity-40 cursor-not-allowed bg-slate-100 text-slate-400' : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-[#8F0A0D] cursor-pointer'">
+                                            <span class="hidden sm:inline">Next</span>
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                        </button>
+
+                                        {{-- Tombol Hapus Perangkat Aktif (Jika > 1) --}}
+                                        <button type="button" @click="removeDevice(currentDeviceIndex)" x-show="devices.length > 1"
+                                                class="px-2.5 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer ml-1 shadow-2xs"
+                                                title="Hapus data perangkat ini">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <span class="hidden sm:inline">Hapus</span>
+                                        </button>
+
+                                        {{-- Tombol Tambah Perangkat (Auto-Copy Spesifikasi) --}}
+                                        <button type="button" @click="addDevice(true)"
+                                                class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs ml-1"
+                                                title="Tambah perangkat baru dengan menyalin spesifikasi perangkat ini (SN & IP siap diisi baru)">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                            <span>+ Tambah Unit</span>
+                                        </button>
+                                    </div>
                                 </div>
 
-                                {{-- Repeater Devices Loop --}}
-                                <div class="space-y-4">
+                                {{-- Kartu Form Perangkat (HANYA SATU YANG DITAMPILKAN BERDASARKAN currentDeviceIndex) --}}
+                                <div>
                                     <template x-for="(dev, idx) in devices" :key="dev._uid">
-                                        <div class="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-4 transition hover:border-slate-300">
-                                            {{-- Perangkat Header & Remove Button --}}
+                                        <div x-show="currentDeviceIndex === idx" 
+                                             class="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-4 transition">
+                                            
+                                            {{-- Header di dalam Kartu --}}
                                             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                                                 <div class="flex items-center gap-2">
                                                     <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#FEF2F2] text-[#8F0A0D] border border-[#FECACA]">
@@ -660,18 +717,16 @@
                                                     <span class="text-xs font-bold text-slate-800" x-text="dev.device_name ? dev.device_name : 'Perangkat Baru'"></span>
                                                     <span class="text-[11px] text-slate-400" x-show="dev.brand" x-text="'&bull; ' + dev.brand"></span>
                                                 </div>
-                                                <button type="button" @click="removeDevice(idx)" x-show="devices.length > 1"
-                                                        class="text-rose-600 hover:text-rose-800 text-xs font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Hapus Perangkat Ini">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    <span>Hapus Perangkat</span>
-                                                </button>
+                                                <div class="text-[10.5px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-semibold" x-show="idx > 0">
+                                                    Auto-prefill dari perangkat sebelumnya
+                                                </div>
                                             </div>
 
                                             {{-- Row 1: Identitas Dasar --}}
                                             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                                 <div>
                                                     <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tipe <span class="text-[#8F0A0D]">*</span></label>
-                                                    <select :name="'devices[' + idx + '][category]'" x-model="dev.category" required
+                                                    <select :name="'devices[' + idx + '][category]'" x-model="dev.category" :required="!isEdit && currentDeviceIndex === idx"
                                                             class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                         <option value="Switch">Switch</option>
                                                         <option value="Router">Router</option>
@@ -690,7 +745,7 @@
                                                 </div>
                                                 <div class="sm:col-span-2">
                                                     <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Nama Perangkat / Model <span class="text-[#8F0A0D]">*</span></label>
-                                                    <input type="text" :name="'devices[' + idx + '][device_name]'" x-model="dev.device_name" required placeholder="Contoh: EX3400-24T / FortiGate 100F"
+                                                    <input type="text" :name="'devices[' + idx + '][device_name]'" x-model="dev.device_name" :required="!isEdit && currentDeviceIndex === idx" placeholder="Contoh: EX3400-24T / FortiGate 100F"
                                                            class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#8F0A0D]">
                                                 </div>
                                             </div>
@@ -791,19 +846,32 @@
                                                     </select>
                                                 </div>
                                             </div>
+
+                                            {{-- Bottom Stepper Action Bar inside Card --}}
+                                            <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+                                                <div class="flex items-center gap-2">
+                                                    <button type="button" @click="prevDevice()" :disabled="idx === 0"
+                                                            class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold transition flex items-center gap-1 shadow-2xs"
+                                                            :class="idx === 0 ? 'opacity-40 cursor-not-allowed bg-slate-50 text-slate-400' : 'bg-white text-slate-700 hover:bg-slate-50 cursor-pointer'">
+                                                        &larr; Sebelumnya
+                                                    </button>
+                                                    <button type="button" @click="nextDevice()" :disabled="idx === devices.length - 1"
+                                                            class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold transition flex items-center gap-1 shadow-2xs"
+                                                            :class="idx === devices.length - 1 ? 'opacity-40 cursor-not-allowed bg-slate-50 text-slate-400' : 'bg-white text-slate-700 hover:bg-slate-50 cursor-pointer'">
+                                                        Berikutnya &rarr;
+                                                    </button>
+                                                </div>
+
+                                                <div class="flex items-center gap-2">
+                                                    <button type="button" @click="addDevice(true)"
+                                                            class="px-3.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
+                                                        <span>+ Tambah Perangkat #<span x-text="devices.length + 1"></span> (Salin Data Ini)</span>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </template>
-                                </div>
-
-                                {{-- SATU TOMBOL TAMBAH PERANGKAT DI BAWAH (ELEGAN, TIDAK ADA TOMBOL DOBEL) --}}
-                                <div class="pt-1">
-                                    <button type="button" @click="addDevice()" 
-                                            class="w-full py-3 px-4 rounded-xl border border-dashed border-slate-300 hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-red-50/40 text-slate-700 hover:text-[#8F0A0D] font-bold text-[12.5px] transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs group">
-                                        <div class="w-5 h-5 rounded-full bg-slate-200 group-hover:bg-[#8F0A0D] group-hover:text-white flex items-center justify-center transition text-slate-600">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                        </div>
-                                        <span>Tambah Perangkat Lain Untuk Klien Ini</span>
-                                    </button>
                                 </div>
                             </div>
                         </template>
@@ -957,6 +1025,7 @@
                 notes: '',
             },
             devices: [],
+            currentDeviceIndex: 0,
 
             createEmptyDevice() {
                 return {
@@ -979,14 +1048,78 @@
                 };
             },
 
-            addDevice() {
-                this.devices.push(this.createEmptyDevice());
+            addDevice(copyFromPrevious = true) {
+                let base = (copyFromPrevious && this.devices.length > 0)
+                    ? (this.devices[this.currentDeviceIndex] || this.devices[this.devices.length - 1])
+                    : null;
+
+                let newDev;
+                if (base) {
+                    newDev = {
+                        _uid: 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                        category: base.category || 'Switch',
+                        brand: base.brand || '',
+                        device_name: base.device_name || '',
+                        serial_number: '', // Dikosongkan agar siap diisi nomor seri baru
+                        quantity: 1,
+                        os_version: base.os_version || '',
+                        ip_address: '', // Dikosongkan agar siap diisi IP baru
+                        rack_position: base.rack_position || '',
+                        status: base.status || 'Online',
+                        service_support_type: base.service_support_type || 'PAR-ND',
+                        service_support_desc: base.service_support_desc || '',
+                        support_status: base.support_status || 'Active',
+                        support_expiry_date: base.support_expiry_date || '',
+                        eol_date: base.eol_date || '',
+                        eos_date: base.eos_date || '',
+                    };
+                } else {
+                    newDev = this.createEmptyDevice();
+                }
+
+                this.devices.push(newDev);
+                this.currentDeviceIndex = this.devices.length - 1;
             },
 
             removeDevice(index) {
                 if (this.devices.length > 1) {
                     this.devices.splice(index, 1);
+                    if (this.currentDeviceIndex >= this.devices.length) {
+                        this.currentDeviceIndex = this.devices.length - 1;
+                    }
                 }
+            },
+
+            prevDevice() {
+                if (this.currentDeviceIndex > 0) {
+                    this.currentDeviceIndex--;
+                }
+            },
+
+            nextDevice() {
+                if (this.currentDeviceIndex < this.devices.length - 1) {
+                    this.currentDeviceIndex++;
+                }
+            },
+
+            goToDevice(idx) {
+                if (idx >= 0 && idx < this.devices.length) {
+                    this.currentDeviceIndex = idx;
+                }
+            },
+
+            validateBeforeSubmit(e) {
+                if (this.isEdit) return true;
+                for (let i = 0; i < this.devices.length; i++) {
+                    let d = this.devices[i];
+                    if (!d.device_name || d.device_name.trim() === '') {
+                        e.preventDefault();
+                        this.currentDeviceIndex = i;
+                        alert('Harap isi Nama Perangkat / Model untuk Perangkat #' + (i + 1));
+                        return false;
+                    }
+                }
+                return true;
             },
 
             onSupportTypeChange(target) {
@@ -1034,6 +1167,7 @@
                     notes: '',
                 };
                 this.devices = [this.createEmptyDevice()];
+                this.currentDeviceIndex = 0;
                 this.isModalOpen = true;
             },
 
