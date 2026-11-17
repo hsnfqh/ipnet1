@@ -72,7 +72,18 @@
                         <p class="text-[13px] text-[#64748B] mt-0.5">Monitoring real-time siklus Preventive Maintenance (PM), pencapaian SLA operasional, serta tiket Corrective Maintenance (CM) aktif dan closed.</p>
                     </div>
 
-                    <div class="flex items-center gap-3 shrink-0 self-start lg:self-center">
+                    <div class="flex items-center gap-2.5 shrink-0 self-start lg:self-center flex-wrap">
+                        <a href="{{ route('ms.reporting.export_portfolio_pdf', request()->query()) }}" 
+                           target="_blank"
+                           class="px-3.5 py-2 text-xs font-bold text-[#8F0A0D] bg-white border border-[#FCA5A5] hover:bg-[#FEF2F2] hover:border-[#8F0A0D] rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer active:scale-95"
+                           title="Unduh Rekapitulasi Portofolio SLA Seluruh Proyek dalam bentuk PDF">
+                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2.5-2.5M12 17l2.5-2.5"/>
+                            </svg>
+                            <span>Export PDF Portofolio</span>
+                        </a>
+
                         <a href="{{ route('ms.projects.index') }}" 
                            class="btn-ipnet-gradient px-4 py-2 text-xs font-bold text-white rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer active:scale-95">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
@@ -313,8 +324,19 @@
                                                 <a href="{{ route('ms.projects.show', ['project' => $p->id, 'tab' => 'sla']) }}" 
                                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-[#CBD5E1] hover:border-[#8F0A0D] text-[#1E293B] hover:text-[#8F0A0D] text-[11px] font-bold transition shadow-2xs cursor-pointer"
                                                    title="Buka Detail SLA &amp; Laporan Proyek">
-                                                    <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                    <span>Lihat Detail</span>
+                                                    <svg class="w-3.5 h-3.5 text-slate-500 hover:text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                    <span>Detail</span>
+                                                </a>
+
+                                                <a href="{{ route('ms.projects.export_project_pdf', $p->id) }}" 
+                                                   target="_blank"
+                                                   class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#FEF2F2] border border-[#FECACA] hover:bg-[#FEE2E2] hover:border-[#F87171] text-[#991B1B] text-[11px] font-bold transition shadow-2xs cursor-pointer"
+                                                   title="Unduh Laporan Kinerja SLA Proyek (PDF)">
+                                                    <svg class="w-3.5 h-3.5 text-[#DC2626]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2.5-2.5M12 17l2.5-2.5"/>
+                                                    </svg>
+                                                    <span>PDF SLA</span>
                                                 </a>
                                             </div>
                                         </td>

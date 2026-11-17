@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class ManagedServiceController extends Controller
 {
@@ -1368,6 +1370,242 @@ class ManagedServiceController extends Controller
     public function reports(Request $request)
     {
         return $this->reporting($request);
+    }
+
+    /**
+     * Export Rekapitulasi Portofolio Managed Service & SLA dalam bentuk PDF
+     */
+    public function exportPortfolioPdf(Request $request)
+    {
+        $this->ensureTablesExist();
+
+        $query = self::getManagedServiceProjectsQuery();
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('client', 'like', "%{$s}%")
+                  ->orWhere('sales_name', 'like', "%{$s}%")
+                  ->orWhere('location', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('tier') && $request->tier !== 'all') {
+            $query->where('sla_tier', $request->tier);
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where(function($q) use ($request) {
+                $q->where('status', $request->status)
+                  ->orWhere('stage', $request->status);
+            });
+        }
+
+        $projects = $query->latest('id')->get();
+
+        $totalProjectsCount = $projects->count();
+        $totalPmCompleted = 0;
+        $totalPmCycles = 0;
+        $totalActiveTickets = 0;
+        $totalClosedTickets = 0;
+        $slaTargetScores = [];
+        $slaComplianceScores = [];
+
+        $projectRows = [];
+
+        foreach ($projects as $p) {
+            $cycles = $p->pmCycles ?: collect();
+            $pTotal = (int) ($p->pm_total_cycles ?: max($cycles->count(), 1));
+            $pDone = $cycles->filter(function($c) {
+                $act = strtolower($c->activity_status ?? '');
+                $rep = strtolower($c->report_status ?? '');
+                return in_array($act, ['completed', 'solved']) 
+                    || in_array($rep, ['approved', 'submitted', 'signed', 'invoiced']) 
+                    || !empty($c->actual_date);
+            })->count();
+
+            $totalPmCompleted += $pDone;
+            $totalPmCycles += $pTotal;
+            $pmPercent = $pTotal > 0 ? round(($pDone / $pTotal) * 100) : 0;
+
+            $tickets = $p->managedServiceTickets ?: collect();
+            $cmQuota = (int) ($p->cm_quota ?: 18);
+            $totalTickets = $tickets->count();
+
+            $activeT = $tickets->filter(function($t) {
+                $st = strtolower(trim((string)$t->status));
+                $isResolved = in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+                return !$isResolved;
+            })->count();
+
+            $closedT = $tickets->filter(function($t) {
+                $st = strtolower(trim((string)$t->status));
+                return in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+            })->count();
+
+            $totalActiveTickets += $activeT;
+            $totalClosedTickets += $closedT;
+            $remainingQuota = max(0, $cmQuota - $totalTickets);
+
+            $targetSla = (float) ($p->sla_target_percentage ?: 99.50);
+            $slaTargetScores[] = $targetSla;
+
+            $closedTicketsCollection = $tickets->filter(function($t) {
+                $st = strtolower(trim((string)$t->status));
+                return in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+            });
+            $slaMetTicketsCount = $closedTicketsCollection->filter(fn($t) => $t->sla_met || $t->sla_met === null)->count();
+            $slaCompliancePercent = $closedT > 0 ? round(($slaMetTicketsCount / $closedT) * 100, 1) : 100.0;
+            $slaComplianceScores[] = $slaCompliancePercent;
+
+            $projectRows[] = [
+                'project' => $p,
+                'total_cycles' => $pTotal,
+                'completed_cycles' => $pDone,
+                'pm_percent' => $pmPercent,
+                'cm_quota' => $cmQuota,
+                'total_tickets' => $totalTickets,
+                'active_tickets' => $activeT,
+                'closed_tickets' => $closedT,
+                'remaining_quota' => $remainingQuota,
+                'target_sla' => $targetSla,
+                'sla_compliance' => $slaCompliancePercent,
+            ];
+        }
+
+        $avgSlaTarget = !empty($slaTargetScores) ? round(array_sum($slaTargetScores) / count($slaTargetScores), 2) : 99.50;
+        $avgSlaCompliance = !empty($slaComplianceScores) ? round(array_sum($slaComplianceScores) / count($slaComplianceScores), 1) : 100.0;
+        $portfolioPmProgress = $totalPmCycles > 0 ? round(($totalPmCompleted / $totalPmCycles) * 100) : 0;
+
+        $logoPath = public_path('images/ipnet1.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('images/ipnet.png');
+        }
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+
+        $pdf = Pdf::loadView('managed_service.exports.portfolio_pdf', [
+            'projects' => $projectRows,
+            'totalProjectsCount' => $totalProjectsCount,
+            'totalPmCompleted' => $totalPmCompleted,
+            'totalPmCycles' => $totalPmCycles,
+            'portfolioPmProgress' => $portfolioPmProgress,
+            'totalActiveTickets' => $totalActiveTickets,
+            'totalClosedTickets' => $totalClosedTickets,
+            'avgSlaTarget' => $avgSlaTarget,
+            'avgSlaCompliance' => $avgSlaCompliance,
+            'logoBase64' => $logoBase64,
+            'printedBy' => auth()->user()->name ?? 'Administrator',
+            'printedAt' => now()->format('d/m/Y H:i'),
+            'filterTier' => $request->input('tier', 'all'),
+            'filterSearch' => $request->input('search', ''),
+        ]);
+
+        $pdf->setPaper('a4', 'landscape');
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+
+        $filename = 'Laporan-Portofolio-Managed-Service-IPNET-' . now()->format('Ymd-His') . '.pdf';
+
+        if ($request->input('action') === 'stream' || $request->input('preview') == 1) {
+            return $pdf->stream($filename);
+        }
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Export Laporan Kinerja SLA & Siklus PM Proyek Satuan (Per-Project) dalam bentuk PDF
+     */
+    public function exportProjectPdf(Request $request, $projectId)
+    {
+        $this->ensureTablesExist();
+
+        $project = Project::with([
+            'creator',
+            'pmCycles.assignedEngineer',
+            'pmCycles.picMs',
+            'pmCycles.leadEngineer',
+            'managedServiceTickets.assignedEngineer',
+            'msAcceptedBy'
+        ])->findOrFail($projectId);
+
+        // Perhitungan Siklus PM
+        $cycles = $project->pmCycles ?: collect();
+        $totalCycles = (int) ($project->pm_total_cycles ?: max($cycles->count(), 1));
+        $completedCycles = $cycles->filter(function($c) {
+            $act = strtolower($c->activity_status ?? '');
+            $rep = strtolower($c->report_status ?? '');
+            return in_array($act, ['completed', 'solved']) 
+                || in_array($rep, ['approved', 'submitted', 'signed', 'invoiced']) 
+                || !empty($c->actual_date);
+        })->count();
+        $pmPercent = $totalCycles > 0 ? round(($completedCycles / $totalCycles) * 100) : 0;
+
+        // Perhitungan Tiket CM
+        $tickets = $project->managedServiceTickets ?: collect();
+        $cmQuota = (int) ($project->cm_quota ?: 18);
+        $totalTickets = $tickets->count();
+
+        $activeTickets = $tickets->filter(function($t) {
+            $st = strtolower(trim((string)$t->status));
+            $isResolved = in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+            return !$isResolved;
+        });
+        $activeCount = $activeTickets->count();
+
+        $closedTickets = $tickets->filter(function($t) {
+            $st = strtolower(trim((string)$t->status));
+            return in_array($st, ['resolved', 'closed', 'solved', 'completed', 'submitted', 'selesai', 'done', 'approved']) || !empty($t->resolved_at);
+        });
+        $closedCount = $closedTickets->count();
+        $remainingQuota = max(0, $cmQuota - $totalTickets);
+
+        // Perhitungan Kepatuhan SLA
+        $targetSla = (float) ($project->sla_target_percentage ?: 99.50);
+        $slaMetTicketsCount = $closedTickets->filter(fn($t) => $t->sla_met || $t->sla_met === null)->count();
+        $slaCompliancePercent = $closedCount > 0 ? round(($slaMetTicketsCount / $closedCount) * 100, 1) : 100.0;
+        $isSlaMet = ($slaCompliancePercent >= 90.0);
+
+        $logoPath = public_path('images/ipnet1.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('images/ipnet.png');
+        }
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+
+        $pdf = Pdf::loadView('managed_service.exports.project_sla_pdf', [
+            'project' => $project,
+            'cycles' => $cycles,
+            'totalCycles' => $totalCycles,
+            'completedCycles' => $completedCycles,
+            'pmPercent' => $pmPercent,
+            'tickets' => $tickets,
+            'cmQuota' => $cmQuota,
+            'totalTickets' => $totalTickets,
+            'activeCount' => $activeCount,
+            'closedCount' => $closedCount,
+            'remainingQuota' => $remainingQuota,
+            'targetSla' => $targetSla,
+            'slaCompliancePercent' => $slaCompliancePercent,
+            'isSlaMet' => $isSlaMet,
+            'logoBase64' => $logoBase64,
+            'printedBy' => auth()->user()->name ?? 'Administrator',
+            'printedAt' => now()->format('d/m/Y H:i'),
+            'docNumber' => 'RPT-MS-' . str_pad($project->id, 4, '0', STR_PAD_LEFT) . '-' . now()->format('ymd'),
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+
+        $cleanProjectName = Str::slug($project->name) ?: 'Project-' . $project->id;
+        $filename = 'Laporan-SLA-' . $cleanProjectName . '-IPNET.pdf';
+
+        if ($request->input('action') === 'stream' || $request->input('preview') == 1) {
+            return $pdf->stream($filename);
+        }
+
+        return $pdf->download($filename);
     }
 
     public function storeReport(Request $request)

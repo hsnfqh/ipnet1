@@ -298,6 +298,17 @@
                             </select>
                         </div>@endif
 
+                        {{-- Unduh Laporan PDF Resmi Proyek --}}
+                        <a href="{{ route('ms.projects.export_project_pdf', $project->id) }}" target="_blank"
+                           class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA] hover:border-[#F87171] text-[#991B1B] text-xs font-bold rounded-xl shadow-2xs transition cursor-pointer"
+                           title="Unduh Laporan Kinerja SLA &amp; Siklus PM Proyek dalam format PDF resmi">
+                            <svg class="w-3.5 h-3.5 text-[#DC2626]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m0 0l-2.5-2.5M12 17l2.5-2.5"/>
+                            </svg>
+                            <span>Unduh Laporan PDF</span>
+                        </a>
+
                         {{-- Ubah Parameter SLA (Hanya tombol ini di header agar rapi dan tidak dobel) --}}
                         <button type="button" @click="isSlaModalOpen = true" 
                                 class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-[#334155] text-xs font-bold rounded-xl shadow-2xs transition cursor-pointer">

@@ -1541,8 +1541,10 @@ Route::middleware(['auth'])->group(function () {
         // Preventive Maintenance
         Route::get('/maintenance', [\App\Http\Controllers\ManagedServiceController::class, 'maintenance'])->name('ms.maintenance.index');
 
-        // Reports & SLA Availability (Reporting Terintegrasi)
+        // Reports & SLA Availability (Reporting Terintegrasi & Export PDF)
         Route::get('/reporting', [\App\Http\Controllers\ManagedServiceController::class, 'reporting'])->name('ms.reporting.index');
+        Route::get('/reporting/export-pdf', [\App\Http\Controllers\ManagedServiceController::class, 'exportPortfolioPdf'])->name('ms.reporting.export_portfolio_pdf');
+        Route::get('/projects/{project}/export-pdf', [\App\Http\Controllers\ManagedServiceController::class, 'exportProjectPdf'])->name('ms.projects.export_project_pdf');
         Route::get('/reports', [\App\Http\Controllers\ManagedServiceController::class, 'reporting'])->name('ms.reports.index');
         Route::post('/reports', [\App\Http\Controllers\ManagedServiceController::class, 'storeReport'])->name('ms.reports.store');
         Route::post('/downtime-log', [\App\Http\Controllers\ManagedServiceController::class, 'storeDowntimeLog'])->name('ms.downtime.store');
