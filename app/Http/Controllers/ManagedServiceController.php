@@ -4718,6 +4718,14 @@ class ManagedServiceController extends Controller
                     });
                 } catch (\Throwable $e) {}
             }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('managed_service_pm_cycles', 'backup_config_file')) {
+                try {
+                    \Illuminate\Support\Facades\Schema::table('managed_service_pm_cycles', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->string('backup_config_file')->nullable()->after('report_files');
+                        $table->string('backup_config_filename')->nullable()->after('backup_config_file');
+                    });
+                } catch (\Throwable $e) {}
+            }
         }
 
         // Sanitasi berkas upload: Bersihkan elemen input kosong (error UPLOAD_ERR_NO_FILE) sebelum validasi
@@ -4753,6 +4761,7 @@ class ManagedServiceController extends Controller
             'report_files'            => 'nullable|array',
             'report_files.*'          => 'nullable|file|max:51200',
             'billing_ba_file'         => 'nullable|file|max:51200',
+            'backup_config_file'      => 'nullable|file|max:51200',
         ]);
 
         if (isset($validated['notes'])) {
@@ -4858,6 +4867,32 @@ class ManagedServiceController extends Controller
                 $validated['billing_ba_filename'] = $file->getClientOriginalName();
                 if (($validated['billing_ba_status'] ?? 'Pending') === 'Pending') {
                     $validated['billing_ba_status'] = 'Submitted';
+                }
+            }
+        }
+
+        if ($request->hasFile('backup_config_file')) {
+            $bFile = $request->file('backup_config_file');
+            if ($bFile && $bFile->isValid()) {
+                $path = FileUploadHelper::storePublicly($bFile, 'ms_backup_configs');
+                if ($path) {
+                    $validated['backup_config_file'] = $path;
+                    $validated['backup_config_filename'] = $bFile->getClientOriginalName();
+
+                    // Sinkronisasi otomatis ke seluruh aset pada proyek ini jika ada
+                    try {
+                        if ($cycle->project_id && \Illuminate\Support\Facades\Schema::hasTable('managed_service_assets')) {
+                            ManagedServiceAsset::where('project_id', $cycle->project_id)
+                                ->update([
+                                    'backup_file_path' => $path,
+                                    'backup_file_name' => $bFile->getClientOriginalName(),
+                                    'backup_status'    => 'Backed Up',
+                                    'last_backup_date' => now()->toDateString(),
+                                ]);
+                        }
+                    } catch (\Throwable $exAst) {
+                        Log::warning('Sinkronisasi backup config PM ke aset: ' . $exAst->getMessage());
+                    }
                 }
             }
         }

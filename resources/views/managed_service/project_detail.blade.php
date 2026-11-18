@@ -53,6 +53,7 @@
         allEngineerMap: {{ json_encode($allEngineers->pluck('name', 'id')) }},
         pmFile1: null,
         pmFile2: null,
+        pmBackupFile: null,
         init() {
             if (window.location.hash === '#lokasi-site') {
                 this.activeTab = 'documents';
@@ -87,6 +88,26 @@
             if (slot === 1) this.pmFile1 = info;
             if (slot === 2) this.pmFile2 = info;
         },
+        handlePmBackupFile(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            if (file.size > 52428800) {
+                alert('Ukuran berkas backup config ' + file.name + ' melebihi batas 50MB. Silakan pilih berkas lain.');
+                event.target.value = '';
+                this.pmBackupFile = null;
+                return;
+            }
+            this.pmBackupFile = {
+                name: file.name,
+                size: file.size < 1048576 ? (file.size / 1024).toFixed(1) + ' KB' : (file.size / 1048576).toFixed(1) + ' MB'
+            };
+        },
+        clearPmBackupFile() {
+            const inp = document.getElementById('pm_backup_file_input');
+            if (inp) inp.value = '';
+            if (this.$refs.pmBackupFileInput) this.$refs.pmBackupFileInput.value = '';
+            this.pmBackupFile = null;
+        },
         clearPmFile(slot) {
             if (slot === 1) {
                 const inp = document.getElementById('pm_file_input_1');
@@ -114,12 +135,16 @@
             this.isSavingPm = false;
             this.pmFile1 = null;
             this.pmFile2 = null;
+            this.pmBackupFile = null;
             const inp1 = document.getElementById('pm_file_input_1');
             if (inp1) inp1.value = '';
             const inp2 = document.getElementById('pm_file_input_2');
             if (inp2) inp2.value = '';
+            const inpB = document.getElementById('pm_backup_file_input');
+            if (inpB) inpB.value = '';
             if (this.$refs.pmFileInput1) this.$refs.pmFileInput1.value = '';
             if (this.$refs.pmFileInput2) this.$refs.pmFileInput2.value = '';
+            if (this.$refs.pmBackupFileInput) this.$refs.pmBackupFileInput.value = '';
             this.isPmModalOpen = true;
         },
         async deleteSavedPmFile(filePath, fIdx) {
@@ -2235,6 +2260,76 @@
                                 </div>
                             </div>
                             <p class="text-[10px] text-slate-400">Tips: Anda dapat memilih 1 atau 2 berkas sekaligus sebelum mengklik tombol Simpan Realisasi PM.</p>
+                        </div>
+
+                        {{-- UPLOAD FILE BACKUP CONFIG PERANGKAT (Mikrotik, Cisco, Router, Switch) --}}
+                        <div class="space-y-2 pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-semibold text-[#334155] flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span>File Backup Config Perangkat</span>
+                                    <span class="text-[10px] font-normal text-slate-400">(Mikrotik / Cisco / Switch / Router)</span>
+                                </label>
+                                <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/80">Opsional • Maks. 50 MB</span>
+                            </div>
+
+                            <input type="file" id="pm_backup_file_input" name="backup_config_file" x-ref="pmBackupFileInput" @change="handlePmBackupFile($event)" accept=".cfg,.conf,.rsc,.txt,.json,.xml,.tar,.gz,.zip,.bin" class="hidden">
+
+                            {{-- Card Upload / State Selected --}}
+                            <div class="border rounded-xl p-3 transition"
+                                 :class="pmBackupFile ? 'border-indigo-300 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/50 hover:border-indigo-400/50 hover:bg-indigo-50/20'">
+                                
+                                {{-- Empty State (Label trigger) --}}
+                                <label for="pm_backup_file_input" 
+                                       x-show="!pmBackupFile" 
+                                       class="py-2.5 px-3 border border-dashed border-slate-200 hover:border-indigo-500 rounded-lg flex items-center justify-between text-left cursor-pointer transition bg-white/90 hover:bg-white group select-none">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 group-hover:scale-105 flex items-center justify-center transition shrink-0 pointer-events-none">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                        </div>
+                                        <div class="truncate pointer-events-none">
+                                            <p class="text-[11.5px] font-bold text-slate-700 group-hover:text-indigo-600 transition truncate">Upload Backup Config (.rsc, .cfg, .conf, .txt, .zip)</p>
+                                            <p class="text-[9.5px] text-slate-400">Otomatis tersimpan & disinkronkan ke aset proyek ini</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md shrink-0 border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition pointer-events-none">
+                                        Pilih File
+                                    </span>
+                                </label>
+
+                                {{-- Selected State --}}
+                                <div x-show="pmBackupFile" class="py-2 px-3 rounded-lg bg-white border border-indigo-200 shadow-2xs flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                                        <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        </div>
+                                        <div class="truncate">
+                                            <p class="text-[11.5px] font-bold text-slate-800 truncate" x-text="pmBackupFile ? pmBackupFile.name : ''"></p>
+                                            <p class="text-[9.5px] text-indigo-600 font-semibold" x-text="pmBackupFile ? (pmBackupFile.size + ' • Siap Disimpan') : ''"></p>
+                                        </div>
+                                    </div>
+                                    <button type="button" @click.stop="clearPmBackupFile()" class="w-6 h-6 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center transition cursor-pointer text-base leading-none font-bold shrink-0" title="Batal Pilih">&times;</button>
+                                </div>
+                            </div>
+
+                            {{-- Existing Backup Config on this cycle if already uploaded --}}
+                            <template x-if="activeCycle && activeCycle.backup_config_file">
+                                <div class="flex items-center justify-between p-2 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs">
+                                    <div class="flex items-center gap-2 min-w-0 pr-2">
+                                        <span class="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></span>
+                                        <div class="truncate">
+                                            <p class="font-bold text-slate-700 text-[11px] truncate" x-text="activeCycle.backup_config_filename || 'Backup_Config_Perangkat'"></p>
+                                            <p class="text-[9.5px] text-slate-400">File Backup Tersimpan di Siklus Ini</p>
+                                        </div>
+                                    </div>
+                                    <a :href="'/storage/' + activeCycle.backup_config_file" :download="activeCycle.backup_config_filename || 'backup-config'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 rounded-md text-[10.5px] font-bold border border-indigo-200 transition cursor-pointer shrink-0" title="Unduh File Backup Config">
+                                        <svg class="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        <span>Unduh Config</span>
+                                    </a>
+                                </div>
+                            </template>
                         </div>
 
                         {{-- View Dokumen Laporan yang Sudah Tersimpan --}}

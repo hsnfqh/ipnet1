@@ -31,6 +31,8 @@ class ManagedServicePmCycle extends Model
         'billing_ba_status',
         'billing_ba_file',
         'billing_ba_filename',
+        'backup_config_file',
+        'backup_config_filename',
     ];
 
     protected $casts = [
