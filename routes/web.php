@@ -1547,6 +1547,7 @@ Route::middleware(['auth'])->group(function () {
         // Reports & SLA Availability (Reporting Terintegrasi & Export PDF)
         Route::get('/reporting', [\App\Http\Controllers\ManagedServiceController::class, 'reporting'])->name('ms.reporting.index');
         Route::get('/reporting/export-pdf', [\App\Http\Controllers\ManagedServiceController::class, 'exportPortfolioPdf'])->name('ms.reporting.export_portfolio_pdf');
+        Route::get('/reporting/projects/{project}/export-pdf', [\App\Http\Controllers\ManagedServiceController::class, 'exportProjectPdf'])->name('ms.reporting.project_pdf');
         Route::get('/projects/{project}/export-pdf', [\App\Http\Controllers\ManagedServiceController::class, 'exportProjectPdf'])->name('ms.projects.export_project_pdf');
         Route::get('/reports', [\App\Http\Controllers\ManagedServiceController::class, 'reporting'])->name('ms.reports.index');
         Route::post('/reports', [\App\Http\Controllers\ManagedServiceController::class, 'storeReport'])->name('ms.reports.store');

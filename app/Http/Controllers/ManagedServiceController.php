@@ -1905,17 +1905,25 @@ class ManagedServiceController extends Controller
             }
 
             if (!($project instanceof Project)) {
-                $project = Project::findOrFail($project);
+                $project = Project::find($project);
             }
 
-            $project->loadMissing([
-                'creator',
-                'pmCycles.assignedEngineer',
-                'pmCycles.picMs',
-                'pmCycles.leadEngineer',
-                'managedServiceTickets.assignedEngineer',
-                'msAcceptedBy'
-            ]);
+            if (!$project) {
+                return back()->with('error', 'Data proyek tidak ditemukan.');
+            }
+
+            try {
+                $project->loadMissing([
+                    'creator',
+                    'pmCycles.assignedEngineer',
+                    'pmCycles.picMs',
+                    'pmCycles.leadEngineer',
+                    'managedServiceTickets.assignedEngineer',
+                    'msAcceptedBy'
+                ]);
+            } catch (\Throwable $relEx) {
+                Log::warning('Relasi project load in exportProjectPdf: ' . $relEx->getMessage());
+            }
 
             // Perhitungan Siklus PM
             $cycles = $project->pmCycles ?: collect();
@@ -1957,15 +1965,22 @@ class ManagedServiceController extends Controller
             // Aset Perangkat Customer Terkait Proyek / Klien
             $coveredAssets = collect();
             if (Schema::hasTable('managed_service_assets')) {
-                $coveredAssets = ManagedServiceAsset::where(function($q) use ($project) {
-                    $q->where('project_id', $project->id);
-                    if (!empty($project->client)) {
-                        $q->orWhere('client_name', 'like', '%' . trim($project->client) . '%');
-                    }
-                })->get();
+                try {
+                    $coveredAssets = ManagedServiceAsset::where(function($q) use ($project) {
+                        $q->where('project_id', $project->id);
+                        if (!empty($project->client)) {
+                            $q->orWhere('client_name', 'like', '%' . trim($project->client) . '%');
+                        }
+                    })->get();
+                } catch (\Throwable $astEx) {
+                    Log::warning('Covered assets load in exportProjectPdf: ' . $astEx->getMessage());
+                }
             }
 
-            $logoPath = public_path('images/ipnet1.png');
+            $logoPath = public_path('images/ipnet_small.png');
+            if (!file_exists($logoPath)) {
+                $logoPath = public_path('images/ipnet1.png');
+            }
             if (!file_exists($logoPath)) {
                 $logoPath = public_path('images/ipnet.png');
             }

@@ -281,6 +281,18 @@
                                     </td>
                                     <td class="py-4 px-5 text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-1.5">
+                                            {{-- Tombol View / Detail Tiket Pop Up --}}
+                                            <button type="button"
+                                                    @click="openDetailModal({{ json_encode($t) }})" 
+                                                    title="Lihat Detail Lengkap Tiket"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50/90 border border-blue-200 rounded-lg text-[12px] font-bold text-blue-700 hover:bg-blue-100 hover:border-blue-300 hover:text-blue-900 transition shadow-2xs cursor-pointer">
+                                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                                <span>View</span>
+                                            </button>
+
                                             <button @click="openUpdateModal({{ json_encode($t) }})" 
                                                     title="Update Status / Resolusi"
                                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#CBD5E1] rounded-lg text-[12px] font-bold text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#8F0A0D] hover:text-[#8F0A0D] transition shadow-xs cursor-pointer">
@@ -461,6 +473,196 @@
             </div>
         </div>
     </template>
+
+    {{-- MODAL DETAIL TIKET (POP UP DETAIL LENGKAP & RAPIH SESUAI REQUEST USER) --}}
+    <template x-teleport="body">
+        <div x-show="isDetailModalOpen" 
+             x-cloak 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-[#E2E8F0] my-auto flex flex-col overflow-hidden max-h-[92vh] animate-fade-in-up" 
+                 @click.away="isDetailModalOpen = false"
+                 @keydown.escape.window="isDetailModalOpen = false">
+                
+                <!-- Fixed Header Modal -->
+                <div class="px-6 py-4.5 border-b border-[#E2E8F0] bg-gradient-to-r from-slate-50 via-white to-red-50/30 flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-3 min-w-0 pr-2">
+                        <div class="w-10 h-10 rounded-xl bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center shrink-0 border border-[#8F0A0D]/20 shadow-2xs">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-mono text-xs font-black text-[#8F0A0D] bg-red-50 px-2 py-0.5 rounded border border-red-200" x-text="activeTicket.ticket_number || '#TIKET'"></span>
+                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                                      :class="{
+                                          'bg-emerald-50 text-emerald-700 border border-emerald-200': activeTicket.status === 'Resolved',
+                                          'bg-blue-50 text-blue-700 border border-blue-200': activeTicket.status === 'In Progress',
+                                          'bg-amber-50 text-amber-700 border border-amber-200': activeTicket.status === 'Open'
+                                      }"
+                                      x-text="activeTicket.status"></span>
+                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded border"
+                                      :class="{
+                                          'bg-red-50 text-red-700 border-red-200': (activeTicket.priority || '').toLowerCase() === 'critical' || (activeTicket.priority || '').toLowerCase() === 'high',
+                                          'bg-amber-50 text-amber-800 border-amber-200': (activeTicket.priority || '').toLowerCase() === 'medium',
+                                          'bg-slate-50 text-slate-700 border-slate-200': (activeTicket.priority || '').toLowerCase() === 'low'
+                                      }"
+                                      x-text="(activeTicket.priority || 'Medium').toUpperCase()"></span>
+                            </div>
+                            <h3 class="text-[15px] font-bold text-[#1E293B] truncate mt-1" x-text="activeTicket.title"></h3>
+                        </div>
+                    </div>
+                    <button type="button" @click="isDetailModalOpen = false" class="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer shrink-0" title="Tutup Modal">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <!-- Scrollable Body Content -->
+                <div class="p-6 overflow-y-auto space-y-5 text-[12.5px] custom-scrollbar">
+                    
+                    <!-- 1. Ringkasan Key Metrics -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/90 text-center">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Tipe Layanan</span>
+                            <span class="font-extrabold text-[#1E293B] text-[12.5px] mt-0.5 block" x-text="activeTicket.type || 'Corrective (CM)'"></span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/90 text-center">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Kategori</span>
+                            <span class="font-extrabold text-[#1E293B] text-[12.5px] mt-0.5 block" x-text="activeTicket.category || 'Incident'"></span>
+                        </div>
+                        <div class="p-3 rounded-xl text-center border"
+                             :class="activeTicket.sla_met || activeTicket.sla_met === null ? 'bg-emerald-50/60 border-emerald-200 text-emerald-800' : 'bg-red-50/60 border-red-200 text-red-800'">
+                            <span class="text-[10px] font-bold uppercase tracking-wider block">Kepatuhan SLA</span>
+                            <span class="font-extrabold text-[12.5px] mt-0.5 block" x-text="activeTicket.sla_met || activeTicket.sla_met === null ? '✓ SLA Terpenuhi' : '✕ SLA Breach'"></span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/90 text-center">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Durasi MTTR</span>
+                            <span class="font-extrabold text-[#8F0A0D] text-[12.5px] mt-0.5 block" x-text="(activeTicket.duration_hours || '0') + ' Jam'"></span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Informasi Klien, Proyek & Teknisi -->
+                    <div class="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
+                        <h4 class="text-[11px] font-bold uppercase text-slate-400 tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span>Customer, Proyek &amp; Penugasan</span>
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <span class="text-[11px] text-slate-500 block">Customer / Klien:</span>
+                                <span class="font-bold text-slate-800 text-[13px]" x-text="activeTicket.client_name || '-'"></span>
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-slate-500 block">Proyek Terkait:</span>
+                                <span class="font-bold text-[#8F0A0D] text-[13px]" x-text="activeTicket.project?.name || activeTicket.asset?.project?.name || 'Proyek Standar'"></span>
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-slate-500 block">Pelapor &amp; Kontak:</span>
+                                <span class="font-semibold text-slate-800" x-text="activeTicket.reported_by || '-'"></span>
+                                <span class="text-[11px] text-slate-500 block" x-text="activeTicket.contact_phone || activeTicket.contact_email ? '(' + (activeTicket.contact_phone || '') + ' ' + (activeTicket.contact_email || '') + ')' : ''"></span>
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-slate-500 block">Teknisi PIC Ditugaskan:</span>
+                                <span class="font-bold text-emerald-700" x-text="activeTicket.assigned_engineer?.name || 'Belum Ditugaskan'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Perangkat Jaringan (Asset CI) Terkait -->
+                    <template x-if="activeTicket.asset">
+                        <div class="p-4 rounded-xl border border-blue-100 bg-blue-50/40 space-y-2">
+                            <h4 class="text-[11px] font-bold uppercase text-blue-900 tracking-wider flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                                <span>Perangkat / CI Terdampak</span>
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                                <div>
+                                    <span class="text-[10.5px] text-slate-500 block">Perangkat &amp; Brand:</span>
+                                    <span class="font-bold text-slate-800" x-text="(activeTicket.asset?.device_name || activeTicket.asset?.model || '-') + ' (' + (activeTicket.asset?.brand || '-') + ')'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[10.5px] text-slate-500 block">Serial Number:</span>
+                                    <span class="font-mono font-bold text-slate-700" x-text="activeTicket.asset?.serial_number || '-'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[10.5px] text-slate-500 block">IP Address &amp; Lokasi:</span>
+                                    <span class="font-mono font-bold text-[#8F0A0D]" x-text="activeTicket.asset?.ip_address || '-'"></span>
+                                    <span class="text-[11px] text-slate-500 block truncate" x-text="activeTicket.asset?.location_site || '-'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- 4. Waktu Insiden & SLA Timeline -->
+                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2.5">
+                        <h4 class="text-[11px] font-bold uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Waktu Penanganan &amp; Timeline SLA</span>
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                            <div>
+                                <span class="text-[10.5px] text-slate-500 block">Waktu Kejadian / Lapor:</span>
+                                <span class="font-semibold text-slate-800" x-text="activeTicket.incident_date ? new Date(activeTicket.incident_date).toLocaleString('id-ID', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'}) : '-'"></span>
+                            </div>
+                            <div>
+                                <span class="text-[10.5px] text-slate-500 block">Batas Waktu SLA (Deadline):</span>
+                                <span class="font-semibold text-amber-700" x-text="activeTicket.sla_deadline ? new Date(activeTicket.sla_deadline).toLocaleString('id-ID', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'}) : '-'"></span>
+                            </div>
+                            <div>
+                                <span class="text-[10.5px] text-slate-500 block">Waktu Resolusi (Resolved At):</span>
+                                <span class="font-semibold text-emerald-700" x-text="activeTicket.resolved_at ? new Date(activeTicket.resolved_at).toLocaleString('id-ID', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'}) : (activeTicket.status === 'Resolved' ? 'Terselesaikan' : 'Masih Berjalan')"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Deskripsi Insiden & Keluhan -->
+                    <div>
+                        <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-1.5">Deskripsi Masalah / Keluhan:</span>
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 leading-relaxed whitespace-pre-line text-xs font-medium"
+                             x-text="activeTicket.description || 'Tidak ada deskripsi rinci.'"></div>
+                    </div>
+
+                    <!-- 6. Root Cause (Penyebab Masalah) -->
+                    <template x-if="activeTicket.root_cause">
+                        <div>
+                            <span class="text-[11px] font-bold text-amber-800 uppercase tracking-wider block mb-1.5">Akar Masalah (Root Cause):</span>
+                            <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-amber-900 leading-relaxed whitespace-pre-line text-xs"
+                                 x-text="activeTicket.root_cause"></div>
+                        </div>
+                    </template>
+
+                    <!-- 7. Resolution Notes (Tindakan Solusi) -->
+                    <template x-if="activeTicket.resolution_notes">
+                        <div>
+                            <span class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block mb-1.5">Catatan Resolusi / Tindakan Perbaikan:</span>
+                            <div class="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-emerald-900 leading-relaxed whitespace-pre-line text-xs"
+                                 x-text="activeTicket.resolution_notes"></div>
+                        </div>
+                    </template>
+
+                </div>
+
+                <!-- Fixed Footer Modal -->
+                <div class="px-6 py-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between gap-3 shrink-0">
+                    <button type="button" 
+                            @click="isDetailModalOpen = false; openUpdateModal(activeTicket)" 
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-xs shadow-xs transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <span>Update Status / Resolusi Tiket Ini</span>
+                    </button>
+                    <button type="button" 
+                            @click="isDetailModalOpen = false" 
+                            class="px-5 py-2 rounded-xl bg-white text-slate-700 border border-slate-300 font-bold text-xs hover:bg-slate-50 transition cursor-pointer">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>
 
 <script>
@@ -469,10 +671,15 @@
             isCreateModalOpen: false,
             isUpdateModalOpen: false,
             isDeleteModalOpen: false,
+            isDetailModalOpen: false,
             activeTicket: {},
             ticketToDelete: null,
             openCreateModal() {
                 this.isCreateModalOpen = true;
+            },
+            openDetailModal(ticket) {
+                this.activeTicket = { ...ticket };
+                this.isDetailModalOpen = true;
             },
             openUpdateModal(ticket) {
                 this.activeTicket = { ...ticket };

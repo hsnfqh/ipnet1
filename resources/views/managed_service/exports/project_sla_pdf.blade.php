@@ -248,7 +248,10 @@
             vertical-align: middle;
             font-size: 5.8pt;
             color: #000000;
-            line-height: 1.2;
+        }
+
+        .page-number:before {
+            content: counter(page);
         }
     </style>
 </head>
@@ -282,29 +285,15 @@
     <footer class="page-footer">
         <table class="doc-footer-table">
             <tr>
-                <td style="width: 70%;">
-                    PT IP Network Solusindo &bull; Dokumen Resmi Sistem Field System Management (FSM) &bull; Rahasia &amp; Terbatas (Confidential)
+                <td style="width: 65%;">
+                    PT IP Network Solusindo &bull; Dokumen Resmi Sistem Field Service Management (FSM) &bull; Rahasia &amp; Terbatas (Confidential)
                 </td>
-                <td style="width: 30%; text-align: right;">
-                    Dicetak: {{ $printedAt }}
+                <td style="width: 35%; text-align: right;">
+                    Hal. <span class="page-number"></span> &bull; Dicetak: {{ $printedAt }}
                 </td>
             </tr>
         </table>
     </footer>
-
-    {{-- SCRIPT DOMPDF CANVAS PENOMORAN HALAMAN PERSISI (HALAMAN X DARI Y) --}}
-    <script type="text/php">
-        if (isset($pdf)) {
-            $text = "Halaman " . $PAGE_NUM . " dari " . $PAGE_COUNT;
-            $font = $fontMetrics->get_font("Helvetica", "normal");
-            $size = 6.0;
-            $color = array(0.1, 0.1, 0.1);
-            $w = $fontMetrics->getTextWidth($text, $font, $size);
-            $x = 595.28 - 10 * 2.83465 - $w;
-            $y = 841.89 - 5 * 2.83465;
-            $pdf->page_text($x, $y, $text, $font, $size, $color);
-        }
-    </script>
 
     <div class="doc-intro">
         Dokumen resmi pemantauan performa pemenuhan Service Level Agreement (SLA), siklus kunjungan berkala Preventive Maintenance (PM), histori tiket penanganan gangguan Corrective Maintenance (CM), serta status operasional aset perangkat jaringan klien <strong>{{ $customerName }}</strong>.
