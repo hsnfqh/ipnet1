@@ -1,4 +1,31 @@
 @php
+    if (!function_exists('formatSafeDate')) {
+        function formatSafeDate($val, $format = 'd/m/Y', $default = '-') {
+            if (empty($val)) return $default;
+            if ($val instanceof \Carbon\Carbon || $val instanceof \DateTimeInterface) {
+                return $val->format($format);
+            }
+            try {
+                return \Carbon\Carbon::parse($val)->format($format);
+            } catch (\Throwable $e) {
+                return is_scalar($val) ? (string)$val : $default;
+            }
+        }
+    }
+    if (!function_exists('isDatePastSafe')) {
+        function isDatePastSafe($val) {
+            if (empty($val)) return false;
+            if ($val instanceof \Carbon\Carbon) {
+                return $val->isPast();
+            }
+            try {
+                return \Carbon\Carbon::parse($val)->isPast();
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+    }
+
     $customerName = trim((string)($customerName ?? ($project->client ?: '')));
     if (empty($customerName)) {
         $customerName = 'Customer / Klien';
@@ -330,11 +357,13 @@
         <tbody>
             @forelse($assets as $index => $asset)
                 @php
-                    $isEol = $asset->eol_date && $asset->eol_date->isPast();
-                    $isEos = $asset->eos_date && $asset->eos_date->isPast();
-                    $isBackedUp = strtolower($asset->backup_status ?? '') === 'backed up' || !empty($asset->backup_file_path);
+                    $isEol = isDatePastSafe($asset->eol_date);
+                    $isEos = isDatePastSafe($asset->eos_date);
+                    $isBackedUp = strtolower((string)($asset->backup_status ?? '')) === 'backed up' || !empty($asset->backup_file_path);
                     $supportType = $asset->service_support_type ?: 'PAR-SD';
-                    $expSupport = $asset->support_expiry_date ? $asset->support_expiry_date->format('d M Y') : ($asset->warranty_expiry ? $asset->warranty_expiry->format('d M Y') : '-');
+                    $expSupport = !empty($asset->support_expiry_date) 
+                        ? formatSafeDate($asset->support_expiry_date, 'd M Y', '-') 
+                        : formatSafeDate($asset->warranty_expiry, 'd M Y', '-');
                 @endphp
                 <tr>
                     <td class="text-center font-bold">{{ $index + 1 }}</td>
@@ -366,8 +395,8 @@
                         @if($isEol || $isEos)
                             <span class="badge-box badge-danger">EOL/EOS</span>
                         @else
-                            <div>EOL: {{ $asset->eol_date ? $asset->eol_date->format('d/m/y') : '-' }}</div>
-                            <div>EOS: {{ $asset->eos_date ? $asset->eos_date->format('d/m/y') : '-' }}</div>
+                            <div>EOL: {{ formatSafeDate($asset->eol_date, 'd/m/y', '-') }}</div>
+                            <div>EOS: {{ formatSafeDate($asset->eos_date, 'd/m/y', '-') }}</div>
                         @endif
                     </td>
                     <td class="text-center">

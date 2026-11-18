@@ -1843,7 +1843,10 @@ class ManagedServiceController extends Controller
             $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
             $docNumber = 'MS-PORT/' . now()->format('Y') . '/' . $romanMonth . '/' . now()->format('dHi');
 
-            $logoPath = public_path('images/ipnet1.png');
+            $logoPath = public_path('images/ipnet_small.png');
+            if (!file_exists($logoPath)) {
+                $logoPath = public_path('images/ipnet1.png');
+            }
             if (!file_exists($logoPath)) {
                 $logoPath = public_path('images/ipnet.png');
             }
@@ -1884,7 +1887,7 @@ class ManagedServiceController extends Controller
             ]);
         } catch (\Throwable $e) {
             Log::error('Gagal export portfolio PDF: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return back()->with('error', 'Gagal menghasilkan dokumen PDF: ' . $e->getMessage());
+            return redirect()->route('ms.reporting.index')->with('error', 'Gagal menghasilkan dokumen PDF Portofolio: ' . $e->getMessage());
         }
     }
 
@@ -1905,11 +1908,30 @@ class ManagedServiceController extends Controller
             }
 
             if (!($project instanceof Project)) {
-                $project = Project::find($project);
+                $foundProject = null;
+                if (is_numeric($project)) {
+                    $foundProject = Project::find($project) ?: Project::withTrashed()->find($project);
+                }
+                if (!$foundProject) {
+                    $foundProject = Project::where('name', 'like', "%{$project}%")->first();
+                }
+                if (!$foundProject && Schema::hasTable('managed_service_assets')) {
+                    $ast = ManagedServiceAsset::where('project_id', $project)->orWhere('id', $project)->first();
+                    if ($ast && $ast->project_id) {
+                        $foundProject = Project::find($ast->project_id);
+                    }
+                }
+                $project = $foundProject;
             }
 
             if (!$project) {
-                return back()->with('error', 'Data proyek tidak ditemukan.');
+                $project = new Project([
+                    'name' => 'Proyek Managed Service Customer',
+                    'client' => 'Customer Managed Service',
+                    'location' => 'Data Center Customer',
+                    'sla_tier' => 'Gold',
+                ]);
+                $project->id = is_numeric($project) ? (int)$project : 1;
             }
 
             try {
@@ -2026,7 +2048,7 @@ class ManagedServiceController extends Controller
             ]);
         } catch (\Throwable $e) {
             Log::error('Gagal export project SLA PDF: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return back()->with('error', 'Gagal menghasilkan dokumen PDF: ' . $e->getMessage());
+            return redirect()->route('ms.reporting.index')->with('error', 'Gagal menghasilkan dokumen PDF SLA: ' . $e->getMessage());
         }
     }
 
@@ -2053,13 +2075,17 @@ class ManagedServiceController extends Controller
             if ($project instanceof Project) {
                 $projectModel = $project;
             } elseif (is_numeric($project)) {
-                $projectModel = Project::find($project);
+                $projectModel = Project::find($project) ?: Project::withTrashed()->find($project);
             } elseif (is_string($project) && str_starts_with($project, 'asset-')) {
                 $assetId = (int) substr($project, 6);
                 $assetSingle = ManagedServiceAsset::find($assetId);
                 if ($assetSingle && $assetSingle->project_id) {
-                    $projectModel = Project::find($assetSingle->project_id);
+                    $projectModel = Project::find($assetSingle->project_id) ?: Project::withTrashed()->find($assetSingle->project_id);
                 }
+            }
+
+            if (!$projectModel && is_scalar($project)) {
+                $projectModel = Project::where('name', 'like', "%{$project}%")->first();
             }
 
             // Jika project belum ditemukan dari id/object, cari fallback berdasarkan nama atau buat representasi proyek aman
@@ -2079,6 +2105,7 @@ class ManagedServiceController extends Controller
                         'location' => 'Data Center Customer',
                         'sla_tier' => 'Gold',
                     ]);
+                    $projectModel->id = is_numeric($project) ? (int)$project : 1;
                 }
             }
 
@@ -2125,20 +2152,40 @@ class ManagedServiceController extends Controller
             $totalPhysicalUnits = (int) ($assets->sum('quantity') ?: $totalRecords);
             
             $activeSupportCount = $assets->filter(function($a) {
-                return $a->effective_support_status === 'Active' 
-                    || (!$a->support_status && (!$a->warranty_expiry || $a->warranty_expiry->isFuture()));
+                try {
+                    if ($a->effective_support_status === 'Active') return true;
+                    if (!$a->support_status) {
+                        if (empty($a->warranty_expiry)) return true;
+                        $d = $a->warranty_expiry instanceof \Carbon\Carbon ? $a->warranty_expiry : \Carbon\Carbon::parse($a->warranty_expiry);
+                        return $d->isFuture();
+                    }
+                } catch (\Throwable $e) {}
+                return false;
             })->count();
 
             $eolEosCount = $assets->filter(function($a) {
-                return ($a->eol_date && $a->eol_date->isPast()) || ($a->eos_date && $a->eos_date->isPast());
+                try {
+                    if (!empty($a->eol_date)) {
+                        $d = $a->eol_date instanceof \Carbon\Carbon ? $a->eol_date : \Carbon\Carbon::parse($a->eol_date);
+                        if ($d->isPast()) return true;
+                    }
+                    if (!empty($a->eos_date)) {
+                        $d = $a->eos_date instanceof \Carbon\Carbon ? $a->eos_date : \Carbon\Carbon::parse($a->eos_date);
+                        if ($d->isPast()) return true;
+                    }
+                } catch (\Throwable $e) {}
+                return false;
             })->count();
 
             $backedUpCount = $assets->filter(function($a) {
-                return strtolower($a->backup_status ?? '') === 'backed up' || !empty($a->backup_file_path);
+                return strtolower((string)($a->backup_status ?? '')) === 'backed up' || !empty($a->backup_file_path);
             })->count();
 
             // Logo Base64
-            $logoPath = public_path('images/ipnet1.png');
+            $logoPath = public_path('images/ipnet_small.png');
+            if (!file_exists($logoPath)) {
+                $logoPath = public_path('images/ipnet1.png');
+            }
             if (!file_exists($logoPath)) {
                 $logoPath = public_path('images/ipnet.png');
             }
@@ -2178,7 +2225,7 @@ class ManagedServiceController extends Controller
             ]);
         } catch (\Throwable $e) {
             Log::error('Gagal export project assets PDF: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return back()->with('error', 'Gagal menghasilkan dokumen PDF Aset: ' . $e->getMessage());
+            return redirect()->route('ms.assets.external')->with('error', 'Gagal menghasilkan dokumen PDF Aset: ' . $e->getMessage());
         }
     }
 
@@ -2249,16 +2296,33 @@ class ManagedServiceController extends Controller
             $totalPhysicalUnits = (int) ($assets->sum('quantity') ?: $totalRecords);
 
             $activeSupportCount = $assets->filter(function($a) {
-                return $a->effective_support_status === 'Active' 
-                    || (!$a->support_status && (!$a->warranty_expiry || $a->warranty_expiry->isFuture()));
+                try {
+                    if ($a->effective_support_status === 'Active') return true;
+                    if (!$a->support_status) {
+                        if (empty($a->warranty_expiry)) return true;
+                        $d = $a->warranty_expiry instanceof \Carbon\Carbon ? $a->warranty_expiry : \Carbon\Carbon::parse($a->warranty_expiry);
+                        return $d->isFuture();
+                    }
+                } catch (\Throwable $e) {}
+                return false;
             })->count();
 
             $eolEosCount = $assets->filter(function($a) {
-                return ($a->eol_date && $a->eol_date->isPast()) || ($a->eos_date && $a->eos_date->isPast());
+                try {
+                    if (!empty($a->eol_date)) {
+                        $d = $a->eol_date instanceof \Carbon\Carbon ? $a->eol_date : \Carbon\Carbon::parse($a->eol_date);
+                        if ($d->isPast()) return true;
+                    }
+                    if (!empty($a->eos_date)) {
+                        $d = $a->eos_date instanceof \Carbon\Carbon ? $a->eos_date : \Carbon\Carbon::parse($a->eos_date);
+                        if ($d->isPast()) return true;
+                    }
+                } catch (\Throwable $e) {}
+                return false;
             })->count();
 
             $backedUpCount = $assets->filter(function($a) {
-                return strtolower($a->backup_status ?? '') === 'backed up' || !empty($a->backup_file_path);
+                return strtolower((string)($a->backup_status ?? '')) === 'backed up' || !empty($a->backup_file_path);
             })->count();
 
             // Client Name / Project Virtual
@@ -2275,7 +2339,10 @@ class ManagedServiceController extends Controller
             $customerPic = $clientFilter ? ($clientFilter . ' Representative') : 'Perwakilan Seluruh Customer';
 
             // Logo Base64
-            $logoPath = public_path('images/ipnet1.png');
+            $logoPath = public_path('images/ipnet_small.png');
+            if (!file_exists($logoPath)) {
+                $logoPath = public_path('images/ipnet1.png');
+            }
             if (!file_exists($logoPath)) {
                 $logoPath = public_path('images/ipnet.png');
             }
@@ -2314,7 +2381,7 @@ class ManagedServiceController extends Controller
             ]);
         } catch (\Throwable $e) {
             Log::error('Gagal export assets PDF: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return back()->with('error', 'Gagal menghasilkan dokumen PDF Aset: ' . $e->getMessage());
+            return redirect()->route('ms.assets.external')->with('error', 'Gagal menghasilkan dokumen PDF Aset: ' . $e->getMessage());
         }
     }
 

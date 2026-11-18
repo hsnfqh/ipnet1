@@ -238,6 +238,9 @@
             color: #000000;
             line-height: 1.2;
         }
+        .page-number:before {
+            content: counter(page);
+        }
     </style>
 </head>
 <body>
@@ -274,25 +277,11 @@
                     PT IP Network Solusindo &bull; Dokumen Resmi Hasil Cetak Sistem FSM IPNET &bull; Rahasia &amp; Terbatas (Confidential)
                 </td>
                 <td style="width: 30%; text-align: right;">
-                    Dicetak: {{ $printedAt }}
+                    Hal. <span class="page-number"></span> &bull; Dicetak: {{ $printedAt }}
                 </td>
             </tr>
         </table>
     </footer>
-
-    {{-- SCRIPT DOMPDF CANVAS PENOMORAN HALAMAN PERSISI (HALAMAN X DARI Y) --}}
-    <script type="text/php">
-        if (isset($pdf)) {
-            $text = "Halaman " . $PAGE_NUM . " dari " . $PAGE_COUNT;
-            $font = $fontMetrics->get_font("Helvetica", "normal");
-            $size = 6.0;
-            $color = array(0.1, 0.1, 0.1);
-            $w = $fontMetrics->getTextWidth($text, $font, $size);
-            $x = 841.89 - 10 * 2.83465 - $w; // A4 landscape width 841.89pt
-            $y = 595.28 - 5 * 2.83465;
-            $pdf->page_text($x, $y, $text, $font, $size, $color);
-        }
-    </script>
 
     <div class="doc-intro">
         Dokumen resmi rekapitulasi portofolio seluruh proyek Managed Service yang aktif berjalan di bawah pengawasan PT IP Network Solusindo. Meliputi kepatuhan Service Level Agreement (SLA Availability), realisasi siklus kunjungan Preventive Maintenance (PM), akumulasi insiden Corrective Maintenance (CM), serta status kesehatan operasional tiap klien customer.

@@ -1,4 +1,18 @@
 @php
+    if (!function_exists('formatSafeDate')) {
+        function formatSafeDate($val, $format = 'd/m/Y', $default = '-') {
+            if (empty($val)) return $default;
+            if ($val instanceof \Carbon\Carbon || $val instanceof \DateTimeInterface) {
+                return $val->format($format);
+            }
+            try {
+                return \Carbon\Carbon::parse($val)->format($format);
+            } catch (\Throwable $e) {
+                return is_scalar($val) ? (string)$val : $default;
+            }
+        }
+    }
+
     $customerName = trim((string)($project->client ?: ''));
     if (empty($customerName)) {
         $customerName = 'Customer / Klien';
@@ -316,8 +330,8 @@
             </td>
             <td class="label-cell">Periode Layanan</td>
             <td>
-                {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d/m/Y') : '-' }} s/d 
-                {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d/m/Y') : 'Kontrak Berjalan' }}
+                {{ formatSafeDate($project->start_date, 'd/m/Y', '-') }} s/d 
+                {{ formatSafeDate($project->end_date, 'd/m/Y', 'Kontrak Berjalan') }}
             </td>
         </tr>
         <tr>
@@ -407,8 +421,8 @@
                 @endphp
                 <tr>
                     <td class="text-center"><strong>#{{ $c->cycle_number }}</strong></td>
-                    <td class="text-center">{{ $c->scheduled_date ? \Carbon\Carbon::parse($c->scheduled_date)->format('d/m/Y') : '-' }}</td>
-                    <td class="text-center">{{ $c->actual_date ? \Carbon\Carbon::parse($c->actual_date)->format('d/m/Y') : ($isDone ? 'Selesai' : 'Belum') }}</td>
+                    <td class="text-center">{{ formatSafeDate($c->scheduled_date, 'd/m/Y', '-') }}</td>
+                    <td class="text-center">{{ !empty($c->actual_date) ? formatSafeDate($c->actual_date, 'd/m/Y', ($isDone ? 'Selesai' : 'Belum')) : ($isDone ? 'Selesai' : 'Belum') }}</td>
                     <td class="text-center">
                         @if($isDone)
                             <span class="badge-box badge-box-success">COMPLETED</span>
@@ -457,7 +471,7 @@
                 @endphp
                 <tr>
                     <td><strong>{{ $t->ticket_number }}</strong></td>
-                    <td class="text-center">{{ $t->incident_date ? \Carbon\Carbon::parse($t->incident_date)->format('d/m/y H:i') : '-' }}</td>
+                    <td class="text-center">{{ formatSafeDate($t->incident_date, 'd/m/y H:i', '-') }}</td>
                     <td>
                         <strong>{{ $t->title }}</strong>
                         @if($t->root_cause)

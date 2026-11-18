@@ -1527,6 +1527,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/assets/external', [\App\Http\Controllers\ManagedServiceController::class, 'externalAssets'])->name('ms.assets.external');
         Route::get('/assets/export-pdf', [\App\Http\Controllers\ManagedServiceController::class, 'exportAssetsPdf'])->name('ms.assets.export_pdf');
         Route::get('/assets/project/{project}/export-pdf', [\App\Http\Controllers\ManagedServiceController::class, 'exportProjectAssetsPdf'])->name('ms.assets.export_project_pdf');
+        Route::get('/assets/{project}/export-pdf', [\App\Http\Controllers\ManagedServiceController::class, 'exportProjectAssetsPdf']);
+        Route::get('/projects/{project}/assets/export-pdf', [\App\Http\Controllers\ManagedServiceController::class, 'exportProjectAssetsPdf']);
         Route::get('/assets', [\App\Http\Controllers\ManagedServiceController::class, 'assets'])->name('ms.assets.index');
         Route::post('/assets', [\App\Http\Controllers\ManagedServiceController::class, 'storeAsset'])->name('ms.assets.store');
         Route::get('/assets/{asset}', fn() => redirect()->route('ms.assets.external'));

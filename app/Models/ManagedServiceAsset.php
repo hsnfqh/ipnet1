@@ -50,18 +50,37 @@ class ManagedServiceAsset extends Model
 
     public function getIsEolAttribute(): bool
     {
-        return $this->eol_date && $this->eol_date->isPast();
+        if (empty($this->eol_date)) return false;
+        try {
+            $d = $this->eol_date instanceof \Carbon\Carbon ? $this->eol_date : \Carbon\Carbon::parse($this->eol_date);
+            return $d->isPast();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public function getIsEosAttribute(): bool
     {
-        return $this->eos_date && $this->eos_date->isPast();
+        if (empty($this->eos_date)) return false;
+        try {
+            $d = $this->eos_date instanceof \Carbon\Carbon ? $this->eos_date : \Carbon\Carbon::parse($this->eos_date);
+            return $d->isPast();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public function getEffectiveSupportStatusAttribute(): string
     {
-        if ($this->support_expiry_date && $this->support_expiry_date->isPast()) {
-            return 'Expired';
+        if (!empty($this->support_expiry_date)) {
+            try {
+                $d = $this->support_expiry_date instanceof \Carbon\Carbon ? $this->support_expiry_date : \Carbon\Carbon::parse($this->support_expiry_date);
+                if ($d->isPast()) {
+                    return 'Expired';
+                }
+            } catch (\Throwable $e) {
+                // Ignore parse errors
+            }
         }
         return $this->support_status ?: 'Active';
     }
