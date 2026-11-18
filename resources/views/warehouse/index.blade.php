@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Warehouse & Logistik - PT IP Network Solusindo')
+@section('title', 'Master Produk & Perangkat - Warehouse IPNET')
 
 @push('styles')
 <style>
@@ -51,7 +51,7 @@
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Master Barang'])
+        @include('components.topbar', ['title' => 'Master Produk & Perangkat'])
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto">
             
@@ -62,24 +62,33 @@
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-semibold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> MENU UTAMA &bull; MASTER INVENTARIS
+                            <span class="ipnet-badge-dot"></span> MENU UTAMA &bull; MASTER PRODUK &amp; INVENTARIS
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">
-                            Master Data Barang &amp; Katalog Perangkat
+                            Master Data Produk &amp; Katalog Perangkat
                         </h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">
                             Katalog lengkap seluruh perangkat jaringan, nomor seri (SN), nomor PO/kontrak, dan alokasi tim kerja IPNET 1 - 5.
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-2.5 shrink-0">
+                    <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
+                        <button type="button" 
+                                @click="openScanModal()" 
+                                class="py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-xs hover:bg-[#F1F5F9] transition cursor-pointer flex items-center gap-2 shadow-xs">
+                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                            </svg>
+                            <span>Pindai Barcode (Masuk Gudang)</span>
+                        </button>
+
                         <button type="button" 
                                 @click="openAddModal()" 
                                 class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-semibold text-[13px] shadow-sm flex items-center gap-2 cursor-pointer transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
-                            <span>Daftarkan Barang Baru</span>
+                            <span>Daftarkan Manual</span>
                         </button>
                     </div>
                 </div>
@@ -88,27 +97,27 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 pt-1">
                     <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                         <p class="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Total Inventaris</p>
-                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['total_items']) }}</h3>
+                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['total_items'] ?? $items->total()) }}</h3>
                         <p class="text-[11px] text-[#94A3B8] mt-0.5">Seluruh unit terdaftar</p>
                     </div>
                     <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                         <p class="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Stok Tersedia</p>
-                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['ready_stock']) }}</h3>
+                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['ready_stock'] ?? 0) }}</h3>
                         <p class="text-[11px] text-[#94A3B8] mt-0.5">Ready di gudang</p>
                     </div>
                     <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                         <p class="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Backup / Spare</p>
-                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['backup_spare']) }}</h3>
+                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['backup_spare'] ?? 0) }}</h3>
                         <p class="text-[11px] text-[#94A3B8] mt-0.5">Cadangan maintenance</p>
                     </div>
                     <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                         <p class="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Peminjaman POC</p>
-                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['active_poc']) }}</h3>
+                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['active_poc'] ?? 0) }}</h3>
                         <p class="text-[11px] text-[#94A3B8] mt-0.5">Uji coba di pelanggan</p>
                     </div>
                     <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] col-span-2 sm:col-span-1">
                         <p class="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Pinjaman Disti</p>
-                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['disti_loan']) }}</h3>
+                        <h3 class="text-2xl font-bold text-[#1E293B] mt-1">{{ number_format($metrics['disti_loan'] ?? 0) }}</h3>
                         <p class="text-[11px] text-[#94A3B8] mt-0.5">Unit demo vendor</p>
                     </div>
                 </div>
@@ -118,7 +127,7 @@
             <!-- FILTER & SEARCH BAR                                          -->
             <!-- ============================================================ -->
             <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2">
-                <form method="GET" action="{{ route('warehouse.dashboard') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                <form method="GET" action="{{ route('warehouse.products.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
                     <!-- Search input -->
                     <div class="lg:col-span-2">
                         <label class="block text-[11px] font-semibold text-[#475569] uppercase tracking-wider mb-1">Pencarian Cepat</label>
@@ -172,7 +181,7 @@
                         <button type="submit" class="flex-1 py-2 px-3 bg-[#1E293B] hover:bg-[#0F172A] text-white text-[12.5px] font-semibold rounded-xl transition cursor-pointer text-center">
                             Filter
                         </button>
-                        <a href="{{ route('warehouse.dashboard') }}" class="py-2 px-3 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-slate-600 text-[12.5px] font-semibold rounded-xl transition cursor-pointer text-center">
+                        <a href="{{ route('warehouse.products.index') }}" class="py-2 px-3 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-slate-600 text-[12.5px] font-semibold rounded-xl transition cursor-pointer text-center">
                             Reset
                         </a>
                     </div>
@@ -185,8 +194,8 @@
             <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
                 <div class="p-4 sm:p-5 border-b border-[#E2E8F0] flex items-center justify-between">
                     <div>
-                        <h3 class="text-[15px] font-bold text-[#1E293B]">Daftar Master Perangkat &amp; Inventaris</h3>
-                        <p class="text-[12px] text-[#64748B]">Menampilkan {{ $items->total() }} unit perangkat di inventaris</p>
+                        <h3 class="text-[15px] font-bold text-[#1E293B]">Daftar Master Perangkat &amp; Produk Inventaris</h3>
+                        <p class="text-[12px] text-[#64748B]">Total Kuantitas: <span class="font-bold text-[#8F0A0D]">{{ $items->total() }} Unit</span> perangkat fisik di inventaris</p>
                     </div>
                 </div>
 
@@ -197,6 +206,7 @@
                                 <th class="py-3 px-4">Kode &amp; Nama Perangkat</th>
                                 <th class="py-3 px-4">Jenis &amp; Tipe Komponen</th>
                                 <th class="py-3 px-4">Serial &amp; Part Number</th>
+                                <th class="py-3 px-4 text-center">Qty Fisik</th>
                                 <th class="py-3 px-4">Kategori Kepemilikan</th>
                                 <th class="py-3 px-4">Lokasi Fisik</th>
                                 <th class="py-3 px-4">Status</th>
@@ -251,6 +261,18 @@
                                         <p class="font-mono text-[11px] text-slate-500 mt-0.5">
                                             <span class="text-slate-400 font-sans text-[10px]">P/N:</span> {{ $item->product_number ?: '-' }}
                                         </p>
+                                    </td>
+
+                                    {{-- Qty Fisik --}}
+                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200 shadow-2xs">
+                                            1 Unit
+                                        </span>
+                                        @if(isset($modelStockCounts[$item->name]) && $modelStockCounts[$item->name] > 1)
+                                            <div class="text-[10px] text-slate-400 font-medium mt-0.5" title="Total stok fisik model ini di gudang">
+                                                Total Model: {{ $modelStockCounts[$item->name] }} Unit
+                                            </div>
+                                        @endif
                                     </td>
 
                                     {{-- Kategori --}}
@@ -341,7 +363,7 @@
                                                     title="Edit Data Barang">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                             </button>
-                                            <form action="{{ route('warehouse.items.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus barang {{ $item->item_code }} ini?');" class="inline">
+                                            <form action="{{ route('warehouse.products.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus barang {{ $item->item_code }} ini?');" class="inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="p-1.5 rounded-lg border border-red-100 hover:bg-red-50 text-[#8F0A0D] transition cursor-pointer" title="Hapus">
@@ -353,7 +375,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-10 text-center text-slate-400">
+                                    <td colspan="8" class="py-10 text-center text-slate-400">
                                         <div class="max-w-sm mx-auto space-y-2">
                                             <svg class="w-8 h-8 text-slate-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                             <p class="font-medium text-slate-600 text-xs">Belum ada perangkat inventaris yang sesuai filter.</p>
@@ -413,67 +435,44 @@
                             
                             <!-- Scrollable Inputs Area -->
                             <div class="p-6 overflow-y-auto space-y-5 text-xs flex-1 min-h-0">
-                                <!-- SEKSI 1: IDENTITAS PERANGKAT -->
+                                <!-- SEKSI 1: INFORMASI PERANGKAT & DOKUMEN REFERENSI -->
                                 <div class="space-y-3">
                                     <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">1. Informasi Perangkat</h4>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">1. Informasi Perangkat &amp; Dokumen Referensi</h4>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Part / Product Number (P/N) <span class="text-red-500">*</span></label>
+                                            <input type="text" 
+                                                   x-model="form.product_number" 
+                                                   @input="if(!form.name || form.name === 'Perangkat') form.name = form.product_number" 
+                                                   required 
+                                                   placeholder="Nomor P/N produk" 
+                                                   class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono font-medium">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Serial Number (S/N)</label>
+                                            <input type="text" 
+                                                   x-model="form.serial_number" 
+                                                   placeholder="Nomor S/N fisik perangkat" 
+                                                   class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono font-medium">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Nomor PO</label>
+                                            <input type="text" 
+                                                   x-model="form.po_number" 
+                                                   placeholder="PO-IPN-2026-..." 
+                                                   class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Nomor Kontrak</label>
+                                            <input type="text" 
+                                                   x-model="form.contract_number" 
+                                                   placeholder="CTR-..." 
+                                                   class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
                                         <div class="sm:col-span-2">
-                                            <label class="block font-semibold text-slate-700 mb-1">Model <span class="text-red-500">*</span></label>
-                                            <select x-model="selectedModel" 
-                                                    @change="onModelChange()" 
-                                                    required 
-                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
-                                                <option value="">-- Pilih Model --</option>
-                                                @foreach($deviceModels as $dm)
-                                                    <option value="{{ $dm }}">{{ $dm }}</option>
-                                                @endforeach
-                                            </select>
-                                            
-                                            <!-- Field Input Tambahan Jika Pilih Others -->
-                                            <div x-show="selectedModel === 'Others'" class="mt-2" x-transition>
-                                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Model Kustom <span class="text-red-500">*</span></label>
-                                                <input type="text" 
-                                                       x-model="customModelName" 
-                                                       @input="form.name = customModelName" 
-                                                       :required="selectedModel === 'Others'"
-                                                       placeholder="Ketik nama model / perangkat kustom..." 
-                                                       class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Merk / Brand <span class="text-red-500">*</span></label>
-                                            <select x-model="selectedBrand" 
-                                                    @change="onBrandChange()" 
-                                                    required
-                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
-                                                <option value="">-- Pilih Merk / Brand --</option>
-                                                @foreach($deviceBrands as $db)
-                                                    <option value="{{ $db }}">{{ $db }}</option>
-                                                @endforeach
-                                            </select>
-
-                                            <!-- Field Input Tambahan Jika Pilih Others -->
-                                            <div x-show="selectedBrand === 'Others'" class="mt-2" x-transition>
-                                                <input type="text" 
-                                                       x-model="customBrandName" 
-                                                       @input="form.brand = customBrandName" 
-                                                       :required="selectedBrand === 'Others'"
-                                                       placeholder="Ketik merk / brand kustom..." 
-                                                       class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Jenis Perangkat <span class="text-red-500">*</span></label>
-                                            <select x-model="form.item_type" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
-                                                @foreach($itemTypes as $t)
-                                                    <option value="{{ $t }}">{{ $t }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div>
                                             <label class="block font-semibold text-slate-700 mb-1">Tipe Komponen / Peripheral</label>
                                             <select x-model="form.component_type" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
                                                 @foreach($componentTypes as $ct)
@@ -482,7 +481,7 @@
                                             </select>
                                         </div>
                                         <!-- Conditional Sub-tipe Kabel -->
-                                        <div x-show="form.item_type === 'Kabel' || form.component_type === 'Kabel'">
+                                        <div x-show="form.component_type === 'Kabel'" class="sm:col-span-2">
                                             <label class="block font-semibold text-slate-700 mb-1">Tipe / Varian Kabel</label>
                                             <select x-model="form.cable_type" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
                                                 <option value="">— Pilih Tipe Kabel —</option>
@@ -494,37 +493,11 @@
                                     </div>
                                 </div>
 
-                                <!-- SEKSI 2: IDENTITAS SERIAL & DOKUMEN -->
+                                <!-- SEKSI 2: KATEGORI & KEPEMILIKAN -->
                                 <div class="space-y-3">
                                     <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">2. Serial Number &amp; Dokumen Referensi</h4>
-                                    </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Serial Number (S/N)</label>
-                                            <input type="text" x-model="form.serial_number" placeholder="Nomor S/N fisik perangkat" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono">
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Part / Product Number (P/N)</label>
-                                            <input type="text" x-model="form.product_number" placeholder="Nomor P/N produk" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono">
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Nomor PO</label>
-                                            <input type="text" x-model="form.po_number" placeholder="PO-IPN-2026-..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Nomor Kontrak</label>
-                                            <input type="text" x-model="form.contract_number" placeholder="CTR-..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- SEKSI 3: KATEGORI & KEPEMILIKAN -->
-                                <div class="space-y-3">
-                                    <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">3. Kategori Kepemilikan</h4>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">2. Kategori Kepemilikan</h4>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                         <div class="sm:col-span-2">
@@ -606,11 +579,11 @@
                                     </div>
                                 </div>
 
-                                <!-- SEKSI 4: LOKASI & STATUS OPERASIONAL -->
+                                <!-- SEKSI 3: LOKASI & STATUS OPERASIONAL -->
                                 <div class="space-y-3">
                                     <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">4. Lokasi Fisik &amp; Status Distribusi</h4>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">3. Lokasi Fisik &amp; Status Distribusi</h4>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                         <div>
@@ -749,6 +722,10 @@
                         <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1 min-h-0">
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Kuantitas (Qty)</p>
+                                    <p class="font-bold text-slate-800 text-[12px] mt-0.5">1 Unit Fisik</p>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                     <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Serial Number (S/N)</p>
                                     <p class="font-mono font-bold text-slate-800 text-[12px] mt-0.5" x-text="selectedItem?.serial_number || '-'"></p>
                                 </div>
@@ -758,11 +735,7 @@
                                 </div>
                                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                     <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Komponen / Kabel</p>
-                                    <p class="font-bold text-slate-800 mt-0.5" x-text="selectedItem?.component_type + (selectedItem?.cable_type ? ' (' + selectedItem.cable_type + ')' : '')"></p>
-                                </div>
-                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                    <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Kategori</p>
-                                    <p class="font-bold text-slate-800 mt-0.5" x-text="selectedItem?.category"></p>
+                                    <p class="font-bold text-slate-800 mt-0.5" x-text="(selectedItem?.component_type || '-') + (selectedItem?.cable_type ? ' (' + selectedItem.cable_type + ')' : '')"></p>
                                 </div>
                                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                     <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Nomor PO</p>
@@ -772,55 +745,311 @@
                                     <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Nomor Kontrak</p>
                                     <p class="font-semibold text-slate-800 mt-0.5" x-text="selectedItem?.contract_number || '-'"></p>
                                 </div>
-                            </div>
-
-                            <!-- Panel Info Khusus Pinjaman -->
-                            <div x-show="selectedItem?.category === 'Pinjaman'" class="p-3.5 rounded-xl bg-purple-50/70 border border-purple-200/80 space-y-1">
-                                <p class="font-bold text-purple-900 text-xs">Informasi Pinjaman</p>
-                                <template x-if="selectedItem?.loan_source_type === 'disti'">
-                                    <div class="text-[11.5px] text-purple-800 space-y-0.5">
-                                        <p><span class="text-purple-600 font-semibold">Distributor:</span> <span x-text="selectedItem?.disti_name"></span></p>
-                                        <p><span class="text-purple-600 font-semibold">PIC &amp; Telp:</span> <span x-text="selectedItem?.disti_pic + ' (' + (selectedItem?.disti_phone || '-') + ')'"></span></p>
-                                        <p><span class="text-purple-600 font-semibold">Durasi:</span> <span x-text="selectedItem?.disti_duration"></span></p>
-                                        <p><span class="text-purple-600 font-semibold">Alamat:</span> <span x-text="selectedItem?.disti_address || '-'"></span></p>
-                                    </div>
-                                </template>
-                                <template x-if="selectedItem?.loan_source_type === 'ipnet'">
-                                    <div class="text-[11.5px] text-purple-800 space-y-0.5">
-                                        <p><span class="text-purple-600 font-semibold">Unit Kerja:</span> <span class="font-bold" x-text="selectedItem?.ipnet_work_unit"></span></p>
-                                        <p><span class="text-purple-600 font-semibold">PIC &amp; Telp:</span> <span x-text="selectedItem?.ipnet_pic_name + ' (' + (selectedItem?.ipnet_phone || '-') + ')'"></span></p>
-                                        <p><span class="text-purple-600 font-semibold">Durasi Pinjam:</span> <span x-text="selectedItem?.ipnet_duration"></span></p>
-                                    </div>
-                                </template>
-                            </div>
-
-                            <!-- Panel Info Khusus POC -->
-                            <div x-show="selectedItem?.status === 'POC / Pinjaman'" class="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 space-y-1">
-                                <p class="font-bold text-blue-900 text-xs">Informasi Pelanggan POC</p>
-                                <div class="text-[11.5px] text-blue-800 space-y-0.5">
-                                    <p><span class="text-blue-600 font-semibold">Pelanggan:</span> <span class="font-bold" x-text="selectedItem?.poc_customer_name"></span></p>
-                                    <p><span class="text-blue-600 font-semibold">PIC Klien:</span> <span x-text="selectedItem?.poc_pic_name + ' (' + (selectedItem?.poc_pic_phone || '-') + ')'"></span></p>
-                                    <p><span class="text-blue-600 font-semibold">Sales In-Charge:</span> <span x-text="selectedItem?.poc_sales_name || '-'"></span></p>
-                                    <p><span class="text-blue-600 font-semibold">Durasi POC:</span> <span x-text="selectedItem?.poc_duration"></span></p>
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Kategori</p>
+                                    <p class="font-semibold text-slate-800 mt-0.5" x-text="selectedItem?.category || '-'"></p>
                                 </div>
                             </div>
 
-                            <!-- Lokasi & Catatan -->
-                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                                <p class="text-[11px] font-semibold text-slate-500 uppercase">Lokasi Penempatan Fisik</p>
-                                <p class="font-bold text-slate-800" x-text="(selectedItem?.location_type === 'Gudang IPNET' || selectedItem?.location_type === 'Warehouse IPNET') ? ('Gudang IPNET • ' + (selectedItem?.warehouse_rack || 'Gudang Utama')) : ('Customer: ' + (selectedItem?.customer_address || '-'))"></p>
-                                <template x-if="selectedItem?.notes">
-                                    <p class="text-slate-600 mt-2 pt-2 border-t border-slate-200/60 leading-relaxed" x-text="'Catatan: ' + selectedItem.notes"></p>
-                                </template>
+                            <!-- Detail Sumber Pinjaman jika Pinjaman -->
+                            <template x-if="selectedItem?.category === 'Pinjaman'">
+                                <div class="p-3.5 rounded-xl bg-purple-50/70 border border-purple-200/80 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <p class="font-bold text-purple-900 text-[11px] uppercase tracking-wider">
+                                            Sumber Pinjaman: <span x-text="selectedItem?.loan_source_type === 'disti' ? 'Distributor Vendor' : 'Internal IPNET'"></span>
+                                        </p>
+                                        <span class="text-[11px] font-semibold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded" x-text="'Durasi: ' + (selectedItem?.loan_source_type === 'disti' ? selectedItem?.disti_duration : selectedItem?.ipnet_duration || '-')"></span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 text-slate-700 pt-1">
+                                        <template x-if="selectedItem?.loan_source_type === 'disti'">
+                                            <div class="col-span-2 space-y-1">
+                                                <p><strong class="text-purple-900">Perusahaan:</strong> <span x-text="selectedItem?.disti_name || '-'"></span></p>
+                                                <p><strong class="text-purple-900">PIC Distributor:</strong> <span x-text="selectedItem?.disti_pic || '-'"></span> (<span x-text="selectedItem?.disti_phone || '-'"></span>)</p>
+                                                <p><strong class="text-purple-900">Alamat:</strong> <span x-text="selectedItem?.disti_address || '-'"></span></p>
+                                            </div>
+                                        </template>
+                                        <template x-if="selectedItem?.loan_source_type === 'ipnet'">
+                                            <div class="col-span-2 space-y-1">
+                                                <p><strong class="text-purple-900">Unit Kerja:</strong> <span class="font-bold text-[#8F0A0D]" x-text="selectedItem?.ipnet_work_unit || '-'"></span></p>
+                                                <p><strong class="text-purple-900">PIC IPNET:</strong> <span x-text="selectedItem?.ipnet_pic_name || '-'"></span> (<span x-text="selectedItem?.ipnet_phone || '-'"></span>)</p>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Lokasi & Penempatan -->
+                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                                <p class="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Posisi Fisik Perangkat</p>
+                                <div class="grid grid-cols-2 gap-2 text-slate-700">
+                                    <div>
+                                        <p class="text-slate-400 text-[10.5px]">Titik Lokasi:</p>
+                                        <p class="font-bold text-slate-800 mt-0.5" x-text="selectedItem?.location_type || '-'"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-slate-400 text-[10.5px]">Posisi Rak Gudang:</p>
+                                        <p class="font-semibold text-slate-800 mt-0.5" x-text="selectedItem?.warehouse_rack || '-'"></p>
+                                    </div>
+                                    <template x-if="selectedItem?.location_type === 'Customer'">
+                                        <div class="col-span-2 pt-1 border-t border-slate-200/60 space-y-1">
+                                            <p><strong class="text-slate-800">PIC Customer:</strong> <span x-text="selectedItem?.customer_pic || '-'"></span> (<span x-text="selectedItem?.customer_phone || '-'"></span>)</p>
+                                            <p><strong class="text-slate-800">AM / Sales:</strong> <span x-text="selectedItem?.customer_sales_name || '-'"></span></p>
+                                            <p><strong class="text-slate-800">Alamat Klien:</strong> <span x-text="selectedItem?.customer_address || '-'"></span></p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Detail jika sedang POC -->
+                            <template x-if="selectedItem?.status === 'POC / Pinjaman'">
+                                <div class="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 space-y-2">
+                                    <p class="font-bold text-blue-900 text-[11px] uppercase tracking-wider">Peminjaman Uji Coba (POC)</p>
+                                    <div class="space-y-1 text-slate-700">
+                                        <p><strong class="text-blue-950">Nama Pelanggan POC:</strong> <span class="font-bold text-blue-900" x-text="selectedItem?.poc_customer_name || '-'"></span></p>
+                                        <p><strong class="text-blue-950">Durasi:</strong> <span x-text="selectedItem?.poc_duration || '-'"></span></p>
+                                        <p><strong class="text-blue-950">PIC Pelanggan:</strong> <span x-text="selectedItem?.poc_pic_name || '-'"></span> (<span x-text="selectedItem?.poc_pic_phone || '-'"></span>)</p>
+                                        <p><strong class="text-blue-950">Sales Penanggung Jawab:</strong> <span x-text="selectedItem?.poc_sales_name || '-'"></span></p>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Catatan -->
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Catatan Tambahan</p>
+                                <p class="text-slate-700 mt-1 whitespace-pre-line" x-text="selectedItem?.notes || 'Tidak ada catatan khusus.'"></p>
                             </div>
                         </div>
 
                         <!-- Fixed Footer -->
-                        <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex justify-end shrink-0">
-                            <button type="button" @click="detailModalOpen = false" class="py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-xs hover:bg-[#F1F5F9] transition cursor-pointer">
+                        <div class="px-6 py-3 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-between shrink-0">
+                            <span class="text-[11px] text-slate-400">Terdaftar di sistem Warehouse IPNET</span>
+                            <button type="button" @click="detailModalOpen = false" class="py-2 px-4 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs transition cursor-pointer">
                                 Tutup
                             </button>
                         </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- ============================================================ -->
+            <!-- MODAL PINDAI BARCODE (PENERIMAAN GUDANG BATCH)               -->
+            <!-- ============================================================ -->
+            <template x-teleport="body">
+                <div x-show="scanModalOpen" 
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-3 sm:p-5 backdrop-blur-xs"
+                     @click.self="scanModalOpen = false"
+                     @keydown.escape.window="scanModalOpen = false">
+                    
+                    <div class="bg-white rounded-2xl w-[780px] max-w-full max-h-[90vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                        
+                        <!-- Modal Header (Sesuai Standar Desain IPNET) -->
+                        <div class="flex items-center justify-between px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 border border-red-100">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-sm font-bold text-slate-900">Penerimaan Massal Barcode (Batch Inbound)</h3>
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            Scanner Aktif
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-0.5">Pindai serial number secara beruntun menggunakan scanner Honeywell / barcode reader</p>
+                                </div>
+                            </div>
+                            <button type="button" @click="scanModalOpen = false" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Modal Body (Flex container with fixed footer) -->
+                        <div class="p-6 overflow-y-auto space-y-5 text-xs flex-1 min-h-0">
+                            
+                            <!-- SEKSI 1: IDENTITAS DOKUMEN & PRODUK -->
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                    <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">1. Informasi Dokumen & Perangkat (Batch)</h4>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 mb-1">Model / Nama Perangkat <span class="text-red-500">*</span></label>
+                                        <select x-model="scanBatchForm.name" @change="onScanModelChange()" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 text-xs bg-white">
+                                            <option value="">-- Pilih Model --</option>
+                                            @foreach($deviceModels as $m)
+                                                <option value="{{ $m }}">{{ $m }}</option>
+                                            @endforeach
+                                            <option value="Custom">Lainnya (Ketik Manual)</option>
+                                        </select>
+                                        <template x-if="scanBatchForm.name === 'Custom'">
+                                            <input type="text" x-model="scanCustomModelName" placeholder="Ketik nama perangkat..." class="mt-2 w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:border-[#8F0A0D]">
+                                        </template>
+                                    </div>
+
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 mb-1">Part / Product Number (P/N)</label>
+                                        <input type="text" x-model="scanBatchForm.product_number" placeholder="cth: EX-SFP-1GE-SX" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono text-xs">
+                                    </div>
+
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 mb-1">Nomor PO / Pembelian</label>
+                                        <input type="text" x-model="scanBatchForm.po_number" placeholder="cth: 225/2013 atau 156/09/2012" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono text-xs">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 mb-1">Pabrikan / Brand</label>
+                                        <input type="text" x-model="scanBatchForm.brand" placeholder="cth: Juniper Networks" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 text-xs outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 mb-1">Jenis Perangkat</label>
+                                        <select x-model="scanBatchForm.item_type" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 text-xs bg-white">
+                                            @foreach($itemTypes as $t)
+                                                <option value="{{ $t }}">{{ $t }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 mb-1">Kategori Kepemilikan</label>
+                                        <select x-model="scanBatchForm.category" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 text-xs bg-white">
+                                            @foreach($categories as $c)
+                                                <option value="{{ $c }}">{{ $c }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-semibold text-slate-700 mb-1">Posisi Rak Gudang</label>
+                                        <input type="text" x-model="scanBatchForm.warehouse_rack" placeholder="Rak Utama A-01" class="w-full px-3 py-1.5 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 text-xs">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SEKSI 2: AREA INPUT PEMINDAI BARCODE -->
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">2. Input Pindai Barcode Serial Number</h4>
+                                    </div>
+                                    <span class="text-[11px] text-slate-400 font-medium">Bip Audio Aktif</span>
+                                </div>
+
+                                <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-slate-200 space-y-2">
+                                    <div class="relative flex items-center">
+                                        <input type="text" 
+                                               id="scannerInputField" 
+                                               x-model="scanInput" 
+                                               @keydown.enter.prevent="handleScanEnter()" 
+                                               placeholder="Arahkan scanner ke barcode SN fisik lalu tembak..." 
+                                               autocomplete="off"
+                                               class="w-full pl-3 pr-24 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-mono text-[13px] font-semibold tracking-wider placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]">
+                                        
+                                        <button type="button" 
+                                                @click="handleScanEnter()" 
+                                                class="absolute right-1.5 px-3 py-1.5 bg-[#1E293B] hover:bg-[#0F172A] text-white font-bold text-xs rounded-lg transition cursor-pointer">
+                                            + Tambah
+                                        </button>
+                                    </div>
+
+                                    <!-- Feedback alerts -->
+                                    <template x-if="scanErrorMessage">
+                                        <div class="p-2 px-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
+                                            <svg class="w-4 h-4 shrink-0 text-[#8F0A0D]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                            <span x-text="scanErrorMessage"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="scanSuccessMessage">
+                                        <div class="p-2 px-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-2">
+                                            <svg class="w-4 h-4 shrink-0 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                            <span x-text="scanSuccessMessage"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- SEKSI 3: ANTREAN SERIAL NUMBER -->
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">3. Antrean Unit Terpindai</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#8F0A0D] text-white" x-text="scannedList.length + ' Unit'"></span>
+                                    </div>
+                                    <template x-if="scannedList.length > 0">
+                                        <button type="button" @click="clearScannedList()" class="text-xs text-red-600 hover:text-red-800 font-semibold cursor-pointer">
+                                            Kosongkan Antrean
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                                    <div class="max-h-[190px] overflow-y-auto divide-y divide-slate-100">
+                                        <template x-if="scannedList.length === 0">
+                                            <div class="p-6 text-center text-slate-400">
+                                                <p class="font-medium text-xs">Belum ada serial number yang dipindai.</p>
+                                                <p class="text-[11px] text-slate-400 mt-0.5">Tembak barcode perangkat fisik Anda untuk menambahkan ke antrean ini.</p>
+                                            </div>
+                                        </template>
+
+                                        <template x-for="(item, index) in scannedList" :key="index">
+                                            <div class="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50 transition">
+                                                <div class="flex items-center gap-3">
+                                                    <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-600 font-bold text-[11px] flex items-center justify-center font-mono" x-text="index + 1"></span>
+                                                    <div>
+                                                        <span class="font-mono font-bold text-slate-900 text-xs" x-text="item.sn"></span>
+                                                        <span class="ml-2 text-[10.5px] text-slate-400 font-mono" x-text="'(' + item.time + ')'"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center gap-3">
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                                        Siap Disimpan
+                                                    </span>
+                                                    <button type="button" @click="removeScannedItem(index)" class="text-slate-400 hover:text-red-600 p-1 rounded transition cursor-pointer">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Modal Footer (Sesuai Standar IPNET) -->
+                        <div class="px-6 py-3.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-between shrink-0">
+                            <span class="text-xs text-slate-500">
+                                Total unit siap didaftarkan: <strong class="text-slate-800" x-text="scannedList.length + ' Unit'"></strong>
+                            </span>
+                            <div class="flex items-center gap-2.5">
+                                <button type="button" @click="scanModalOpen = false" class="py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-xs hover:bg-[#F1F5F9] transition cursor-pointer">
+                                    Batal
+                                </button>
+                                <button type="button" 
+                                        @click="submitBatchScan()" 
+                                        :disabled="isSubmitting || scannedList.length === 0"
+                                        class="btn-ipnet-gradient py-2.5 px-5 rounded-xl text-white font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer transition disabled:opacity-50">
+                                    <template x-if="isSubmitting">
+                                        <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                    </template>
+                                    <span x-text="isSubmitting ? 'Menyimpan...' : 'Simpan Semua Unit (' + scannedList.length + ') ke Gudang'"></span>
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </template>
@@ -835,6 +1064,7 @@
         Alpine.data('warehouseManager', () => ({
             formModalOpen: false,
             detailModalOpen: false,
+            scanModalOpen: false,
             isEditing: false,
             isSubmitting: false,
             selectedItem: null,
@@ -842,6 +1072,26 @@
             customModelName: '',
             selectedBrand: '',
             customBrandName: '',
+
+            // Bluetooth Scanner State
+            scanInput: '',
+            scanErrorMessage: '',
+            scanSuccessMessage: '',
+            scanCustomModelName: '',
+            scannedList: [],
+            scanBatchForm: {
+                name: '',
+                brand: '',
+                item_type: 'Switch',
+                component_type: 'Perangkat Utuh',
+                product_number: '',
+                po_number: '',
+                category: 'Stock',
+                location_type: 'Gudang IPNET',
+                warehouse_rack: 'Rak Utama A-01',
+                status: 'Tersedia',
+                notes: ''
+            },
 
             onBrandChange() {
                 if (this.selectedBrand === 'Others') {
@@ -1055,7 +1305,16 @@
             async submitForm() {
                 this.isSubmitting = true;
                 try {
-                    const url = this.isEditing ? `/warehouse/items/${this.form.id}` : '/warehouse/items';
+                    if (!this.form.name) {
+                        this.form.name = this.form.product_number || this.form.serial_number || 'Perangkat';
+                    }
+                    if (!this.form.brand) {
+                        this.form.brand = '-';
+                    }
+                    if (!this.form.item_type) {
+                        this.form.item_type = this.form.component_type || 'Perangkat';
+                    }
+                    const url = this.isEditing ? `/warehouse/products/${this.form.id}` : '/warehouse/products';
                     const method = this.isEditing ? 'PUT' : 'POST';
 
                     const response = await fetch(url, {
@@ -1093,6 +1352,300 @@
                     alert('Terjadi kesalahan jaringan.');
                 } finally {
                     this.isSubmitting = false;
+                }
+            },
+
+            // ==========================================
+            // BLUETOOTH SCANNER METHODS
+            // ==========================================
+            init() {
+                // Global barcode scanner listener:
+                // Barcode scanner sends key strokes rapidly (< 60ms interval) ending with Enter.
+                let barcodeBuffer = '';
+                let lastKeyTime = Date.now();
+
+                window.addEventListener('keydown', (e) => {
+                    // Ignore if inside an active form/input or if scan modal is open
+                    if (this.scanModalOpen || this.formModalOpen) return;
+                    
+                    const targetTag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+                    if (targetTag === 'input' || targetTag === 'textarea' || targetTag === 'select') {
+                        return;
+                    }
+
+                    const currentTime = Date.now();
+                    const interval = currentTime - lastKeyTime;
+                    lastKeyTime = currentTime;
+
+                    if (e.key === 'Enter') {
+                        if (barcodeBuffer.length >= 3 && interval < 65) {
+                            const scannedQuery = barcodeBuffer;
+                            barcodeBuffer = '';
+                            this.handleGlobalScan(scannedQuery);
+                        } else {
+                            barcodeBuffer = '';
+                        }
+                    } else if (e.key && e.key.length === 1) {
+                        if (interval > 90) {
+                            barcodeBuffer = e.key;
+                        } else {
+                            barcodeBuffer += e.key;
+                        }
+                    }
+                });
+            },
+
+            openScanModal() {
+                this.scanModalOpen = true;
+                this.scanInput = '';
+                this.scanErrorMessage = '';
+                this.scanSuccessMessage = '';
+                setTimeout(() => {
+                    const el = document.getElementById('scannerInputField');
+                    if (el) el.focus();
+                }, 150);
+            },
+
+            onScanModelChange() {
+                const m = this.scanBatchForm.name;
+                if (m === 'Custom') return;
+
+                if (['ACX2200','ACX4000','ACX5000','ACX7000','CTP2056','EX2200','EX2300','EX3200','EX3300','EX3400','EX4200','EX4300','EX4500','EX4550','EX4600','EX8200','EX9200','ISG1000','ISG2000','MX80','MX104','MX204','MX240','MX301','MX304','MX480','MX960','MX10K','M10i','M320','NS500','QFX3500','QFX5100','QFX5200','SSG20','SSG140','SRX100','SRX210','SRX240','SRX300','SRX550','SRX650','SRX1400','SRX1500','SRX3400','SRX3500','SRX5600','SRX5800','T1600','T4000','PTX5000'].includes(m)) {
+                    this.scanBatchForm.brand = 'Juniper Networks';
+                    if (m.startsWith('SRX') || m.startsWith('ISG') || m.startsWith('SSG') || m.startsWith('NS')) {
+                        this.scanBatchForm.item_type = 'Firewall';
+                    } else if (m.startsWith('EX') || m.startsWith('QFX')) {
+                        this.scanBatchForm.item_type = 'Switch';
+                    } else {
+                        this.scanBatchForm.item_type = 'Router';
+                    }
+                } else if (['BD8800','BDX8','X430','X440','X450','X460','X480','X650','X670'].includes(m)) {
+                    this.scanBatchForm.brand = 'Extreme Networks';
+                    this.scanBatchForm.item_type = 'Switch';
+                } else if (['PA3020','PA5010','PA5020','PA5050'].includes(m)) {
+                    this.scanBatchForm.brand = 'Palo Alto Networks';
+                    this.scanBatchForm.item_type = 'Firewall';
+                }
+            },
+
+            playBeep(type = 'success') {
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return;
+                    const ctx = new AudioCtx();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    if (type === 'success') {
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+                        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.08);
+                    } else {
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(260, ctx.currentTime);
+                        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.22);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.22);
+                    }
+                } catch(e) {}
+            },
+
+            cleanScannedSN(raw) {
+                let s = (raw || '').trim();
+                s = s.replace(/^[\[\(\{<"']+|[\]\)\}>"']+$/g, '');
+                s = s.replace(/^(s\/n|sn|ser|s)[\s:\-._#]+/i, '');
+                if (/^S[A-Z0-9]{6,}$/i.test(s) && !/^SSG/i.test(s) && !/^SRX/i.test(s)) {
+                    s = s.substring(1);
+                }
+                return s.trim();
+            },
+
+            async handleScanEnter() {
+                const rawSn = (this.scanInput || '').trim();
+                const sn = this.cleanScannedSN(rawSn);
+                this.scanInput = '';
+                this.scanErrorMessage = '';
+                this.scanSuccessMessage = '';
+
+                if (!sn) {
+                    this.refocusScan();
+                    return;
+                }
+
+                // Cek duplikasi di antrean yang sudah di-scan
+                if (this.scannedList.some(item => item.sn.toLowerCase() === sn.toLowerCase())) {
+                    this.playBeep('error');
+                    this.scanErrorMessage = `Serial Number [${sn}] sudah ada di antrean scan saat ini!`;
+                    this.refocusScan();
+                    return;
+                }
+
+                // Cek apakah sudah terdaftar di database server
+                try {
+                    const res = await fetch('/warehouse/products/scan-check', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ query: sn })
+                    });
+                    const data = await res.json();
+                    if (data.found) {
+                        this.playBeep('error');
+                        this.scanErrorMessage = `S/N [${sn}] SUDAH TERDAFTAR di gudang (${data.item.status} - ${data.item.name})!`;
+                        this.refocusScan();
+                        return;
+                    }
+                } catch(err) {
+                    console.error('Check SN error:', err);
+                }
+
+                // Tambahkan ke antrean
+                this.playBeep('success');
+                const now = new Date();
+                const timeStr = String(now.getHours()).padStart(2, '0') + ':' + 
+                                String(now.getMinutes()).padStart(2, '0') + ':' + 
+                                String(now.getSeconds()).padStart(2, '0');
+                this.scannedList.unshift({ sn: sn, time: timeStr });
+                this.scanSuccessMessage = `Unit [${sn}] berhasil di-scan! Total: ${this.scannedList.length} unit.`;
+                this.refocusScan();
+            },
+
+            removeScannedItem(index) {
+                this.scannedList.splice(index, 1);
+            },
+
+            clearScannedList() {
+                this.scannedList = [];
+                this.scanErrorMessage = '';
+                this.scanSuccessMessage = '';
+                this.refocusScan();
+            },
+
+            refocusScan() {
+                this.$nextTick(() => {
+                    setTimeout(() => {
+                        const el = document.getElementById('scannerInputField');
+                        if (el) el.focus();
+                    }, 50);
+                });
+            },
+
+            async submitBatchScan() {
+                if (this.scannedList.length === 0) {
+                    alert('Belum ada serial number yang di-scan.');
+                    return;
+                }
+
+                const deviceName = this.scanBatchForm.name === 'Custom' 
+                    ? this.scanCustomModelName 
+                    : this.scanBatchForm.name;
+
+                if (!deviceName) {
+                    alert('Silakan pilih atau isi Model / Nama Perangkat terlebih dahulu.');
+                    return;
+                }
+
+                this.isSubmitting = true;
+                try {
+                    const payload = {
+                        name: deviceName,
+                        brand: this.scanBatchForm.brand || '',
+                        item_type: this.scanBatchForm.item_type || 'Switch',
+                        component_type: this.scanBatchForm.component_type || 'Perangkat Utuh',
+                        product_number: this.scanBatchForm.product_number || '',
+                        po_number: this.scanBatchForm.po_number || '',
+                        category: this.scanBatchForm.category || 'Stock',
+                        location_type: this.scanBatchForm.location_type || 'Gudang IPNET',
+                        warehouse_rack: this.scanBatchForm.warehouse_rack || 'Rak Utama A-01',
+                        status: this.scanBatchForm.status || 'Tersedia',
+                        notes: this.scanBatchForm.notes || '',
+                        serial_numbers: this.scannedList.map(item => item.sn)
+                    };
+
+                    const res = await fetch('/warehouse/products/batch-scan', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        this.scanModalOpen = false;
+                        if (typeof Swal !== 'undefined') {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil Masuk Gudang!',
+                                text: data.message,
+                                confirmButtonColor: '#8F0A0D'
+                            });
+                        }
+                        window.location.reload();
+                    } else {
+                        const errMsg = data.message || 'Terjadi kesalahan saat menyimpan data scan.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: errMsg, confirmButtonColor: '#8F0A0D' });
+                        } else {
+                            alert(errMsg);
+                        }
+                    }
+                } catch(err) {
+                    console.error('Submit batch scan error:', err);
+                    alert('Terjadi kesalahan jaringan.');
+                } finally {
+                    this.isSubmitting = false;
+                }
+            },
+
+            async handleGlobalScan(scannedQuery) {
+                console.log('Global scan detected:', scannedQuery);
+                try {
+                    const res = await fetch('/warehouse/products/scan-check', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ query: scannedQuery })
+                    });
+                    const data = await res.json();
+                    if (data.found && data.item) {
+                        this.playBeep('success');
+                        this.openDetailModal(data.item);
+                    } else {
+                        this.playBeep('error');
+                        if (typeof Swal !== 'undefined') {
+                            const result = await Swal.fire({
+                                icon: 'info',
+                                title: 'Perangkat Belum Terdaftar',
+                                text: `Serial Number [${scannedQuery}] belum terdaftar di inventaris gudang. Buka Mode Scan Masuk?`,
+                                showCancelButton: true,
+                                confirmButtonText: 'Ya, Buka Scan Masuk',
+                                cancelButtonText: 'Tutup',
+                                confirmButtonColor: '#059669',
+                                cancelButtonColor: '#64748B'
+                            });
+                            if (result.isConfirmed) {
+                                this.openScanModal();
+                                this.scanInput = scannedQuery;
+                                this.handleScanEnter();
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.error('Global scan handler error:', e);
                 }
             }
         }));

@@ -435,67 +435,44 @@
                             
                             <!-- Scrollable Inputs Area -->
                             <div class="p-6 overflow-y-auto space-y-5 text-xs flex-1 min-h-0">
-                                <!-- SEKSI 1: IDENTITAS PERANGKAT -->
+                                <!-- SEKSI 1: INFORMASI PERANGKAT & DOKUMEN REFERENSI -->
                                 <div class="space-y-3">
                                     <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">1. Informasi Perangkat</h4>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">1. Informasi Perangkat &amp; Dokumen Referensi</h4>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Part / Product Number (P/N) <span class="text-red-500">*</span></label>
+                                            <input type="text" 
+                                                   x-model="form.product_number" 
+                                                   @input="if(!form.name || form.name === 'Perangkat') form.name = form.product_number" 
+                                                   required 
+                                                   placeholder="Nomor P/N produk" 
+                                                   class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono font-medium">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Serial Number (S/N)</label>
+                                            <input type="text" 
+                                                   x-model="form.serial_number" 
+                                                   placeholder="Nomor S/N fisik perangkat" 
+                                                   class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono font-medium">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Nomor PO</label>
+                                            <input type="text" 
+                                                   x-model="form.po_number" 
+                                                   placeholder="PO-IPN-2026-..." 
+                                                   class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Nomor Kontrak</label>
+                                            <input type="text" 
+                                                   x-model="form.contract_number" 
+                                                   placeholder="CTR-..." 
+                                                   class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
                                         <div class="sm:col-span-2">
-                                            <label class="block font-semibold text-slate-700 mb-1">Model <span class="text-red-500">*</span></label>
-                                            <select x-model="selectedModel" 
-                                                    @change="onModelChange()" 
-                                                    required 
-                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
-                                                <option value="">-- Pilih Model --</option>
-                                                @foreach($deviceModels as $dm)
-                                                    <option value="{{ $dm }}">{{ $dm }}</option>
-                                                @endforeach
-                                            </select>
-                                            
-                                            <!-- Field Input Tambahan Jika Pilih Others -->
-                                            <div x-show="selectedModel === 'Others'" class="mt-2" x-transition>
-                                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Model Kustom <span class="text-red-500">*</span></label>
-                                                <input type="text" 
-                                                       x-model="customModelName" 
-                                                       @input="form.name = customModelName" 
-                                                       :required="selectedModel === 'Others'"
-                                                       placeholder="Ketik nama model / perangkat kustom..." 
-                                                       class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Merk / Brand <span class="text-red-500">*</span></label>
-                                            <select x-model="selectedBrand" 
-                                                    @change="onBrandChange()" 
-                                                    required
-                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
-                                                <option value="">-- Pilih Merk / Brand --</option>
-                                                @foreach($deviceBrands as $db)
-                                                    <option value="{{ $db }}">{{ $db }}</option>
-                                                @endforeach
-                                            </select>
-
-                                            <!-- Field Input Tambahan Jika Pilih Others -->
-                                            <div x-show="selectedBrand === 'Others'" class="mt-2" x-transition>
-                                                <input type="text" 
-                                                       x-model="customBrandName" 
-                                                       @input="form.brand = customBrandName" 
-                                                       :required="selectedBrand === 'Others'"
-                                                       placeholder="Ketik merk / brand kustom..." 
-                                                       class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Jenis Perangkat <span class="text-red-500">*</span></label>
-                                            <select x-model="form.item_type" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
-                                                @foreach($itemTypes as $t)
-                                                    <option value="{{ $t }}">{{ $t }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div>
                                             <label class="block font-semibold text-slate-700 mb-1">Tipe Komponen / Peripheral</label>
                                             <select x-model="form.component_type" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
                                                 @foreach($componentTypes as $ct)
@@ -504,7 +481,7 @@
                                             </select>
                                         </div>
                                         <!-- Conditional Sub-tipe Kabel -->
-                                        <div x-show="form.item_type === 'Kabel' || form.component_type === 'Kabel'">
+                                        <div x-show="form.component_type === 'Kabel'" class="sm:col-span-2">
                                             <label class="block font-semibold text-slate-700 mb-1">Tipe / Varian Kabel</label>
                                             <select x-model="form.cable_type" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white">
                                                 <option value="">— Pilih Tipe Kabel —</option>
@@ -516,37 +493,11 @@
                                     </div>
                                 </div>
 
-                                <!-- SEKSI 2: IDENTITAS SERIAL & DOKUMEN -->
+                                <!-- SEKSI 2: KATEGORI & KEPEMILIKAN -->
                                 <div class="space-y-3">
                                     <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">2. Serial Number &amp; Dokumen Referensi</h4>
-                                    </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Serial Number (S/N)</label>
-                                            <input type="text" x-model="form.serial_number" placeholder="Nomor S/N fisik perangkat" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono">
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Part / Product Number (P/N)</label>
-                                            <input type="text" x-model="form.product_number" placeholder="Nomor P/N produk" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 font-mono">
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Nomor PO</label>
-                                            <input type="text" x-model="form.po_number" placeholder="PO-IPN-2026-..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                        </div>
-                                        <div>
-                                            <label class="block font-semibold text-slate-700 mb-1">Nomor Kontrak</label>
-                                            <input type="text" x-model="form.contract_number" placeholder="CTR-..." class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- SEKSI 3: KATEGORI & KEPEMILIKAN -->
-                                <div class="space-y-3">
-                                    <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">3. Kategori Kepemilikan</h4>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">2. Kategori Kepemilikan</h4>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                         <div class="sm:col-span-2">
@@ -628,11 +579,11 @@
                                     </div>
                                 </div>
 
-                                <!-- SEKSI 4: LOKASI & STATUS OPERASIONAL -->
+                                <!-- SEKSI 3: LOKASI & STATUS OPERASIONAL -->
                                 <div class="space-y-3">
                                     <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">4. Lokasi Fisik &amp; Status Distribusi</h4>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">3. Lokasi Fisik &amp; Status Distribusi</h4>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                         <div>
@@ -1354,6 +1305,15 @@
             async submitForm() {
                 this.isSubmitting = true;
                 try {
+                    if (!this.form.name) {
+                        this.form.name = this.form.product_number || this.form.serial_number || 'Perangkat';
+                    }
+                    if (!this.form.brand) {
+                        this.form.brand = '-';
+                    }
+                    if (!this.form.item_type) {
+                        this.form.item_type = this.form.component_type || 'Perangkat';
+                    }
                     const url = this.isEditing ? `/warehouse/products/${this.form.id}` : '/warehouse/products';
                     const method = this.isEditing ? 'PUT' : 'POST';
 

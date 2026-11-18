@@ -3471,9 +3471,13 @@ class ManagedServiceController extends Controller
             }
         }
 
+        $soNumber = !empty($validated['so_number']) 
+            ? $validated['so_number'] 
+            : ('SO-' . date('Y') . '-MS-' . strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $validated['client']), 0, 6)) . rand(10, 99));
+
         $handoverData = [
             'source'                 => 'Direct Managed Service Contract',
-            'so_number'              => 'SO-' . date('Y') . '-MS-' . strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $validated['client']), 0, 6)) . rand(10, 99),
+            'so_number'              => $soNumber,
             'po_spk_number'          => $validated['po_spk_number'] ?? null,
             'billing_terms'          => $validated['billing_terms'] ?? 'Bulanan (Net 30 Hari)',
             'coordinator_name'       => $pmName,
@@ -3507,6 +3511,7 @@ class ManagedServiceController extends Controller
             'customer_pic_finance'      => $validated['customer_pic_email'] ?? null,
             'location'                  => $validated['location'] ?? null,
             'sales_name'                => $salesName,
+            'so_number'                 => $soNumber,
             'pm_id'                     => $pmId,
             'division_id'               => $divisionId,
             'contract_value'            => $contractValue,

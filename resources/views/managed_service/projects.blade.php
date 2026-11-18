@@ -66,6 +66,7 @@
              customer_pic_email: '',
              location: '',
              sales_name: '',
+             so_number: '',
              po_spk_number: '',
              billing_terms: 'Bulanan (Net 30 Hari)',
              contract_value: '',
@@ -129,6 +130,7 @@
 
          openEditModal(p) {
              this.editProject = Object.assign({}, p);
+             this.editProject.so_number = p.so_number || (p.handover_data ? p.handover_data.so_number : '') || '';
              this.editProject.docs = p.docs || {};
              const cleanVal = (p.contract_value_raw || p.contract_value || '').toString().replace(/\D/g, '');
              this.editContractValueRaw = cleanVal;
@@ -976,7 +978,12 @@
                                         </div>
                                         <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">2. Nilai Kontrak &amp; Durasi Layanan</h4>
                                     </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Nomor SO Proyek</label>
+                                            <input type="text" name="so_number" value="{{ old('so_number') }}" placeholder="Contoh: SO-2026-MS-001" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Nomor PO / SPK / Kontrak</label>
                                             <input type="text" name="po_spk_number" value="{{ old('po_spk_number') }}" placeholder="Contoh: PO-2026/MNDR-IT/088" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
@@ -1010,7 +1017,7 @@
                                             <input type="date" name="service_end_date" required x-model="endDate" @change="calculateDuration()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
                                         </div>
 
-                                        <div class="space-y-1">
+                                        <div class="space-y-1 sm:col-span-2 md:col-span-2">
                                             <label class="block text-xs font-bold text-slate-700">Estimasi Durasi Kontrak</label>
                                             <div class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 flex items-center justify-between">
                                                 <span x-text="durationMonths > 0 ? durationMonths + ' Bulan' : '-'">12 Bulan</span>
@@ -1460,7 +1467,12 @@
                                         </div>
                                         <h4 class="text-xs font-bold text-[#1E293B] uppercase tracking-wider">2. NILAI KONTRAK &amp; DURASI LAYANAN</h4>
                                     </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Nomor SO Proyek</label>
+                                            <input type="text" name="so_number" x-model="editProject.so_number" placeholder="Contoh: SO-2026-MS-001" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
+                                        </div>
+
                                         <div class="space-y-1">
                                             <label class="block text-xs font-bold text-slate-700">Nomor PO / SPK / Kontrak</label>
                                             <input type="text" name="po_spk_number" x-model="editProject.po_spk_number" placeholder="Contoh: PO-2026/MNDR-IT/088" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
@@ -1494,7 +1506,7 @@
                                             <input type="date" name="service_end_date" required x-model="editProject.service_end_date" @change="calculateEditDuration()" class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] outline-none">
                                         </div>
 
-                                        <div class="space-y-1">
+                                        <div class="space-y-1 sm:col-span-2 md:col-span-2">
                                             <label class="block text-xs font-bold text-slate-700">Estimasi Durasi Kontrak</label>
                                             <div class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 flex items-center justify-between">
                                                 <span x-text="editDurationMonths > 0 ? editDurationMonths + ' Bulan' : '-'">12 Bulan</span>

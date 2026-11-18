@@ -293,9 +293,9 @@ class WarehouseController extends Controller
         $this->ensureTableReady();
 
         $validated = $request->validate([
-            'name'                => 'required|string|max:255',
+            'name'                => 'nullable|string|max:255',
             'brand'               => 'nullable|string|max:100',
-            'item_type'           => 'required|string|max:100',
+            'item_type'           => 'nullable|string|max:100',
             'component_type'      => 'nullable|string|max:100',
             'cable_type'          => 'nullable|string|max:100',
             'serial_number'       => 'nullable|string|max:100',
@@ -327,6 +327,10 @@ class WarehouseController extends Controller
             'poc_duration'        => 'nullable|string|max:100',
             'notes'               => 'nullable|string',
         ]);
+
+        $validated['name'] = !empty($validated['name']) ? $validated['name'] : (!empty($validated['product_number']) ? $validated['product_number'] : (!empty($validated['serial_number']) ? $validated['serial_number'] : 'Perangkat'));
+        $validated['brand'] = !empty($validated['brand']) ? $validated['brand'] : '-';
+        $validated['item_type'] = !empty($validated['item_type']) ? $validated['item_type'] : 'Perangkat';
 
         $validated['item_code'] = WarehouseItem::generateItemCode();
         $validated['created_by'] = auth()->id();
@@ -520,9 +524,9 @@ class WarehouseController extends Controller
         $item = WarehouseItem::findOrFail($id);
 
         $validated = $request->validate([
-            'name'                => 'required|string|max:255',
+            'name'                => 'nullable|string|max:255',
             'brand'               => 'nullable|string|max:100',
-            'item_type'           => 'required|string|max:100',
+            'item_type'           => 'nullable|string|max:100',
             'component_type'      => 'nullable|string|max:100',
             'cable_type'          => 'nullable|string|max:100',
             'serial_number'       => 'nullable|string|max:100',
@@ -554,6 +558,16 @@ class WarehouseController extends Controller
             'poc_duration'        => 'nullable|string|max:100',
             'notes'               => 'nullable|string',
         ]);
+
+        if (empty($validated['name'])) {
+            $validated['name'] = !empty($validated['product_number']) ? $validated['product_number'] : (!empty($validated['serial_number']) ? $validated['serial_number'] : ($item->name ?: 'Perangkat'));
+        }
+        if (empty($validated['brand'])) {
+            $validated['brand'] = $item->brand ?: '-';
+        }
+        if (empty($validated['item_type'])) {
+            $validated['item_type'] = $item->item_type ?: 'Perangkat';
+        }
 
         $item->update($validated);
 
