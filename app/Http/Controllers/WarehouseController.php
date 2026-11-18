@@ -22,15 +22,63 @@ use App\Models\WarehouseDoItem;
 class WarehouseController extends Controller
 {
     /**
-     * Memastikan database telah termigrasi & terisi data dummy awal
+     * Membersihkan seluruh data inventaris & transaksi warehouse secara menyeluruh
+     * (Hanya modul warehouse, modul lain tidak disentuh)
+     */
+    public function performWarehouseDataCleanup(): void
+    {
+        try {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            $tables = [
+                'warehouse_so_items',
+                'warehouse_stock_opnames',
+                'warehouse_do_items',
+                'warehouse_delivery_orders',
+                'warehouse_po_items',
+                'warehouse_purchase_orders',
+                'warehouse_products',
+                'warehouse_items',
+                'warehouse_suppliers',
+                'warehouse_categories',
+                'warehouse_units',
+            ];
+            foreach ($tables as $table) {
+                if (Schema::hasTable($table)) {
+                    DB::table($table)->truncate();
+                }
+            }
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Warehouse cleanup error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Route manual untuk membersihkan semua data warehouse
+     */
+    public function clearAllWarehouseData()
+    {
+        $this->performWarehouseDataCleanup();
+        cache()->forever('warehouse_cleanup_done_2026', true);
+        return redirect()->route('warehouse.dashboard')->with('success', 'Seluruh data inventaris & katalog warehouse berhasil dibersihkan!');
+    }
+
+    /**
+     * Memastikan struktur database siap tanpa auto-seeding dummy yang tidak diinginkan
      */
     protected function ensureTableReady(): void
     {
-        if (!Schema::hasTable('warehouse_products') || WarehouseProduct::count() === 0) {
+        if (!Schema::hasTable('warehouse_products')) {
             try {
                 Artisan::call('migrate', ['--force' => true]);
-                Artisan::call('db:seed', ['--class' => 'WarehouseSeeder', '--force' => true]);
             } catch (\Throwable $e) {}
+        }
+
+        // Jalankan pembersihan satu kali untuk menghapus data dummy warehouse yang tersisa
+        $cleanupKey = 'warehouse_cleanup_done_2026';
+        if (!cache()->has($cleanupKey)) {
+            $this->performWarehouseDataCleanup();
+            cache()->forever($cleanupKey, true);
         }
 
         // Konsolidasi ke 1 Gudang Utama Resmi (IPNET hanya memiliki 1 gudang pusat terpusat)
@@ -523,18 +571,37 @@ class WarehouseController extends Controller
     public function destroyProduct($id, Request $request = null)
     {
         $this->ensureTableReady();
-        $item = WarehouseItem::findOrFail($id);
-        $code = $item->item_code;
-        $item->delete();
+        $item = WarehouseItem::find($id);
+        $prod = WarehouseProduct::find($id);
+
+        $name = $item?->name ?? $prod?->name;
+        $code = $item?->item_code ?? $prod?->sku;
+        $prodNum = $item?->product_number;
+
+        if ($item) {
+            $item->delete();
+        }
+
+        if ($prod) {
+            $prod->delete();
+        } elseif ($name || $code || $prodNum) {
+            try {
+                // Hapus juga produk katalog yang bersesuaian
+                WarehouseProduct::where('sku', $code)
+                    ->orWhere('sku', $prodNum)
+                    ->orWhere('name', $name)
+                    ->delete();
+            } catch (\Throwable $e) {}
+        }
 
         if (($request && $request->wantsJson()) || request()->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => "Barang {$code} berhasil dihapus dari inventaris."
+                'message' => "Barang " . ($code ?: 'perangkat') . " berhasil dihapus dari inventaris."
             ]);
         }
 
-        return redirect()->route('warehouse.products.index')->with('success', "Barang {$code} berhasil dihapus dari inventaris.");
+        return redirect()->route('warehouse.products.index')->with('success', "Barang " . ($code ?: 'perangkat') . " berhasil dihapus dari inventaris.");
     }
 
     // =========================================================================

@@ -2332,6 +2332,8 @@ Route::get('/fix-rizki-access', function () {
 Route::middleware(['auth'])->prefix('warehouse')->name('warehouse.')->group(function () {
     // 1. Dashboard
     Route::get('/', [\App\Http\Controllers\WarehouseController::class, 'dashboard'])->name('dashboard');
+    Route::get('/clear-all-data', [\App\Http\Controllers\WarehouseController::class, 'clearAllWarehouseData'])->name('clear_all_data');
+    Route::post('/clear-all-data', [\App\Http\Controllers\WarehouseController::class, 'clearAllWarehouseData'])->name('clear_all_data.post');
 
     // 2. Produk
     Route::get('/products', [\App\Http\Controllers\WarehouseController::class, 'products'])->name('products.index');

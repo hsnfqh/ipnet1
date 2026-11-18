@@ -91,6 +91,16 @@
                             </svg>
                             <span>Stock Opname</span>
                         </a>
+
+                        <form action="{{ route('warehouse.clear_all_data.post') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membersihkan/mengosongkan seluruh data inventaris Warehouse? (Modul proyek dan lainnya tidak akan terpengaruh)');" class="inline">
+                            @csrf
+                            <button type="submit" class="bg-rose-50 hover:bg-rose-100 text-[#8F0A0D] px-3.5 py-2.5 rounded-xl font-semibold text-[13px] border border-rose-200 flex items-center gap-1.5 transition cursor-pointer" title="Bersihkan seluruh data inventaris & stok warehouse">
+                                <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                <span>Bersihkan Data</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
 
@@ -290,7 +300,7 @@
                         @php
                             $colors = ['#8F0A0D', '#2563EB', '#059669', '#D97706', '#7C3AED', '#0284C7', '#475569'];
                         @endphp
-                        @foreach($categoryBreakdown as $idx => $cat)
+                        @forelse($categoryBreakdown as $idx => $cat)
                             <div class="flex items-center justify-between text-[12px] py-1 border-b border-slate-50 last:border-0">
                                 <div class="flex items-center gap-2 truncate">
                                     <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ $colors[$idx % count($colors)] }};"></span>
@@ -301,7 +311,11 @@
                                     <span class="text-[10.5px] text-[#64748B]">({{ $cat->products_count }} model)</span>
                                 </div>
                             </div>
-                        @endforeach
+                        @empty
+                            <div class="py-6 text-center text-xs text-slate-400">
+                                Belum ada kategori produk.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -486,14 +500,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (categoryCtx && typeof Chart !== 'undefined') {
         const catLabels = @json($categoryBreakdown->pluck('name'));
         const catData = @json($categoryBreakdown->pluck('products_sum_current_stock')->map(function($val) { return (int)($val ?? 0); }));
+        const totalCatStock = catData.reduce((a, b) => a + b, 0);
+        const hasData = catLabels.length > 0 && totalCatStock > 0;
         
         new Chart(categoryCtx, {
             type: 'doughnut',
             data: {
-                labels: catLabels,
+                labels: hasData ? catLabels : ['Belum Ada Stok Fisik'],
                 datasets: [{
-                    data: catData,
-                    backgroundColor: [
+                    data: hasData ? catData : [1],
+                    backgroundColor: hasData ? [
                         '#8F0A0D', // IPNET Crimson
                         '#2563EB', // Blue
                         '#059669', // Emerald
@@ -501,7 +517,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         '#7C3AED', // Purple
                         '#0284C7', // Sky
                         '#475569'  // Slate
-                    ],
+                    ] : ['#E2E8F0'],
                     borderWidth: 2,
                     borderColor: '#FFFFFF',
                     hoverOffset: 6
