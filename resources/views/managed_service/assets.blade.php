@@ -70,7 +70,7 @@
             @endif
 
             <!-- SECTION HEADER & FILTER CONTROLS -->
-            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
+            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1 relative z-30">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
@@ -274,7 +274,7 @@
                             </a>
                         @else
                             {{-- Dropdown / Button Export PDF Berdasarkan Proyek --}}
-                            <div x-data="{ openExportMenu: false }" class="relative w-full sm:w-auto flex items-center gap-1.5">
+                            <div x-data="{ openExportMenu: false }" class="relative w-full sm:w-auto flex items-center gap-1.5 z-40">
                                 <a href="{{ route('ms.assets.export_pdf', request()->query()) }}" 
                                    target="_blank"
                                    class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#75080A] text-white font-bold text-xs shadow-xs hover:shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
@@ -292,27 +292,33 @@
                                 </button>
 
                                 <div x-show="openExportMenu" 
-                                     x-transition 
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 transform scale-95"
+                                     x-transition:enter-end="opacity-100 transform scale-100"
+                                     x-transition:leave="transition ease-in duration-100"
+                                     x-transition:leave-start="opacity-100 transform scale-100"
+                                     x-transition:leave-end="opacity-0 transform scale-95"
                                      style="display: none;"
-                                     class="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-50 max-h-72 overflow-y-auto">
-                                    <div class="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 flex items-center justify-between">
+                                     class="absolute right-0 top-full mt-2 w-84 sm:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-50 max-h-80 overflow-y-auto">
+                                    <div class="px-3.5 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
                                         <span>Export PDF Per Nama Proyek:</span>
-                                        <span class="text-[10px] text-slate-400 font-normal">{{ count($projects ?? []) }} Proyek</span>
+                                        <span class="text-[10px] text-slate-500 font-semibold">{{ count($projects ?? []) }} Proyek</span>
                                     </div>
                                     @forelse($projects ?? [] as $p)
                                         <a href="{{ route('ms.assets.export_project_pdf', $p->id) }}" 
                                            target="_blank"
-                                           class="flex items-center justify-between px-3.5 py-2 text-xs text-slate-700 hover:bg-red-50 hover:text-[#8F0A0D] transition group border-b border-slate-50 last:border-b-0">
-                                            <div class="truncate pr-2">
-                                                <div class="font-bold group-hover:text-[#8F0A0D] truncate">{{ $p->name }}</div>
+                                           class="flex items-center justify-between px-3.5 py-2.5 text-xs text-slate-700 hover:bg-red-50 hover:text-[#8F0A0D] transition group border-b border-slate-50 last:border-b-0">
+                                            <div class="truncate pr-3">
+                                                <div class="font-bold group-hover:text-[#8F0A0D] truncate text-[12px] text-slate-800">{{ $p->name }}</div>
                                                 <div class="text-[10.5px] text-slate-400 truncate">{{ $p->client ?: 'Customer' }}</div>
                                             </div>
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 group-hover:bg-[#8F0A0D] group-hover:text-white transition shrink-0">
-                                                PDF &rarr;
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 group-hover:bg-[#8F0A0D] group-hover:text-white transition shrink-0">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                <span>PDF</span>
                                             </span>
                                         </a>
                                     @empty
-                                        <div class="px-3 py-2 text-xs text-slate-400 text-center">Belum ada proyek</div>
+                                        <div class="px-3 py-3 text-xs text-slate-400 text-center">Belum ada proyek</div>
                                     @endforelse
                                 </div>
                             </div>
@@ -322,7 +328,7 @@
             </div>
 
             {{-- Asset Table: Tipe Perangkat, Brand & OS, Serial Number, Service Support, Siklus EOL/EOS, Backup, Pemilik --}}
-            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2">
+            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2 relative z-10">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
