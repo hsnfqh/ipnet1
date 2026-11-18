@@ -827,7 +827,11 @@ class ManagedServiceController extends Controller
             $assets = new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
             $clients = $this->getClients();
             $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
-            return view('managed_service.assets', compact('assets', 'clients', 'projects', 'perPage'));
+            $totalCustomerUnits = 0;
+            $totalCustomerAssets = 0;
+            $totalCustomerUnitsAll = 0;
+            $selectedProject = null;
+            return view('managed_service.assets', compact('assets', 'clients', 'projects', 'perPage', 'totalCustomerUnits', 'totalCustomerAssets', 'totalCustomerUnitsAll', 'selectedProject'));
         }
 
         $query = ManagedServiceAsset::query();
@@ -929,6 +933,18 @@ class ManagedServiceController extends Controller
         })->count();
         $backedUpCount = ManagedServiceAsset::where('backup_status', 'Backed Up')->count();
 
+        // Total Unit Fisik Customer dalam filter saat ini
+        $totalCustomerUnits = (int) ((clone $query)->sum('quantity') ?: $assets->total());
+        $totalCustomerAssets = $assets->total();
+
+        // Total Unit Fisik Customer secara keseluruhan
+        $totalCustomerUnitsAll = (int) (ManagedServiceAsset::sum('quantity') ?: $totalAssetsCount);
+
+        // Proyek yang sedang dipilih (jika ada)
+        $selectedProject = ($request->filled('project_id') && $request->project_id !== 'all') 
+            ? $projects->firstWhere('id', $request->project_id) 
+            : null;
+
         return view('managed_service.assets', compact(
             'assets', 
             'clients', 
@@ -937,7 +953,11 @@ class ManagedServiceController extends Controller
             'totalAssetsCount',
             'activeSupportCount',
             'eolEosCount',
-            'backedUpCount'
+            'backedUpCount',
+            'totalCustomerUnits',
+            'totalCustomerAssets',
+            'totalCustomerUnitsAll',
+            'selectedProject'
         ));
     }
 
@@ -1992,6 +2012,294 @@ class ManagedServiceController extends Controller
         } catch (\Throwable $e) {
             Log::error('Gagal export project SLA PDF: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return back()->with('error', 'Gagal menghasilkan dokumen PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export Dokumen Resmi PDF Daftar Aset & Spesifikasi Perangkat Berdasarkan Nama Proyek
+     * Dilengkapi Running Header, Footer, Head Susanto Djaya, dan Rekapitulasi Lengkap
+     */
+    public function exportProjectAssetsPdf(Request $request, $project)
+    {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(120);
+
+        try {
+            $this->ensureTablesExist();
+
+            $fontDir = storage_path('fonts');
+            if (!file_exists($fontDir)) {
+                @mkdir($fontDir, 0775, true);
+            }
+
+            $projectModel = null;
+            $assetSingle = null;
+
+            if ($project instanceof Project) {
+                $projectModel = $project;
+            } elseif (is_numeric($project)) {
+                $projectModel = Project::find($project);
+            } elseif (is_string($project) && str_starts_with($project, 'asset-')) {
+                $assetId = (int) substr($project, 6);
+                $assetSingle = ManagedServiceAsset::find($assetId);
+                if ($assetSingle && $assetSingle->project_id) {
+                    $projectModel = Project::find($assetSingle->project_id);
+                }
+            }
+
+            // Jika project belum ditemukan dari id/object, cari fallback berdasarkan nama atau buat representasi proyek aman
+            if (!$projectModel) {
+                if ($assetSingle) {
+                    $projectModel = new Project([
+                        'name' => 'Aset Perangkat ' . ($assetSingle->client_name ?: 'Customer'),
+                        'client' => $assetSingle->client_name ?: 'Customer',
+                        'location' => $assetSingle->location_site ?: 'Data Center / Customer Premises',
+                        'sla_tier' => 'Gold',
+                    ]);
+                    $projectModel->id = 0;
+                } else {
+                    $projectModel = Project::first() ?: new Project([
+                        'name' => 'Proyek Managed Service Customer',
+                        'client' => 'Customer PT IP Network Solusindo',
+                        'location' => 'Data Center Customer',
+                        'sla_tier' => 'Gold',
+                    ]);
+                }
+            }
+
+            // Ambil seluruh aset perangkat terkait proyek atau nama klien
+            $assets = collect();
+            if (Schema::hasTable('managed_service_assets')) {
+                $query = ManagedServiceAsset::query();
+                if ($projectModel->id > 0) {
+                    $query->where(function($q) use ($projectModel) {
+                        $q->where('project_id', $projectModel->id);
+                        if (!empty($projectModel->client)) {
+                            $q->orWhere('client_name', 'like', '%' . trim($projectModel->client) . '%');
+                        }
+                    });
+                } elseif ($assetSingle) {
+                    $query->where('id', $assetSingle->id);
+                } elseif (!empty($projectModel->client)) {
+                    $query->where('client_name', 'like', '%' . trim($projectModel->client) . '%');
+                }
+                $assets = $query->orderBy('category')->orderBy('device_name')->get();
+            }
+
+            // Jika tetap kosong namun ada assetSingle, masukkan assetSingle
+            if ($assets->isEmpty() && $assetSingle) {
+                $assets = collect([$assetSingle]);
+            }
+
+            // Customer Name & PIC dinamis sesuai proyek masing-masing
+            $customerName = trim((string)($projectModel->client ?: ''));
+            if (empty($customerName) && $assets->isNotEmpty()) {
+                $customerName = trim((string)$assets->first()->client_name);
+            }
+            if (empty($customerName)) {
+                $customerName = 'Customer / Klien';
+            }
+
+            $customerPic = trim((string)($projectModel->customer_pic ?: ($projectModel->customer_pic_technical ?: '')));
+            if (empty($customerPic)) {
+                $customerPic = $customerName . ' Representative';
+            }
+
+            // Perhitungan Rekapitulasi Perangkat
+            $totalRecords = $assets->count();
+            $totalPhysicalUnits = (int) ($assets->sum('quantity') ?: $totalRecords);
+            
+            $activeSupportCount = $assets->filter(function($a) {
+                return $a->effective_support_status === 'Active' 
+                    || (!$a->support_status && (!$a->warranty_expiry || $a->warranty_expiry->isFuture()));
+            })->count();
+
+            $eolEosCount = $assets->filter(function($a) {
+                return ($a->eol_date && $a->eol_date->isPast()) || ($a->eos_date && $a->eos_date->isPast());
+            })->count();
+
+            $backedUpCount = $assets->filter(function($a) {
+                return strtolower($a->backup_status ?? '') === 'backed up' || !empty($a->backup_file_path);
+            })->count();
+
+            // Logo Base64
+            $logoPath = public_path('images/ipnet1.png');
+            if (!file_exists($logoPath)) {
+                $logoPath = public_path('images/ipnet.png');
+            }
+            $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+
+            $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
+            $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
+            $formalDocNumber = 'MS-AST/' . now()->format('Y') . '/' . $romanMonth . '/' . str_pad($projectModel->id ?: 1, 4, '0', STR_PAD_LEFT);
+
+            $pdf = Pdf::loadView('managed_service.exports.project_assets_pdf', [
+                'project' => $projectModel,
+                'customerName' => $customerName,
+                'customerPic' => $customerPic,
+                'assets' => $assets,
+                'totalRecords' => $totalRecords,
+                'totalPhysicalUnits' => $totalPhysicalUnits,
+                'activeSupportCount' => $activeSupportCount,
+                'eolEosCount' => $eolEosCount,
+                'backedUpCount' => $backedUpCount,
+                'logoBase64' => $logoBase64,
+                'printedBy' => auth()->user()->name ?? 'Administrator Managed Service',
+                'printedAt' => now()->translatedFormat('d F Y H:i') . ' WIB',
+                'docNumber' => $formalDocNumber,
+            ]);
+
+            $pdf->setPaper('a4', 'landscape');
+            $pdf->setOption('isHtml5ParserEnabled', true);
+            $pdf->setOption('isRemoteEnabled', false);
+
+            $cleanProjectName = Str::slug($projectModel->name) ?: 'Project-' . ($projectModel->id ?: 'Asset');
+            $filename = 'Laporan-Aset-' . $cleanProjectName . '-IPNET.pdf';
+
+            return response($pdf->output(), 200, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                'Cache-Control'       => 'private, no-transform, no-store, must-revalidate',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Gagal export project assets PDF: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Gagal menghasilkan dokumen PDF Aset: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export Dokumen Resmi PDF Aset Customer (Berdasarkan Proyek Terpilih atau Filter Portofolio)
+     */
+    public function exportAssetsPdf(Request $request)
+    {
+        // Jika ada filter project_id spesifik, arahkan ke exportProjectAssetsPdf
+        if ($request->filled('project_id') && $request->project_id !== 'all') {
+            return $this->exportProjectAssetsPdf($request, $request->project_id);
+        }
+
+        // Jika ada asset_id spesifik
+        if ($request->filled('asset_id')) {
+            return $this->exportProjectAssetsPdf($request, 'asset-' . $request->asset_id);
+        }
+
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(120);
+
+        try {
+            $this->ensureTablesExist();
+
+            $fontDir = storage_path('fonts');
+            if (!file_exists($fontDir)) {
+                @mkdir($fontDir, 0775, true);
+            }
+
+            $query = ManagedServiceAsset::query()->with('project');
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('device_name', 'like', "%{$search}%")
+                      ->orWhere('client_name', 'like', "%{$search}%")
+                      ->orWhere('serial_number', 'like', "%{$search}%")
+                      ->orWhere('ip_address', 'like', "%{$search}%")
+                      ->orWhere('brand', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->filled('category') && $request->category !== 'all') {
+                $query->where('category', $request->category);
+            }
+
+            if ($request->filled('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+
+            if ($request->filled('support_status') && $request->support_status !== 'all') {
+                $query->where('support_status', $request->support_status);
+            }
+
+            if ($request->filled('owner')) {
+                $owner = $request->owner;
+                $query->where(function($q) use ($owner) {
+                    $q->where('client_name', 'like', "%{$owner}%")
+                      ->orWhereHas('project', function($pq) use ($owner) {
+                          $pq->where('client', 'like', "%{$owner}%");
+                      });
+                });
+            }
+
+            $assets = $query->orderBy('client_name')->orderBy('category')->get();
+
+            $totalRecords = $assets->count();
+            $totalPhysicalUnits = (int) ($assets->sum('quantity') ?: $totalRecords);
+
+            $activeSupportCount = $assets->filter(function($a) {
+                return $a->effective_support_status === 'Active' 
+                    || (!$a->support_status && (!$a->warranty_expiry || $a->warranty_expiry->isFuture()));
+            })->count();
+
+            $eolEosCount = $assets->filter(function($a) {
+                return ($a->eol_date && $a->eol_date->isPast()) || ($a->eos_date && $a->eos_date->isPast());
+            })->count();
+
+            $backedUpCount = $assets->filter(function($a) {
+                return strtolower($a->backup_status ?? '') === 'backed up' || !empty($a->backup_file_path);
+            })->count();
+
+            // Client Name / Project Virtual
+            $clientFilter = $request->input('owner', '');
+            $projectModel = new Project([
+                'name' => $clientFilter ? ('Portofolio Aset Klien: ' . $clientFilter) : 'Rekapitulasi Portofolio Seluruh Aset Customer',
+                'client' => $clientFilter ?: 'Seluruh Klien & Proyek Managed Service',
+                'location' => 'Data Center & On-Premise Customer Sites',
+                'sla_tier' => 'Comprehensive Managed Service',
+            ]);
+            $projectModel->id = 0;
+
+            $customerName = $clientFilter ?: 'Seluruh Mitra & Klien Managed Service';
+            $customerPic = $clientFilter ? ($clientFilter . ' Representative') : 'Perwakilan Seluruh Customer';
+
+            // Logo Base64
+            $logoPath = public_path('images/ipnet1.png');
+            if (!file_exists($logoPath)) {
+                $logoPath = public_path('images/ipnet.png');
+            }
+            $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+
+            $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
+            $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
+            $formalDocNumber = 'MS-AST/' . now()->format('Y') . '/' . $romanMonth . '/ALL-' . now()->format('dHi');
+
+            $pdf = Pdf::loadView('managed_service.exports.project_assets_pdf', [
+                'project' => $projectModel,
+                'customerName' => $customerName,
+                'customerPic' => $customerPic,
+                'assets' => $assets,
+                'totalRecords' => $totalRecords,
+                'totalPhysicalUnits' => $totalPhysicalUnits,
+                'activeSupportCount' => $activeSupportCount,
+                'eolEosCount' => $eolEosCount,
+                'backedUpCount' => $backedUpCount,
+                'logoBase64' => $logoBase64,
+                'printedBy' => auth()->user()->name ?? 'Administrator Managed Service',
+                'printedAt' => now()->translatedFormat('d F Y H:i') . ' WIB',
+                'docNumber' => $formalDocNumber,
+            ]);
+
+            $pdf->setPaper('a4', 'landscape');
+            $pdf->setOption('isHtml5ParserEnabled', true);
+            $pdf->setOption('isRemoteEnabled', false);
+
+            $filename = 'Laporan-Aset-Customer-IPNET-' . now()->format('Ymd-His') . '.pdf';
+
+            return response($pdf->output(), 200, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                'Cache-Control'       => 'private, no-transform, no-store, must-revalidate',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Gagal export assets PDF: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Gagal menghasilkan dokumen PDF Aset: ' . $e->getMessage());
         }
     }
 

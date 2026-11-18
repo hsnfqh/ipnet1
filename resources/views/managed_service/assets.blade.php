@@ -226,6 +226,99 @@
                         </select>
                     </div>
                 </form>
+
+                {{-- Banner Ringkasan Total Perangkat Customer & Export PDF Berdasarkan Proyek --}}
+                <div class="mt-3.5 pt-3.5 border-t border-[#F1F5F9] flex flex-col md:flex-row items-start md:items-center justify-between gap-3 bg-gradient-to-r from-red-50/70 via-slate-50/90 to-blue-50/50 p-3.5 rounded-xl border border-slate-200/90">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center shrink-0 border border-[#8F0A0D]/20 shadow-2xs">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs font-bold text-slate-800">Total Perangkat Customer:</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-[#8F0A0D] text-white shadow-2xs">
+                                    {{ $totalCustomerUnits ?? $assets->total() }} Unit Fisik
+                                </span>
+                                <span class="text-[11.5px] font-semibold text-slate-600">
+                                    ({{ $assets->total() }} Perangkat Terdaftar)
+                                </span>
+                                @if(request('project_id') && request('project_id') !== 'all')
+                                    @php $activeProj = ($projects ?? collect([]))->firstWhere('id', request('project_id')); @endphp
+                                    @if($activeProj)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                            • Proyek: {{ $activeProj->name }}
+                                        </span>
+                                    @endif
+                                @endif
+                                @if(request('owner'))
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                                        • Klien: {{ request('owner') }}
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-0.5">
+                                Informasi lengkap aset perangkat customer, garansi support vendor, siklus EOL/EOS, dan arsip backup.
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Tombol Export PDF Berdasarkan Nama Proyek --}}
+                    <div class="flex items-center gap-2 w-full md:w-auto shrink-0 justify-end">
+                        @if(request('project_id') && request('project_id') !== 'all')
+                            @php $activeProj = ($projects ?? collect([]))->firstWhere('id', request('project_id')); @endphp
+                            <a href="{{ route('ms.assets.export_project_pdf', request('project_id')) }}" 
+                               target="_blank"
+                               class="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#75080A] text-white font-bold text-xs shadow-xs hover:shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span>Export PDF Aset Proyek ({{ Str::limit($activeProj->name ?? 'Proyek', 18) }})</span>
+                            </a>
+                        @else
+                            {{-- Dropdown / Button Export PDF Berdasarkan Proyek --}}
+                            <div x-data="{ openExportMenu: false }" class="relative w-full sm:w-auto flex items-center gap-1.5">
+                                <a href="{{ route('ms.assets.export_pdf', request()->query()) }}" 
+                                   target="_blank"
+                                   class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#75080A] text-white font-bold text-xs shadow-xs hover:shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+                                   title="Export Seluruh Aset Customer Sesuai Filter">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>Export PDF Aset Customer</span>
+                                </a>
+                                <button type="button" 
+                                        @click="openExportMenu = !openExportMenu" 
+                                        @click.away="openExportMenu = false"
+                                        class="px-2.5 py-2 rounded-xl bg-[#73080A] hover:bg-[#5C0608] text-white transition cursor-pointer flex items-center gap-1 text-xs font-bold shadow-xs"
+                                        title="Pilih Nama Proyek Tertentu Untuk Dieksport ke PDF">
+                                    <span>Pilih Proyek</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+
+                                <div x-show="openExportMenu" 
+                                     x-transition 
+                                     style="display: none;"
+                                     class="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-50 max-h-72 overflow-y-auto">
+                                    <div class="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 flex items-center justify-between">
+                                        <span>Export PDF Per Nama Proyek:</span>
+                                        <span class="text-[10px] text-slate-400 font-normal">{{ count($projects ?? []) }} Proyek</span>
+                                    </div>
+                                    @forelse($projects ?? [] as $p)
+                                        <a href="{{ route('ms.assets.export_project_pdf', $p->id) }}" 
+                                           target="_blank"
+                                           class="flex items-center justify-between px-3.5 py-2 text-xs text-slate-700 hover:bg-red-50 hover:text-[#8F0A0D] transition group border-b border-slate-50 last:border-b-0">
+                                            <div class="truncate pr-2">
+                                                <div class="font-bold group-hover:text-[#8F0A0D] truncate">{{ $p->name }}</div>
+                                                <div class="text-[10.5px] text-slate-400 truncate">{{ $p->client ?: 'Customer' }}</div>
+                                            </div>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 group-hover:bg-[#8F0A0D] group-hover:text-white transition shrink-0">
+                                                PDF &rarr;
+                                            </span>
+                                        </a>
+                                    @empty
+                                        <div class="px-3 py-2 text-xs text-slate-400 text-center">Belum ada proyek</div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
 
             {{-- Asset Table: Tipe Perangkat, Brand & OS, Serial Number, Service Support, Siklus EOL/EOS, Backup, Pemilik --}}
@@ -401,6 +494,13 @@
 
                                     {{-- 8. Aksi --}}
                                     <td class="py-3.5 px-4 text-right whitespace-nowrap space-x-1">
+                                        {{-- Tombol Export PDF Aset Proyek (Sesuai Revisi User) --}}
+                                        <a href="{{ $asset->project_id ? route('ms.assets.export_project_pdf', $asset->project_id) : route('ms.assets.export_pdf', ['asset_id' => $asset->id]) }}" 
+                                           target="_blank"
+                                           class="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition inline-flex items-center cursor-pointer" 
+                                           title="Export PDF Dokumen Aset Proyek {{ $asset->project ? '('.$asset->project->name.')' : ($asset->client_name ? '('.$asset->client_name.')' : '') }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        </a>
                                         <button @click="openEditModal({{ json_encode($asset) }})" class="p-1.5 text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] rounded-lg transition cursor-pointer" title="Edit Aset">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
