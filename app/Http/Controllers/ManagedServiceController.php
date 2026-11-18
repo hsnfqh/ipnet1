@@ -454,6 +454,16 @@ class ManagedServiceController extends Controller
                 : 100.0;
             $projectTargetSla = (float) ($project->sla_target_percentage ?: 99.50);
 
+            // Hitung realisasi siklus PM untuk proyek ini
+            $pmCyclesCount = (int) ($project->pm_total_cycles ?: ($project->pmCycles ? $project->pmCycles->count() : 4));
+            if ($pmCyclesCount <= 0) $pmCyclesCount = 4;
+            $pmCompletedCount = $project->pmCycles ? $project->pmCycles->filter(function($c) {
+                return in_array($c->activity_status, ['Completed', 'Done', 'Approved'])
+                    || in_array($c->report_status, ['Submitted', 'Approved'])
+                    || !empty($c->actual_date);
+            })->count() : 0;
+            $pmProgressPct = min(100, round(($pmCompletedCount / $pmCyclesCount) * 100));
+
             // Ekstrak Inisial Proyek untuk tampilan blok grid compact (hemat tempat)
             $projectInitial = 'PROYEK';
             if (!empty($project->name)) {
@@ -510,6 +520,10 @@ class ManagedServiceController extends Controller
                 'dot_color'        => $dotColor,
                 'open_tickets'     => $openTicketsCount,
                 'pm_count'         => $pmCount,
+                'pm_completed_count' => $pmCompletedCount,
+                'pm_cycles_count'    => $pmCyclesCount,
+                'pm_progress_pct'    => $pmProgressPct,
+                'pm_progress_text'   => "{$pmCompletedCount}/{$pmCyclesCount} PM",
             ];
         });
 

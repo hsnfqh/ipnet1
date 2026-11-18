@@ -415,20 +415,33 @@
                                 <span class="hidden sm:inline-block text-[10.5px] text-slate-400">Scroll untuk lainnya &darr;</span>
                             </div>
 
-                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-[280px] overflow-y-auto pr-1 py-0.5 custom-scrollbar">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2.5 max-h-[300px] overflow-y-auto pr-1 py-0.5 custom-scrollbar">
                                 @forelse($clientHealthList as $client)
                                 <button type="button"
                                         @click="selectedProject = {{ json_encode($client) }}"
-                                        title="{{ $client['projectName'] }} &bull; {{ $client['name'] }} (Klik untuk rincian)"
-                                        class="group relative h-8 sm:h-8.5 px-2 rounded-md bg-[#8F0A0D] hover:bg-[#A80D11] text-white font-bold text-[11px] leading-tight text-center flex items-center justify-center shadow-2xs hover:shadow-xs transition-all duration-150 border border-red-900/40 cursor-pointer select-none">
+                                        title="{{ $client['projectName'] }} &bull; {{ $client['name'] }} &bull; Realisasi PM: {{ $client['pm_completed_count'] }}/{{ $client['pm_cycles_count'] }} ({{ $client['pm_progress_pct'] }}%)"
+                                        class="group relative p-2.5 rounded-xl bg-gradient-to-br from-[#8F0A0D] to-[#75080A] hover:from-[#A80D11] hover:to-[#8F0A0D] text-white text-left flex flex-col justify-between shadow-2xs hover:shadow-md transition-all duration-200 border border-red-900/40 hover:border-red-600/50 cursor-pointer select-none">
                                     
-                                    {{-- Status dot indicator in top-right corner --}}
-                                    <span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full {{ $client['status_key'] === 'cm' ? 'bg-amber-400 ring-1 ring-white/60 animate-pulse' : ($client['status_key'] === 'pm' ? 'bg-sky-400 ring-1 ring-white/60' : 'bg-emerald-400 ring-1 ring-white/60') }}"
-                                          title="Status: {{ $client['status_label'] }}"></span>
-                                    
-                                    <span class="truncate px-1 max-w-full">
-                                        {{ $client['projectInitial'] }}
-                                    </span>
+                                    {{-- Baris Atas: Inisial Proyek & Status Dot --}}
+                                    <div class="flex items-center justify-between gap-1.5 w-full mb-2">
+                                        <span class="truncate font-bold text-[11.5px] text-white tracking-tight" title="{{ $client['projectName'] }}">
+                                            {{ $client['projectInitial'] }}
+                                        </span>
+                                        <span class="w-2 h-2 rounded-full shrink-0 {{ $client['status_key'] === 'cm' ? 'bg-amber-400 ring-2 ring-white/30 animate-pulse' : ($client['status_key'] === 'pm' ? 'bg-sky-300 ring-2 ring-white/30' : 'bg-emerald-400 ring-2 ring-white/30') }}"
+                                              title="Status Operasional: {{ $client['status_label'] }}"></span>
+                                    </div>
+
+                                    {{-- Baris Bawah: Micro Progress Bar & Angka PM --}}
+                                    <div class="w-full">
+                                        <div class="w-full bg-black/30 rounded-full h-1.5 overflow-hidden mb-1 ring-1 ring-white/10">
+                                            <div class="h-full rounded-full transition-all duration-300 {{ $client['pm_progress_pct'] >= 100 ? 'bg-emerald-400' : 'bg-white/95' }}"
+                                                 style="width: {{ min(100, $client['pm_progress_pct']) }}%;"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-[10px] leading-tight">
+                                            <span class="font-extrabold text-white/95">{{ $client['pm_progress_pct'] }}%</span>
+                                            <span class="font-medium text-white/70 text-[9.5px]">{{ $client['pm_completed_count'] }}/{{ $client['pm_cycles_count'] }} PM</span>
+                                        </div>
+                                    </div>
                                 </button>
                                 @empty
                                 <div class="col-span-full py-8 text-center text-slate-400 text-xs">
@@ -446,6 +459,7 @@
                                         <th class="pb-2.5">Proyek &amp; Pelanggan</th>
                                         <th class="pb-2.5">Urgensi Tiket (Severity)</th>
                                         <th class="pb-2.5">Status Layanan</th>
+                                        <th class="pb-2.5">Progress PM</th>
                                         <th class="pb-2.5">Realisasi SLA</th>
                                         <th class="pb-2.5">Keterangan</th>
                                         <th class="pb-2.5 text-right">Aksi</th>
@@ -478,6 +492,18 @@
                                             </span>
                                         </td>
                                         <td class="py-3 px-2 whitespace-nowrap">
+                                            <div class="w-28">
+                                                <div class="w-full bg-slate-100 border border-slate-200 rounded-full h-1.5 overflow-hidden mb-1">
+                                                    <div class="h-full rounded-full transition-all duration-300 {{ $client['pm_progress_pct'] >= 100 ? 'bg-emerald-500' : 'bg-[#8F0A0D]' }}"
+                                                         style="width: {{ min(100, $client['pm_progress_pct']) }}%;"></div>
+                                                </div>
+                                                <div class="flex items-center justify-between text-[10px]">
+                                                    <span class="font-extrabold text-slate-800">{{ $client['pm_progress_pct'] }}%</span>
+                                                    <span class="text-slate-500 font-medium">{{ $client['pm_completed_count'] }}/{{ $client['pm_cycles_count'] }} PM</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-2 whitespace-nowrap">
                                             <div class="flex items-center gap-1.5">
                                                 <span class="font-mono font-extrabold text-[12px] {{ $client['sla_uptime'] >= $client['target_sla'] ? 'text-emerald-700' : 'text-[#8F0A0D]' }}">
                                                     {{ number_format($client['sla_uptime'], 1) }}%
@@ -499,7 +525,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="6" class="py-6 text-center text-slate-400">Belum ada portofolio klien SLA terdaftar.</td>
+                                        <td colspan="7" class="py-6 text-center text-slate-400">Belum ada portofolio klien SLA terdaftar.</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -562,6 +588,25 @@
                                               x-text="selectedProject ? selectedProject.sla_uptime + '% / ' + selectedProject.target_sla + '%' : ''"></span>
                                         <span class="block text-[11px] text-slate-500" 
                                               x-text="selectedProject ? (selectedProject.downtime_hours > 0 ? selectedProject.downtime_hours + ' Jam Down' : 'Zero Downtime') : ''"></span>
+                                    </div>
+                                </div>
+
+                                {{-- Progress Siklus Preventive Maintenance (PM) Sesuai Desain Rapi --}}
+                                <div class="p-3.5 bg-slate-50/90 rounded-xl border border-slate-200/80 space-y-2">
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span>Progress Siklus PM (Preventive Maintenance)</span>
+                                        </span>
+                                        <span class="font-extrabold text-slate-900" x-text="selectedProject ? (selectedProject.pm_completed_count + '/' + selectedProject.pm_cycles_count + ' Siklus PM') : ''"></span>
+                                    </div>
+                                    <div class="w-full bg-[#E2E8F0] rounded-full h-2 overflow-hidden">
+                                        <div class="h-full rounded-full transition-all duration-300"
+                                             :style="'background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: ' + (selectedProject ? selectedProject.pm_progress_pct : 0) + '%;'"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px]">
+                                        <span class="font-extrabold text-[#8F0A0D] text-xs" x-text="selectedProject ? (selectedProject.pm_progress_pct + '% Realisasi') : ''"></span>
+                                        <span class="text-slate-500 text-[10.5px]">Dari total target siklus kontrak</span>
                                     </div>
                                 </div>
 
