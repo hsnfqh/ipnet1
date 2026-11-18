@@ -1,6 +1,8 @@
 <?php
 // bootstrap/app.php
 
+@ini_set('pcre.jit', '0');
+
 require_once __DIR__ . '/../app/Helpers/FinfoPolyfill.php';
 
 // PSR-4 Autoload Fallback: Pastikan seluruh class App\... selalu ter-load otomatis di remote cPanel
