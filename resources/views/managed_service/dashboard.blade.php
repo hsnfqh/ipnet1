@@ -420,7 +420,7 @@
                                 <button type="button"
                                         @click="selectedProject = {{ json_encode($client) }}"
                                         title="{{ $client['projectName'] }} &bull; {{ $client['name'] }} &bull; Realisasi PM: {{ $client['pm_completed_count'] }}/{{ $client['pm_cycles_count'] }} ({{ $client['pm_progress_pct'] }}%)"
-                                        class="group relative p-2.5 rounded-xl bg-gradient-to-br from-[#8F0A0D] to-[#75080A] hover:from-[#A80D11] hover:to-[#8F0A0D] text-white text-left flex flex-col justify-between shadow-2xs hover:shadow-md transition-all duration-200 border border-red-900/40 hover:border-red-600/50 cursor-pointer select-none">
+                                        class="group relative p-2.5 rounded-xl bg-gradient-to-br from-[#A80D11] to-[#8F0A0D] hover:from-[#8F0A0D] hover:to-[#70080A] active:from-[#70080A] active:to-[#580507] text-white text-left flex flex-col justify-between shadow-2xs hover:shadow-md transition-all duration-200 border border-red-700/50 hover:border-red-900/80 cursor-pointer select-none">
                                     
                                     {{-- Baris Atas: Inisial Proyek & Status Dot --}}
                                     <div class="flex items-center justify-between gap-1.5 w-full mb-2">
