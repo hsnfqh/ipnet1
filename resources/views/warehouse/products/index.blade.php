@@ -44,6 +44,11 @@
     $locations      = $locations ?? ['Gudang IPNET', 'Customer'];
     $deviceModels   = $deviceModels ?? \App\Models\WarehouseItem::getDeviceModels();
     $deviceBrands   = $deviceBrands ?? \App\Models\WarehouseItem::getDeviceBrands();
+    $salesUsers     = $salesUsers ?? \App\Models\User::where('status', 'Active')->where(function($q) {
+        $q->whereHas('roles', fn($r) => $r->whereIn('name', ['Sales', 'Account Manager']))
+          ->orWhere('position', 'like', '%Sales%')
+          ->orWhere('position', 'like', '%Account Manager%');
+    })->orderBy('name')->get(['id', 'name']);
 @endphp
 
 @section('content')
@@ -493,20 +498,92 @@
                                     </div>
                                 </div>
 
-                                <!-- SEKSI 2: KATEGORI & KEPEMILIKAN -->
+                                <!-- SEKSI 2: KATEGORI KEPEMILIKAN & SPESIFIKASI PERANGKAT -->
                                 <div class="space-y-3">
                                     <div class="flex items-center gap-2 pb-1 border-b border-slate-100">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">2. Kategori Kepemilikan</h4>
+                                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">2. Kategori Kepemilikan &amp; Spesifikasi Perangkat</h4>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                         <div class="sm:col-span-2">
+                                            <label class="block font-semibold text-slate-700 mb-1">Model <span class="text-red-500">*</span></label>
+                                            <select x-model="selectedModel" 
+                                                    @change="onModelChange()" 
+                                                    required 
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
+                                                <option value="">-- Pilih Model --</option>
+                                                @foreach($deviceModels as $dm)
+                                                    <option value="{{ $dm }}">{{ $dm }}</option>
+                                                @endforeach
+                                            </select>
+                                            
+                                            <!-- Field Input Tambahan Jika Pilih Others -->
+                                            <div x-show="selectedModel === 'Others'" class="mt-2" x-transition>
+                                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Model Kustom <span class="text-red-500">*</span></label>
+                                                <input type="text" 
+                                                       x-model="customModelName" 
+                                                       @input="form.name = customModelName" 
+                                                       :required="selectedModel === 'Others'"
+                                                       placeholder="Ketik nama model / perangkat kustom..." 
+                                                       class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Merk / Brand <span class="text-red-500">*</span></label>
+                                            <select x-model="selectedBrand" 
+                                                    @change="onBrandChange()" 
+                                                    required
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
+                                                <option value="">-- Pilih Merk / Brand --</option>
+                                                @foreach($deviceBrands as $db)
+                                                    <option value="{{ $db }}">{{ $db }}</option>
+                                                @endforeach
+                                            </select>
+
+                                            <!-- Field Input Tambahan Jika Pilih Others -->
+                                            <div x-show="selectedBrand === 'Others'" class="mt-2" x-transition>
+                                                <input type="text" 
+                                                       x-model="customBrandName" 
+                                                       @input="form.brand = customBrandName" 
+                                                       :required="selectedBrand === 'Others'"
+                                                       placeholder="Ketik merk / brand kustom..." 
+                                                       class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Jenis Perangkat <span class="text-red-500">*</span></label>
+                                            <select x-model="form.item_type" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
+                                                @foreach($itemTypes as $t)
+                                                    <option value="{{ $t }}">{{ $t }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div>
                                             <label class="block font-semibold text-slate-700 mb-1">Kategori Barang <span class="text-red-500">*</span></label>
-                                            <select x-model="form.category" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium">
+                                            <select x-model="form.category" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
                                                 @foreach($categories as $c)
                                                     <option value="{{ $c }}">{{ $c }}</option>
                                                 @endforeach
                                             </select>
+                                        </div>
+                                        <div>
+                                            <label class="block font-semibold text-slate-700 mb-1">Account Manager (AM) / Sales</label>
+                                            <select x-model="selectedAm" 
+                                                    @change="onAmChange()" 
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white cursor-pointer font-medium">
+                                                <option value="">-- Pilih Account Manager (AM) --</option>
+                                                @foreach($salesUsers ?? [] as $su)
+                                                    <option value="{{ $su->name }}">{{ $su->name }} (AM)</option>
+                                                @endforeach
+                                                <option value="Others">Lainnya (Ketik Manual)</option>
+                                            </select>
+                                            <div x-show="selectedAm === 'Others'" class="mt-2" x-transition>
+                                                <input type="text" 
+                                                       x-model="customAmName" 
+                                                       @input="onAmChange()" 
+                                                       placeholder="Ketik nama Account Manager / Sales..." 
+                                                       class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                            </div>
                                         </div>
 
                                         <!-- DETAIL JIKA KATEGORI = PINJAMAN -->
@@ -748,6 +825,10 @@
                                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                     <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Kategori</p>
                                     <p class="font-semibold text-slate-800 mt-0.5" x-text="selectedItem?.category || '-'"></p>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Account Manager (AM)</p>
+                                    <p class="font-semibold text-slate-800 mt-0.5" x-text="selectedItem?.customer_sales_name || selectedItem?.poc_sales_name || '-'"></p>
                                 </div>
                             </div>
 
@@ -1072,6 +1153,8 @@
             customModelName: '',
             selectedBrand: '',
             customBrandName: '',
+            selectedAm: '',
+            customAmName: '',
 
             // Bluetooth Scanner State
             scanInput: '',
@@ -1098,6 +1181,19 @@
                     this.form.brand = this.customBrandName || '';
                 } else {
                     this.form.brand = this.selectedBrand;
+                }
+            },
+
+            onAmChange() {
+                if (this.selectedAm === 'Others') {
+                    const val = this.customAmName || '';
+                    this.form.sales_name = val;
+                    this.form.customer_sales_name = val;
+                    this.form.poc_sales_name = val;
+                } else {
+                    this.form.sales_name = this.selectedAm;
+                    this.form.customer_sales_name = this.selectedAm;
+                    this.form.poc_sales_name = this.selectedAm;
                 }
             },
 
@@ -1194,6 +1290,8 @@
                 this.customModelName = '';
                 this.selectedBrand = '';
                 this.customBrandName = '';
+                this.selectedAm = '';
+                this.customAmName = '';
                 this.form = {
                     id: null,
                     name: '',
@@ -1205,6 +1303,7 @@
                     product_number: '',
                     po_number: '',
                     contract_number: '',
+                    sales_name: '',
                     category: 'Stock',
                     loan_source_type: 'disti',
                     disti_name: '',
@@ -1258,6 +1357,20 @@
                     this.selectedBrand = '';
                     this.customBrandName = '';
                 }
+
+                const amVal = item.customer_sales_name || item.poc_sales_name || '';
+                const salesList = (@json($salesUsers ?? [])).map(u => u.name);
+                if (salesList.includes(amVal)) {
+                    this.selectedAm = amVal;
+                    this.customAmName = '';
+                } else if (amVal) {
+                    this.selectedAm = 'Others';
+                    this.customAmName = amVal;
+                } else {
+                    this.selectedAm = '';
+                    this.customAmName = '';
+                }
+
                 this.form = {
                     id: item.id,
                     name: item.name || '',
@@ -1269,6 +1382,7 @@
                     product_number: item.product_number || '',
                     po_number: item.po_number || '',
                     contract_number: item.contract_number || '',
+                    sales_name: amVal,
                     category: item.category || 'Stock',
                     loan_source_type: item.loan_source_type || 'disti',
                     disti_name: item.disti_name || '',
@@ -1285,12 +1399,12 @@
                     customer_address: item.customer_address || '',
                     customer_pic: item.customer_pic || '',
                     customer_phone: item.customer_phone || '',
-                    customer_sales_name: item.customer_sales_name || '',
+                    customer_sales_name: amVal,
                     status: item.status || 'Tersedia',
                     poc_customer_name: item.poc_customer_name || '',
                     poc_pic_name: item.poc_pic_name || '',
                     poc_pic_phone: item.poc_pic_phone || '',
-                    poc_sales_name: item.poc_sales_name || '',
+                    poc_sales_name: amVal,
                     poc_duration: item.poc_duration || '',
                     notes: item.notes || ''
                 };
@@ -1305,6 +1419,23 @@
             async submitForm() {
                 this.isSubmitting = true;
                 try {
+                    if (this.selectedModel === 'Others' && this.customModelName) {
+                        this.form.name = this.customModelName;
+                    } else if (this.selectedModel && this.selectedModel !== 'Others') {
+                        this.form.name = this.selectedModel;
+                    }
+
+                    if (this.selectedBrand === 'Others' && this.customBrandName) {
+                        this.form.brand = this.customBrandName;
+                    } else if (this.selectedBrand && this.selectedBrand !== 'Others') {
+                        this.form.brand = this.selectedBrand;
+                    }
+
+                    const amFinal = (this.selectedAm === 'Others' ? this.customAmName : this.selectedAm) || this.form.sales_name || this.form.customer_sales_name || this.form.poc_sales_name || '';
+                    this.form.sales_name = amFinal;
+                    this.form.customer_sales_name = amFinal;
+                    this.form.poc_sales_name = amFinal;
+
                     if (!this.form.name) {
                         this.form.name = this.form.product_number || this.form.serial_number || 'Perangkat';
                     }
@@ -1312,7 +1443,7 @@
                         this.form.brand = '-';
                     }
                     if (!this.form.item_type) {
-                        this.form.item_type = this.form.component_type || 'Perangkat';
+                        this.form.item_type = this.form.component_type || 'Switch';
                     }
                     const url = this.isEditing ? `/warehouse/products/${this.form.id}` : '/warehouse/products';
                     const method = this.isEditing ? 'PUT' : 'POST';

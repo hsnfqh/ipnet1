@@ -18,6 +18,7 @@ use App\Models\WarehouseStockOpname;
 use App\Models\WarehouseSoItem;
 use App\Models\WarehouseDeliveryOrder;
 use App\Models\WarehouseDoItem;
+use App\Models\User;
 
 class WarehouseController extends Controller
 {
@@ -272,6 +273,18 @@ class WarehouseController extends Controller
         $deviceBrands   = WarehouseItem::getDeviceBrands();
         $modelStockCounts = WarehouseItem::groupBy('name')->selectRaw('name, count(*) as count')->pluck('count', 'name');
 
+        $salesUsers = User::where('status', 'Active')
+            ->where(function($q) {
+                $q->whereHas('roles', fn($r) => $r->whereIn('name', ['Sales', 'Account Manager']))
+                  ->orWhere('position', 'like', '%Sales%')
+                  ->orWhere('position', 'like', '%Account Manager%');
+            })
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        if ($salesUsers->isEmpty()) {
+            $salesUsers = User::where('status', 'Active')->orderBy('name')->get(['id', 'name']);
+        }
+
         return view('warehouse.products.index', compact(
             'items',
             'metrics',
@@ -284,7 +297,8 @@ class WarehouseController extends Controller
             'locations',
             'deviceModels',
             'deviceBrands',
-            'modelStockCounts'
+            'modelStockCounts',
+            'salesUsers'
         ));
     }
 
@@ -324,9 +338,19 @@ class WarehouseController extends Controller
             'poc_pic_name'        => 'nullable|string|max:150',
             'poc_pic_phone'       => 'nullable|string|max:50',
             'poc_sales_name'      => 'nullable|string|max:150',
+            'sales_name'          => 'nullable|string|max:150',
             'poc_duration'        => 'nullable|string|max:100',
             'notes'               => 'nullable|string',
         ]);
+
+        if ($request->filled('sales_name')) {
+            $validated['customer_sales_name'] = $request->sales_name;
+            $validated['poc_sales_name']      = $request->sales_name;
+        } elseif (!empty($validated['customer_sales_name'])) {
+            $validated['poc_sales_name']      = $validated['customer_sales_name'];
+        } elseif (!empty($validated['poc_sales_name'])) {
+            $validated['customer_sales_name'] = $validated['poc_sales_name'];
+        }
 
         $validated['name'] = !empty($validated['name']) ? $validated['name'] : (!empty($validated['product_number']) ? $validated['product_number'] : (!empty($validated['serial_number']) ? $validated['serial_number'] : 'Perangkat'));
         $validated['brand'] = !empty($validated['brand']) ? $validated['brand'] : '-';
@@ -555,9 +579,19 @@ class WarehouseController extends Controller
             'poc_pic_name'        => 'nullable|string|max:150',
             'poc_pic_phone'       => 'nullable|string|max:50',
             'poc_sales_name'      => 'nullable|string|max:150',
+            'sales_name'          => 'nullable|string|max:150',
             'poc_duration'        => 'nullable|string|max:100',
             'notes'               => 'nullable|string',
         ]);
+
+        if ($request->filled('sales_name')) {
+            $validated['customer_sales_name'] = $request->sales_name;
+            $validated['poc_sales_name']      = $request->sales_name;
+        } elseif (!empty($validated['customer_sales_name'])) {
+            $validated['poc_sales_name']      = $validated['customer_sales_name'];
+        } elseif (!empty($validated['poc_sales_name'])) {
+            $validated['customer_sales_name'] = $validated['poc_sales_name'];
+        }
 
         if (empty($validated['name'])) {
             $validated['name'] = !empty($validated['product_number']) ? $validated['product_number'] : (!empty($validated['serial_number']) ? $validated['serial_number'] : ($item->name ?: 'Perangkat'));
