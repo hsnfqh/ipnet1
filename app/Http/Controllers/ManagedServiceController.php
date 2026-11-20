@@ -778,7 +778,7 @@ class ManagedServiceController extends Controller
     }
 
     /**
-     * Internal Assets (Aset & Peralatan Kerja Milik Perusahaan)
+     * Internal Assets (Aset & Peralatan Kerja Milik Perusahaan Terhubung dengan Warehouse IPNET)
      */
     public function internalAssets(Request $request)
     {
@@ -788,15 +788,22 @@ class ManagedServiceController extends Controller
             $perPage = 10;
         }
 
-        $query = \App\Models\AdminEquipmentAsset::with('borrower')->latest();
+        $query = \App\Models\WarehouseItem::with('creator')->latest();
 
         if ($request->filled('search')) {
-            $s = $request->search;
+            $s = trim($request->search);
             $query->where(function($q) use ($s) {
-                $q->where('asset_name', 'like', "%{$s}%")
-                  ->orWhere('asset_code', 'like', "%{$s}%")
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('brand', 'like', "%{$s}%")
+                  ->orWhere('item_code', 'like', "%{$s}%")
                   ->orWhere('serial_number', 'like', "%{$s}%")
-                  ->orWhere('brand_model', 'like', "%{$s}%");
+                  ->orWhere('product_number', 'like', "%{$s}%")
+                  ->orWhere('po_number', 'like', "%{$s}%")
+                  ->orWhere('contract_number', 'like', "%{$s}%")
+                  ->orWhere('item_type', 'like', "%{$s}%")
+                  ->orWhere('component_type', 'like', "%{$s}%")
+                  ->orWhere('customer_sales_name', 'like', "%{$s}%")
+                  ->orWhere('poc_sales_name', 'like', "%{$s}%");
             });
         }
 
@@ -804,14 +811,21 @@ class ManagedServiceController extends Controller
             $query->where('category', $request->category);
         }
 
+        if ($request->filled('item_type') && $request->item_type !== 'all') {
+            $query->where('item_type', $request->item_type);
+        }
+
         if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
         $assets = $query->paginate($perPage)->withQueryString();
-        $engineers = User::all();
+        $itemTypes = \App\Models\WarehouseItem::getItemTypes();
+        $categories = \App\Models\WarehouseItem::getCategories();
+        $statuses = \App\Models\WarehouseItem::getStatuses();
+        $modelStockCounts = \App\Models\WarehouseItem::groupBy('name')->selectRaw('name, count(*) as count')->pluck('count', 'name');
 
-        return view('managed_service.internal_assets', compact('assets', 'engineers', 'perPage'));
+        return view('managed_service.internal_assets', compact('assets', 'perPage', 'itemTypes', 'categories', 'statuses', 'modelStockCounts'));
     }
 
     /**
