@@ -91,11 +91,10 @@
                         </a>
                     </div>
 
-                    <a href="{{ route('warehouse.products.index') }}" 
-                       class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        <span>Kelola di Warehouse</span>
-                    </a>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 shadow-2xs">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <span>Mode Tampilan (Read-Only)</span>
+                    </span>
 
                     <span class="inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-bold bg-[#F8FAFC] text-[#1E293B] border border-[#E2E8F0] shadow-xs">
                         Total Aset: <strong class="text-[#8F0A0D] ml-1">{{ $assets->total() }}</strong>
@@ -338,9 +337,6 @@
                                             <svg class="w-10 h-10 text-slate-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                             <p class="font-bold text-slate-700">Belum Ada Perangkat di Warehouse</p>
                                             <p class="text-xs text-slate-400">Seluruh perangkat yang didaftarkan melalui Warehouse IPNET akan otomatis tampil dan terhubung di sini.</p>
-                                            <a href="{{ route('warehouse.products.index') }}" class="inline-block mt-2 btn-ipnet-gradient px-4 py-1.5 rounded-xl text-xs font-bold shadow-xs">
-                                                Buka Warehouse
-                                            </a>
                                         </div>
                                     </td>
                                 </tr>
