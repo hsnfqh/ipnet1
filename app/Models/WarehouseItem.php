@@ -65,19 +65,34 @@ class WarehouseItem extends Model
     }
 
     /**
-     * Helper list jenis barang
+     * Helper list jenis barang (menggabungkan default dengan nilai kustom yang tersimpan di database)
      */
     public static function getItemTypes(): array
     {
-        return [
+        $defaults = [
             'Router',
             'Switch',
             'Firewall',
             'AP (Access Point)',
             'Bandwidth Management',
             'Kabel',
-            'Lainnya / Other',
         ];
+        try {
+            $fromDb = static::whereNotNull('item_type')
+                ->where('item_type', '!=', '')
+                ->where('item_type', '!=', '-')
+                ->whereNotIn('item_type', ['Others', 'Lainnya / Other', 'Lainnya'])
+                ->distinct()
+                ->pluck('item_type')
+                ->toArray();
+            $all = array_values(array_unique(array_merge($defaults, $fromDb)));
+            sort($all, SORT_NATURAL | SORT_FLAG_CASE);
+            $all[] = 'Lainnya / Other';
+            return $all;
+        } catch (\Throwable $e) {
+            $defaults[] = 'Lainnya / Other';
+            return $defaults;
+        }
     }
 
     /**
@@ -156,11 +171,11 @@ class WarehouseItem extends Model
     }
 
     /**
-     * Helper list model perangkat hardware & network resmi
+     * Helper list model perangkat hardware & network resmi (menggabungkan default dengan nilai kustom yang tersimpan di database)
      */
     public static function getDeviceModels(): array
     {
-        return [
+        $defaults = [
             'ACX2200',
             'ACX4000',
             'ACX5000',
@@ -230,16 +245,31 @@ class WarehouseItem extends Model
             'sfp-xfp-qsfp-cfp',
             'Procera',
             'PulseSecure',
-            'Others',
         ];
+        try {
+            $fromDb = static::whereNotNull('name')
+                ->where('name', '!=', '')
+                ->where('name', '!=', '-')
+                ->whereNotIn('name', ['Others', 'Perangkat', 'Custom', 'Lainnya'])
+                ->distinct()
+                ->pluck('name')
+                ->toArray();
+            $all = array_values(array_unique(array_merge($defaults, $fromDb)));
+            sort($all, SORT_NATURAL | SORT_FLAG_CASE);
+            $all[] = 'Others';
+            return $all;
+        } catch (\Throwable $e) {
+            $defaults[] = 'Others';
+            return $defaults;
+        }
     }
 
     /**
-     * Helper list merk / brand resmi sesuai katalog perangkat
+     * Helper list merk / brand resmi sesuai katalog perangkat (menggabungkan default dengan nilai kustom yang tersimpan di database)
      */
     public static function getDeviceBrands(): array
     {
-        return [
+        $defaults = [
             'Juniper Networks',
             'Extreme Networks',
             'Palo Alto Networks',
@@ -252,7 +282,22 @@ class WarehouseItem extends Model
             'MikroTik',
             'Ruijie Networks',
             'Multi-Vendor / Generic',
-            'Others',
         ];
+        try {
+            $fromDb = static::whereNotNull('brand')
+                ->where('brand', '!=', '')
+                ->where('brand', '!=', '-')
+                ->whereNotIn('brand', ['Others', 'Lainnya', 'Custom'])
+                ->distinct()
+                ->pluck('brand')
+                ->toArray();
+            $all = array_values(array_unique(array_merge($defaults, $fromDb)));
+            sort($all, SORT_NATURAL | SORT_FLAG_CASE);
+            $all[] = 'Others';
+            return $all;
+        } catch (\Throwable $e) {
+            $defaults[] = 'Others';
+            return $defaults;
+        }
     }
 }

@@ -552,11 +552,25 @@
                                         </div>
                                         <div>
                                             <label class="block font-semibold text-slate-700 mb-1">Jenis Perangkat <span class="text-red-500">*</span></label>
-                                            <select x-model="form.item_type" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
+                                            <select x-model="selectedItemType" 
+                                                    @change="onItemTypeChange()" 
+                                                    required 
+                                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium cursor-pointer">
+                                                <option value="">-- Pilih Jenis Perangkat --</option>
                                                 @foreach($itemTypes as $t)
                                                     <option value="{{ $t }}">{{ $t }}</option>
                                                 @endforeach
                                             </select>
+
+                                            <!-- Field Input Tambahan Jika Pilih Lainnya / Other -->
+                                            <div x-show="selectedItemType === 'Lainnya / Other' || selectedItemType === 'Others'" class="mt-2" x-transition>
+                                                <input type="text" 
+                                                       x-model="customItemTypeName" 
+                                                       @input="form.item_type = customItemTypeName" 
+                                                       :required="selectedItemType === 'Lainnya / Other' || selectedItemType === 'Others'"
+                                                       placeholder="Ketik jenis perangkat kustom..." 
+                                                       class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                            </div>
                                         </div>
                                         <div>
                                             <label class="block font-semibold text-slate-700 mb-1">Kategori Barang <span class="text-red-500">*</span></label>
@@ -1155,6 +1169,8 @@
             customBrandName: '',
             selectedAm: '',
             customAmName: '',
+            selectedItemType: 'Switch',
+            customItemTypeName: '',
 
             // Bluetooth Scanner State
             scanInput: '',
@@ -1197,6 +1213,14 @@
                 }
             },
 
+            onItemTypeChange() {
+                if (this.selectedItemType === 'Lainnya / Other' || this.selectedItemType === 'Others') {
+                    this.form.item_type = this.customItemTypeName || '';
+                } else {
+                    this.form.item_type = this.selectedItemType;
+                }
+            },
+
             onModelChange() {
                 if (this.selectedModel === 'Others') {
                     this.form.name = this.customModelName || '';
@@ -1211,23 +1235,29 @@
                     this.form.brand = 'Juniper Networks';
                     if (m.startsWith('SRX') || m.startsWith('ISG') || m.startsWith('SSG') || m.startsWith('NS')) {
                         this.form.item_type = 'Firewall';
+                        this.selectedItemType = 'Firewall';
                     } else if (m.startsWith('EX') || m.startsWith('QFX')) {
                         this.form.item_type = 'Switch';
+                        this.selectedItemType = 'Switch';
                     } else {
                         this.form.item_type = 'Router';
+                        this.selectedItemType = 'Router';
                     }
                 } else if (['BD8800','BDX8','X430','X440','X450','X460','X480','X650','X670'].includes(m)) {
                     this.selectedBrand = 'Extreme Networks';
                     this.form.brand = 'Extreme Networks';
                     this.form.item_type = 'Switch';
+                    this.selectedItemType = 'Switch';
                 } else if (['PA3020','PA5010','PA5020','PA5050'].includes(m)) {
                     this.selectedBrand = 'Palo Alto Networks';
                     this.form.brand = 'Palo Alto Networks';
                     this.form.item_type = 'Firewall';
+                    this.selectedItemType = 'Firewall';
                 } else if (m === 'NUTANIX') {
                     this.selectedBrand = 'Nutanix';
                     this.form.brand = 'Nutanix';
                     this.form.item_type = 'Lainnya / Other';
+                    this.selectedItemType = 'Lainnya / Other';
                 } else if (m === 'Newtec') {
                     this.selectedBrand = 'Newtec';
                     this.form.brand = 'Newtec';
@@ -1235,16 +1265,20 @@
                     this.selectedBrand = 'Procera (Sandvine)';
                     this.form.brand = 'Procera (Sandvine)';
                     this.form.item_type = 'Bandwidth Management';
+                    this.selectedItemType = 'Bandwidth Management';
                 } else if (m === 'PulseSecure') {
                     this.selectedBrand = 'Pulse Secure';
                     this.form.brand = 'Pulse Secure';
                     this.form.item_type = 'Firewall';
+                    this.selectedItemType = 'Firewall';
                 } else if (m === 'sfp-xfp-qsfp-cfp') {
                     this.selectedBrand = 'Multi-Vendor / Generic';
                     this.form.brand = 'Multi-Vendor / Generic';
                     this.form.item_type = 'Kabel';
+                    this.selectedItemType = 'Kabel';
                     this.form.component_type = 'SFP';
                 }
+                this.customItemTypeName = '';
             },
 
             form: {
@@ -1292,6 +1326,8 @@
                 this.customBrandName = '';
                 this.selectedAm = '';
                 this.customAmName = '';
+                this.selectedItemType = 'Switch';
+                this.customItemTypeName = '';
                 this.form = {
                     id: null,
                     name: '',
@@ -1371,6 +1407,18 @@
                     this.customAmName = '';
                 }
 
+                const typesList = @json($itemTypes);
+                if (typesList.includes(item.item_type) && item.item_type !== 'Lainnya / Other' && item.item_type !== 'Others') {
+                    this.selectedItemType = item.item_type;
+                    this.customItemTypeName = '';
+                } else if (item.item_type) {
+                    this.selectedItemType = 'Lainnya / Other';
+                    this.customItemTypeName = (item.item_type === 'Lainnya / Other' || item.item_type === 'Others') ? '' : item.item_type;
+                } else {
+                    this.selectedItemType = 'Switch';
+                    this.customItemTypeName = '';
+                }
+
                 this.form = {
                     id: item.id,
                     name: item.name || '',
@@ -1429,6 +1477,12 @@
                         this.form.brand = this.customBrandName;
                     } else if (this.selectedBrand && this.selectedBrand !== 'Others') {
                         this.form.brand = this.selectedBrand;
+                    }
+
+                    if ((this.selectedItemType === 'Lainnya / Other' || this.selectedItemType === 'Others') && this.customItemTypeName) {
+                        this.form.item_type = this.customItemTypeName;
+                    } else if (this.selectedItemType && this.selectedItemType !== 'Lainnya / Other' && this.selectedItemType !== 'Others') {
+                        this.form.item_type = this.selectedItemType;
                     }
 
                     const amFinal = (this.selectedAm === 'Others' ? this.customAmName : this.selectedAm) || this.form.sales_name || this.form.customer_sales_name || this.form.poc_sales_name || '';

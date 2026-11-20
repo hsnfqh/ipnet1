@@ -29,7 +29,6 @@
         $navItems = [
             ['key' => 'wh_dashboard',     'label' => 'Dashboard',             'route' => 'warehouse.dashboard'],
             ['key' => 'wh_products',      'label' => 'Produk & Perangkat',    'route' => 'warehouse.products.index'],
-            ['key' => 'wh_categories',    'label' => 'Kategori Produk',       'route' => 'warehouse.categories.index'],
             ['key' => 'wh_suppliers',     'label' => 'Supplier / Rekanan',    'route' => 'warehouse.suppliers.index'],
             ['key' => 'wh_po',            'label' => 'Purchase Order (PO)',   'route' => 'warehouse.purchase_orders.index'],
             ['key' => 'wh_do',            'label' => 'Delivery Order (DO)',   'route' => 'warehouse.delivery_orders.index'],

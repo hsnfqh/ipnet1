@@ -284,6 +284,19 @@ class WarehouseController extends Controller
         if ($salesUsers->isEmpty()) {
             $salesUsers = User::where('status', 'Active')->orderBy('name')->get(['id', 'name']);
         }
+        $existingSalesNames = $salesUsers->pluck('name')->toArray();
+        $customAmNames = WarehouseItem::whereNotNull('customer_sales_name')
+            ->where('customer_sales_name', '!=', '')
+            ->whereNotIn('customer_sales_name', ['Others', 'Lainnya', '-'])
+            ->distinct()
+            ->pluck('customer_sales_name')
+            ->toArray();
+        foreach ($customAmNames as $cAm) {
+            if (!in_array($cAm, $existingSalesNames)) {
+                $salesUsers->push((object)['id' => null, 'name' => $cAm]);
+                $existingSalesNames[] = $cAm;
+            }
+        }
 
         return view('warehouse.products.index', compact(
             'items',
