@@ -835,10 +835,8 @@ class PmoController extends Controller
             $dailyWeight = null;
             if (preg_match('/DailyWeight:\s*([\d\.]+)%/i', $t->description ?? '', $dwm)) {
                 $dailyWeight = (float) $dwm[1];
-            } elseif ($duration > 0) {
-                $dailyWeight = round($bobotVal / $duration, 2);
             } else {
-                $dailyWeight = 0.0;
+                $dailyWeight = 1.03;
             }
             $prog = (float) ($t->progress ?: (in_array($t->status, ['Done', 'Completed']) ? 100 : 0));
 
@@ -956,7 +954,7 @@ class PmoController extends Controller
             // Gunakan nilai bobot manual yang diisi user secara murni tanpa diubah atau di-override
             foreach ($parsedTasks as &$pt) {
                 if (!isset($pt['daily_weight']) || $pt['daily_weight'] === null) {
-                    $pt['daily_weight'] = $pt['duration'] > 0 ? round($pt['bobot'] / $pt['duration'], 2) : 0.0;
+                    $pt['daily_weight'] = 1.03;
                 }
             }
             unset($pt);
@@ -2889,7 +2887,7 @@ class PmoController extends Controller
         $bobotVal = isset($validated['bobot']) && is_numeric($validated['bobot']) ? (float) $validated['bobot'] : 0.0;
         $dailyWeight = (isset($validated['daily_weight']) && is_numeric($validated['daily_weight']) && $validated['daily_weight'] !== '')
             ? round((float) $validated['daily_weight'], 2)
-            : ($duration > 0 ? round($bobotVal / $duration, 2) : 0.0);
+            : 1.03;
 
         $desc = $validated['description'] ?? '';
         $metaParts = [
@@ -2996,10 +2994,10 @@ class PmoController extends Controller
         $bobotVal = (isset($validated['bobot']) && is_numeric($validated['bobot'])) ? (float) $validated['bobot'] : (preg_match('/Bobot:\s*([\d\.]+)%/i', $oldDesc, $bm) ? (float)$bm[1] : 0.0);
         if (isset($validated['daily_weight']) && is_numeric($validated['daily_weight']) && $validated['daily_weight'] !== '') {
             $dailyWeight = round((float) $validated['daily_weight'], 2);
-        } elseif (preg_match('/DailyWeight:\s*([\d\.]+)%/i', $oldDesc, $dwm) && !isset($validated['bobot'])) {
+        } elseif (preg_match('/DailyWeight:\s*([\d\.]+)%/i', $oldDesc, $dwm)) {
             $dailyWeight = (float) $dwm[1];
         } else {
-            $dailyWeight = $duration > 0 ? round($bobotVal / $duration, 2) : 0.0;
+            $dailyWeight = 1.03;
         }
 
         $desc = $validated['description'] ?? ($task->description ?? '');

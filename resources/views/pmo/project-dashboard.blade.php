@@ -98,7 +98,7 @@
          newTaskPlannedStart: {{ $maxTaskFinishDay ?? 0 }},
          newTaskDuration: 1,
          newTaskBobot: 10.0,
-         newTaskDailyWeight: 10.0,
+         newTaskDailyWeight: 1.03,
          manualNewDailyWeight: false,
          newTaskFinishDay: {{ ($maxTaskFinishDay ?? 0) + 1 }},
          newTaskWeek: {{ max(1, (int) ceil((($maxTaskFinishDay ?? 0) + 1) / 7)) }},
@@ -131,7 +131,7 @@
              this.editTaskBobot = task.bobot !== undefined ? task.bobot : 0;
              this.editTaskDailyWeight = (task.daily_weight !== undefined && task.daily_weight !== null) 
                  ? task.daily_weight 
-                 : (this.editTaskDuration > 0 ? parseFloat((this.editTaskBobot / this.editTaskDuration).toFixed(2)) : 0);
+                 : 1.03;
              this.manualEditDailyWeight = true;
              this.editTaskProgress = task.progress;
              this.editTaskStatus = task.status;
@@ -698,7 +698,7 @@
                                             ? (float) $row['daily_weight']
                                             : ($t && preg_match('/DailyWeight:\s*([\d\.]+)%/i', $t->description ?? '', $dwm)
                                                 ? (float) $dwm[1]
-                                                : ($row['duration'] > 0 ? round($row['weight'] / $row['duration'], 2) : 0.0));
+                                                : 1.03);
                                         $wWeek = $row['week'] ?? 1;
                                         if (!$wWeek || $wWeek <= 0) {
                                             if (isset($row['weeks'])) {
@@ -817,8 +817,18 @@
                                     <td class="py-2.5 px-3 text-right text-blue-800 font-bold text-xs">
                                         {{ number_format($totActW, 1) }}%
                                     </td>
+                                    @php
+                                        $sampleDailyWeight = null;
+                                        foreach($weeklyWeightMatrix as $r) {
+                                            if (!empty($r['daily_weight'])) {
+                                                $sampleDailyWeight = (float) $r['daily_weight'];
+                                                break;
+                                            }
+                                        }
+                                        $footerDailyWeight = $sampleDailyWeight !== null ? $sampleDailyWeight : 1.03;
+                                    @endphp
                                     <td class="py-2.5 px-3 text-right text-slate-700 font-bold text-xs">
-                                        {{ $totDur > 0 ? number_format($totActW / $totDur, 2) : '0.00' }}%
+                                        {{ number_format($footerDailyWeight, 2) }}%
                                     </td>
                                     <td class="py-2.5 px-3 text-right text-slate-500 font-normal text-[11px]">
                                         100% Selesai
@@ -2145,7 +2155,7 @@
                         <input type="number" 
                                name="duration_days" 
                                x-model.number="newTaskDuration"
-                               @input="newTaskFinishDay = newTaskStartingDay + newTaskDuration; newTaskWeek = Math.max(1, Math.ceil(newTaskFinishDay / 7)); if(!manualNewDailyWeight && newTaskDuration > 0) { newTaskDailyWeight = (newTaskBobot / newTaskDuration).toFixed(2); }"
+                               @input="newTaskFinishDay = newTaskStartingDay + newTaskDuration; newTaskWeek = Math.max(1, Math.ceil(newTaskFinishDay / 7));"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
@@ -2156,7 +2166,7 @@
                         <input type="number" 
                                name="finish_day" 
                                x-model.number="newTaskFinishDay"
-                               @input="if(newTaskFinishDay > newTaskStartingDay) { newTaskDuration = newTaskFinishDay - newTaskStartingDay; newTaskWeek = Math.max(1, Math.ceil(newTaskFinishDay / 7)); if(!manualNewDailyWeight && newTaskDuration > 0) { newTaskDailyWeight = (newTaskBobot / newTaskDuration).toFixed(2); } }"
+                               @input="if(newTaskFinishDay > newTaskStartingDay) { newTaskDuration = newTaskFinishDay - newTaskStartingDay; newTaskWeek = Math.max(1, Math.ceil(newTaskFinishDay / 7)); }"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
@@ -2181,7 +2191,6 @@
                         <input type="number" 
                                name="bobot" 
                                x-model="newTaskBobot"
-                               @input="if(!manualNewDailyWeight && newTaskDuration > 0) { newTaskDailyWeight = (newTaskBobot / newTaskDuration).toFixed(2); }"
                                step="any" 
                                min="0" 
                                max="100" 
@@ -2291,7 +2300,7 @@
                         <input type="number" 
                                name="duration_days" 
                                x-model.number="editTaskDuration" 
-                               @input="editTaskFinishDay = editTaskStartingDay + editTaskDuration; editTaskWeek = Math.max(1, Math.ceil(editTaskFinishDay / 7)); if(!manualEditDailyWeight && editTaskDuration > 0) { editTaskDailyWeight = parseFloat((editTaskBobot / editTaskDuration).toFixed(2)); }"
+                               @input="editTaskFinishDay = editTaskStartingDay + editTaskDuration; editTaskWeek = Math.max(1, Math.ceil(editTaskFinishDay / 7));"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
@@ -2302,7 +2311,7 @@
                         <input type="number" 
                                name="finish_day" 
                                x-model.number="editTaskFinishDay" 
-                               @input="if(editTaskFinishDay > editTaskStartingDay) { editTaskDuration = editTaskFinishDay - editTaskStartingDay; editTaskWeek = Math.max(1, Math.ceil(editTaskFinishDay / 7)); if(!manualEditDailyWeight && editTaskDuration > 0) { editTaskDailyWeight = parseFloat((editTaskBobot / editTaskDuration).toFixed(2)); } }"
+                               @input="if(editTaskFinishDay > editTaskStartingDay) { editTaskDuration = editTaskFinishDay - editTaskStartingDay; editTaskWeek = Math.max(1, Math.ceil(editTaskFinishDay / 7)); }"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
@@ -2326,7 +2335,6 @@
                         <input type="number" 
                                name="bobot" 
                                x-model="editTaskBobot" 
-                               @input="if(!manualEditDailyWeight && editTaskDuration > 0) { editTaskDailyWeight = parseFloat((editTaskBobot / editTaskDuration).toFixed(2)); }"
                                step="any" 
                                min="0" 
                                max="100" 

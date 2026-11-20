@@ -348,6 +348,7 @@
             @php
                 $totDur = 0;
                 $totBobot = 0.0;
+                $sampleDailyWeight = null;
             @endphp
             @forelse($weeklyWeightMatrix as $idx => $row)
                 @php
@@ -357,7 +358,10 @@
                     $prog = $t ? (float)($t->progress ?: ($t->status === 'Completed' || $t->status === 'Done' ? 100 : 0)) : 0;
                     $dWeight = isset($row['daily_weight']) && $row['daily_weight'] !== null
                         ? (float) $row['daily_weight']
-                        : ($row['duration'] > 0 ? round($row['weight'] / $row['duration'], 2) : 0.0);
+                        : 1.03;
+                    if ($sampleDailyWeight === null && $dWeight > 0) {
+                        $sampleDailyWeight = $dWeight;
+                    }
                 @endphp
                 <tr>
                     <td class="text-center">{{ $idx + 1 }}</td>
@@ -387,7 +391,7 @@
                 <td class="text-center font-bold">{{ $totDur }} Hari</td>
                 <td class="text-center" colspan="3">Day 0 s/d Day {{ $totalProjectDays ?? $totDur }} ({{ $totalWeeks }} Minggu)</td>
                 <td class="text-right font-bold" style="color: #1E3A8A;">{{ number_format($totBobot, 2) }}%</td>
-                <td class="text-right">-</td>
+                <td class="text-right font-bold">{{ number_format($sampleDailyWeight ?? 1.03, 2) }}%</td>
                 <td class="text-right font-bold" style="color: #047857;">{{ number_format($actualEV, 2) }}% EV</td>
                 <td class="text-center font-bold">
                     <span class="badge {{ $actualEV >= 100 ? 'badge-success' : 'badge-info' }}">
