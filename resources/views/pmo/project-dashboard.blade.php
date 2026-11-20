@@ -101,6 +101,7 @@
          newTaskDailyWeight: 10.0,
          manualNewDailyWeight: false,
          newTaskFinishDay: {{ ($maxTaskFinishDay ?? 0) + 1 }},
+         newTaskWeek: {{ max(1, (int) ceil((($maxTaskFinishDay ?? 0) + 1) / 7)) }},
          showEditTaskModal: false,
          editTaskId: null,
          editTaskTitle: '',
@@ -108,6 +109,7 @@
          editTaskStartingDay: 0,
          editTaskPlannedStart: 0,
          editTaskFinishDay: 1,
+         editTaskWeek: 1,
          editTaskBobot: 0,
          editTaskDailyWeight: 0,
          manualEditDailyWeight: false,
@@ -119,15 +121,18 @@
          openEditTaskModal(task) {
              this.editTaskId = task.id;
              this.editTaskTitle = task.title;
-             this.editTaskDuration = task.duration_days ? parseInt(task.duration_days, 10) : 1;
              this.editTaskStartingDay = task.starting_day !== undefined ? parseInt(task.starting_day, 10) : 0;
-             this.editTaskPlannedStart = task.planned_start !== undefined ? parseInt(task.planned_start, 10) : this.editTaskStartingDay;
+             this.editTaskPlannedStart = this.editTaskStartingDay;
+             this.editTaskDuration = task.duration_days ? parseInt(task.duration_days, 10) : 1;
              this.editTaskFinishDay = task.finish_day !== undefined ? parseInt(task.finish_day, 10) : (this.editTaskStartingDay + this.editTaskDuration);
+             this.editTaskWeek = (task.week !== undefined && task.week !== null && task.week !== '') 
+                 ? parseInt(task.week, 10) 
+                 : Math.max(1, Math.ceil(this.editTaskFinishDay / 7));
              this.editTaskBobot = task.bobot !== undefined ? task.bobot : 0;
              this.editTaskDailyWeight = (task.daily_weight !== undefined && task.daily_weight !== null) 
                  ? task.daily_weight 
                  : (this.editTaskDuration > 0 ? parseFloat((this.editTaskBobot / this.editTaskDuration).toFixed(2)) : 0);
-             this.manualEditDailyWeight = false;
+             this.manualEditDailyWeight = true;
              this.editTaskProgress = task.progress;
              this.editTaskStatus = task.status;
              this.editTaskPriority = task.priority || 'Medium';
@@ -515,6 +520,17 @@
                     </button>
                 </div>
 
+                {{-- Tombol Utama Export PDF (Gabungan S-Curve & Expenses) --}}
+                <div class="flex items-center gap-2 shrink-0">
+                    <a href="{{ route('pmo.projects.export_pdf', $project->id) }}" target="_blank"
+                       title="Unduh Laporan Gabungan S-Curve & Pengeluaran (PDF)"
+                       class="px-3.5 py-2 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 hover:border-red-200 text-xs font-bold shadow-2xs transition inline-flex items-center gap-2 cursor-pointer active:scale-95">
+                        <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span>Export PDF (S-Curve &amp; Expenses)</span>
+                    </a>
+                </div>
 
             </div>
 
@@ -683,10 +699,12 @@
                                             : ($t && preg_match('/DailyWeight:\s*([\d\.]+)%/i', $t->description ?? '', $dwm)
                                                 ? (float) $dwm[1]
                                                 : ($row['duration'] > 0 ? round($row['weight'] / $row['duration'], 2) : 0.0));
-                                        $wWeek = 1;
-                                        if (isset($row['weeks'])) {
-                                            foreach ($row['weeks'] as $wk => $wv) {
-                                                if ($wv > 0) { $wWeek = $wk; break; }
+                                        $wWeek = $row['week'] ?? 1;
+                                        if (!$wWeek || $wWeek <= 0) {
+                                            if (isset($row['weeks'])) {
+                                                foreach ($row['weeks'] as $wk => $wv) {
+                                                    if ($wv > 0) { $wWeek = $wk; break; }
+                                                }
                                             }
                                         }
                                         if ($t && preg_match('/Week:\s*(\d+)/i', $t->description ?? '', $wm)) {
@@ -740,6 +758,7 @@
                                                                 planned_start: {{ $row['planned_start'] ?? $row['starting_day'] }},
                                                                 starting_day: {{ $row['starting_day'] }},
                                                                 finish_day: {{ $row['finish_day'] }},
+                                                                week: {{ $row['week'] ?? $wWeek }},
                                                                 start_date: '{{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('Y-m-d') : '' }}',
                                                                 deadline: '{{ $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('Y-m-d') : '' }}',
                                                                 bobot: {{ $row['weight'] }},
@@ -1251,6 +1270,14 @@
                                 <span class="w-3.5 h-1 rounded-full bg-[#C2410C]"></span>
                                 <span>Actual Cumulative (%)</span>
                             </div>
+                            <a href="{{ route('pmo.projects.export_pdf', $project->id) }}" target="_blank"
+                               title="Export Laporan Gabungan S-Curve & Pengeluaran (PDF)"
+                               class="px-3 py-1.5 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 hover:border-red-200 text-xs font-bold shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <span>Export PDF</span>
+                            </a>
                         </div>
                     </div>
 
@@ -1361,9 +1388,19 @@
                                     <p class="text-xs text-slate-400 mt-0.5">Input realisasi biaya operasional &amp; belanja proyek oleh Project Manager</p>
                                 </div>
                             </div>
-                            <span class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
-                                Total: Rp {{ number_format($totalSpend, 0, ',', '.') }}
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('pmo.projects.export_pdf', $project->id) }}" target="_blank"
+                                   title="Export Laporan Gabungan S-Curve & Pengeluaran (PDF)"
+                                   class="px-3 py-1.5 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 hover:border-red-200 text-xs font-bold shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span>Export PDF</span>
+                                </a>
+                                <span class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                                    Total: Rp {{ number_format($totalSpend, 0, ',', '.') }}
+                                </span>
+                            </div>
                         </div>
 
                         <form action="{{ route('pmo.projects.expenses.store', $project->id) }}" 
@@ -2086,44 +2123,54 @@
                     </div>
                 </div>
 
-                {{-- Row 2: Planned Start / Starting Day, Durasi & Finish Day (3 Kolom Otomatis Sinkron) --}}
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {{-- Row 2: Starting Day, Durasi, Finish Day & Week (4 Kolom Manual Bebas Atur) --}}
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">
-                            <span x-show="scheduleType === 'hybrid'">Planned Start (Hari ke-)</span>
-                            <span x-show="scheduleType !== 'hybrid'">Starting Day (Hari ke-)</span>
+                            <span x-show="scheduleType === 'hybrid'">Planned Start</span>
+                            <span x-show="scheduleType !== 'hybrid'">Starting Day</span>
                         </label>
                         <input type="number" 
-                               name="planned_start" 
-                               x-model.number="newTaskPlannedStart"
-                               @input="newTaskStartingDay = newTaskPlannedStart; newTaskFinishDay = newTaskPlannedStart + newTaskDuration"
+                               name="starting_day" 
+                               x-model.number="newTaskStartingDay"
+                               @input="newTaskPlannedStart = newTaskStartingDay; if(newTaskDuration > 0){ newTaskFinishDay = newTaskStartingDay + newTaskDuration; newTaskWeek = Math.max(1, Math.ceil(newTaskFinishDay / 7)); }"
                                min="0" 
                                max="365" 
                                onwheel="this.blur()"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
-                        <input type="hidden" name="starting_day" :value="newTaskPlannedStart">
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                        <input type="hidden" name="planned_start" :value="newTaskStartingDay">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
                         <input type="number" 
                                name="duration_days" 
                                x-model.number="newTaskDuration"
-                               @input="newTaskFinishDay = newTaskPlannedStart + newTaskDuration; if(!manualNewDailyWeight && newTaskDuration > 0) { newTaskDailyWeight = (newTaskBobot / newTaskDuration).toFixed(2); }"
+                               @input="newTaskFinishDay = newTaskStartingDay + newTaskDuration; newTaskWeek = Math.max(1, Math.ceil(newTaskFinishDay / 7)); if(!manualNewDailyWeight && newTaskDuration > 0) { newTaskDailyWeight = (newTaskBobot / newTaskDuration).toFixed(2); }"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Finish Day / Offset</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Finish Day</label>
                         <input type="number" 
                                name="finish_day" 
                                x-model.number="newTaskFinishDay"
-                               @input="newTaskDuration = Math.max(1, newTaskFinishDay - newTaskPlannedStart); if(!manualNewDailyWeight && newTaskDuration > 0) { newTaskDailyWeight = (newTaskBobot / newTaskDuration).toFixed(2); }"
+                               @input="if(newTaskFinishDay > newTaskStartingDay) { newTaskDuration = newTaskFinishDay - newTaskStartingDay; newTaskWeek = Math.max(1, Math.ceil(newTaskFinishDay / 7)); if(!manualNewDailyWeight && newTaskDuration > 0) { newTaskDailyWeight = (newTaskBobot / newTaskDuration).toFixed(2); } }"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Week (Minggu)</label>
+                        <input type="number" 
+                               name="week" 
+                               x-model.number="newTaskWeek"
+                               min="1" 
+                               max="52" 
+                               onwheel="this.blur()"
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
                     </div>
                 </div>
 
@@ -2223,43 +2270,53 @@
                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-900 focus:border-[#8F0A0D] outline-none transition">
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">
-                            <span x-show="scheduleType === 'hybrid'">Planned Start (Hari ke-)</span>
+                            <span x-show="scheduleType === 'hybrid'">Planned Start</span>
                             <span x-show="scheduleType !== 'hybrid'">Starting Day</span>
                         </label>
                         <input type="number" 
-                               name="planned_start" 
-                               x-model.number="editTaskPlannedStart" 
-                               @input="editTaskStartingDay = editTaskPlannedStart; editTaskFinishDay = editTaskPlannedStart + editTaskDuration"
+                               name="starting_day" 
+                               x-model.number="editTaskStartingDay" 
+                               @input="editTaskPlannedStart = editTaskStartingDay; if(editTaskDuration > 0){ editTaskFinishDay = editTaskStartingDay + editTaskDuration; editTaskWeek = Math.max(1, Math.ceil(editTaskFinishDay / 7)); }"
                                min="0" 
                                max="365" 
                                onwheel="this.blur()"
-                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
-                        <input type="hidden" name="starting_day" :value="editTaskPlannedStart">
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                        <input type="hidden" name="planned_start" :value="editTaskStartingDay">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Durasi (Hari)</label>
                         <input type="number" 
                                name="duration_days" 
                                x-model.number="editTaskDuration" 
-                               @input="editTaskFinishDay = editTaskPlannedStart + editTaskDuration; if(!manualEditDailyWeight && editTaskDuration > 0) { editTaskDailyWeight = parseFloat((editTaskBobot / editTaskDuration).toFixed(2)); }"
+                               @input="editTaskFinishDay = editTaskStartingDay + editTaskDuration; editTaskWeek = Math.max(1, Math.ceil(editTaskFinishDay / 7)); if(!manualEditDailyWeight && editTaskDuration > 0) { editTaskDailyWeight = parseFloat((editTaskBobot / editTaskDuration).toFixed(2)); }"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
-                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Finish Day / Offset</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Finish Day</label>
                         <input type="number" 
                                name="finish_day" 
                                x-model.number="editTaskFinishDay" 
-                               @input="editTaskDuration = Math.max(1, editTaskFinishDay - editTaskPlannedStart); if(!manualEditDailyWeight && editTaskDuration > 0) { editTaskDailyWeight = parseFloat((editTaskBobot / editTaskDuration).toFixed(2)); }"
+                               @input="if(editTaskFinishDay > editTaskStartingDay) { editTaskDuration = editTaskFinishDay - editTaskStartingDay; editTaskWeek = Math.max(1, Math.ceil(editTaskFinishDay / 7)); if(!manualEditDailyWeight && editTaskDuration > 0) { editTaskDailyWeight = parseFloat((editTaskBobot / editTaskDuration).toFixed(2)); } }"
                                min="1" 
                                max="365" 
                                onwheel="this.blur()"
-                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Week (Minggu)</label>
+                        <input type="number" 
+                               name="week" 
+                               x-model.number="editTaskWeek" 
+                               min="1" 
+                               max="52" 
+                               onwheel="this.blur()"
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-blue-700 focus:border-[#8F0A0D] outline-none">
                     </div>
                 </div>
 

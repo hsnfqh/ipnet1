@@ -477,7 +477,45 @@ class PmoController extends Controller
         // Sinkronisasi akumulasi progres proyek dari task yang ada
         $this->syncProjectProgressFromTasks($project);
     }
+
     public function projectDashboard(Request $request, Project $project)
+    {
+        $data = $this->prepareProjectDashboardData($project, $request);
+        return view('pmo.project-dashboard', $data);
+    }
+
+    public function exportPdf(Request $request, Project $project)
+    {
+        $data = $this->prepareProjectDashboardData($project, $request);
+
+        $logoPath = public_path('images/ipnet-logo.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('images/ipnet.png');
+        }
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+
+        $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
+        $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
+        $docNumber = 'IPNET/PMO-RPT/' . now()->format('Y') . '/' . $romanMonth . '/PRJ-' . str_pad($project->id, 4, '0', STR_PAD_LEFT);
+
+        $data['logoBase64'] = $logoBase64;
+        $data['docNumber']  = $docNumber;
+        $data['printedBy']  = auth()->user()->name ?? 'Project Manager IPNET';
+        $data['printedAt']  = now()->translatedFormat('d F Y H:i') . ' WIB';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pmo.exports.project-report-pdf', $data)
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled'      => true,
+                'defaultFont'          => 'sans-serif',
+            ]);
+
+        $cleanTitle = \Illuminate\Support\Str::slug($project->name ?: 'laporan-proyek');
+        return $pdf->stream("Laporan-Pengendalian-Proyek-{$cleanTitle}.pdf");
+    }
+
+    protected function prepareProjectDashboardData(Project $project, Request $request): array
     {
         $authUser = auth()->user();
         $isLeadUser = $authUser && ScopeHelper::isTeamLeader($authUser);
@@ -740,10 +778,31 @@ class PmoController extends Controller
                 $plannedStart = (int) $sdm[1];
             }
 
-            if ($scheduleType === 'hybrid') {
+            $hasSavedStartingDay = preg_match('/StartingDay:\s*(\d+)/i', $t->description ?? '', $sdm);
+            $hasSavedFinishDay = preg_match('/FinishDay:\s*(\d+)/i', $t->description ?? '', $fdm);
+
+            if ($hasSavedStartingDay && $hasSavedFinishDay) {
+                // Prioritaskan nilai Starting Day dan Finish Day manual murni yang disimpan oleh PM
+                $startingDay = (int) $sdm[1];
+                $finishDay = (int) $fdm[1];
+                $duration = max(1, $finishDay - $startingDay);
+                $plannedStart = $startingDay;
+                $waterfallPointer = max($waterfallPointer, $finishDay);
+            } elseif ($hasSavedStartingDay) {
+                $startingDay = (int) $sdm[1];
+                $finishDay = $startingDay + $duration;
+                $plannedStart = $startingDay;
+                $waterfallPointer = max($waterfallPointer, $finishDay);
+            } elseif ($hasSavedFinishDay) {
+                $finishDay = (int) $fdm[1];
+                $startingDay = max(0, $finishDay - $duration);
+                $plannedStart = $startingDay;
+                $waterfallPointer = max($waterfallPointer, $finishDay);
+            } elseif ($scheduleType === 'hybrid') {
                 // Mode Hybrid: Task dapat berjalan paralel / tumpang-tindih (concurrent) berdasarkan Planned Start
                 $startingDay = $plannedStart !== null ? $plannedStart : 0;
                 $finishDay = $startingDay + $duration;
+                $waterfallPointer = max($waterfallPointer, $finishDay);
             } else {
                 // Mode Waterfall: Strictly sequential (Finish-to-Start)
                 $startingDay = $waterfallPointer;
@@ -758,7 +817,20 @@ class PmoController extends Controller
                 $maxTaskFinishDay = $finishDay;
             }
 
-            $wbsWeek = $t->week ? (int)$t->week : (preg_match('/Week:\s*(\d+)/i', $t->description ?? '', $wm) ? (int)$wm[1] : max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7)));
+            $calculatedWeek = max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7));
+            if ($t->week) {
+                $wbsWeek = (int) $t->week;
+            } elseif (preg_match('/Week:\s*(\d+)/i', $t->description ?? '', $wm)) {
+                $savedWeek = (int) $wm[1];
+                // Jika selisih savedWeek dengan calculatedWeek logis (<= 1 minggu), gunakan savedWeek; jika mismatch parah (misal Day 61 tapi Week 5), sinkronkan ke calculatedWeek
+                if (abs($savedWeek - $calculatedWeek) <= 1) {
+                    $wbsWeek = $savedWeek;
+                } else {
+                    $wbsWeek = $calculatedWeek;
+                }
+            } else {
+                $wbsWeek = $calculatedWeek;
+            }
 
             $dailyWeight = null;
             if (preg_match('/DailyWeight:\s*([\d\.]+)%/i', $t->description ?? '', $dwm)) {
@@ -1000,6 +1072,7 @@ class PmoController extends Controller
                 'planned_start' => $pt['planned_start'],
                 'starting_day'  => $pt['starting_day'],
                 'finish_day'    => $pt['finish_day'],
+                'week'          => $pt['week'],
                 'weight'        => $pt['bobot'],
                 'daily_weight'  => $pt['daily_weight'] ?? ($pt['duration'] > 0 ? round($pt['bobot'] / $pt['duration'], 2) : 0.0),
                 'weeks'         => $wDist,
@@ -1401,7 +1474,7 @@ class PmoController extends Controller
         $sCurveUpdateDate = now()->format('d M Y');
         $divisions = \App\Models\Division::all();
 
-        return view('pmo.project-dashboard', compact(
+        return compact(
             'project',
             'authUser',
             'isLeadUser',
@@ -1466,7 +1539,7 @@ class PmoController extends Controller
             'weekReportedFlags',
             'allPmoProjects',
             'scheduleType'
-        ));
+        );
     }
 
     /**
@@ -2888,15 +2961,27 @@ class PmoController extends Controller
         $oldDesc = $task->description ?? '';
         $defaultStartDay = preg_match('/StartingDay:\s*(\d+)/i', $oldDesc, $sdm) ? (int)$sdm[1] : 0;
         $defaultPlannedStart = preg_match('/PlannedStart:\s*(\d+)/i', $oldDesc, $psm) ? (int)$psm[1] : $defaultStartDay;
-        $plannedStart = $request->filled('planned_start') ? (int) $request->input('planned_start') : ($request->filled('starting_day') ? (int) $request->input('starting_day') : $defaultPlannedStart);
-        $startingDay = $request->filled('starting_day') ? (int) $request->input('starting_day') : $plannedStart;
+        $startingDay = $request->filled('starting_day') 
+            ? (int) $request->input('starting_day') 
+            : ($request->filled('planned_start') ? (int) $request->input('planned_start') : $defaultStartDay);
+        $plannedStart = $startingDay;
         
         $duration = (int) ($validated['duration_days'] ?? 1);
-        $finishDay = $request->filled('finish_day') ? (int) $request->input('finish_day') : ($startingDay + $duration);
-        $duration = max(1, $finishDay - $startingDay);
+        if ($request->filled('finish_day')) {
+            $finishDay = (int) $request->input('finish_day');
+            if ($finishDay > $startingDay) {
+                $duration = $finishDay - $startingDay;
+            } else {
+                $finishDay = $startingDay + $duration;
+            }
+        } else {
+            $finishDay = $startingDay + $duration;
+        }
+
+        $calculatedWeek = max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7));
         $week = $request->filled('week') 
             ? (int) $request->input('week') 
-            : ($task->week ? (int) $task->week : (preg_match('/Week:\s*(\d+)/i', $oldDesc, $wm) ? (int)$wm[1] : max(1, (int) ceil(($finishDay > 0 ? $finishDay : ($startingDay + 1)) / 7))));
+            : ($task->week ? (int) $task->week : (preg_match('/Week:\s*(\d+)/i', $oldDesc, $wm) ? (int)$wm[1] : $calculatedWeek));
 
         $startDate = !empty($validated['start_date']) ? Carbon::parse($validated['start_date']) : ($task->start_date ? Carbon::parse($task->start_date) : now());
         if (!empty($validated['deadline'])) {
