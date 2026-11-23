@@ -268,121 +268,12 @@
         </tr>
     </table>
 
-    {{-- GRAFIK VISUAL KURVA S (INLINE SVG VEKTOR RESMI DOMPDF) --}}
-    @php
-        $maxWeeks = max(1, min($totalWeeks ?? 12, 14));
-        $svgW = 540;
-        $svgH = 130;
-        $plotLeft = 38;
-        $plotRight = 18;
-        $plotTop = 16;
-        $plotBottom = 20;
-        $plotWidth = $svgW - $plotLeft - $plotRight; // 484
-        $plotHeight = $svgH - $plotTop - $plotBottom; // 94
-        $yZero = $svgH - $plotBottom; // 110
-        $stepX = $plotWidth / $maxWeeks;
-
-        // Titik Kurva Plan
-        $planPoints = [];
-        $planPoints[] = "{$plotLeft},{$yZero}"; // W0 = 0%
-        $planCircles = [];
-        $planCircles[] = ['cx' => $plotLeft, 'cy' => $yZero, 'val' => 0];
-
-        for ($w = 1; $w <= $maxWeeks; $w++) {
-            $x = round($plotLeft + ($w * $stepX), 1);
-            $pVal = min(100, max(0, $totalWeeklyWeightCum[$w] ?? 0));
-            $y = round($yZero - (($pVal / 100) * $plotHeight), 1);
-            $planPoints[] = "{$x},{$y}";
-            $planCircles[] = ['cx' => $x, 'cy' => $y, 'val' => $pVal];
-        }
-        $planPointsStr = implode(' ', $planPoints);
-
-        // Titik Kurva Actual
-        $actPoints = [];
-        $actPoints[] = "{$plotLeft},{$yZero}"; // W0 = 0%
-        $actCircles = [];
-        $actCircles[] = ['cx' => $plotLeft, 'cy' => $yZero, 'val' => 0];
-        $lastReportedAct = 0;
-        $lastActX = $plotLeft;
-        $lastActY = $yZero;
-
-        for ($w = 1; $w <= $maxWeeks; $w++) {
-            $hasVal = isset($actualCumulativePerWeek[$w]) && $actualCumulativePerWeek[$w] !== null;
-            if ($hasVal) {
-                $aVal = min(100, max(0, (float) $actualCumulativePerWeek[$w]));
-                $lastReportedAct = $aVal;
-                $x = round($plotLeft + ($w * $stepX), 1);
-                $y = round($yZero - (($aVal / 100) * $plotHeight), 1);
-                $actPoints[] = "{$x},{$y}";
-                $actCircles[] = ['cx' => $x, 'cy' => $y, 'val' => $aVal];
-                $lastActX = $x;
-                $lastActY = $y;
-            } elseif ($w <= ($currentWeek ?? 1) && $actualEV > 0 && count($actPoints) === 1) {
-                $aVal = min(100, max(0, (float) $actualEV));
-                $x = round($plotLeft + ($w * $stepX), 1);
-                $y = round($yZero - (($aVal / 100) * $plotHeight), 1);
-                $actPoints[] = "{$x},{$y}";
-                $actCircles[] = ['cx' => $x, 'cy' => $y, 'val' => $aVal];
-                $lastActX = $x;
-                $lastActY = $y;
-            }
-        }
-        $actPointsStr = implode(' ', $actPoints);
-    @endphp
-
-    <div style="border: 1px solid #CBD5E1; background-color: #FFFFFF; border-radius: 3px; padding: 3px 5px; margin-bottom: 4px;">
-        <svg width="100%" height="130" viewBox="0 0 540 130" xmlns="http://www.w3.org/2000/svg" style="display: block;">
-            <!-- Background Box -->
-            <rect x="0" y="0" width="540" height="130" fill="#FAFCFF" rx="2" />
-            
-            <!-- Legend Kurva S di Pojok Kanan Atas -->
-            <g transform="translate(300, 10)">
-                <line x1="0" y1="0" x2="16" y2="0" stroke="#1D4ED8" stroke-width="2" />
-                <circle cx="8" cy="0" r="2.5" fill="#1D4ED8" />
-                <text x="20" y="2.5" font-size="6.5" fill="#1E3A8A" font-weight="bold" font-family="Helvetica, Arial, sans-serif">Plan Kumulatif (%)</text>
-                
-                <line x1="120" y1="0" x2="136" y2="0" stroke="#C2410C" stroke-width="2.5" />
-                <circle cx="128" cy="0" r="2.8" fill="#C2410C" />
-                <text x="140" y="2.5" font-size="6.5" fill="#C2410C" font-weight="bold" font-family="Helvetica, Arial, sans-serif">Actual Kumulatif (%)</text>
-            </g>
-
-            <!-- Horizontal Grid Lines & Y-axis Labels (0%, 25%, 50%, 75%, 100%) -->
-            @for($g = 0; $g <= 4; $g++)
-                @php
-                    $pct = $g * 25;
-                    $gy = round($yZero - (($pct / 100) * $plotHeight), 1);
-                @endphp
-                <line x1="{{ $plotLeft }}" y1="{{ $gy }}" x2="{{ $svgW - $plotRight }}" y2="{{ $gy }}" stroke="#E2E8F0" stroke-width="0.8" stroke-dasharray="{{ $g === 0 ? 'none' : '3,3' }}" />
-                <text x="{{ $plotLeft - 4 }}" y="{{ $gy + 2.5 }}" font-size="6" fill="#64748B" text-anchor="end" font-family="Helvetica, Arial, sans-serif">{{ $pct }}%</text>
-            @endfor
-
-            <!-- Vertical Grid Lines & X-axis Labels (W0, W1, ... Wn) -->
-            <line x1="{{ $plotLeft }}" y1="{{ $plotTop }}" x2="{{ $plotLeft }}" y2="{{ $yZero }}" stroke="#CBD5E1" stroke-width="1" />
-            <text x="{{ $plotLeft }}" y="{{ $yZero + 10 }}" font-size="6" fill="#64748B" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">W0</text>
-            @for($w = 1; $w <= $maxWeeks; $w++)
-                @php $wx = round($plotLeft + ($w * $stepX), 1); @endphp
-                <line x1="{{ $wx }}" y1="{{ $plotTop }}" x2="{{ $wx }}" y2="{{ $yZero }}" stroke="#F1F5F9" stroke-width="0.8" stroke-dasharray="2,2" />
-                <text x="{{ $wx }}" y="{{ $yZero + 10 }}" font-size="6" fill="{{ $w === ($currentWeek ?? 1) ? '#8F0A0D' : '#334155' }}" font-weight="{{ $w === ($currentWeek ?? 1) ? 'bold' : 'normal' }}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">W{{ $w }}</text>
-            @endfor
-
-            <!-- Garis Target Plan (Biru) -->
-            <polyline fill="none" stroke="#1D4ED8" stroke-width="2" points="{{ $planPointsStr }}" />
-            @foreach($planCircles as $pc)
-                <circle cx="{{ $pc['cx'] }}" cy="{{ $pc['cy'] }}" r="2" fill="#1D4ED8" stroke="#FFFFFF" stroke-width="0.6" />
-            @endforeach
-
-            <!-- Garis Realisasi Aktual (Oranye) -->
-            @if(count($actPoints) > 1)
-                <polyline fill="none" stroke="#C2410C" stroke-width="2.5" points="{{ $actPointsStr }}" />
-                @foreach($actCircles as $ac)
-                    <circle cx="{{ $ac['cx'] }}" cy="{{ $ac['cy'] }}" r="2.5" fill="#C2410C" stroke="#FFFFFF" stroke-width="0.8" />
-                @endforeach
-                <!-- Label Nilai Terakhir Realisasi -->
-                <rect x="{{ min($svgW - $plotRight - 36, $lastActX - 18) }}" y="{{ max(2, $lastActY - 13) }}" width="36" height="10" rx="2" fill="#C2410C" />
-                <text x="{{ min($svgW - $plotRight - 18, $lastActX) }}" y="{{ max(9, $lastActY - 5.5) }}" font-size="6" fill="#FFFFFF" font-weight="bold" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">{{ number_format($actualEV, 1) }}%</text>
-            @endif
-        </svg>
-    </div>
+    {{-- GRAFIK VISUAL KURVA S (GENERATED HIGH-RES PNG UNTUK 100% RELIABILITAS TAMPIL DI PDF) --}}
+    @if(!empty($sCurveChartBase64))
+        <div style="border: 1px solid #CBD5E1; background-color: #FAFCFF; border-radius: 3px; padding: 3px; margin-bottom: 5px; text-align: center;">
+            <img src="{{ $sCurveChartBase64 }}" style="width: 100%; height: auto; max-height: 145px; display: block;" alt="Kurva S Proyek">
+        </div>
+    @endif
 
     {{-- MATRIKS MINGGUAN KURVA S (Tanpa Baris Deviasi) --}}
     <table class="report-table">

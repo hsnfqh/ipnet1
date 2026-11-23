@@ -508,6 +508,14 @@ class PmoController extends Controller
         $data['printedBy']  = auth()->user()->name ?? 'Project Manager IPNET';
         $data['printedAt']  = now()->translatedFormat('d F Y H:i') . ' WIB';
 
+        $data['sCurveChartBase64'] = $this->generateSCurveChartBase64(
+            $data['totalWeeklyWeightCum'] ?? [],
+            $data['actualCumulativePerWeek'] ?? [],
+            (int) ($data['totalWeeks'] ?? 12),
+            (int) ($data['currentWeek'] ?? 1),
+            (float) ($data['actualEV'] ?? 0)
+        );
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pmo.exports.project-report-pdf', $data)
             ->setPaper('a4', 'portrait')
             ->setOptions([
@@ -519,6 +527,196 @@ class PmoController extends Controller
         $cleanTitle = \Illuminate\Support\Str::slug($project->name ?: 'laporan-proyek');
         $prefix = $hideExpenses ? 'Laporan-Kemajuan-Proyek-Klien' : 'Laporan-Pengendalian-Proyek-Internal';
         return $pdf->stream("{$prefix}-{$cleanTitle}.pdf");
+    }
+
+    protected function generateSCurveChartBase64(
+        array $totalWeeklyWeightCum,
+        array $actualCumulativePerWeek,
+        int $totalWeeks,
+        int $currentWeek,
+        float $actualEV
+    ): string {
+        if (!extension_loaded('gd') || !function_exists('imagecreatetruecolor')) {
+            return '';
+        }
+
+        $maxWeeks = max(1, min($totalWeeks, 14));
+        $w = 1000;
+        $h = 260;
+
+        $im = @imagecreatetruecolor($w, $h);
+        if (!$im) {
+            return '';
+        }
+
+        if (function_exists('imageantialias')) {
+            @imageantialias($im, true);
+        }
+
+        // Palette
+        $cBg         = imagecolorallocate($im, 250, 252, 255); // #FAFCFF
+        $cBorder     = imagecolorallocate($im, 203, 213, 225); // #CBD5E1
+        $cGridLight  = imagecolorallocate($im, 226, 232, 240); // #E2E8F0
+        $cGridV      = imagecolorallocate($im, 241, 245, 249); // #F1F5F9
+        $cTextMuted  = imagecolorallocate($im, 100, 116, 139); // #64748B
+        $cTextDark   = imagecolorallocate($im, 30, 41, 59);    // #1E293B
+        $cTextRed    = imagecolorallocate($im, 143, 10, 13);   // #8F0A0D
+        $cPlanLine   = imagecolorallocate($im, 29, 78, 216);   // #1D4ED8
+        $cPlanLight  = imagecolorallocate($im, 30, 58, 138);   // #1E3A8A
+        $cActualLine = imagecolorallocate($im, 194, 65, 12);   // #C2410C
+        $cWhite      = imagecolorallocate($im, 255, 255, 255);
+
+        // Background fill & border
+        imagefill($im, 0, 0, $cBg);
+        imagerectangle($im, 0, 0, $w - 1, $h - 1, $cBorder);
+
+        // Geometry
+        $plotLeft   = 70;
+        $plotRight  = 40;
+        $plotTop    = 42;
+        $plotBottom = 40;
+        $plotWidth  = $w - $plotLeft - $plotRight; // 890
+        $plotHeight = $h - $plotTop - $plotBottom; // 178
+        $yZero      = $h - $plotBottom;            // 220
+        $stepX      = $plotWidth / $maxWeeks;
+
+        // Font discovery
+        $fontPath = null;
+        $possibleFonts = [
+            base_path('vendor/dompdf/dompdf/lib/fonts/DejaVuSans-Bold.ttf'),
+            base_path('vendor/dompdf/dompdf/lib/fonts/DejaVuSans.ttf'),
+            'C:/Windows/Fonts/arialbd.ttf',
+            'C:/Windows/Fonts/arial.ttf',
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+        ];
+        foreach ($possibleFonts as $f) {
+            if (file_exists($f)) {
+                $fontPath = $f;
+                break;
+            }
+        }
+
+        $drawText = function ($size, $x, $y, $color, $text) use ($im, $fontPath) {
+            if ($fontPath && function_exists('imagettftext')) {
+                @imagettftext($im, $size, 0, (int)$x, (int)$y, $color, $fontPath, $text);
+            } else {
+                $gdFont = $size > 9 ? 3 : 2;
+                imagestring($im, $gdFont, (int)$x, (int)($y - 10), $text, $color);
+            }
+        };
+
+        // 1. Legend
+        $legY = 24;
+        $legX1 = $w - 430;
+        imagesetthickness($im, 3);
+        imageline($im, $legX1, $legY - 4, $legX1 + 30, $legY - 4, $cPlanLine);
+        imagefilledellipse($im, $legX1 + 15, $legY - 4, 10, 10, $cPlanLine);
+        imagefilledellipse($im, $legX1 + 15, $legY - 4, 6, 6, $cWhite);
+        $drawText(10, $legX1 + 40, $legY, $cPlanLight, 'Plan Kumulatif (%)');
+
+        $legX2 = $w - 220;
+        imageline($im, $legX2, $legY - 4, $legX2 + 30, $legY - 4, $cActualLine);
+        imagefilledellipse($im, $legX2 + 15, $legY - 4, 10, 10, $cActualLine);
+        imagefilledellipse($im, $legX2 + 15, $legY - 4, 6, 6, $cWhite);
+        $drawText(10, $legX2 + 40, $legY, $cActualLine, 'Actual Kumulatif (%)');
+
+        // 2. Horizontal Gridlines & Y-Axis Labels
+        imagesetthickness($im, 1);
+        for ($g = 0; $g <= 4; $g++) {
+            $pct = $g * 25;
+            $gy = (int) round($yZero - (($pct / 100) * $plotHeight));
+            if ($g === 0) {
+                imageline($im, $plotLeft, $gy, $w - $plotRight, $gy, $cBorder);
+            } else {
+                for ($dx = $plotLeft; $dx < ($w - $plotRight); $dx += 8) {
+                    imageline($im, $dx, $gy, min($dx + 4, $w - $plotRight), $gy, $cGridLight);
+                }
+            }
+            $drawText(9, $plotLeft - 46, $gy + 4, $cTextMuted, $pct . '%');
+        }
+
+        // 3. Vertical Gridlines & X-Axis Labels (W0, W1, ... Wn)
+        imageline($im, $plotLeft, $plotTop, $plotLeft, $yZero, $cBorder);
+        $drawText(9, $plotLeft - 10, $yZero + 22, $cTextMuted, 'W0');
+
+        for ($week = 1; $week <= $maxWeeks; $week++) {
+            $wx = (int) round($plotLeft + ($week * $stepX));
+            for ($dy = $plotTop; $dy < $yZero; $dy += 8) {
+                imageline($im, $wx, $dy, $wx, min($dy + 4, $yZero), $cGridV);
+            }
+            $isCurrent = ($week === $currentWeek);
+            $wColor = $isCurrent ? $cTextRed : $cTextDark;
+            $drawText(9, $wx - 10, $yZero + 22, $wColor, 'W' . $week);
+        }
+
+        // 4. Coordinates for Plan Line
+        $planCoords = [];
+        $planCoords[] = [$plotLeft, $yZero];
+        for ($week = 1; $week <= $maxWeeks; $week++) {
+            $px = (int) round($plotLeft + ($week * $stepX));
+            $val = min(100, max(0, $totalWeeklyWeightCum[$week] ?? 0));
+            $py = (int) round($yZero - (($val / 100) * $plotHeight));
+            $planCoords[] = [$px, $py];
+        }
+
+        imagesetthickness($im, 4);
+        for ($i = 0; $i < count($planCoords) - 1; $i++) {
+            imageline($im, $planCoords[$i][0], $planCoords[$i][1], $planCoords[$i + 1][0], $planCoords[$i + 1][1], $cPlanLine);
+        }
+        foreach ($planCoords as $pt) {
+            imagefilledellipse($im, $pt[0], $pt[1], 8, 8, $cPlanLine);
+            imagefilledellipse($im, $pt[0], $pt[1], 4, 4, $cWhite);
+        }
+
+        // 5. Coordinates for Actual Line
+        $actCoords = [];
+        $actCoords[] = [$plotLeft, $yZero];
+
+        for ($week = 1; $week <= $maxWeeks; $week++) {
+            $hasVal = isset($actualCumulativePerWeek[$week]) && $actualCumulativePerWeek[$week] !== null;
+            if ($hasVal) {
+                $ax = (int) round($plotLeft + ($week * $stepX));
+                $val = min(100, max(0, (float) $actualCumulativePerWeek[$week]));
+                $ay = (int) round($yZero - (($val / 100) * $plotHeight));
+                $actCoords[] = [$ax, $ay];
+            } elseif ($week <= $currentWeek && $actualEV > 0 && count($actCoords) === 1) {
+                $ax = (int) round($plotLeft + ($week * $stepX));
+                $val = min(100, max(0, (float) $actualEV));
+                $ay = (int) round($yZero - (($val / 100) * $plotHeight));
+                $actCoords[] = [$ax, $ay];
+            }
+        }
+
+        if (count($actCoords) > 1) {
+            imagesetthickness($im, 4);
+            for ($i = 0; $i < count($actCoords) - 1; $i++) {
+                imageline($im, $actCoords[$i][0], $actCoords[$i][1], $actCoords[$i + 1][0], $actCoords[$i + 1][1], $cActualLine);
+            }
+            foreach ($actCoords as $pt) {
+                imagefilledellipse($im, $pt[0], $pt[1], 10, 10, $cActualLine);
+                imagefilledellipse($im, $pt[0], $pt[1], 6, 6, $cWhite);
+            }
+
+            $lastPt = end($actCoords);
+            $badgeText = number_format($actualEV, 1) . '%';
+            $badgeW = 54;
+            $badgeH = 20;
+            $bx1 = max($plotLeft, min($w - $plotRight - $badgeW, $lastPt[0] - (int)($badgeW / 2)));
+            $by1 = max(10, $lastPt[1] - $badgeH - 8);
+            $bx2 = $bx1 + $badgeW;
+            $by2 = $by1 + $badgeH;
+
+            imagefilledrectangle($im, $bx1, $by1, $bx2, $by2, $cActualLine);
+            $drawText(9, $bx1 + 8, $by1 + 14, $cWhite, $badgeText);
+        }
+
+        ob_start();
+        imagepng($im);
+        $pngData = ob_get_clean();
+        imagedestroy($im);
+
+        return 'data:image/png;base64,' . base64_encode($pngData);
     }
 
     protected function prepareProjectDashboardData(Project $project, Request $request): array
