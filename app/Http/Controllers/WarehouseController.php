@@ -69,6 +69,33 @@ class WarehouseController extends Controller
      */
     protected function ensureTableReady(): void
     {
+        try {
+            if (Schema::hasTable('warehouse_items')) {
+                if (!Schema::hasColumn('warehouse_items', 'device_status')) {
+                    Schema::table('warehouse_items', function (Blueprint $table) {
+                        $table->string('device_status', 50)->default('Aktif')->after('status');
+                    });
+                }
+                if (!Schema::hasColumn('warehouse_items', 'image')) {
+                    Schema::table('warehouse_items', function (Blueprint $table) {
+                        $table->string('image')->nullable()->after('device_status');
+                    });
+                }
+            }
+            if (Schema::hasTable('warehouse_suppliers')) {
+                if (!Schema::hasColumn('warehouse_suppliers', 'contacts')) {
+                    Schema::table('warehouse_suppliers', function (Blueprint $table) {
+                        $table->text('contacts')->nullable()->after('email');
+                    });
+                }
+                if (!Schema::hasColumn('warehouse_suppliers', 'brands')) {
+                    Schema::table('warehouse_suppliers', function (Blueprint $table) {
+                        $table->text('brands')->nullable()->after('products_supplied');
+                    });
+                }
+            }
+        } catch (\Throwable $e) {}
+
         if (!Schema::hasTable('warehouse_products')) {
             try {
                 Artisan::call('migrate', ['--force' => true]);
@@ -298,6 +325,8 @@ class WarehouseController extends Controller
             }
         }
 
+        $deviceStatuses = WarehouseItem::getDeviceStatuses();
+
         return view('warehouse.products.index', compact(
             'items',
             'metrics',
@@ -307,6 +336,7 @@ class WarehouseController extends Controller
             'workUnits',
             'categories',
             'statuses',
+            'deviceStatuses',
             'locations',
             'deviceModels',
             'deviceBrands',
@@ -347,6 +377,8 @@ class WarehouseController extends Controller
             'customer_phone'      => 'nullable|string|max:50',
             'customer_sales_name' => 'nullable|string|max:150',
             'status'              => 'required|string|max:50',
+            'device_status'       => 'nullable|string|max:50',
+            'image'               => 'nullable',
             'poc_customer_name'   => 'nullable|string|max:255',
             'poc_pic_name'        => 'nullable|string|max:150',
             'poc_pic_phone'       => 'nullable|string|max:50',
@@ -363,6 +395,12 @@ class WarehouseController extends Controller
             $validated['poc_sales_name']      = $validated['customer_sales_name'];
         } elseif (!empty($validated['poc_sales_name'])) {
             $validated['customer_sales_name'] = $validated['poc_sales_name'];
+        }
+
+        $validated['device_status'] = $request->input('device_status', 'Aktif');
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = \App\Helpers\FileUploadHelper::storePublicly($request->file('image'), 'warehouse/devices');
         }
 
         $validated['name'] = !empty($validated['name']) ? $validated['name'] : (!empty($validated['product_number']) ? $validated['product_number'] : (!empty($validated['serial_number']) ? $validated['serial_number'] : 'Perangkat'));
@@ -588,6 +626,8 @@ class WarehouseController extends Controller
             'customer_phone'      => 'nullable|string|max:50',
             'customer_sales_name' => 'nullable|string|max:150',
             'status'              => 'required|string|max:50',
+            'device_status'       => 'nullable|string|max:50',
+            'image'               => 'nullable',
             'poc_customer_name'   => 'nullable|string|max:255',
             'poc_pic_name'        => 'nullable|string|max:150',
             'poc_pic_phone'       => 'nullable|string|max:50',
@@ -604,6 +644,14 @@ class WarehouseController extends Controller
             $validated['poc_sales_name']      = $validated['customer_sales_name'];
         } elseif (!empty($validated['poc_sales_name'])) {
             $validated['customer_sales_name'] = $validated['poc_sales_name'];
+        }
+
+        $validated['device_status'] = $request->input('device_status', $item->device_status ?: 'Aktif');
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = \App\Helpers\FileUploadHelper::storePublicly($request->file('image'), 'warehouse/devices');
+        } elseif ($request->input('remove_image') === '1') {
+            $validated['image'] = null;
         }
 
         if (empty($validated['name'])) {
@@ -846,17 +894,43 @@ class WarehouseController extends Controller
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
             'code'              => 'nullable|string|max:50|unique:warehouse_suppliers,code',
-            'contact_person'    => 'nullable|string|max:150',
-            'phone'             => 'nullable|string|max:50',
-            'email'             => 'nullable|email|max:150',
+            'contact_person'    => 'nullable|string|max:255',
+            'phone'             => 'nullable|string|max:255',
+            'email'             => 'nullable|string|max:255',
+            'contacts'          => 'nullable|array',
+            'brands'            => 'nullable|array',
             'address'           => 'nullable|string',
-            'products_supplied' => 'nullable|string|max:255',
+            'products_supplied' => 'nullable|string|max:500',
             'status'            => 'required|string|in:Aktif,Nonaktif',
             'notes'             => 'nullable|string',
         ]);
 
         if (empty($validated['code'])) {
             $validated['code'] = 'SUP-' . date('Y') . '-' . rand(100, 999);
+        }
+
+        // Process multiple contacts
+        if ($request->has('contacts') && is_array($request->contacts)) {
+            $cleanedContacts = array_values(array_filter($request->contacts, function($c) {
+                return !empty($c['name']) || !empty($c['phone']) || !empty($c['email']);
+            }));
+            if (!empty($cleanedContacts)) {
+                $validated['contacts'] = $cleanedContacts;
+                $validated['contact_person'] = collect($cleanedContacts)->pluck('name')->filter()->implode(' & ');
+                $validated['phone'] = collect($cleanedContacts)->pluck('phone')->filter()->implode(' / ');
+                $validated['email'] = collect($cleanedContacts)->pluck('email')->filter()->first() ?: ($validated['email'] ?? null);
+            }
+        }
+
+        // Process multiple brands
+        if ($request->has('brands') && is_array($request->brands)) {
+            $cleanedBrands = array_values(array_filter(array_map('trim', $request->brands)));
+            if (!empty($cleanedBrands)) {
+                $validated['brands'] = $cleanedBrands;
+                $validated['products_supplied'] = implode(', ', $cleanedBrands);
+            }
+        } elseif (!empty($validated['products_supplied'])) {
+            $validated['brands'] = array_values(array_filter(array_map('trim', explode(',', $validated['products_supplied']))));
         }
 
         WarehouseSupplier::create($validated);
@@ -872,14 +946,40 @@ class WarehouseController extends Controller
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
             'code'              => 'required|string|max:50|unique:warehouse_suppliers,code,' . $supplier->id,
-            'contact_person'    => 'nullable|string|max:150',
-            'phone'             => 'nullable|string|max:50',
-            'email'             => 'nullable|email|max:150',
+            'contact_person'    => 'nullable|string|max:255',
+            'phone'             => 'nullable|string|max:255',
+            'email'             => 'nullable|string|max:255',
+            'contacts'          => 'nullable|array',
+            'brands'            => 'nullable|array',
             'address'           => 'nullable|string',
-            'products_supplied' => 'nullable|string|max:255',
+            'products_supplied' => 'nullable|string|max:500',
             'status'            => 'required|string|in:Aktif,Nonaktif',
             'notes'             => 'nullable|string',
         ]);
+
+        // Process multiple contacts
+        if ($request->has('contacts') && is_array($request->contacts)) {
+            $cleanedContacts = array_values(array_filter($request->contacts, function($c) {
+                return !empty($c['name']) || !empty($c['phone']) || !empty($c['email']);
+            }));
+            if (!empty($cleanedContacts)) {
+                $validated['contacts'] = $cleanedContacts;
+                $validated['contact_person'] = collect($cleanedContacts)->pluck('name')->filter()->implode(' & ');
+                $validated['phone'] = collect($cleanedContacts)->pluck('phone')->filter()->implode(' / ');
+                $validated['email'] = collect($cleanedContacts)->pluck('email')->filter()->first() ?: ($validated['email'] ?? null);
+            }
+        }
+
+        // Process multiple brands
+        if ($request->has('brands') && is_array($request->brands)) {
+            $cleanedBrands = array_values(array_filter(array_map('trim', $request->brands)));
+            if (!empty($cleanedBrands)) {
+                $validated['brands'] = $cleanedBrands;
+                $validated['products_supplied'] = implode(', ', $cleanedBrands);
+            }
+        } elseif (!empty($validated['products_supplied'])) {
+            $validated['brands'] = array_values(array_filter(array_map('trim', explode(',', $validated['products_supplied']))));
+        }
 
         $supplier->update($validated);
 

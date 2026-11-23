@@ -41,6 +41,8 @@ class WarehouseItem extends Model
         'customer_phone',
         'customer_sales_name',
         'status',
+        'device_status',
+        'image',
         'poc_customer_name',
         'poc_pic_name',
         'poc_pic_phone',
@@ -49,6 +51,28 @@ class WarehouseItem extends Model
         'notes',
         'created_by',
     ];
+
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://') || str_starts_with($this->image, '/storage/')) {
+            return $this->image;
+        }
+        return asset('storage/' . ltrim($this->image, '/'));
+    }
+
+    public static function getDeviceStatuses(): array
+    {
+        return [
+            'Aktif',
+            'Rusak',
+            'Perlu dilakukan Pengecekan',
+        ];
+    }
 
     public function creator()
     {

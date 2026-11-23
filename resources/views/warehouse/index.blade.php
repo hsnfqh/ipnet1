@@ -208,6 +208,7 @@
                     <table class="w-full min-w-[1000px] text-left border-collapse text-[13px]">
                         <thead>
                             <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0] text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
+                                <th class="py-3 px-4">Produk Number</th>
                                 <th class="py-3 px-4">Kode &amp; Nama Perangkat</th>
                                 <th class="py-3 px-4">Jenis &amp; Tipe Komponen</th>
                                 <th class="py-3 px-4">Serial &amp; Part Number</th>
@@ -221,6 +222,17 @@
                         <tbody class="divide-y divide-[#F1F5F9]">
                             @forelse($items as $item)
                                 <tr class="hover:bg-[#F8FAFC]/80 transition">
+                                    {{-- Produk Number (P/N) --}}
+                                    <td class="py-3.5 px-4 whitespace-nowrap">
+                                        @if($item->product_number)
+                                            <span class="font-mono text-[12px] font-bold text-[#8F0A0D] bg-red-50/80 border border-red-200/70 px-2.5 py-1 rounded-lg inline-block shadow-2xs">
+                                                {{ $item->product_number }}
+                                            </span>
+                                        @else
+                                            <span class="text-slate-400 font-mono text-xs font-semibold">-</span>
+                                        @endif
+                                    </td>
+
                                     {{-- Kode & Nama --}}
                                     <td class="py-3.5 px-4">
                                         <div class="min-w-0">
@@ -320,37 +332,55 @@
                                         @endif
                                     </td>
 
-                                    {{-- Status --}}
+                                    {{-- Status Operasional & Status Perangkat --}}
                                     <td class="py-3.5 px-4 whitespace-nowrap">
-                                        @if($item->status === 'Tersedia')
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                Tersedia
-                                            </span>
-                                        @elseif($item->status === 'POC / Pinjaman')
-                                            <div>
-                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                                    Sedang POC
+                                        <div class="space-y-1">
+                                            @if($item->status === 'Tersedia')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                    Tersedia
                                                 </span>
-                                                @if($item->poc_customer_name)
-                                                    <p class="text-[11px] text-slate-600 font-medium mt-1">{{ $item->poc_customer_name }}</p>
-                                                @endif
-                                                @if($item->poc_duration)
-                                                    <p class="text-[10px] text-slate-400">{{ $item->poc_duration }}</p>
+                                            @elseif($item->status === 'POC / Pinjaman')
+                                                <div>
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                                        Sedang POC
+                                                    </span>
+                                                    @if($item->poc_customer_name)
+                                                        <p class="text-[11px] text-slate-600 font-medium mt-1">{{ $item->poc_customer_name }}</p>
+                                                    @endif
+                                                    @if($item->poc_duration)
+                                                        <p class="text-[10px] text-slate-400">{{ $item->poc_duration }}</p>
+                                                    @endif
+                                                </div>
+                                            @elseif($item->status === 'Pelanggan')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                                    Terpasang di Klien
+                                                </span>
+                                            @elseif($item->status === 'Pinjaman')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                                                    Pinjaman Vendor
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">
+                                                    {{ $item->status }}
+                                                </span>
+                                            @endif
+
+                                            <div>
+                                                @if(($item->device_status ?? 'Aktif') === 'Rusak')
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Rusak
+                                                    </span>
+                                                @elseif(($item->device_status ?? 'Aktif') === 'Perlu dilakukan Pengecekan')
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Perlu Pengecekan
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aktif
+                                                    </span>
                                                 @endif
                                             </div>
-                                        @elseif($item->status === 'Pelanggan')
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                                                Terpasang di Klien
-                                            </span>
-                                        @elseif($item->status === 'Pinjaman')
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
-                                                Pinjaman Vendor
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">
-                                                {{ $item->status }}
-                                            </span>
-                                        @endif
+                                        </div>
                                     </td>
 
                                     {{-- Aksi --}}
@@ -694,9 +724,44 @@
                                         </div>
 
                                         <!-- Detail jika Lokasi = Gudang IPNET -->
-                                        <div x-show="form.location_type === 'Gudang IPNET' || form.location_type === 'Warehouse IPNET'" class="sm:col-span-2">
+                                        <div x-show="form.location_type === 'Gudang IPNET' || form.location_type === 'Warehouse IPNET'">
                                             <label class="block font-semibold text-slate-700 mb-1">Posisi Rak / Ruang Simpan Gudang</label>
                                             <input type="text" x-model="form.warehouse_rack" placeholder="Contoh: Rak Utama A-01, Bin 03" class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800">
+                                        </div>
+
+                                        <!-- Status Perangkat (Aktif, Rusak, Perlu dilakukan Pengecekan) -->
+                                        <div :class="{'sm:col-span-2': !(form.location_type === 'Gudang IPNET' || form.location_type === 'Warehouse IPNET')}">
+                                            <label class="block font-semibold text-slate-700 mb-1">Status Perangkat <span class="text-red-500">*</span></label>
+                                            <select x-model="form.device_status" required class="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-[#8F0A0D] text-slate-800 bg-white font-medium">
+                                                <option value="Aktif">Aktif</option>
+                                                <option value="Rusak">Rusak</option>
+                                                <option value="Perlu dilakukan Pengecekan">Perlu dilakukan Pengecekan</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Upload Foto Perangkat / Barang (Dibawah Posisi Rack) -->
+                                        <div class="sm:col-span-2">
+                                            <label class="block font-semibold text-slate-700 mb-1">Foto Perangkat / Barang</label>
+                                            <div class="border-2 border-dashed border-slate-200 hover:border-[#8F0A0D] rounded-xl p-3.5 bg-slate-50/60 transition">
+                                                <div x-show="photoPreview || form.image_url" class="mb-3 flex items-center gap-3">
+                                                    <div class="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 bg-white shadow-2xs shrink-0">
+                                                        <img :src="photoPreview || form.image_url" class="w-full h-full object-cover">
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-xs font-bold text-slate-800">Foto Terpilih</p>
+                                                        <p class="text-[11px] text-slate-400">Pilih file baru jika ingin mengganti</p>
+                                                        <button type="button" @click="removePhoto()" class="mt-1 text-[11px] text-red-600 font-bold hover:underline cursor-pointer">
+                                                            Hapus Foto
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <input type="file" 
+                                                       id="device_image_input"
+                                                       @change="onPhotoSelected($event)" 
+                                                       accept="image/png,image/jpeg,image/webp,image/jpg" 
+                                                       class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100 cursor-pointer">
+                                                <p class="text-[10.5px] text-slate-400 mt-1">Format: JPG, PNG, WEBP (Maksimal 10MB)</p>
+                                            </div>
                                         </div>
 
                                         <!-- Detail jika Lokasi = Customer -->
@@ -792,14 +857,24 @@
                      @click.self="detailModalOpen = false"
                      @keydown.escape.window="detailModalOpen = false">
                     
-                    <div class="bg-white rounded-2xl w-[640px] max-w-full max-h-[90vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
+                    <div class="bg-white rounded-2xl w-[720px] max-w-full max-h-[90vh] flex flex-col text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] overflow-hidden">
                         
                         <!-- Fixed Header -->
                         <div class="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-start justify-between shrink-0">
                             <div>
-                                <div class="flex items-center gap-2 mb-1">
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
                                     <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-bold border border-slate-200" x-text="selectedItem?.item_code"></span>
                                     <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60" x-text="selectedItem?.status"></span>
+                                    <template x-if="selectedItem?.device_status">
+                                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-full border shadow-2xs"
+                                              :class="{
+                                                  'bg-emerald-50 text-emerald-700 border-emerald-200': selectedItem?.device_status === 'Aktif',
+                                                  'bg-rose-50 text-rose-700 border-rose-200': selectedItem?.device_status === 'Rusak',
+                                                  'bg-amber-50 text-amber-700 border-amber-200': selectedItem?.device_status === 'Perlu dilakukan Pengecekan'
+                                              }"
+                                              x-text="'Kondisi: ' + selectedItem?.device_status">
+                                        </span>
+                                    </template>
                                 </div>
                                 <h3 class="text-base font-bold text-slate-900 leading-snug" x-text="selectedItem?.name"></h3>
                                 <p class="text-xs text-slate-500 mt-0.5" x-text="'Merk: ' + (selectedItem?.brand || '-') + ' • Jenis: ' + (selectedItem?.item_type || '-')"></p>
@@ -811,10 +886,74 @@
 
                         <!-- Scrollable Body Only -->
                         <div class="p-6 overflow-y-auto space-y-4 text-xs flex-1 min-h-0">
+                            <!-- FOTO FISIK PERANGKAT DENGAN FITUR ZOOM IN / ZOOM OUT -->
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <span class="font-bold text-slate-800 text-xs uppercase tracking-wider">Foto Fisik Perangkat / Barang</span>
+                                    </div>
+                                    <template x-if="selectedItem?.image_url">
+                                        <div class="inline-flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-0.5 shadow-2xs">
+                                            <button type="button" 
+                                                    @click="zoomOut()" 
+                                                    class="p-1 rounded hover:bg-slate-100 text-slate-600 transition cursor-pointer"
+                                                    title="Zoom Out (-)">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
+                                            </button>
+                                            <span class="text-[10px] font-mono font-bold text-slate-700 px-1.5" x-text="Math.round(zoomLevel * 100) + '%'"></span>
+                                            <button type="button" 
+                                                    @click="zoomIn()" 
+                                                    class="p-1 rounded hover:bg-slate-100 text-slate-600 transition cursor-pointer"
+                                                    title="Zoom In (+)">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                            </button>
+                                            <button type="button" 
+                                                    @click="resetZoom()" 
+                                                    class="px-2 py-0.5 text-[10px] font-bold text-slate-500 hover:text-[#8F0A0D] hover:bg-slate-100 rounded transition cursor-pointer"
+                                                    title="Reset Zoom (100%)">
+                                                Reset
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <template x-if="selectedItem?.image_url">
+                                    <div class="relative w-full h-60 sm:h-72 rounded-xl bg-slate-900/5 border border-slate-200/80 overflow-hidden flex items-center justify-center select-none"
+                                         @wheel.prevent="$event.deltaY < 0 ? zoomIn() : zoomOut()">
+                                        <img :src="selectedItem?.image_url" 
+                                             :alt="selectedItem?.name" 
+                                             class="max-h-full max-w-full object-contain pointer-events-none transition-transform duration-150 ease-out"
+                                             :style="'transform: scale(' + zoomLevel + '); transform-origin: center center;'">
+                                        <div class="absolute bottom-2 right-2 bg-slate-900/70 text-white text-[10.5px] px-2.5 py-1 rounded-lg backdrop-blur-xs font-medium pointer-events-none shadow-sm flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+                                            <span>Scroll mouse atau klik +/- untuk Zoom</span>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template x-if="!selectedItem?.image_url">
+                                    <div class="w-full py-8 rounded-xl bg-white border border-dashed border-slate-200 flex flex-col items-center justify-center text-center text-slate-400">
+                                        <svg class="w-10 h-10 text-slate-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <p class="text-xs font-semibold text-slate-500">Belum ada foto fisik perangkat</p>
+                                        <p class="text-[10.5px] text-slate-400 mt-0.5">Edit perangkat ini untuk mengunggah foto fisik</p>
+                                    </div>
+                                </template>
+                            </div>
+
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                     <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Kuantitas (Qty)</p>
                                     <p class="font-bold text-slate-800 text-[12px] mt-0.5">1 Unit Fisik</p>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Status Perangkat</p>
+                                    <p class="font-bold text-[12px] mt-0.5" 
+                                       :class="{
+                                           'text-emerald-700': selectedItem?.device_status === 'Aktif',
+                                           'text-rose-700': selectedItem?.device_status === 'Rusak',
+                                           'text-amber-700': selectedItem?.device_status === 'Perlu dilakukan Pengecekan'
+                                       }" 
+                                       x-text="selectedItem?.device_status || 'Aktif'"></p>
                                 </div>
                                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                                     <p class="text-[10.5px] font-semibold text-slate-400 uppercase">Serial Number (S/N)</p>
@@ -1281,6 +1420,47 @@
                 this.customItemTypeName = '';
             },
 
+            devicePhotoFile: null,
+            photoPreview: null,
+            photoRemoved: false,
+            zoomLevel: 1,
+
+            onPhotoSelected(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.devicePhotoFile = file;
+                    this.photoRemoved = false;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.photoPreview = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            },
+
+            removePhoto() {
+                this.devicePhotoFile = null;
+                this.photoPreview = null;
+                this.photoRemoved = true;
+                if (this.form) {
+                    this.form.image_url = null;
+                }
+                const input = document.getElementById('device_image_input');
+                if (input) input.value = '';
+            },
+
+            zoomIn() {
+                this.zoomLevel = Math.min(3, +(this.zoomLevel + 0.25).toFixed(2));
+            },
+
+            zoomOut() {
+                this.zoomLevel = Math.max(0.5, +(this.zoomLevel - 0.25).toFixed(2));
+            },
+
+            resetZoom() {
+                this.zoomLevel = 1;
+            },
+
             form: {
                 id: null,
                 name: '',
@@ -1328,6 +1508,11 @@
                 this.customAmName = '';
                 this.selectedItemType = 'Switch';
                 this.customItemTypeName = '';
+                this.devicePhotoFile = null;
+                this.photoPreview = null;
+                this.photoRemoved = false;
+                const input = document.getElementById('device_image_input');
+                if (input) input.value = '';
                 this.form = {
                     id: null,
                     name: '',
@@ -1358,6 +1543,8 @@
                     customer_phone: '',
                     customer_sales_name: '',
                     status: 'Tersedia',
+                    device_status: 'Aktif',
+                    image_url: null,
                     poc_customer_name: '',
                     poc_pic_name: '',
                     poc_pic_phone: '',
@@ -1419,6 +1606,12 @@
                     this.customItemTypeName = '';
                 }
 
+                this.devicePhotoFile = null;
+                this.photoPreview = null;
+                this.photoRemoved = false;
+                const input = document.getElementById('device_image_input');
+                if (input) input.value = '';
+
                 this.form = {
                     id: item.id,
                     name: item.name || '',
@@ -1449,6 +1642,8 @@
                     customer_phone: item.customer_phone || '',
                     customer_sales_name: amVal,
                     status: item.status || 'Tersedia',
+                    device_status: item.device_status || 'Aktif',
+                    image_url: item.image_url || null,
                     poc_customer_name: item.poc_customer_name || '',
                     poc_pic_name: item.poc_pic_name || '',
                     poc_pic_phone: item.poc_pic_phone || '',
@@ -1461,6 +1656,7 @@
 
             openDetailModal(item) {
                 this.selectedItem = item;
+                this.zoomLevel = 1;
                 this.detailModalOpen = true;
             },
 
@@ -1499,17 +1695,32 @@
                     if (!this.form.item_type) {
                         this.form.item_type = this.form.component_type || 'Switch';
                     }
+
+                    const formData = new FormData();
+                    for (const key in this.form) {
+                        if (this.form[key] !== null && this.form[key] !== undefined) {
+                            formData.append(key, this.form[key]);
+                        }
+                    }
+                    if (this.devicePhotoFile) {
+                        formData.append('image', this.devicePhotoFile);
+                    }
+                    if (this.photoRemoved) {
+                        formData.append('remove_image', '1');
+                    }
+                    if (this.isEditing) {
+                        formData.append('_method', 'PUT');
+                    }
+
                     const url = this.isEditing ? `/warehouse/products/${this.form.id}` : '/warehouse/products';
-                    const method = this.isEditing ? 'PUT' : 'POST';
 
                     const response = await fetch(url, {
-                        method: method,
+                        method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify(this.form)
+                        body: formData
                     });
 
                     const data = await response.json();
