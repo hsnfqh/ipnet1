@@ -487,11 +487,95 @@ class PmoController extends Controller
     public function exportPdf(Request $request, Project $project)
     {
         $reportType = $request->query('type', 'full');
-        $hideExpenses = $request->boolean('hide_expenses') || $reportType === 'client';
+
+        // Penentuan 4 Kategori Laporan:
+        // 1. 'weekly'   => Weekly progress & WBS deliverables
+        // 2. 'scurve'   => Curva S & actual cumulative
+        // 3. 'expenses' => Expenses & anggaran proyek
+        // 4. 'full'     => Versi Lengkap (Kurva S, WBS, Expenses)
+        // Opsi 'custom' / 'client' untuk fleksibilitas
+
+        $showWeekly   = true;
+        $showScurve   = true;
+        $showExpenses = true;
+
+        if ($reportType === 'weekly' || $reportType === 'weekly_progress') {
+            $showWeekly   = true;
+            $showScurve   = false;
+            $showExpenses = false;
+        } elseif ($reportType === 'scurve' || $reportType === 'curva_s') {
+            $showWeekly   = false;
+            $showScurve   = true;
+            $showExpenses = false;
+        } elseif ($reportType === 'expenses') {
+            $showWeekly   = false;
+            $showScurve   = false;
+            $showExpenses = true;
+        } elseif ($reportType === 'client') {
+            $showWeekly   = true;
+            $showScurve   = true;
+            $showExpenses = false;
+        } elseif ($reportType === 'custom') {
+            $showWeekly   = $request->boolean('show_weekly', false);
+            $showScurve   = $request->boolean('show_scurve', false);
+            $showExpenses = $request->boolean('show_expenses', false);
+            if (!$showWeekly && !$showScurve && !$showExpenses) {
+                $showWeekly = $showScurve = $showExpenses = true;
+            }
+        }
+
+        // Override bila ada query params spesifik
+        if ($request->has('show_weekly') && $reportType !== 'custom') {
+            $showWeekly = $request->boolean('show_weekly');
+        }
+        if ($request->has('show_scurve') && $reportType !== 'custom') {
+            $showScurve = $request->boolean('show_scurve');
+        }
+        if ($request->has('show_expenses') && $reportType !== 'custom') {
+            $showExpenses = $request->boolean('show_expenses');
+        }
+        if ($request->has('hide_expenses')) {
+            $showExpenses = !$request->boolean('hide_expenses');
+        }
 
         $data = $this->prepareProjectDashboardData($project, $request);
         $data['reportType']   = $reportType;
-        $data['hideExpenses'] = $hideExpenses;
+        $data['showWeekly']   = $showWeekly;
+        $data['showScurve']   = $showScurve;
+        $data['showExpenses'] = $showExpenses;
+        $data['hideExpenses'] = !$showExpenses;
+
+        // Judul, Subtitle & Pengantar Dokumen
+        if ($showWeekly && !$showScurve && !$showExpenses) {
+            $prefix      = 'Laporan-Weekly-Progress';
+            $docTitle    = 'LAPORAN MINGGUAN KEMAJUAN PROYEK';
+            $docSubtitle = 'WEEKLY PROGRESS & WORK BREAKDOWN STRUCTURE (WBS)';
+            $docIntro    = 'Dokumen resmi kemajuan mingguan pelaksanaan proyek PT IP Network Solusindo. Mencakup jadwal kerja dan rincian pencapaian deliverable per milestone/task (WBS Schedule).';
+        } elseif ($showScurve && !$showWeekly && !$showExpenses) {
+            $prefix      = 'Laporan-Kurva-S';
+            $docTitle    = 'LAPORAN KURVA S & PROGRES KUMULATIF';
+            $docSubtitle = 'S-CURVE PROGRESS & ACTUAL CUMULATIVE MONITORING';
+            $docIntro    = 'Dokumen resmi monitoring grafik Kurva S dan capaian progres fisik kumulatif mingguan pelaksanaan proyek PT IP Network Solusindo.';
+        } elseif ($showExpenses && !$showWeekly && !$showScurve) {
+            $prefix      = 'Laporan-Expenses-Biaya';
+            $docTitle    = 'LAPORAN ANGGARAN & REALISASI BIAYA PROYEK';
+            $docSubtitle = 'PROJECT BUDGET & OPERATIONAL EXPENSES REALIZATION';
+            $docIntro    = 'Dokumen resmi rekapitulasi anggaran dan rincian pengeluaran operasional proyek PT IP Network Solusindo. Mencakup alokasi budget, realisasi pengeluaran, dan daftar transaksi biaya operasional.';
+        } elseif (!$showExpenses) {
+            $prefix      = 'Laporan-Kemajuan-Proyek-Klien';
+            $docTitle    = 'LAPORAN KEMAJUAN PROYEK (KLIEN)';
+            $docSubtitle = 'S-CURVE PROGRESS & WBS DELIVERABLES SCHEDULE';
+            $docIntro    = 'Dokumen resmi laporan kemajuan teknis pelaksanaan proyek PT IP Network Solusindo. Mencakup capaian progres fisik mingguan (S-Curve & Actual Cumulative) serta rincian pencapaian jadwal WBS deliverables.';
+        } else {
+            $prefix      = 'Laporan-Lengkap-Proyek';
+            $docTitle    = 'LAPORAN LENGKAP PENGENDALIAN & KEMAJUAN PROYEK';
+            $docSubtitle = 'S-CURVE PROGRESS, WBS DELIVERABLES & EXPENSES REALIZATION';
+            $docIntro    = 'Dokumen resmi laporan pengendalian menyeluruh teknis dan keuangan proyek PT IP Network Solusindo. Mencakup visualisasi Kurva S, capaian mingguan deliverable WBS, serta rekapitulasi dan rincian pengeluaran biaya proyek.';
+        }
+
+        $data['docTitle']    = $docTitle;
+        $data['docSubtitle'] = $docSubtitle;
+        $data['docIntro']    = $docIntro;
 
         $logoPath = public_path('images/ipnet-logo.png');
         if (!file_exists($logoPath)) {
@@ -508,13 +592,17 @@ class PmoController extends Controller
         $data['printedBy']  = auth()->user()->name ?? 'Project Manager IPNET';
         $data['printedAt']  = now()->translatedFormat('d F Y H:i') . ' WIB';
 
-        $data['sCurveChartBase64'] = $this->generateSCurveChartBase64(
-            $data['totalWeeklyWeightCum'] ?? [],
-            $data['actualCumulativePerWeek'] ?? [],
-            (int) ($data['totalWeeks'] ?? 12),
-            (int) ($data['currentWeek'] ?? 1),
-            (float) ($data['actualEV'] ?? 0)
-        );
+        if ($showScurve) {
+            $data['sCurveChartBase64'] = $this->generateSCurveChartBase64(
+                $data['totalWeeklyWeightCum'] ?? [],
+                $data['actualCumulativePerWeek'] ?? [],
+                (int) ($data['totalWeeks'] ?? 12),
+                (int) ($data['currentWeek'] ?? 1),
+                (float) ($data['actualEV'] ?? 0)
+            );
+        } else {
+            $data['sCurveChartBase64'] = '';
+        }
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pmo.exports.project-report-pdf', $data)
             ->setPaper('a4', 'portrait')
@@ -525,7 +613,6 @@ class PmoController extends Controller
             ]);
 
         $cleanTitle = \Illuminate\Support\Str::slug($project->name ?: 'laporan-proyek');
-        $prefix = $hideExpenses ? 'Laporan-Kemajuan-Proyek-Klien' : 'Laporan-Pengendalian-Proyek-Internal';
         return $pdf->stream("{$prefix}-{$cleanTitle}.pdf");
     }
 

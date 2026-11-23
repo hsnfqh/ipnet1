@@ -186,18 +186,14 @@
                 @endif
             </td>
             <td style="width: 82%; text-align: center; vertical-align: middle;">
-                <div class="doc-title">{{ !empty($hideExpenses) ? 'LAPORAN KEMAJUAN PROYEK' : 'LAPORAN PENGENDALIAN PROYEK & KEUANGAN' }}</div>
-                <div class="doc-subtitle">{{ !empty($hideExpenses) ? 'S-CURVE PROGRESS & WBS DELIVERABLES SCHEDULE' : 'S-CURVE PROGRESS, WBS DELIVERABLES & EXPENSES TRACKING' }}</div>
+                <div class="doc-title">{{ $docTitle ?? (!empty($hideExpenses) ? 'LAPORAN KEMAJUAN PROYEK' : 'LAPORAN PENGENDALIAN PROYEK & KEUANGAN') }}</div>
+                <div class="doc-subtitle">{{ $docSubtitle ?? (!empty($hideExpenses) ? 'S-CURVE PROGRESS & WBS DELIVERABLES SCHEDULE' : 'S-CURVE PROGRESS, WBS DELIVERABLES & EXPENSES TRACKING') }}</div>
             </td>
         </tr>
     </table>
 
     <div class="doc-intro">
-        @if(!empty($hideExpenses))
-            Dokumen resmi laporan kemajuan teknis pelaksanaan proyek PT IP Network Solusindo. Mencakup capaian progres fisik mingguan (S-Curve &amp; Actual Cumulative) serta rincian pencapaian jadwal WBS deliverables.
-        @else
-            Dokumen resmi laporan pengendalian teknis dan keuangan proyek PT IP Network Solusindo. Mencakup capaian progres fisik mingguan (S-Curve &amp; Actual Cumulative), rincian WBS deliverables, serta realisasi pengeluaran operasional proyek.
-        @endif
+        {{ $docIntro ?? (!empty($hideExpenses) ? 'Dokumen resmi laporan kemajuan teknis pelaksanaan proyek PT IP Network Solusindo. Mencakup capaian progres fisik mingguan (S-Curve & Actual Cumulative) serta rincian pencapaian jadwal WBS deliverables.' : 'Dokumen resmi laporan pengendalian teknis dan keuangan proyek PT IP Network Solusindo. Mencakup capaian progres fisik mingguan (S-Curve & Actual Cumulative), rincian WBS deliverables, serta realisasi pengeluaran operasional proyek.') }}
     </div>
     <div class="doc-header-line"></div>
 
@@ -241,8 +237,13 @@
         </tr>
     </table>
 
+    @php
+        $secAscii = 66; // 66 = 'B'
+    @endphp
+
+    @if(!empty($showScurve))
     {{-- SECTION B: RINGKASAN PROGRESS & KURVA S --}}
-    <div class="section-title">B. KURVA S &amp; PROGRES KUMULATIF MINGGUAN (ACTUAL CUMULATIVE)</div>
+    <div class="section-title">{{ chr($secAscii++) }}. KURVA S &amp; PROGRES KUMULATIF MINGGUAN (ACTUAL CUMULATIVE)</div>
     
     {{-- Ringkasan Metrik (3 Kolom Bersih, Tanpa Deviasi) --}}
     <table class="report-table" style="margin-bottom: 4px;">
@@ -317,9 +318,11 @@
             </tr>
         </tbody>
     </table>
+    @endif
 
+    @if(!empty($showWeekly))
     {{-- SECTION C: TABEL WBS DELIVERABLES SCHEDULE --}}
-    <div class="section-title">C. RINCIAN JADWAL KERJA &amp; BOBOT DELIVERABLE (WBS SCHEDULE)</div>
+    <div class="section-title">{{ chr($secAscii++) }}. RINCIAN JADWAL KERJA &amp; BOBOT DELIVERABLE (WBS SCHEDULE)</div>
     <table class="report-table">
         <thead>
             <tr>
@@ -392,14 +395,16 @@
             </tr>
         </tbody>
     </table>
+    @endif
 
-    @if(empty($hideExpenses))
+    @if(!empty($showExpenses))
     {{-- ══════════════════════════════════════════════════════════ --}}
-    {{-- HALAMAN 2: EXPENSES FINANCIAL TRACKING                   --}}
+    {{-- HALAMAN EXPENSES FINANCIAL TRACKING                      --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
+    @if(!empty($showScurve) || !empty($showWeekly))
     <div class="page-break"></div>
 
-    {{-- KOP HALAMAN 2 --}}
+    {{-- KOP HALAMAN EXPENSES --}}
     <table class="doc-header-table">
         <tr>
             <td style="width: 18%; text-align: left; vertical-align: middle;">
@@ -416,9 +421,14 @@
         </tr>
     </table>
     <div class="doc-header-line"></div>
+    @endif
+
+    @php
+        $expLetter = chr($secAscii++);
+    @endphp
 
     {{-- SECTION D: RINGKASAN ANGGARAN & PENGELUARAN --}}
-    <div class="section-title">D. REKAPITULASI ANGGARAN &amp; REALISASI PENGELUARAN PROYEK</div>
+    <div class="section-title">{{ $expLetter }}. REKAPITULASI ANGGARAN &amp; REALISASI PENGELUARAN PROYEK</div>
     <table class="report-table" style="margin-bottom: 5px;">
         <tr style="background-color: #F8FAFC;">
             <td class="text-center" style="width: 25%;">
@@ -449,7 +459,7 @@
     </table>
 
     {{-- SECTION D2: TABEL RINCIAN PENGELUARAN --}}
-    <div class="section-title" style="margin-top: 4px;">D.1 RINCIAN PENGELUARAN BIAYA PROYEK (EXPENSES LIST)</div>
+    <div class="section-title" style="margin-top: 4px;">{{ $expLetter }}.1 RINCIAN PENGELUARAN BIAYA PROYEK (EXPENSES LIST)</div>
     <table class="report-table">
         <thead>
             <tr>
@@ -502,7 +512,7 @@
                 </td>
                 <td style="width: 55%; text-align: right;">
                     Dicetak pada: {{ $printedAt }} | Oleh: {{ $printedBy }}<br>
-                    <em>Laporan Resmi PMO: S-Curve Progress {{ !empty($hideExpenses) ? '& WBS Deliverables' : '& Financial Expenses' }}</em>
+                    <em>Laporan Resmi PMO: {{ $docSubtitle ?? 'S-Curve Progress & Financial Expenses' }}</em>
                 </td>
             </tr>
         </table>

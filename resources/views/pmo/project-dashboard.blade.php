@@ -81,6 +81,17 @@
              return Math.max(1, Math.ceil(this.totalWeeksCount / this.weeklyPerPage));
          },
          showProgressModal: false, 
+         showExportCustomModal: false,
+         customShowWeekly: true,
+         customShowScurve: true,
+         customShowExpenses: true,
+         getCustomExportUrl() {
+             let url = '{{ route('pmo.projects.export_pdf', $project->id) }}?type=custom';
+             url += '&show_weekly=' + (this.customShowWeekly ? '1' : '0');
+             url += '&show_scurve=' + (this.customShowScurve ? '1' : '0');
+             url += '&show_expenses=' + (this.customShowExpenses ? '1' : '0');
+             return url;
+         },
          activeWeek: 1, 
          activeActual: '', 
          activeNotes: '',
@@ -543,33 +554,89 @@
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs">
-                        <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/70 rounded-t-xl">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Pilih Format Laporan PDF</span>
+                                                <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/70 rounded-t-xl flex items-center justify-between">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Kategori Laporan PDF</span>
+                            <span class="text-[10px] font-semibold text-slate-400">4 Pilihan</span>
                         </div>
+
+                        {{-- 1. Weekly Progress --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}" 
+                           target="_blank" 
+                           @click="openExportMain = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                1
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Weekly Progress
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-semibold">WBS</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Jadwal kerja &amp; deliverable mingguan</div>
+                            </div>
+                        </a>
+
+                        {{-- 2. Curva S --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}" 
+                           target="_blank" 
+                           @click="openExportMain = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                2
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Curva S
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 font-semibold">Grafik</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Grafik Kurva S &amp; matriks kumulatif</div>
+                            </div>
+                        </a>
+
+                        {{-- 3. Expenses --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}" 
+                           target="_blank" 
+                           @click="openExportMain = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                3
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Expenses
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-semibold">Biaya</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Rekap budget &amp; realisasi pengeluaran</div>
+                            </div>
+                        </a>
+
+                        {{-- 4. Versi Lengkap --}}
                         <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
                            target="_blank" 
                            @click="openExportMain = false"
-                           class="flex items-start gap-2.5 px-3 py-2.5 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
-                            <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                4
                             </div>
                             <div>
-                                <div class="font-bold text-slate-800 text-[12px]">Laporan Lengkap (Internal PMO)</div>
-                                <div class="text-[11px] text-slate-500">S-Curve, Deliverables WBS &amp; Realisasi Expenses Biaya</div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Versi Lengkap
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-red-100 text-[#8F0A0D] font-semibold">Full</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Semua: Kurva S, WBS &amp; Expenses</div>
                             </div>
                         </a>
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'client']) }}" 
-                           target="_blank" 
-                           @click="openExportMain = false"
-                           class="flex items-start gap-2.5 px-3 py-2.5 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900">
-                            <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+
+                        {{-- Opsi Kustomisasi --}}
+                        <button type="button" 
+                                @click="openExportMain = false; showExportCustomModal = true"
+                                class="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 transition text-slate-600 hover:text-slate-900 text-left cursor-pointer">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                                <span class="text-[11px] font-semibold">Pilih Bagian (Kustom)...</span>
                             </div>
-                            <div>
-                                <div class="font-bold text-slate-800 text-[12px]">Laporan Klien / Customer</div>
-                                <div class="text-[11px] text-slate-500">S-Curve &amp; Deliverables WBS (Tanpa Expenses Biaya)</div>
-                            </div>
-                        </a>
+                            <span class="text-[10px] text-slate-400">&rarr;</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1343,33 +1410,89 @@
                                      x-transition:leave-start="transform opacity-100 scale-100"
                                      x-transition:leave-end="transform opacity-0 scale-95"
                                      class="absolute right-0 top-full mt-1.5 w-68 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs">
-                                    <div class="px-3 py-1.5 border-b border-slate-100 bg-slate-50/70 rounded-t-xl">
-                                        <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Pilih Opsi Export PDF</span>
-                                    </div>
-                                    <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
-                                       target="_blank" 
-                                       @click="openExportTab4 = false"
-                                       class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
-                                        <div class="w-6 h-6 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        </div>
-                                        <div>
-                                            <div class="font-bold text-slate-800 text-[11.5px]">Laporan Lengkap (Internal)</div>
-                                            <div class="text-[10.5px] text-slate-500">S-Curve, WBS &amp; Realisasi Expenses</div>
-                                        </div>
-                                    </a>
-                                    <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'client']) }}" 
-                                       target="_blank" 
-                                       @click="openExportTab4 = false"
-                                       class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900">
-                                        <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                        </div>
-                                        <div>
-                                            <div class="font-bold text-slate-800 text-[11.5px]">Laporan Klien / Customer</div>
-                                            <div class="text-[10.5px] text-slate-500">S-Curve &amp; WBS (Tanpa Expenses)</div>
-                                        </div>
-                                    </a>
+                                                            <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/70 rounded-t-xl flex items-center justify-between">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Kategori Laporan PDF</span>
+                            <span class="text-[10px] font-semibold text-slate-400">4 Pilihan</span>
+                        </div>
+
+                        {{-- 1. Weekly Progress --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}" 
+                           target="_blank" 
+                           @click="openExportTab4 = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                1
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Weekly Progress
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-semibold">WBS</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Jadwal kerja &amp; deliverable mingguan</div>
+                            </div>
+                        </a>
+
+                        {{-- 2. Curva S --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}" 
+                           target="_blank" 
+                           @click="openExportTab4 = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                2
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Curva S
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 font-semibold">Grafik</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Grafik Kurva S &amp; matriks kumulatif</div>
+                            </div>
+                        </a>
+
+                        {{-- 3. Expenses --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}" 
+                           target="_blank" 
+                           @click="openExportTab4 = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                3
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Expenses
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-semibold">Biaya</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Rekap budget &amp; realisasi pengeluaran</div>
+                            </div>
+                        </a>
+
+                        {{-- 4. Versi Lengkap --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
+                           target="_blank" 
+                           @click="openExportTab4 = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                4
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Versi Lengkap
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-red-100 text-[#8F0A0D] font-semibold">Full</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Semua: Kurva S, WBS &amp; Expenses</div>
+                            </div>
+                        </a>
+
+                        {{-- Opsi Kustomisasi --}}
+                        <button type="button" 
+                                @click="openExportTab4 = false; showExportCustomModal = true"
+                                class="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 transition text-slate-600 hover:text-slate-900 text-left cursor-pointer">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                                <span class="text-[11px] font-semibold">Pilih Bagian (Kustom)...</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400">&rarr;</span>
+                        </button>
                                 </div>
                             </div>
                         </div>
@@ -1497,33 +1620,89 @@
                                          x-transition:leave-start="transform opacity-100 scale-100"
                                          x-transition:leave-end="transform opacity-0 scale-95"
                                          class="absolute right-0 top-full mt-1.5 w-68 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs">
-                                        <div class="px-3 py-1.5 border-b border-slate-100 bg-slate-50/70 rounded-t-xl">
-                                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Pilih Opsi Export PDF</span>
-                                        </div>
-                                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
-                                           target="_blank" 
-                                           @click="openExportTab5 = false"
-                                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
-                                            <div class="w-6 h-6 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                            </div>
-                                            <div>
-                                                <div class="font-bold text-slate-800 text-[11.5px]">Laporan Lengkap (Internal)</div>
-                                                <div class="text-[10.5px] text-slate-500">S-Curve, WBS &amp; Realisasi Expenses</div>
-                                            </div>
-                                        </a>
-                                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'client']) }}" 
-                                           target="_blank" 
-                                           @click="openExportTab5 = false"
-                                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900">
-                                            <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                            </div>
-                                            <div>
-                                                <div class="font-bold text-slate-800 text-[11.5px]">Laporan Klien / Customer</div>
-                                                <div class="text-[10.5px] text-slate-500">S-Curve &amp; WBS (Tanpa Expenses)</div>
-                                            </div>
-                                        </a>
+                                                                <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/70 rounded-t-xl flex items-center justify-between">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Kategori Laporan PDF</span>
+                            <span class="text-[10px] font-semibold text-slate-400">4 Pilihan</span>
+                        </div>
+
+                        {{-- 1. Weekly Progress --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}" 
+                           target="_blank" 
+                           @click="openExportTab5 = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                1
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Weekly Progress
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-semibold">WBS</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Jadwal kerja &amp; deliverable mingguan</div>
+                            </div>
+                        </a>
+
+                        {{-- 2. Curva S --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}" 
+                           target="_blank" 
+                           @click="openExportTab5 = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                2
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Curva S
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 font-semibold">Grafik</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Grafik Kurva S &amp; matriks kumulatif</div>
+                            </div>
+                        </a>
+
+                        {{-- 3. Expenses --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}" 
+                           target="_blank" 
+                           @click="openExportTab5 = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                3
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Expenses
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-semibold">Biaya</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Rekap budget &amp; realisasi pengeluaran</div>
+                            </div>
+                        </a>
+
+                        {{-- 4. Versi Lengkap --}}
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
+                           target="_blank" 
+                           @click="openExportTab5 = false"
+                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-6 h-6 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
+                                4
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[11.5px] flex items-center gap-1.5">
+                                    Versi Lengkap
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-red-100 text-[#8F0A0D] font-semibold">Full</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-500">Semua: Kurva S, WBS &amp; Expenses</div>
+                            </div>
+                        </a>
+
+                        {{-- Opsi Kustomisasi --}}
+                        <button type="button" 
+                                @click="openExportTab5 = false; showExportCustomModal = true"
+                                class="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 transition text-slate-600 hover:text-slate-900 text-left cursor-pointer">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                                <span class="text-[11px] font-semibold">Pilih Bagian (Kustom)...</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400">&rarr;</span>
+                        </button>
                                     </div>
                                 </div>
                                 <span class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
@@ -1728,7 +1907,98 @@
     </div>
 
 
-        <!-- ========================================================== -->
+            <!-- ========================================================== -->
+    <!-- MODAL CUSTOM EXPORT PDF: PILIH MAU DISHOW APA AJA          -->
+    <!-- ========================================================== -->
+    <div x-show="showExportCustomModal" 
+         x-transition.opacity
+         style="display: none;"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4"
+             @click.away="showExportCustomModal = false">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Kustomisasi Export Laporan PDF</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Pilih bagian yang ingin ditampilkan di dokumen PDF</p>
+                    </div>
+                </div>
+                <button type="button" @click="showExportCustomModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="space-y-3 py-1">
+                <p class="text-xs text-slate-500">Centang bagian laporan yang ingin di-show di dalam PDF:</p>
+
+                {{-- Opsi 1: Weekly Progress --}}
+                <label class="flex items-start gap-3 p-3 rounded-xl border transition cursor-pointer"
+                       :class="customShowWeekly ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200 hover:bg-slate-50'">
+                    <input type="checkbox" x-model="customShowWeekly" class="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                    <div>
+                        <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            1. Weekly Progress
+                            <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-semibold">WBS Schedule</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-0.5">Tabel jadwal kerja, durasi, bobot deliverable, dan pencapaian mingguan WBS per task.</div>
+                    </div>
+                </label>
+
+                {{-- Opsi 2: Curva S --}}
+                <label class="flex items-start gap-3 p-3 rounded-xl border transition cursor-pointer"
+                       :class="customShowScurve ? 'border-blue-300 bg-blue-50/40' : 'border-slate-200 hover:bg-slate-50'">
+                    <input type="checkbox" x-model="customShowScurve" class="mt-0.5 rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                    <div>
+                        <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            2. Curva S
+                            <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 font-semibold">Grafik &amp; Kumulatif</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-0.5">Visual grafik Kurva S (Plan vs Actual), metrik EV, dan tabel matriks kumulatif mingguan.</div>
+                    </div>
+                </label>
+
+                {{-- Opsi 3: Expenses --}}
+                <label class="flex items-start gap-3 p-3 rounded-xl border transition cursor-pointer"
+                       :class="customShowExpenses ? 'border-amber-300 bg-amber-50/40' : 'border-slate-200 hover:bg-slate-50'">
+                    <input type="checkbox" x-model="customShowExpenses" class="mt-0.5 rounded text-amber-600 focus:ring-amber-500 w-4 h-4">
+                    <div>
+                        <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            3. Expenses
+                            <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-semibold">Biaya Operasional</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-0.5">Rekapitulasi anggaran nilai kontrak, sisa budget, dan daftar rincian pengeluaran biaya proyek.</div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                <button type="button" 
+                        @click="customShowWeekly = true; customShowScurve = true; customShowExpenses = true" 
+                        class="text-[11px] font-semibold text-slate-500 hover:text-slate-800 cursor-pointer">
+                    Reset (Pilih Semua)
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" @click="showExportCustomModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                        Batal
+                    </button>
+                    <a :href="getCustomExportUrl()" 
+                       target="_blank" 
+                       @click="showExportCustomModal = false"
+                       class="px-4 py-2 text-xs font-bold rounded-xl bg-[#8F0A0D] hover:bg-[#72080a] text-white shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Export PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- ========================================================== -->
     <!-- MODAL 0: UBAH KLIEN & PIC KLIEN PROYEK                     -->
     <!-- ========================================================== -->
     <div x-show="showClientModal" 
