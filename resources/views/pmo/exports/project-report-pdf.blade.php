@@ -186,14 +186,18 @@
                 @endif
             </td>
             <td style="width: 82%; text-align: center; vertical-align: middle;">
-                <div class="doc-title">LAPORAN PENGENDALIAN PROYEK &amp; KEUANGAN</div>
-                <div class="doc-subtitle">S-CURVE PROGRESS, WBS DELIVERABLES &amp; EXPENSES TRACKING</div>
+                <div class="doc-title">{{ !empty($hideExpenses) ? 'LAPORAN KEMAJUAN PROYEK' : 'LAPORAN PENGENDALIAN PROYEK & KEUANGAN' }}</div>
+                <div class="doc-subtitle">{{ !empty($hideExpenses) ? 'S-CURVE PROGRESS & WBS DELIVERABLES SCHEDULE' : 'S-CURVE PROGRESS, WBS DELIVERABLES & EXPENSES TRACKING' }}</div>
             </td>
         </tr>
     </table>
 
     <div class="doc-intro">
-        Dokumen resmi laporan pengendalian teknis dan keuangan proyek PT IP Network Solusindo. Mencakup capaian progres fisik mingguan (S-Curve &amp; Actual Cumulative), rincian WBS deliverables, serta realisasi pengeluaran operasional proyek.
+        @if(!empty($hideExpenses))
+            Dokumen resmi laporan kemajuan teknis pelaksanaan proyek PT IP Network Solusindo. Mencakup capaian progres fisik mingguan (S-Curve &amp; Actual Cumulative) serta rincian pencapaian jadwal WBS deliverables.
+        @else
+            Dokumen resmi laporan pengendalian teknis dan keuangan proyek PT IP Network Solusindo. Mencakup capaian progres fisik mingguan (S-Curve &amp; Actual Cumulative), rincian WBS deliverables, serta realisasi pengeluaran operasional proyek.
+        @endif
     </div>
     <div class="doc-header-line"></div>
 
@@ -239,27 +243,23 @@
 
     {{-- SECTION B: RINGKASAN PROGRESS & KURVA S --}}
     <div class="section-title">B. KURVA S &amp; PROGRES KUMULATIF MINGGUAN (ACTUAL CUMULATIVE)</div>
-    <table class="report-table" style="margin-bottom: 3px;">
+    
+    {{-- Ringkasan Metrik (3 Kolom Bersih, Tanpa Deviasi) --}}
+    <table class="report-table" style="margin-bottom: 4px;">
         <tr style="background-color: #F8FAFC;">
-            <td class="text-center" style="width: 25%;">
+            <td class="text-center" style="width: 33.3%;">
                 <span style="font-size: 6pt; color: #64748B; text-transform: uppercase; font-weight: bold; display: block;">Target Plan Kumulatif</span>
                 <span style="font-size: 10pt; font-weight: bold; color: #1E3A8A;">
                     {{ number_format($totalWeeklyWeightCum[$currentWeek] ?? end($totalWeeklyWeightCum) ?? 0, 2) }}%
                 </span>
             </td>
-            <td class="text-center" style="width: 25%;">
+            <td class="text-center" style="width: 33.3%;">
                 <span style="font-size: 6pt; color: #64748B; text-transform: uppercase; font-weight: bold; display: block;">Realisasi Aktual Kumulatif</span>
                 <span style="font-size: 10pt; font-weight: bold; color: #047857;">
                     {{ number_format($actualEV, 2) }}%
                 </span>
             </td>
-            <td class="text-center" style="width: 25%;">
-                <span style="font-size: 6pt; color: #64748B; text-transform: uppercase; font-weight: bold; display: block;">Deviasi (Variance)</span>
-                <span style="font-size: 10pt; font-weight: bold; color: {{ $currentVariance >= 0 ? '#047857' : '#B91C1C' }};">
-                    {{ $currentVariance >= 0 ? '+' : '' }}{{ number_format($currentVariance, 2) }}%
-                </span>
-            </td>
-            <td class="text-center" style="width: 25%;">
+            <td class="text-center" style="width: 33.4%;">
                 <span style="font-size: 6pt; color: #64748B; text-transform: uppercase; font-weight: bold; display: block;">Posisi Minggu Proyek</span>
                 <span style="font-size: 10pt; font-weight: bold; color: #334155;">
                     Minggu {{ $currentWeek }} dari {{ $totalWeeks }} Minggu
@@ -268,7 +268,123 @@
         </tr>
     </table>
 
-    {{-- MATRIKS MINGGUAN KURVA S --}}
+    {{-- GRAFIK VISUAL KURVA S (INLINE SVG VEKTOR RESMI DOMPDF) --}}
+    @php
+        $maxWeeks = max(1, min($totalWeeks ?? 12, 14));
+        $svgW = 540;
+        $svgH = 130;
+        $plotLeft = 38;
+        $plotRight = 18;
+        $plotTop = 16;
+        $plotBottom = 20;
+        $plotWidth = $svgW - $plotLeft - $plotRight; // 484
+        $plotHeight = $svgH - $plotTop - $plotBottom; // 94
+        $yZero = $svgH - $plotBottom; // 110
+        $stepX = $plotWidth / $maxWeeks;
+
+        // Titik Kurva Plan
+        $planPoints = [];
+        $planPoints[] = "{$plotLeft},{$yZero}"; // W0 = 0%
+        $planCircles = [];
+        $planCircles[] = ['cx' => $plotLeft, 'cy' => $yZero, 'val' => 0];
+
+        for ($w = 1; $w <= $maxWeeks; $w++) {
+            $x = round($plotLeft + ($w * $stepX), 1);
+            $pVal = min(100, max(0, $totalWeeklyWeightCum[$w] ?? 0));
+            $y = round($yZero - (($pVal / 100) * $plotHeight), 1);
+            $planPoints[] = "{$x},{$y}";
+            $planCircles[] = ['cx' => $x, 'cy' => $y, 'val' => $pVal];
+        }
+        $planPointsStr = implode(' ', $planPoints);
+
+        // Titik Kurva Actual
+        $actPoints = [];
+        $actPoints[] = "{$plotLeft},{$yZero}"; // W0 = 0%
+        $actCircles = [];
+        $actCircles[] = ['cx' => $plotLeft, 'cy' => $yZero, 'val' => 0];
+        $lastReportedAct = 0;
+        $lastActX = $plotLeft;
+        $lastActY = $yZero;
+
+        for ($w = 1; $w <= $maxWeeks; $w++) {
+            $hasVal = isset($actualCumulativePerWeek[$w]) && $actualCumulativePerWeek[$w] !== null;
+            if ($hasVal) {
+                $aVal = min(100, max(0, (float) $actualCumulativePerWeek[$w]));
+                $lastReportedAct = $aVal;
+                $x = round($plotLeft + ($w * $stepX), 1);
+                $y = round($yZero - (($aVal / 100) * $plotHeight), 1);
+                $actPoints[] = "{$x},{$y}";
+                $actCircles[] = ['cx' => $x, 'cy' => $y, 'val' => $aVal];
+                $lastActX = $x;
+                $lastActY = $y;
+            } elseif ($w <= ($currentWeek ?? 1) && $actualEV > 0 && count($actPoints) === 1) {
+                $aVal = min(100, max(0, (float) $actualEV));
+                $x = round($plotLeft + ($w * $stepX), 1);
+                $y = round($yZero - (($aVal / 100) * $plotHeight), 1);
+                $actPoints[] = "{$x},{$y}";
+                $actCircles[] = ['cx' => $x, 'cy' => $y, 'val' => $aVal];
+                $lastActX = $x;
+                $lastActY = $y;
+            }
+        }
+        $actPointsStr = implode(' ', $actPoints);
+    @endphp
+
+    <div style="border: 1px solid #CBD5E1; background-color: #FFFFFF; border-radius: 3px; padding: 3px 5px; margin-bottom: 4px;">
+        <svg width="100%" height="130" viewBox="0 0 540 130" xmlns="http://www.w3.org/2000/svg" style="display: block;">
+            <!-- Background Box -->
+            <rect x="0" y="0" width="540" height="130" fill="#FAFCFF" rx="2" />
+            
+            <!-- Legend Kurva S di Pojok Kanan Atas -->
+            <g transform="translate(300, 10)">
+                <line x1="0" y1="0" x2="16" y2="0" stroke="#1D4ED8" stroke-width="2" />
+                <circle cx="8" cy="0" r="2.5" fill="#1D4ED8" />
+                <text x="20" y="2.5" font-size="6.5" fill="#1E3A8A" font-weight="bold" font-family="Helvetica, Arial, sans-serif">Plan Kumulatif (%)</text>
+                
+                <line x1="120" y1="0" x2="136" y2="0" stroke="#C2410C" stroke-width="2.5" />
+                <circle cx="128" cy="0" r="2.8" fill="#C2410C" />
+                <text x="140" y="2.5" font-size="6.5" fill="#C2410C" font-weight="bold" font-family="Helvetica, Arial, sans-serif">Actual Kumulatif (%)</text>
+            </g>
+
+            <!-- Horizontal Grid Lines & Y-axis Labels (0%, 25%, 50%, 75%, 100%) -->
+            @for($g = 0; $g <= 4; $g++)
+                @php
+                    $pct = $g * 25;
+                    $gy = round($yZero - (($pct / 100) * $plotHeight), 1);
+                @endphp
+                <line x1="{{ $plotLeft }}" y1="{{ $gy }}" x2="{{ $svgW - $plotRight }}" y2="{{ $gy }}" stroke="#E2E8F0" stroke-width="0.8" stroke-dasharray="{{ $g === 0 ? 'none' : '3,3' }}" />
+                <text x="{{ $plotLeft - 4 }}" y="{{ $gy + 2.5 }}" font-size="6" fill="#64748B" text-anchor="end" font-family="Helvetica, Arial, sans-serif">{{ $pct }}%</text>
+            @endfor
+
+            <!-- Vertical Grid Lines & X-axis Labels (W0, W1, ... Wn) -->
+            <line x1="{{ $plotLeft }}" y1="{{ $plotTop }}" x2="{{ $plotLeft }}" y2="{{ $yZero }}" stroke="#CBD5E1" stroke-width="1" />
+            <text x="{{ $plotLeft }}" y="{{ $yZero + 10 }}" font-size="6" fill="#64748B" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">W0</text>
+            @for($w = 1; $w <= $maxWeeks; $w++)
+                @php $wx = round($plotLeft + ($w * $stepX), 1); @endphp
+                <line x1="{{ $wx }}" y1="{{ $plotTop }}" x2="{{ $wx }}" y2="{{ $yZero }}" stroke="#F1F5F9" stroke-width="0.8" stroke-dasharray="2,2" />
+                <text x="{{ $wx }}" y="{{ $yZero + 10 }}" font-size="6" fill="{{ $w === ($currentWeek ?? 1) ? '#8F0A0D' : '#334155' }}" font-weight="{{ $w === ($currentWeek ?? 1) ? 'bold' : 'normal' }}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">W{{ $w }}</text>
+            @endfor
+
+            <!-- Garis Target Plan (Biru) -->
+            <polyline fill="none" stroke="#1D4ED8" stroke-width="2" points="{{ $planPointsStr }}" />
+            @foreach($planCircles as $pc)
+                <circle cx="{{ $pc['cx'] }}" cy="{{ $pc['cy'] }}" r="2" fill="#1D4ED8" stroke="#FFFFFF" stroke-width="0.6" />
+            @endforeach
+
+            <!-- Garis Realisasi Aktual (Oranye) -->
+            @if(count($actPoints) > 1)
+                <polyline fill="none" stroke="#C2410C" stroke-width="2.5" points="{{ $actPointsStr }}" />
+                @foreach($actCircles as $ac)
+                    <circle cx="{{ $ac['cx'] }}" cy="{{ $ac['cy'] }}" r="2.5" fill="#C2410C" stroke="#FFFFFF" stroke-width="0.8" />
+                @endforeach
+                <!-- Label Nilai Terakhir Realisasi -->
+                <rect x="{{ min($svgW - $plotRight - 36, $lastActX - 18) }}" y="{{ max(2, $lastActY - 13) }}" width="36" height="10" rx="2" fill="#C2410C" />
+                <text x="{{ min($svgW - $plotRight - 18, $lastActX) }}" y="{{ max(9, $lastActY - 5.5) }}" font-size="6" fill="#FFFFFF" font-weight="bold" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">{{ number_format($actualEV, 1) }}%</text>
+            @endif
+        </svg>
+    </div>
+
+    {{-- MATRIKS MINGGUAN KURVA S (Tanpa Baris Deviasi) --}}
     <table class="report-table">
         <thead>
             <tr>
@@ -307,22 +423,6 @@
                     </td>
                 @endfor
                 <td class="text-center font-bold" style="color: #047857;">{{ number_format($actualEV, 2) }}%</td>
-            </tr>
-            <tr>
-                <td class="label-cell">Deviasi (+/- %)</td>
-                @for($w = 1; $w <= min($totalWeeks, 14); $w++)
-                    @php
-                        $act = $actualCumulativePerWeek[$w] ?? ($w <= $currentWeek ? $lastAct : null);
-                        $plan = $totalWeeklyWeightCum[$w] ?? 0;
-                        $dev = ($act !== null) ? round($act - $plan, 2) : null;
-                    @endphp
-                    <td class="text-center font-bold" style="color: {{ $dev !== null && $dev >= 0 ? '#047857' : ($dev !== null ? '#B91C1C' : '#64748B') }};">
-                        {{ $dev !== null ? ($dev >= 0 ? '+' : '') . number_format($dev, 2) . '%' : '-' }}
-                    </td>
-                @endfor
-                <td class="text-center font-bold" style="color: {{ $currentVariance >= 0 ? '#047857' : '#B91C1C' }};">
-                    {{ ($currentVariance >= 0 ? '+' : '') . number_format($currentVariance, 2) }}%
-                </td>
             </tr>
         </tbody>
     </table>
@@ -402,8 +502,9 @@
         </tbody>
     </table>
 
+    @if(empty($hideExpenses))
     {{-- ══════════════════════════════════════════════════════════ --}}
-    {{-- HALAMAN 2: EXPENSES FINANCIAL TRACKING & SIGN-OFF TTD    --}}
+    {{-- HALAMAN 2: EXPENSES FINANCIAL TRACKING                   --}}
     {{-- ══════════════════════════════════════════════════════════ --}}
     <div class="page-break"></div>
 
@@ -419,7 +520,7 @@
             </td>
             <td style="width: 82%; text-align: center; vertical-align: middle;">
                 <div class="doc-title">LAPORAN KEUANGAN &amp; PENGELUARAN PROYEK</div>
-                <div class="doc-subtitle">RINCIAN BIAYA OPERASIONAL &amp; LEMBAR PENGESAHAN DOKUMEN</div>
+                <div class="doc-subtitle">RINCIAN BIAYA OPERASIONAL &amp; REALISASI BELANJA PROYEK</div>
             </td>
         </tr>
     </table>
@@ -498,55 +599,7 @@
             </tr>
         </tbody>
     </table>
-
-    {{-- SECTION E: LEMBAR PENGESAHAN & TANDA TANGAN --}}
-    <div class="section-title" style="margin-top: 10px;">E. LEMBAR VERIFIKASI &amp; PENGESAHAN DOKUMEN</div>
-    <div style="font-size: 6.8pt; color: #334155; margin-bottom: 6px;">
-        Dokumen ini dinyatakan sah dan dapat digunakan sebagai bahan laporan monitoring kemajuan proyek, penagihan termin (bila dipersyaratkan), serta pertanggungjawaban operasional tim PMO PT IP Network Solusindo.
-    </div>
-
-    <table class="report-table" style="margin-top: 4px;">
-        <thead>
-            <tr>
-                <th style="width: 50%;">DISIAPKAN &amp; DILAPORKAN OLEH</th>
-                <th style="width: 50%;">DIKETAHUI &amp; DISETUJUI OLEH</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="text-center" style="vertical-align: top; padding: 4px 10px;">
-                    <div style="font-weight: bold; margin-bottom: 2px;">Project Manager (PM)</div>
-                    <div style="font-size: 6.2pt; color: #64748B;">Divisi Project Management Office (PMO)</div>
-                    
-                    <div class="sig-container" style="margin: 6px 0;">
-                        {{-- Ruang tanda tangan PM --}}
-                    </div>
-
-                    <div style="font-weight: bold; text-decoration: underline; font-size: 7.5pt;">
-                        {{ $project->pm ? $project->pm->name : ($authUser ? $authUser->name : 'Project Manager IPNET') }}
-                    </div>
-                    <div style="font-size: 6.2pt; color: #64748B; margin-top: 1px;">
-                        Tanggal: {{ now()->translatedFormat('d F Y') }}
-                    </div>
-                </td>
-                <td class="text-center" style="vertical-align: top; padding: 4px 10px;">
-                    <div style="font-weight: bold; margin-bottom: 2px;">Head of PMO / Direktur Operasional</div>
-                    <div style="font-size: 6.2pt; color: #64748B;">PT IP Network Solusindo</div>
-                    
-                    <div class="sig-container" style="margin: 6px 0;">
-                        {{-- Ruang tanda tangan Management / Finance --}}
-                    </div>
-
-                    <div style="font-weight: bold; text-decoration: underline; font-size: 7.5pt;">
-                        Management PT IP Network Solusindo
-                    </div>
-                    <div style="font-size: 6.2pt; color: #64748B; margin-top: 1px;">
-                        Tanggal: {{ now()->translatedFormat('d F Y') }}
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    @endif
 
     {{-- FOOTER DOKUMEN RESMI --}}
     <div class="doc-footer">
@@ -558,7 +611,7 @@
                 </td>
                 <td style="width: 55%; text-align: right;">
                     Dicetak pada: {{ $printedAt }} | Oleh: {{ $printedBy }}<br>
-                    <em>Laporan Resmi PMO: S-Curve Progress &amp; Financial Expenses</em>
+                    <em>Laporan Resmi PMO: S-Curve Progress {{ !empty($hideExpenses) ? '& WBS Deliverables' : '& Financial Expenses' }}</em>
                 </td>
             </tr>
         </table>

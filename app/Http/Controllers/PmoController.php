@@ -486,7 +486,12 @@ class PmoController extends Controller
 
     public function exportPdf(Request $request, Project $project)
     {
+        $reportType = $request->query('type', 'full');
+        $hideExpenses = $request->boolean('hide_expenses') || $reportType === 'client';
+
         $data = $this->prepareProjectDashboardData($project, $request);
+        $data['reportType']   = $reportType;
+        $data['hideExpenses'] = $hideExpenses;
 
         $logoPath = public_path('images/ipnet-logo.png');
         if (!file_exists($logoPath)) {
@@ -512,7 +517,8 @@ class PmoController extends Controller
             ]);
 
         $cleanTitle = \Illuminate\Support\Str::slug($project->name ?: 'laporan-proyek');
-        return $pdf->stream("Laporan-Pengendalian-Proyek-{$cleanTitle}.pdf");
+        $prefix = $hideExpenses ? 'Laporan-Kemajuan-Proyek-Klien' : 'Laporan-Pengendalian-Proyek-Internal';
+        return $pdf->stream("{$prefix}-{$cleanTitle}.pdf");
     }
 
     protected function prepareProjectDashboardData(Project $project, Request $request): array

@@ -520,16 +520,57 @@
                     </button>
                 </div>
 
-                {{-- Tombol Utama Export PDF (Gabungan S-Curve & Expenses) --}}
-                <div class="flex items-center gap-2 shrink-0">
-                    <a href="{{ route('pmo.projects.export_pdf', $project->id) }}" target="_blank"
-                       title="Unduh Laporan Gabungan S-Curve & Pengeluaran (PDF)"
-                       class="px-3.5 py-2 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 hover:border-red-200 text-xs font-bold shadow-2xs transition inline-flex items-center gap-2 cursor-pointer active:scale-95">
+                {{-- Tombol Utama Export PDF (Pilihan: Lengkap / Internal PMO vs Klien) --}}
+                <div class="flex items-center gap-2 shrink-0 relative" x-data="{ openExportMain: false }">
+                    <button type="button" 
+                            @click="openExportMain = !openExportMain" 
+                            @click.outside="openExportMain = false"
+                            title="Unduh Laporan Proyek (PDF)"
+                            class="px-3.5 py-2 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 hover:border-red-200 text-xs font-bold shadow-2xs transition inline-flex items-center gap-2 cursor-pointer active:scale-95">
                         <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        <span>Export PDF (S-Curve &amp; Expenses)</span>
-                    </a>
+                        <span>Export PDF</span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openExportMain }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    <div x-show="openExportMain" 
+                         x-cloak 
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs">
+                        <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/70 rounded-t-xl">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Pilih Format Laporan PDF</span>
+                        </div>
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
+                           target="_blank" 
+                           @click="openExportMain = false"
+                           class="flex items-start gap-2.5 px-3 py-2.5 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                            <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[12px]">Laporan Lengkap (Internal PMO)</div>
+                                <div class="text-[11px] text-slate-500">S-Curve, Deliverables WBS &amp; Realisasi Expenses Biaya</div>
+                            </div>
+                        </a>
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'client']) }}" 
+                           target="_blank" 
+                           @click="openExportMain = false"
+                           class="flex items-start gap-2.5 px-3 py-2.5 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900">
+                            <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-[12px]">Laporan Klien / Customer</div>
+                                <div class="text-[11px] text-slate-500">S-Curve &amp; Deliverables WBS (Tanpa Expenses Biaya)</div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
 
             </div>
@@ -1280,14 +1321,57 @@
                                 <span class="w-3.5 h-1 rounded-full bg-[#C2410C]"></span>
                                 <span>Actual Cumulative (%)</span>
                             </div>
-                            <a href="{{ route('pmo.projects.export_pdf', $project->id) }}" target="_blank"
-                               title="Export Laporan Gabungan S-Curve & Pengeluaran (PDF)"
-                               class="px-3 py-1.5 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 hover:border-red-200 text-xs font-bold shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer">
-                                <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                                <span>Export PDF</span>
-                            </a>
+                            <div class="relative inline-block" x-data="{ openExportTab4: false }">
+                                <button type="button" 
+                                        @click="openExportTab4 = !openExportTab4" 
+                                        @click.outside="openExportTab4 = false"
+                                        title="Export Laporan S-Curve (PDF)"
+                                        class="px-3 py-1.5 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 hover:border-red-200 text-xs font-bold shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span>Export PDF</span>
+                                    <svg class="w-3 h-3 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openExportTab4 }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+
+                                <div x-show="openExportTab4" 
+                                     x-cloak 
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="transform opacity-100 scale-100"
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="absolute right-0 top-full mt-1.5 w-68 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs">
+                                    <div class="px-3 py-1.5 border-b border-slate-100 bg-slate-50/70 rounded-t-xl">
+                                        <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Pilih Opsi Export PDF</span>
+                                    </div>
+                                    <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
+                                       target="_blank" 
+                                       @click="openExportTab4 = false"
+                                       class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                                        <div class="w-6 h-6 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-800 text-[11.5px]">Laporan Lengkap (Internal)</div>
+                                            <div class="text-[10.5px] text-slate-500">S-Curve, WBS &amp; Realisasi Expenses</div>
+                                        </div>
+                                    </a>
+                                    <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'client']) }}" 
+                                       target="_blank" 
+                                       @click="openExportTab4 = false"
+                                       class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900">
+                                        <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-800 text-[11.5px]">Laporan Klien / Customer</div>
+                                            <div class="text-[10.5px] text-slate-500">S-Curve &amp; WBS (Tanpa Expenses)</div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1303,7 +1387,6 @@
                                         <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Plan Cumulative (%)</th>
                                         <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Actual Weekly (%)</th>
                                         <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Actual Cumulative (%)</th>
-                                        <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Deviation (Actual - Plan)</th>
                                         <th class="py-3 px-3 text-right whitespace-nowrap bg-[#F8FAFC]">Actual Cumulative (Plot %)</th>
                                     </tr>
                                 </thead>
@@ -1324,13 +1407,6 @@
                                             </td>
                                             <td id="scurve-actual-cum-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right font-bold text-slate-800">
                                                 {{ $rec['actual_percent'] !== null ? number_format($rec['actual_percent'], 2) . '%' : '-' }}
-                                            </td>
-                                            <td id="scurve-variance-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right font-bold {{ ($rec['variance'] ?? 0) < 0 ? 'text-rose-700' : 'text-slate-800' }}">
-                                                @if($rec['variance'] !== null)
-                                                    {{ $rec['variance'] > 0 ? '+' : '' }}{{ number_format($rec['variance'], 2) }}%
-                                                @else
-                                                    -
-                                                @endif
                                             </td>
                                             <td id="scurve-helper-w{{ $rec['week'] }}" class="py-2.5 px-3 text-right text-xs {{ $rec['chart_helper'] === '#N/A' ? 'text-slate-400 italic' : 'font-bold text-slate-800' }}">
                                                 {{ $rec['chart_helper'] !== '#N/A' ? number_format($rec['chart_helper'], 2) . '%' : '#N/A' }}
@@ -1399,14 +1475,57 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <a href="{{ route('pmo.projects.export_pdf', $project->id) }}" target="_blank"
-                                   title="Export Laporan Gabungan S-Curve & Pengeluaran (PDF)"
-                                   class="px-3 py-1.5 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 hover:border-red-200 text-xs font-bold shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer">
-                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
-                                    <span>Export PDF</span>
-                                </a>
+                                <div class="relative inline-block" x-data="{ openExportTab5: false }">
+                                    <button type="button" 
+                                            @click="openExportTab5 = !openExportTab5" 
+                                            @click.outside="openExportTab5 = false"
+                                            title="Export Laporan Pengeluaran & S-Curve (PDF)"
+                                            class="px-3 py-1.5 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 hover:border-red-200 text-xs font-bold shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                        <span>Export PDF</span>
+                                        <svg class="w-3 h-3 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openExportTab5 }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </button>
+
+                                    <div x-show="openExportTab5" 
+                                         x-cloak 
+                                         x-transition:enter="transition ease-out duration-100"
+                                         x-transition:enter-start="transform opacity-0 scale-95"
+                                         x-transition:enter-end="transform opacity-100 scale-100"
+                                         x-transition:leave="transition ease-in duration-75"
+                                         x-transition:leave-start="transform opacity-100 scale-100"
+                                         x-transition:leave-end="transform opacity-0 scale-95"
+                                         class="absolute right-0 top-full mt-1.5 w-68 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs">
+                                        <div class="px-3 py-1.5 border-b border-slate-100 bg-slate-50/70 rounded-t-xl">
+                                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Pilih Opsi Export PDF</span>
+                                        </div>
+                                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
+                                           target="_blank" 
+                                           @click="openExportTab5 = false"
+                                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                                            <div class="w-6 h-6 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-slate-800 text-[11.5px]">Laporan Lengkap (Internal)</div>
+                                                <div class="text-[10.5px] text-slate-500">S-Curve, WBS &amp; Realisasi Expenses</div>
+                                            </div>
+                                        </a>
+                                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'client']) }}" 
+                                           target="_blank" 
+                                           @click="openExportTab5 = false"
+                                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900">
+                                            <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-slate-800 text-[11.5px]">Laporan Klien / Customer</div>
+                                                <div class="text-[10.5px] text-slate-500">S-Curve &amp; WBS (Tanpa Expenses)</div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
                                 <span class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
                                     Total: Rp {{ number_format($totalSpend, 0, ',', '.') }}
                                 </span>
