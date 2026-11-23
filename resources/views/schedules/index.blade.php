@@ -276,13 +276,18 @@
                     <template x-if="!isArchitect">
                         <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#10B981; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Preventive Maintenance (PM)</span>
+                            </span>
+                            <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
                                 <span style="width:10px; height:10px; border-radius:3px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
                                 <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Meeting</span>
                             </span>
                             <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
                                 <span style="width:10px; height:10px; border-radius:3px; background:#C81E2C; flex-shrink:0; display:inline-block;"></span>
-                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Task / Kegiatan</span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Activity / Task Lainnya</span>
                             </span>
                             <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
@@ -406,15 +411,15 @@
 
                                 <!-- Actions (Right) -->
                                 <div class="jkw-day-actions">
-                                    <template x-if="schedule._type === 'task'">
+                                    <template x-if="schedule._isTask || schedule._type === 'task' || (schedule._uid && String(schedule._uid).startsWith('task-'))">
                                         <div style="display:flex; align-items:center; gap:6px;">
-                                            <template x-if="schedule.is_pm">
-                                                <a :href="'/managed-service/' + (schedule.project_id || '')" class="jkw-btn-task-action" style="background:#FEF2F2; color:#8F0A0D; border:1px solid #FECACA;" title="Buka Detail Proyek Managed Service & PM">
+                                            <template x-if="schedule.is_pm || schedule._type === 'pm'">
+                                                <a :href="'/managed-service/' + (schedule.project_id || '')" class="jkw-btn-task-action" style="background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0;" title="Buka Detail Proyek Managed Service & PM">
                                                     <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                     <span>Detail PM</span>
                                                 </a>
                                             </template>
-                                            <template x-if="!schedule.is_pm">
+                                            <template x-if="!schedule.is_pm && schedule._type !== 'pm'">
                                                 <a href="/tasks" class="jkw-btn-task-action" title="Kelola tiket di menu Task">
                                                     <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                                     <span>Kelola di Task</span>
@@ -426,10 +431,10 @@
                                             </button>
                                         </div>
                                     </template>
-                                    <template x-if="schedule._type !== 'task'">
+                                    <template x-if="!schedule._isTask && schedule._type !== 'task' && (!schedule._uid || !String(schedule._uid).startsWith('task-'))">
                                         @if($canManageSchedule ?? false)
                                         <div style="display:flex; align-items:center; gap:6px;">
-                                            <template x-if="['schedule', 'poc', 'design', 'meeting'].includes(schedule._type)">
+                                            <template x-if="['schedule', 'poc', 'design', 'meeting', 'pm'].includes(schedule._type)">
                                                 <button type="button" @click="shareWhatsApp(schedule)" class="jkw-btn-wa" title="Bagikan Undangan ke WhatsApp">
                                                     <svg style="width:12px; height:12px;" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
                                                     <span>Kirim ke WA</span>
@@ -641,8 +646,8 @@
                                                      :style="'background:' + event._color + '; color:#fff; display:flex; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:2px 6px; border-radius:4px; font-size:10px; margin-bottom:2px; cursor:pointer; opacity:1;'"
                                                      :title="event._tooltip + (canManageSchedule ? ' - Klik untuk detail / edit' : ' - Klik untuk melihat detail')"
                                                      @click="handleEventClick(event)">
-                                                    <span x-show="(event._type === 'schedule' || event._type === 'day_off') && event.start_time" style="font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:9.5px; opacity:0.95; flex-shrink:0;" x-text="event.start_time"></span>
-                                                    <span x-show="event._type === 'task' && event.deadline_time" style="font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:9.5px; opacity:0.95; flex-shrink:0;" x-text="event.deadline_time"></span>
+                                                    <span x-show="event.start_time" style="font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:9.5px; opacity:0.95; flex-shrink:0;" x-text="event.start_time"></span>
+                                                    <span x-show="!event.start_time && event.deadline_time" style="font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:9.5px; opacity:0.95; flex-shrink:0;" x-text="event.deadline_time"></span>
                                                     <span style="font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="event._displayTitle"></span>
                                                     <span x-show="event._subLabel" style="opacity:0.88; font-weight:400; font-size:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="'(' + event._subLabel + ')'"></span>
                                                 </div>
@@ -1888,14 +1893,14 @@
     color: #2563EB !important;
 }
 
-.jkw-day-item--poc {
+.jkw-day-item--poc, .jkw-day-item--pm {
     background: rgba(16, 185, 129, 0.08) !important;
     border-left: 4px solid #10B981 !important;
 }
-.jkw-day-item--poc .jkw-time {
+.jkw-day-item--poc .jkw-time, .jkw-day-item--pm .jkw-time {
     color: #047857 !important;
 }
-.jkw-day-item--poc .jkw-time svg {
+.jkw-day-item--poc .jkw-time svg, .jkw-day-item--pm .jkw-time svg {
     color: #10B981 !important;
 }
 
@@ -1976,7 +1981,7 @@
 .jkw-mini-card { border-radius:6px !important; padding:6px 9px !important; }
 .jkw-mini-card--schedule, .jkw-mini-card--design, .jkw-mini-card--meeting { background:rgba(37,99,235,0.09) !important; }
 .jkw-mini-card--maintenance { background:rgba(217,119,6,0.12) !important; }
-.jkw-mini-card--poc { background:rgba(16,185,129,0.10) !important; }
+.jkw-mini-card--poc, .jkw-mini-card--pm { background:rgba(16,185,129,0.10) !important; }
 .jkw-mini-card--day_off { background:rgba(100,116,139,0.12) !important; }
 .jkw-mini-card--task { background:rgba(200,30,44,0.08) !important; }
 .jkw-mini-card--project { background:rgba(153,27,27,0.08) !important; }
@@ -3068,30 +3073,82 @@
                         var sTime = s.start_time ? s.start_time.substring(0, 5) : '';
                         var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
                         var isDayOff = s.category === 'Day Off';
-                        var isMeetingCat = (s.category || '').toLowerCase() === 'meeting' || (s.category || '').toLowerCase().includes('meeting') || (s.category || '').toLowerCase().includes('principal') || (s.category || '').toLowerCase().includes('klien') || (s.category || '').toLowerCase().includes('deep dive') || (s.category || '').toLowerCase().includes('series');
-                        var isPoc = (s.category || '').toLowerCase().includes('poc') || (s.category || '').toLowerCase().includes('lab') || (s.category || '').toLowerCase().includes('demo');
-                        var isTaskCat = !isMeetingCat && !isDayOff && !isPoc && (s.category === 'Task' || s.category === 'Kegiatan' || s.category === 'Preventive Maintenance' || (s.category || '').toLowerCase().includes('maintenance') || (s.category || '').toLowerCase().includes('tiket') || (s.category || '').toLowerCase().includes('task'));
+                        var sCatLower = (s.category || '').toLowerCase();
+                        var sTitleLower = (s.title || '').toLowerCase();
+
+                        // PM detection: Berbau PM (title contains PM, Preventive Maintenance, Pemeliharaan, or is_pm flag, or category)
+                        var isPm = !isDayOff && (
+                            !!s.is_pm || 
+                            sCatLower === 'preventive maintenance' || 
+                            sCatLower.includes('preventive') || 
+                            sCatLower.includes('pemeliharaan') || 
+                            sCatLower === 'pm' || 
+                            /\bpm\b/i.test(s.title || '') || 
+                            sTitleLower.includes('preventive') || 
+                            sTitleLower.includes('pemeliharaan')
+                        );
+
+                        // Meeting detection: Title or category contains Meeting, Rapat, Kick Off, Principal, Klien, Deep Dive
+                        var isMeetingCat = !isDayOff && !isPm && (
+                            sCatLower === 'meeting' || 
+                            sCatLower.includes('meeting') || 
+                            sCatLower.includes('principal') || 
+                            sCatLower.includes('klien') || 
+                            sCatLower.includes('deep dive') || 
+                            sCatLower.includes('series') || 
+                            sCatLower.includes('rapat') ||
+                            sTitleLower.includes('meeting') ||
+                            sTitleLower.includes('kick off') ||
+                            sTitleLower.includes('diskusi')
+                        );
+
+                        var isPoc = !isDayOff && !isPm && !isMeetingCat && (
+                            sCatLower.includes('poc') || 
+                            sCatLower.includes('lab') || 
+                            sCatLower.includes('demo') ||
+                            sTitleLower.includes('poc')
+                        );
+
+                        var isDesign = !isDayOff && !isPm && !isMeetingCat && (
+                            sCatLower.includes('desain') || 
+                            sCatLower.includes('sow') || 
+                            sCatLower.includes('review')
+                        );
+
+                        var isTaskCat = !isDayOff && !isPm && !isMeetingCat && !isPoc && !isDesign;
                         var isMeet = isMeetingCat;
-                        var isDesign = (s.category || '').toLowerCase().includes('desain') || (s.category || '').toLowerCase().includes('sow') || (s.category || '').toLowerCase().includes('review');
                         var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
                         var timeLabel = isDayOff 
                             ? 'Day Off' 
                             : (sTime 
                                 ? (sTime + ' WIB') 
                                 : (self.isCommercial 
-                                    ? (isPoc ? 'PoC & Demo' : 'Meeting') 
-                                    : (isTaskCat ? 'Kegiatan' : (isPoc ? 'PoC/Demo' : (s.category || 'Jadwal')))));
+                                    ? (isPoc ? 'PoC & Demo' : (isPm ? 'Kunjungan PM' : 'Meeting')) 
+                                    : (isPm ? 'Kunjungan PM' : (isTaskCat ? 'Kegiatan' : (isPoc ? 'PoC/Demo' : (s.category || 'Jadwal'))))));
                         var eventType;
                         var eventColor;
                         if (self.isArchitect) {
-                            eventType = isDayOff ? 'day_off' : (isPoc ? 'poc' : (isMeet ? 'meeting' : (isDesign ? 'design' : 'schedule')));
-                            eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isDesign ? '#2563EB' : '#2563EB')));
+                            eventType = isDayOff ? 'day_off' : (isPm ? 'pm' : (isPoc ? 'poc' : (isMeet ? 'meeting' : (isDesign ? 'design' : 'schedule'))));
+                            eventColor = isDayOff ? '#64748B' : (isPm ? '#10B981' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isDesign ? '#2563EB' : '#2563EB'))));
                         } else if (self.isCommercial) {
-                            eventType = isPoc ? 'poc' : 'meeting';
-                            eventColor = isPoc ? '#10B981' : '#C81E2C';
+                            eventType = isPoc ? 'poc' : (isPm ? 'pm' : 'meeting');
+                            eventColor = isPoc ? '#10B981' : (isPm ? '#10B981' : '#C81E2C');
                         } else {
-                            eventType = isDayOff ? 'day_off' : (isPoc ? 'poc' : (isTaskCat ? 'task' : 'meeting'));
-                            eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isTaskCat ? '#C81E2C' : '#2563EB'));
+                            // Managed Service & Tim Operasional:
+                            // PM = Hijau (#10B981), Meeting = Biru (#2563EB), Activity lainnya = Merah (#C81E2C)
+                            if (isDayOff) {
+                                eventType = 'day_off';
+                                eventColor = '#64748B';
+                            } else if (isPm) {
+                                eventType = 'pm';
+                                eventColor = '#10B981';
+                            } else if (isMeetingCat) {
+                                eventType = 'meeting';
+                                eventColor = '#2563EB';
+                            } else {
+                                eventType = 'task';
+                                eventColor = '#C81E2C';
+                            }
                         }
                         
                         // Cegah duplikasi agenda yang sama persis di tanggal yang sama
@@ -3122,12 +3179,13 @@
 
                         var tooltipPrefix = self.isCommercial
                             ? (isPoc ? 'PoC & Demo: ' : 'Jadwal Meeting: ')
-                            : (isDayOff ? 'Day Off: ' : (isTaskCat ? 'Task/Kegiatan: ' : 'Jadwal: '));
+                            : (isDayOff ? 'Day Off: ' : (isPm ? 'Kegiatan PM: ' : (isMeetingCat ? 'Jadwal Meeting: ' : 'Task/Kegiatan: ')));
 
                         map[d].push({
                             _uid: 'sch-' + s.id,
                             _type: eventType,
                             _color: eventColor,
+                            _isTask: false,
                             _displayTitle: (s.title || '').replace(/^(PM\s+)+/i, 'PM '),
                             _timeLabel: timeLabel,
                             _tooltip: tooltipPrefix + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + (isTaskCompleted ? ' - (Selesai)' : ' - Klik untuk edit'),
@@ -3151,7 +3209,7 @@
                         });
                     });
 
-                    // --- Deadline Task (MERAH) - Hanya untuk Tim Operasional / Lead Engineer ---
+                    // --- Deadline Task (MERAH / HIJAU PM / BIRU MEETING) - Hanya untuk Tim Operasional / Lead Engineer ---
                     if (!self.isCommercial) {
                         var filteredTasks = this.engineerFilter
                             ? this.tasks.filter(function(t) { 
@@ -3184,9 +3242,21 @@
                                         ? String(t.deadline).split(' ')[1].substring(0, 5) 
                                         : ''));
 
-                            var isPm = !!t.is_pm;
+                            // Klasifikasi Task: PM (Hijau), Meeting (Biru), Task/Activity lainnya (Merah)
+                            var isPm = !!t.is_pm || 
+                                       /\bpm\b/i.test(t.title || '') || 
+                                       (t.title || '').toLowerCase().includes('pemeliharaan') || 
+                                       (t.title || '').toLowerCase().includes('preventive');
+                            var isMeetingTask = !isPm && (
+                                (t.title || '').toLowerCase().includes('meeting') || 
+                                (t.title || '').toLowerCase().includes('rapat') || 
+                                (t.title || '').toLowerCase().includes('kick off')
+                            );
+                            var taskType = isPm ? 'pm' : (isMeetingTask ? 'meeting' : 'task');
+                            var taskColor = isPm ? '#10B981' : (isMeetingTask ? '#2563EB' : '#C81E2C');
+
                             var creatorName = (t.creator && t.creator.name) ? t.creator.name : (t.creator_name || '');
-                            var taskTimeLabel = dTime ? (dTime + ' WIB') : (isPm ? 'Kunjungan PM' : 'Kegiatan');
+                            var taskTimeLabel = dTime ? (dTime + ' WIB') : (isPm ? 'Kunjungan PM' : (isMeetingTask ? 'Meeting' : 'Kegiatan'));
                             var taskEngLabel = '';
                             if (t.engineers && t.engineers.length > 0) {
                                 taskEngLabel = t.engineers.map(function(e) { 
@@ -3203,12 +3273,13 @@
                                 taskEngLabel = t.project.name;
                             }
 
-                            var tooltipText = (isPm ? 'Kegiatan PM: ' : 'Jadwal Kegiatan: ') + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (creatorName ? '\nInisiator: ' + creatorName : '') + (taskEngLabel ? '\nTeknisi: ' + taskEngLabel : '');
+                            var tooltipText = (isPm ? 'Kegiatan PM: ' : (isMeetingTask ? 'Jadwal Meeting: ' : 'Jadwal Kegiatan: ')) + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (creatorName ? '\nInisiator: ' + creatorName : '') + (taskEngLabel ? '\nTeknisi: ' + taskEngLabel : '');
 
                             map[d].push({
                                 _uid: 'task-' + t.id,
-                                _type: 'task',
-                                _color: '#C81E2C',
+                                _type: taskType,
+                                _color: taskColor,
+                                _isTask: true,
                                 _displayTitle: (t.title || '').replace(/^(PM\s+)+/i, 'PM '),
                                 _timeLabel: taskTimeLabel,
                                 _tooltip: tooltipText,

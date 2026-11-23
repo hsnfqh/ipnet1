@@ -536,14 +536,14 @@
                     {{-- POPUP MODAL DETAIL PROYEK SAAT BLOK DIKLIK (SESUAI GAMBAR 3) --}}
                     <div x-show="selectedProject !== null" 
                          x-cloak
-                         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs transition-opacity"
+                         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity overflow-y-auto"
                          @click.self="selectedProject = null"
                          @keydown.escape.window="selectedProject = null">
                         
-                        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full p-5 sm:p-6 transform transition-all anim-scale-up"
+                        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full max-h-[90vh] flex flex-col transform transition-all anim-scale-up overflow-hidden my-auto"
                              @click.stop>
                             {{-- Header Popup --}}
-                            <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+                            <div class="flex items-start justify-between gap-3 p-5 sm:p-6 pb-3 border-b border-slate-100 shrink-0 bg-white">
                                 <div>
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10.5px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200 uppercase tracking-wider mb-1.5">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
@@ -559,7 +559,7 @@
                             </div>
 
                             {{-- Info Body --}}
-                            <div class="py-4 space-y-3 text-xs" x-if="selectedProject">
+                            <div class="p-5 sm:p-6 py-4 space-y-3.5 text-xs overflow-y-auto flex-1 overscroll-contain" x-if="selectedProject">
                                 <div class="grid grid-cols-2 gap-3 bg-slate-50/80 p-3.5 rounded-xl border border-slate-100">
                                     <div>
                                         <span class="text-[10.5px] uppercase font-bold text-slate-400 block mb-0.5">Pelanggan / Klien</span>
@@ -619,14 +619,14 @@
                             </div>
 
                             {{-- Actions Footer --}}
-                            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                            <div class="p-4 sm:p-5 pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5 bg-slate-50/70 shrink-0">
                                 <button type="button" 
                                         @click="selectedProject = null" 
                                         class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
                                     Tutup
                                 </button>
                                 <a :href="selectedProject ? '/managed-service/projects/' + selectedProject.id + '?tab=sla' : '#'" 
-                                   class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#8F0A0D] border border-red-200 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer">
+                                   class="px-3.5 py-2 rounded-xl bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs">
                                     <span>Perhitungan SLA</span>
                                 </a>
                                 <a :href="selectedProject ? '/managed-service/projects/' + selectedProject.id + '#lokasi-site' : '#'" 
