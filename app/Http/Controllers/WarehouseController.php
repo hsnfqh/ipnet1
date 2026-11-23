@@ -266,7 +266,9 @@ class WarehouseController extends Controller
                   ->orWhere('po_number', 'like', "%{$search}%")
                   ->orWhere('contract_number', 'like', "%{$search}%")
                   ->orWhere('poc_customer_name', 'like', "%{$search}%")
-                  ->orWhere('disti_name', 'like', "%{$search}%");
+                  ->orWhere('disti_name', 'like', "%{$search}%")
+                  ->orWhere('customer_sales_name', 'like', "%{$search}%")
+                  ->orWhere('poc_sales_name', 'like', "%{$search}%");
             });
         }
 
@@ -276,6 +278,26 @@ class WarehouseController extends Controller
 
         if ($request->filled('category') && $request->category !== 'Semua') {
             $query->where('category', $request->category);
+        }
+
+        if ($request->filled('sales_name') && $request->sales_name !== 'Semua') {
+            if ($request->sales_name === 'none' || $request->sales_name === 'Tanpa AM') {
+                $query->where(function ($q) {
+                    $q->whereNull('customer_sales_name')
+                      ->orWhere('customer_sales_name', '')
+                      ->orWhere('customer_sales_name', '-');
+                })->where(function ($q) {
+                    $q->whereNull('poc_sales_name')
+                      ->orWhere('poc_sales_name', '')
+                      ->orWhere('poc_sales_name', '-');
+                });
+            } else {
+                $sales = $request->sales_name;
+                $query->where(function ($q) use ($sales) {
+                    $q->where('customer_sales_name', $sales)
+                      ->orWhere('poc_sales_name', $sales);
+                });
+            }
         }
 
         if ($request->filled('status') && $request->status !== 'Semua') {
@@ -322,6 +344,18 @@ class WarehouseController extends Controller
             if (!in_array($cAm, $existingSalesNames)) {
                 $salesUsers->push((object)['id' => null, 'name' => $cAm]);
                 $existingSalesNames[] = $cAm;
+            }
+        }
+        $customPocAmNames = WarehouseItem::whereNotNull('poc_sales_name')
+            ->where('poc_sales_name', '!=', '')
+            ->whereNotIn('poc_sales_name', ['Others', 'Lainnya', '-'])
+            ->distinct()
+            ->pluck('poc_sales_name')
+            ->toArray();
+        foreach ($customPocAmNames as $pAm) {
+            if (!in_array($pAm, $existingSalesNames)) {
+                $salesUsers->push((object)['id' => null, 'name' => $pAm]);
+                $existingSalesNames[] = $pAm;
             }
         }
 

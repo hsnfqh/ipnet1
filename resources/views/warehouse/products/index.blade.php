@@ -132,9 +132,9 @@
             <!-- FILTER & SEARCH BAR                                          -->
             <!-- ============================================================ -->
             <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2">
-                <form method="GET" action="{{ route('warehouse.products.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                <form method="GET" action="{{ route('warehouse.products.index') }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
                     <!-- Search input -->
-                    <div class="lg:col-span-2">
+                    <div class="sm:col-span-2 md:col-span-3 lg:col-span-2 xl:col-span-2">
                         <label class="block text-[11px] font-semibold text-[#475569] uppercase tracking-wider mb-1">Pencarian Cepat</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#94A3B8]">
@@ -143,7 +143,7 @@
                             <input type="text" 
                                    name="search" 
                                    value="{{ request('search') }}" 
-                                   placeholder="Cari S/N, P/N, Merk, Model, No PO..."
+                                   placeholder="Cari S/N, P/N, Merk, Model, No PO, AM..."
                                    class="w-full pl-9 pr-3 py-2 text-[12.5px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:bg-white focus:outline-none focus:border-[#8F0A0D] text-[#1E293B]">
                         </div>
                     </div>
@@ -166,6 +166,23 @@
                             <option value="Semua">Semua Kategori</option>
                             @foreach($categories as $c)
                                 <option value="{{ $c }}" {{ request('category') === $c ? 'selected' : '' }}>{{ $c }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Filter AM / Sales (Kepemilikan Perangkat) -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-[#475569] uppercase tracking-wider mb-1 flex items-center justify-between">
+                            <span>AM / Sales</span>
+                            <span class="text-[9.5px] text-blue-600 font-bold lowercase">pemilik</span>
+                        </label>
+                        <select name="sales_name" class="w-full py-2 px-3 text-[12.5px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:bg-white focus:outline-none focus:border-[#8F0A0D] text-[#1E293B]">
+                            <option value="Semua">Semua AM / Sales</option>
+                            <option value="Tanpa AM" {{ request('sales_name') === 'Tanpa AM' ? 'selected' : '' }}>-- Tanpa AM / Sales --</option>
+                            @foreach($salesUsers as $su)
+                                @if(!empty($su->name))
+                                    <option value="{{ $su->name }}" {{ request('sales_name') === $su->name ? 'selected' : '' }}>{{ $su->name }}</option>
+                                @endif
                             @endforeach
                         </select>
                     </div>
@@ -199,7 +216,16 @@
             <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
                 <div class="p-4 sm:p-5 border-b border-[#E2E8F0] flex items-center justify-between">
                     <div>
-                        <h3 class="text-[15px] font-bold text-[#1E293B]">Daftar Master Perangkat &amp; Produk Inventaris</h3>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Daftar Master Perangkat &amp; Produk Inventaris</h3>
+                            @if(request('sales_name') && request('sales_name') !== 'Semua')
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                    <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    Kepemilikan AM: <strong class="text-blue-900">{{ request('sales_name') }}</strong>
+                                    <a href="{{ request()->fullUrlWithQuery(['sales_name' => 'Semua']) }}" class="text-blue-500 hover:text-blue-800 ml-1 font-bold text-xs" title="Hapus Filter AM">&times;</a>
+                                </span>
+                            @endif
+                        </div>
                         <p class="text-[12px] text-[#64748B]">Total Kuantitas: <span class="font-bold text-[#8F0A0D]">{{ $items->total() }} Unit</span> perangkat fisik di inventaris</p>
                     </div>
                 </div>
@@ -312,6 +338,19 @@
                                                 @elseif($item->loan_source_type === 'ipnet')
                                                     <p class="text-[11px] text-slate-500">{{ $item->ipnet_work_unit ?: 'IPNET' }} &bull; {{ $item->ipnet_pic_name ?: '-' }}</p>
                                                 @endif
+                                            </div>
+                                        @endif
+
+                                        {{-- Tampilkan AM / Sales yang Memiliki/Menangani Perangkat --}}
+                                        @php
+                                            $itemAm = $item->customer_sales_name ?: ($item->poc_sales_name ?: null);
+                                        @endphp
+                                        @if($itemAm)
+                                            <div class="mt-1.5">
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/70" title="Account Manager / Sales Pemilik Perangkat">
+                                                    <svg class="w-2.5 h-2.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                    AM: {{ $itemAm }}
+                                                </span>
                                             </div>
                                         @endif
                                     </td>
