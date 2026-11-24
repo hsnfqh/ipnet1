@@ -724,11 +724,11 @@
                                 </tr>
                                 <tr class="bg-slate-50/70">
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Customer's PIC</td>
-                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $project->customer_pic_technical ?: ($project->customer_pic_business ?: ($handoverData['customer_pic'] ?? '-')) }}</td>
+                                    <td class="py-2 px-4 font-medium text-slate-900">{{ $customerPic ?? ($project->customer_pic_technical ?: ($project->customer_pic_business ?: ($handoverData['customer_pic'] ?? '-'))) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Contract/SPK/PO Number</td>
-                                    <td class="py-2 px-4 font-mono font-bold text-slate-900">{{ $project->po_spk_number ?: ($handoverData['contract_spk_number'] ?? 'EP-01KYREAFEJH89MWPVDQ6W20NXV') }}</td>
+                                    <td class="py-2 px-4 font-mono font-bold text-slate-900">{{ $contractSpkNumber ?? ($project->po_spk_number ?: ($handoverData['contract_spk_number'] ?? 'EP-01KYREAFEJH89MWPVDQ6W20NXV')) }}</td>
                                 </tr>
                                 <tr class="bg-slate-50/70">
                                     <td class="py-2 px-4 font-bold text-slate-800 border-r border-slate-200">Start Date ( by Contract/SPK/PO)</td>

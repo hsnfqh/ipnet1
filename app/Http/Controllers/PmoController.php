@@ -585,7 +585,8 @@ class PmoController extends Controller
 
         $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
         $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
-        $docNumber = 'IPNET/PMO-RPT/' . now()->format('Y') . '/' . $romanMonth . '/PRJ-' . str_pad($project->id, 4, '0', STR_PAD_LEFT);
+        $year2 = now()->format('y');
+        $docNumber = 'IPNET/PMO-RPT/' . $project->id . '/' . $romanMonth . '-' . $year2;
 
         $data['logoBase64'] = $logoBase64;
         $data['docNumber']  = $docNumber;
@@ -893,6 +894,21 @@ class PmoController extends Controller
         $leadNotes = $handoverData['team_delegation_notes'] ?? null;
         $teamDelegatedAt = $handoverData['team_delegated_at'] ?? null;
         $teamDelegatedByName = $handoverData['team_delegated_by_name'] ?? null;
+
+        // Nomor SPK / Kontrak / PO Terpusat untuk Dashboard & PDF Export
+        $contractSpkNumber = $project->po_spk_number 
+            ?: ($project->contract_number 
+            ?: ($project->po_number 
+            ?: ($handoverData['contract_spk_number'] 
+            ?? ($handoverData['spk_number'] 
+            ?? ($project->handover_data['contract_spk_number'] 
+            ?? ($project->handover_data['spk_number'] 
+            ?? 'EP-01KYREAFEJH89MWPVDQ6W20NXV'))))));
+
+        $customerPic = $project->customer_pic_technical 
+            ?: ($project->customer_pic_business 
+            ?: ($handoverData['customer_pic'] 
+            ?? ($project->handover_data['customer_pic'] ?? '-')));
 
         // Daftar kandidat engineer untuk penugasan tim oleh Lead (Disesuaikan dengan Tim Proyek, misal: hanya Tim Network)
         $divId = $project->division_id;
@@ -1827,7 +1843,9 @@ class PmoController extends Controller
             'actualCumulativePerWeek',
             'weekReportedFlags',
             'allPmoProjects',
-            'scheduleType'
+            'scheduleType',
+            'contractSpkNumber',
+            'customerPic'
         );
     }
 

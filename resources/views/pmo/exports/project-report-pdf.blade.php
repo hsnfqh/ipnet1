@@ -206,9 +206,14 @@
         </tr>
         <tr>
             <td class="label-cell" style="width: 18%;">Klien / Customer</td>
-            <td style="width: 32%;">{{ $project->client ?: '-' }}</td>
+            <td style="width: 32%;">
+                <span class="font-bold" style="color: #0F172A;">{{ $project->client ?: '-' }}</span>
+                @if(!empty($customerPic) && $customerPic !== '-')
+                    <div style="font-size: 6.5pt; color: #64748B; margin-top: 2px;">PIC: {{ $customerPic }}</div>
+                @endif
+            </td>
             <td class="label-cell" style="width: 18%;">No. SPK / Kontrak / PO</td>
-            <td style="width: 32%;">{{ $project->po_number ?: ($project->contract_number ?: ($project->handover_data['spk_number'] ?? '-')) }}</td>
+            <td style="width: 32%; font-weight: bold; color: #0F172A;">{{ $contractSpkNumber ?? ($project->po_spk_number ?: ($project->contract_number ?: ($project->po_number ?: ($project->handover_data['contract_spk_number'] ?? ($project->handover_data['spk_number'] ?? 'EP-01KYREAFEJH89MWPVDQ6W20NXV'))))) }}</td>
         </tr>
         <tr>
             <td class="label-cell">Periode Pelaksanaan</td>
