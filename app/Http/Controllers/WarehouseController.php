@@ -139,100 +139,128 @@ class WarehouseController extends Controller
     protected function ensureDefaultWarehouseItems(): void
     {
         try {
-            if (WarehouseItem::count() === 0) {
-                $items = [
-                    [
-                        'item_code'        => 'WH-2026-0001',
-                        'name'             => 'MX240',
-                        'brand'            => 'Juniper Networks',
-                        'item_type'        => 'Router',
-                        'component_type'   => 'Perangkat Utuh',
-                        'serial_number'    => 'JN11CD60CAFC',
-                        'product_number'   => 'MX240BASE-AC-HIGH',
-                        'po_number'        => '079/2010',
-                        'category'         => 'Backup / Spare',
-                        'location_type'    => 'Gudang IPNET',
-                        'warehouse_rack'   => 'Rak Utama A-01',
-                        'status'           => 'Tersedia',
-                        'device_status'    => 'Perlu dilakukan Pengecekan',
-                        'image'            => 'warehouse/devices/mx240_router_chassis.jpg',
-                        'notes'            => 'Universal Edge Router 3D chassis Juniper MX240 AC High Power.',
-                    ],
-                    [
-                        'item_code'        => 'WH-2026-0002',
-                        'name'             => 'EX8200',
-                        'brand'            => 'Juniper Networks',
-                        'item_type'        => 'Switch',
-                        'component_type'   => 'Modul / Card',
-                        'serial_number'    => 'BD1711222780',
-                        'product_number'   => 'EX8200-48T',
-                        'po_number'        => '059/2011',
-                        'category'         => 'Backup / Spare',
-                        'location_type'    => 'Gudang IPNET',
-                        'warehouse_rack'   => 'Rak Utama A-01',
-                        'status'           => 'Tersedia',
-                        'device_status'    => 'Aktif',
-                        'image'            => 'warehouse/devices/ex8200_switch_card.jpg',
-                        'notes'            => 'Line card 48-port 10/100/1000BASE-T RJ-45 untuk chassis Juniper EX8200.',
-                    ],
-                    [
-                        'item_code'        => 'WH-2026-0003',
-                        'name'             => 'EX8200',
-                        'brand'            => 'Juniper Networks',
-                        'item_type'        => 'Switch',
-                        'component_type'   => 'Modul / Card',
-                        'serial_number'    => 'BD1711192676',
-                        'product_number'   => 'EX8200-48T',
-                        'po_number'        => '059/2011',
-                        'category'         => 'Backup / Spare',
-                        'location_type'    => 'Gudang IPNET',
-                        'warehouse_rack'   => 'Rak Utama A-01',
-                        'status'           => 'Tersedia',
-                        'device_status'    => 'Perlu dilakukan Pengecekan',
-                        'image'            => 'warehouse/devices/ex8200_switch_card.jpg',
-                        'notes'            => 'Line card 48-port 10/100/1000BASE-T RJ-45 untuk chassis Juniper EX8200. Perlu dilakukan pengecekan port.',
-                    ],
-                    [
-                        'item_code'        => 'WH-2026-0004',
-                        'name'             => 'EX8200',
-                        'brand'            => 'Juniper Networks',
-                        'item_type'        => 'Switch',
-                        'component_type'   => 'Modul / Card',
-                        'serial_number'    => 'BD1710381623',
-                        'product_number'   => 'EX8200-48T',
-                        'po_number'        => '059/2011',
-                        'category'         => 'Backup / Spare',
-                        'location_type'    => 'Gudang IPNET',
-                        'warehouse_rack'   => 'Rak Utama A-01',
-                        'status'           => 'Tersedia',
-                        'device_status'    => 'Aktif',
-                        'image'            => 'warehouse/devices/ex8200_switch_card.jpg',
-                        'notes'            => 'Line card 48-port 10/100/1000BASE-T RJ-45 untuk chassis Juniper EX8200.',
-                    ],
-                    [
-                        'item_code'        => 'WH-2026-0005',
-                        'name'             => 'EX8200',
-                        'brand'            => 'Juniper Networks',
-                        'item_type'        => 'Switch',
-                        'component_type'   => 'Modul / Card',
-                        'serial_number'    => 'BB1710452964',
-                        'product_number'   => 'EX8200-8XS',
-                        'po_number'        => '059/2011',
-                        'category'         => 'Stock',
-                        'location_type'    => 'Gudang IPNET',
-                        'warehouse_rack'   => 'Rak Utama A-01',
-                        'status'           => 'Tersedia',
-                        'device_status'    => 'Aktif',
-                        'image'            => 'warehouse/devices/ex8200_switch_card.jpg',
-                        'notes'            => 'Line card 8-port 10GbE SFP+ untuk chassis Juniper EX8200.',
-                    ],
-                ];
+            $defaultItems = [
+                [
+                    'item_code'           => 'WH-2026-0001',
+                    'name'                => 'MX240',
+                    'brand'               => 'Juniper Networks',
+                    'item_type'           => 'Router',
+                    'component_type'      => 'Perangkat Utuh',
+                    'serial_number'       => 'JN11CD60CAFC',
+                    'product_number'      => 'MX240BASE-AC-HIGH',
+                    'po_number'           => '079/2010',
+                    'category'            => 'Backup / Spare',
+                    'customer_sales_name' => 'Raiza Maindoka',
+                    'poc_sales_name'      => 'Raiza Maindoka',
+                    'location_type'       => 'Gudang IPNET',
+                    'warehouse_rack'      => 'Rak Utama A-01',
+                    'status'              => 'Tersedia',
+                    'device_status'       => 'Perlu dilakukan Pengecekan',
+                    'image'               => 'warehouse/devices/mx240_router_chassis.jpg',
+                    'notes'               => 'Universal Edge Router 3D chassis Juniper MX240 AC High Power.',
+                ],
+                [
+                    'item_code'           => 'WH-2026-0002',
+                    'name'                => 'EX8200',
+                    'brand'               => 'Juniper Networks',
+                    'item_type'           => 'Switch',
+                    'component_type'      => 'Modul / Card',
+                    'serial_number'       => 'BD1711222780',
+                    'product_number'      => 'EX8200-48T',
+                    'po_number'           => '059/2011',
+                    'category'            => 'Backup / Spare',
+                    'customer_sales_name' => 'Raiza Maindoka',
+                    'poc_sales_name'      => 'Raiza Maindoka',
+                    'location_type'       => 'Gudang IPNET',
+                    'warehouse_rack'      => 'Rak Utama A-01',
+                    'status'              => 'Tersedia',
+                    'device_status'       => 'Aktif',
+                    'image'               => 'warehouse/devices/ex8200_switch_card.jpg',
+                    'notes'               => 'Line card 48-port 10/100/1000BASE-T RJ-45 untuk chassis Juniper EX8200.',
+                ],
+                [
+                    'item_code'           => 'WH-2026-0003',
+                    'name'                => 'EX8200',
+                    'brand'               => 'Juniper Networks',
+                    'item_type'           => 'Switch',
+                    'component_type'      => 'Modul / Card',
+                    'serial_number'       => 'BD1711192676',
+                    'product_number'      => 'EX8200-48T',
+                    'po_number'           => '059/2011',
+                    'category'            => 'Backup / Spare',
+                    'customer_sales_name' => 'Raiza Maindoka',
+                    'poc_sales_name'      => 'Raiza Maindoka',
+                    'location_type'       => 'Gudang IPNET',
+                    'warehouse_rack'      => 'Rak Utama A-01',
+                    'status'              => 'Tersedia',
+                    'device_status'       => 'Perlu dilakukan Pengecekan',
+                    'image'               => 'warehouse/devices/ex8200_switch_card.jpg',
+                    'notes'               => 'Line card 48-port 10/100/1000BASE-T RJ-45 untuk chassis Juniper EX8200. Perlu dilakukan pengecekan port.',
+                ],
+                [
+                    'item_code'           => 'WH-2026-0004',
+                    'name'                => 'EX8200',
+                    'brand'               => 'Juniper Networks',
+                    'item_type'           => 'Switch',
+                    'component_type'      => 'Modul / Card',
+                    'serial_number'       => 'BD1710381623',
+                    'product_number'      => 'EX8200-48T',
+                    'po_number'           => '059/2011',
+                    'category'            => 'Backup / Spare',
+                    'customer_sales_name' => 'Nabylla Berlianita',
+                    'poc_sales_name'      => 'Nabylla Berlianita',
+                    'location_type'       => 'Gudang IPNET',
+                    'warehouse_rack'      => 'Rak Utama A-01',
+                    'status'              => 'Tersedia',
+                    'device_status'       => 'Aktif',
+                    'image'               => 'warehouse/devices/ex8200_switch_card.jpg',
+                    'notes'               => 'Line card 48-port 10/100/1000BASE-T RJ-45 untuk chassis Juniper EX8200.',
+                ],
+                [
+                    'item_code'           => 'WH-2026-0005',
+                    'name'                => 'EX8200',
+                    'brand'               => 'Juniper Networks',
+                    'item_type'           => 'Switch',
+                    'component_type'      => 'Modul / Card',
+                    'serial_number'       => 'BB1710452964',
+                    'product_number'      => 'EX8200-8XS',
+                    'po_number'           => '059/2011',
+                    'category'            => 'Stock',
+                    'customer_sales_name' => 'Raiza Maindoka',
+                    'poc_sales_name'      => 'Raiza Maindoka',
+                    'location_type'       => 'Gudang IPNET',
+                    'warehouse_rack'      => 'Rak Utama A-01',
+                    'status'              => 'Tersedia',
+                    'device_status'       => 'Aktif',
+                    'image'               => 'warehouse/devices/ex8200_switch_card.jpg',
+                    'notes'               => 'Line card 8-port 10GbE SFP+ untuk chassis Juniper EX8200.',
+                ],
+            ];
 
-                foreach ($items as $itemData) {
-                    WarehouseItem::firstOrCreate(
-                        ['item_code' => $itemData['item_code']],
-                        $itemData
-                    );
+            foreach ($defaultItems as $itemData) {
+                $existing = WarehouseItem::where('item_code', $itemData['item_code'])
+                    ->orWhere('serial_number', $itemData['serial_number'])
+                    ->first();
+
+                if (!$existing) {
+                    WarehouseItem::create($itemData);
+                } else {
+                    $updates = [];
+                    if (empty($existing->customer_sales_name) || in_array($existing->customer_sales_name, ['-', 'Others', 'Lainnya'])) {
+                        $updates['customer_sales_name'] = $itemData['customer_sales_name'];
+                    }
+                    if (empty($existing->poc_sales_name) || in_array($existing->poc_sales_name, ['-', 'Others', 'Lainnya'])) {
+                        $updates['poc_sales_name'] = $itemData['poc_sales_name'];
+                    }
+                    if (empty($existing->image)) {
+                        $updates['image'] = $itemData['image'];
+                    }
+                    if (empty($existing->device_status)) {
+                        $updates['device_status'] = $itemData['device_status'];
+                    }
+                    if (!empty($updates)) {
+                        $existing->update($updates);
+                    }
                 }
             }
 
@@ -392,11 +420,11 @@ class WarehouseController extends Controller
         }
 
         if ($request->filled('item_type') && $request->item_type !== 'Semua') {
-            $query->where('item_type', $request->item_type);
+            $query->where('item_type', 'like', '%' . trim($request->item_type) . '%');
         }
 
         if ($request->filled('category') && $request->category !== 'Semua') {
-            $query->where('category', $request->category);
+            $query->where('category', 'like', '%' . trim($request->category) . '%');
         }
 
         if ($request->filled('sales_name') && $request->sales_name !== 'Semua') {
@@ -411,20 +439,27 @@ class WarehouseController extends Controller
                       ->orWhere('poc_sales_name', '-');
                 });
             } else {
-                $sales = $request->sales_name;
-                $query->where(function ($q) use ($sales) {
+                $sales = trim($request->sales_name);
+                $firstName = explode(' ', $sales)[0] ?? '';
+                $query->where(function ($q) use ($sales, $firstName) {
                     $q->where('customer_sales_name', $sales)
-                      ->orWhere('poc_sales_name', $sales);
+                      ->orWhere('poc_sales_name', $sales)
+                      ->orWhere('customer_sales_name', 'like', "%{$sales}%")
+                      ->orWhere('poc_sales_name', 'like', "%{$sales}%");
+                    if (strlen($firstName) >= 3) {
+                        $q->orWhere('customer_sales_name', 'like', "%{$firstName}%")
+                          ->orWhere('poc_sales_name', 'like', "%{$firstName}%");
+                    }
                 });
             }
         }
 
         if ($request->filled('status') && $request->status !== 'Semua') {
-            $query->where('status', $request->status);
+            $query->where('status', 'like', '%' . trim($request->status) . '%');
         }
 
         if ($request->filled('location_type') && $request->location_type !== 'Semua') {
-            $query->where('location_type', $request->location_type);
+            $query->where('location_type', 'like', '%' . trim($request->location_type) . '%');
         }
 
         $items = $query->latest()->paginate(15)->withQueryString();
@@ -453,6 +488,16 @@ class WarehouseController extends Controller
             $salesUsers = User::where('status', 'Active')->orderBy('name')->get(['id', 'name']);
         }
         $existingSalesNames = $salesUsers->pluck('name')->toArray();
+
+        // Always ensure official AMs are available in the dropdown
+        $standardAms = ['Raiza Maindoka', 'Nabylla Berlianita'];
+        foreach ($standardAms as $stdAm) {
+            if (!in_array($stdAm, $existingSalesNames)) {
+                $salesUsers->push((object)['id' => null, 'name' => $stdAm]);
+                $existingSalesNames[] = $stdAm;
+            }
+        }
+
         $customAmNames = WarehouseItem::whereNotNull('customer_sales_name')
             ->where('customer_sales_name', '!=', '')
             ->whereNotIn('customer_sales_name', ['Others', 'Lainnya', '-'])
