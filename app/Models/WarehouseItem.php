@@ -62,7 +62,11 @@ class WarehouseItem extends Model
         if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://') || str_starts_with($this->image, '/storage/')) {
             return $this->image;
         }
-        return asset('storage/' . ltrim($this->image, '/'));
+        $relPath = ltrim($this->image, '/');
+        if (file_exists(public_path('images/' . $relPath))) {
+            return asset('images/' . $relPath);
+        }
+        return asset('storage/' . $relPath);
     }
 
     public static function getDeviceStatuses(): array
