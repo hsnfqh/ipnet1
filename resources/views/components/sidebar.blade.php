@@ -33,6 +33,7 @@
             ['key' => 'wh_po',            'label' => 'Purchase Order (PO)',   'route' => 'warehouse.purchase_orders.index'],
             ['key' => 'wh_do',            'label' => 'Delivery Order (DO)',   'route' => 'warehouse.delivery_orders.index'],
             ['key' => 'wh_stock_opname',  'label' => 'Stock Opname',          'route' => 'warehouse.stock_opname.index'],
+            ['key' => 'wh_denah',         'label' => 'Denah Gudang',          'route' => 'warehouse.denah.index'],
         ];
     } elseif ($isExecutiveOrGl) {
         $navItems = [
@@ -618,6 +619,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                         <rect x="3" y="3" width="18" height="18" rx="4" stroke-width="2" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 12l3 3 5-5" stroke-width="2" />
+                    </svg>
+                    @break
+                    @case('wh_denah')
+                    {{-- 10. Denah Gudang: Floor Plan Blueprint & Layout Map --}}
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                     </svg>
                     @break
                     @case('wh_do')

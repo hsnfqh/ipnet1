@@ -311,11 +311,6 @@
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200 shadow-2xs">
                                             1 Unit
                                         </span>
-                                        @if(isset($modelStockCounts[$item->name]) && $modelStockCounts[$item->name] > 1)
-                                            <div class="text-[10px] text-slate-400 font-medium mt-0.5" title="Total stok fisik model ini di gudang">
-                                                Total Model: {{ $modelStockCounts[$item->name] }} Unit
-                                            </div>
-                                        @endif
                                     </td>
 
                                     {{-- Kategori --}}

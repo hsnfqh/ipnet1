@@ -2387,7 +2387,10 @@ Route::middleware(['auth'])->prefix('warehouse')->name('warehouse.')->group(func
     Route::delete('/stock-opname/{so}', [\App\Http\Controllers\WarehouseController::class, 'destroyStockOpname'])->name('stock_opname.destroy');
     Route::post('/stock-opname/{so}/sync', [\App\Http\Controllers\WarehouseController::class, 'syncStockOpname'])->name('stock_opname.sync');
 
-    // 9. Delivery Order
+    // 9. Denah Gudang (Floor Plan & Layout Map)
+    Route::get('/denah', [\App\Http\Controllers\WarehouseController::class, 'denahGudang'])->name('denah.index');
+
+    // 10. Delivery Order
     Route::get('/delivery-orders', [\App\Http\Controllers\WarehouseController::class, 'deliveryOrders'])->name('delivery_orders.index');
     Route::post('/delivery-orders', [\App\Http\Controllers\WarehouseController::class, 'storeDeliveryOrder'])->name('delivery_orders.store');
     Route::put('/delivery-orders/{do}', [\App\Http\Controllers\WarehouseController::class, 'updateDeliveryOrder'])->name('delivery_orders.update');

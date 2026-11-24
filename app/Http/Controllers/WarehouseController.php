@@ -1554,7 +1554,123 @@ class WarehouseController extends Controller
     }
 
     // =========================================================================
-    // 9. DELIVERY ORDER (DO)
+    // 9. DENAH GUDANG (WAREHOUSE FLOOR PLAN & RACK ALLOCATION)
+    // =========================================================================
+    public function denahGudang(Request $request)
+    {
+        $this->ensureTableReady();
+        $metrics = $this->getMetrics();
+
+        // Data alokasi rak dan zona penyimpanan sesuai cetak biru resmi gudang
+        $racks = [
+            [
+                'code'        => 'Rack 1',
+                'name'        => 'Rak 1 (Anita)',
+                'pic'         => 'Anita',
+                'role'        => 'PIC Rak / AM',
+                'category'    => 'Modul & Komponen',
+                'color'       => 'rose',
+                'position'    => 'Sisi Kiri dekat Kardus Susun',
+                'description' => 'Penyimpanan modul antarmuka, spare parts, dan perangkat inventaris Anita.',
+            ],
+            [
+                'code'        => 'Rack 2',
+                'name'        => 'Rak 2 (Anton & Telco)',
+                'pic'         => 'Anton, Telco',
+                'role'        => 'PIC Rak / Tim Telco',
+                'category'    => 'Kabel & Patch Cord / Telco',
+                'color'       => 'blue',
+                'position'    => 'Deret Bawah Tengah',
+                'description' => 'Penyimpanan kabel FO, patch cord, roll kabel UTP, dan kelengkapan Telco.',
+            ],
+            [
+                'code'        => 'Rack 3',
+                'name'        => 'Rak 3 (Raiza, Telco, IPNET 1)',
+                'pic'         => 'Raiza, Telco, IPNET 1',
+                'role'        => 'Account Manager / Telco / Ops',
+                'category'    => 'Switch & Transceiver SFP',
+                'color'       => 'emerald',
+                'position'    => 'Sisi Kanan Paling Ujung',
+                'description' => 'Unit switch access, modul transceiver optik, dan material integrasi proyek.',
+            ],
+            [
+                'code'        => 'Rack 4',
+                'name'        => 'Rak 4 (Raiza)',
+                'pic'         => 'Raiza Maindoka',
+                'role'        => 'Account Manager',
+                'category'    => 'Switch Distribution & Line Card',
+                'color'       => 'amber',
+                'position'    => 'Blok Tengah Depan (Lorong 90cm)',
+                'description' => 'Perangkat Switch Juniper EX8200, Line Card, dan Router MX240 milik AM Raiza.',
+            ],
+            [
+                'code'        => 'Rack 5',
+                'name'        => 'Rak 5 (Telco)',
+                'pic'         => 'Telco',
+                'role'        => 'Divisi Telco',
+                'category'    => 'Transmisi Gelombang & Radio Link',
+                'color'       => 'purple',
+                'position'    => 'Blok Tengah Belakang (Lorong 60cm)',
+                'description' => 'Perangkat transmisi wireless, microwave, switch telco, dan modem BTS.',
+            ],
+            [
+                'code'        => 'Rack 6',
+                'name'        => 'Rak 6 (Widodo)',
+                'pic'         => 'Widodo',
+                'role'        => 'PIC Rak / Technical Support',
+                'category'    => 'Server & Backup Rackmount',
+                'color'       => 'indigo',
+                'position'    => 'Blok Kanan Depan (Lorong 60cm)',
+                'description' => 'Server rackmount, storage appliance, dan unit backup sistem.',
+            ],
+            [
+                'code'        => 'Rack 7',
+                'name'        => 'Rak 7 (Raiza & IPNET 1)',
+                'pic'         => 'Raiza, IPNET 1',
+                'role'        => 'AM & Tim Proyek Lapangan',
+                'category'    => 'Buffer Stock & Staging Project',
+                'color'       => 'teal',
+                'position'    => 'Blok Kanan Belakang (Lorong 90cm)',
+                'description' => 'Perangkat siap deploy implementasi proyek pelanggan & cadangan staging.',
+            ],
+        ];
+
+        $boxZones = [
+            [
+                'code'        => 'Kardus Pintu',
+                'name'        => 'Kardus Susun (Pintu Masuk Gudang)',
+                'pic'         => 'Calista, Raiza, Telco',
+                'description' => 'Susunan kardus kemasan resmi pabrik (Juniper, Cisco) dan unit baru tiba.',
+            ],
+            [
+                'code'        => 'Kardus Dinding',
+                'name'        => 'Kardus Susun (Dinding Atas)',
+                'pic'         => 'IPNET 1 & IPNET 2',
+                'description' => 'Kardus material terminasi, toolkit teknisi lapangan tim IPNET 1 & 2.',
+            ],
+            [
+                'code'        => 'Kardus Depan',
+                'name'        => 'Kardus Susun (Area 2.30m x 2.95m)',
+                'pic'         => 'Logistik Gudang',
+                'description' => 'Penyimpanan box material besar, accessories rackmount, dan kardus buffer.',
+            ],
+        ];
+
+        $officeZones = [
+            ['name' => 'Meja Admin 1', 'desc' => 'Stasiun kerja administrasi gudang & inventory tracking.'],
+            ['name' => 'Meja Admin 2', 'desc' => 'Stasiun kerja verifikasi PO & DO logistik keluar-masuk.'],
+            ['name' => 'Meja Admin 3', 'desc' => 'Stasiun kerja supervisor gudang & kontrol stock opname.'],
+            ['name' => 'Floor Marking Tape', 'desc' => 'Area staging & transit pergerakan barang (Safety aisle).'],
+        ];
+
+        // Fetch warehouse items for quick reference
+        $items = WarehouseItem::all();
+
+        return view('warehouse.denah', compact('metrics', 'racks', 'boxZones', 'officeZones', 'items'));
+    }
+
+    // =========================================================================
+    // 10. DELIVERY ORDER (DO)
     // =========================================================================
     public function deliveryOrders(Request $request)
     {
