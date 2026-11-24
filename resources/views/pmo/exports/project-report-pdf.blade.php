@@ -5,7 +5,7 @@
     <title>Laporan Pengendalian Proyek & Keuangan - {{ $project->name }}</title>
     <style>
         @page {
-            margin: 10mm 12mm 12mm 12mm;
+            margin: 10mm 12mm 18mm 12mm;
             size: a4 portrait;
         }
         * {
@@ -140,12 +140,15 @@
         .badge-danger  { background-color: #FEE2E2; color: #991B1B; border: 0.5px solid #991B1B; }
         .badge-info    { background-color: #E0E7FF; color: #3730A3; border: 0.5px solid #3730A3; }
 
-        /* ── Footer Dokumen ── */
+        /* ── Footer Dokumen Resmi (Fixed di Paling Bawah Setiap Halaman) ── */
         .doc-footer {
-            margin-top: 8px;
-            padding-top: 3px;
+            position: fixed;
+            bottom: -14mm;
+            left: 0;
+            right: 0;
+            height: 11mm;
             border-top: 1px solid #000000;
-            width: 100%;
+            padding-top: 3px;
         }
         .footer-table {
             width: 100%;
@@ -156,9 +159,9 @@
             border: none;
             padding: 0;
             vertical-align: middle;
-            font-size: 6pt;
+            font-size: 6.2pt;
             color: #334155;
-            line-height: 1.2;
+            line-height: 1.25;
         }
 
         /* ── Kotak Tanda Tangan ── */
@@ -170,6 +173,22 @@
     </style>
 </head>
 <body>
+
+    {{-- FOOTER DOKUMEN RESMI (Fixed di Paling Bawah Setiap Halaman) --}}
+    <div class="doc-footer">
+        <table class="footer-table">
+            <tr>
+                <td style="width: 48%;">
+                    <strong style="color: #000000;">PT IP Network Solusindo</strong> — Field System Management (FSM)<br>
+                    No. Dokumen: <strong style="color: #000000;">{{ $docNumber }}</strong>
+                </td>
+                <td style="width: 52%; text-align: right;">
+                    Dicetak pada: {{ $printedAt }} | Oleh: {{ $printedBy }}<br>
+                    <em>Laporan Resmi PMO: {{ $docSubtitle ?? 'S-Curve Progress & Financial Expenses' }}</em>
+                </td>
+            </tr>
+        </table>
+    </div>
 
     {{-- ══════════════════════════════════════════════════════════ --}}
     {{-- HALAMAN 1: IDENTITAS, S-CURVE & WBS DELIVERABLES SCHEDULE --}}
@@ -506,22 +525,6 @@
         </tbody>
     </table>
     @endif
-
-    {{-- FOOTER DOKUMEN RESMI --}}
-    <div class="doc-footer">
-        <table class="footer-table">
-            <tr>
-                <td style="width: 45%;">
-                    <strong>PT IP Network Solusindo</strong> — Field System Management (FSM)<br>
-                    No. Dokumen: <strong>{{ $docNumber }}</strong>
-                </td>
-                <td style="width: 55%; text-align: right;">
-                    Dicetak pada: {{ $printedAt }} | Oleh: {{ $printedBy }}<br>
-                    <em>Laporan Resmi PMO: {{ $docSubtitle ?? 'S-Curve Progress & Financial Expenses' }}</em>
-                </td>
-            </tr>
-        </table>
-    </div>
 
 </body>
 </html>
