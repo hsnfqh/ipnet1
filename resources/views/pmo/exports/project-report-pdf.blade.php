@@ -29,7 +29,7 @@
             border-collapse: collapse;
             border: none;
             margin-top: 0;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
         .doc-header-table td {
             border: none;
@@ -51,22 +51,22 @@
             text-transform: uppercase;
             letter-spacing: 0.3px;
             text-align: center;
-            margin-top: 1px;
+            margin-top: 2px;
         }
         .doc-intro {
             font-size: 6.8pt;
             color: #334155;
-            margin-top: 3px;
-            margin-bottom: 3px;
-            line-height: 1.2;
+            margin-top: 6px;
+            margin-bottom: 8px;
+            line-height: 1.35;
             text-align: justify;
         }
         .doc-header-line {
             width: 100%;
             height: 0;
             border-bottom: 1.5px solid #000000;
-            margin-top: 2px;
-            margin-bottom: 5px;
+            margin-top: 6px;
+            margin-bottom: 14px;
             clear: both;
         }
 
@@ -76,11 +76,11 @@
             font-weight: bold;
             color: #000000;
             text-transform: uppercase;
-            margin-top: 6px;
-            margin-bottom: 3px;
+            margin-top: 8px;
+            margin-bottom: 4px;
             letter-spacing: 0.2px;
             background-color: #F1F5F9;
-            padding: 2.5px 4px;
+            padding: 2.5px 5px;
             border-left: 3px solid #8F0A0D;
         }
 
