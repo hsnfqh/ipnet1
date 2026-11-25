@@ -858,6 +858,9 @@ class PmoController extends Controller
             || str_contains(strtolower($project->client ?? ''), 'ppat')
             || str_contains(strtolower($project->name), 'peremajaan router');
 
+        // Deklarasikan handoverData lebih awal agar $isManualPmo bisa dibaca dengan benar
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+
         $allPmoProjects = Project::whereNotIn('name', [
             'DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti', 'SLA aa', 'SLA a'
         ])
@@ -910,7 +913,6 @@ class PmoController extends Controller
         }
 
         // Data Penugasan Tim Teknis oleh Lead (Resource Allocation)
-        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $assignedEngineers = $handoverData['assigned_engineers'] ?? [];
         $leadNotes = $handoverData['team_delegation_notes'] ?? null;
         $teamDelegatedAt = $handoverData['team_delegated_at'] ?? null;
