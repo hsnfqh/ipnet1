@@ -70,25 +70,35 @@
             clear: both;
         }
 
+        /* ── Spasi Antar Point Section (A, B, C, D) ── */
+        .section-spacer {
+            height: 13px;
+            line-height: 13px;
+            font-size: 1px;
+            clear: both;
+        }
+
         /* ── Judul Section ── */
         .section-title {
             font-size: 7.8pt;
             font-weight: bold;
             color: #000000;
             text-transform: uppercase;
-            margin-top: 8px;
-            margin-bottom: 4px;
+            margin-top: 0;
+            margin-bottom: 6px;
             letter-spacing: 0.2px;
             background-color: #F1F5F9;
-            padding: 2.5px 5px;
+            padding: 3px 6px;
             border-left: 3px solid #8F0A0D;
+            clear: both;
         }
 
         /* ── Tabel Standar ── */
         .report-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 4px;
+            margin-top: 0;
+            margin-bottom: 6px;
             table-layout: fixed;
         }
         .report-table th {
@@ -266,6 +276,7 @@
     @endphp
 
     @if(!empty($showScurve))
+    <div class="section-spacer"></div>
     {{-- SECTION B: RINGKASAN PROGRESS & KURVA S --}}
     <div class="section-title">{{ chr($secAscii++) }}. KURVA S &amp; PROGRES KUMULATIF MINGGUAN (ACTUAL CUMULATIVE)</div>
     
@@ -345,6 +356,7 @@
     @endif
 
     @if(!empty($showWeekly))
+    <div class="section-spacer"></div>
     {{-- SECTION C: TABEL WBS DELIVERABLES SCHEDULE --}}
     <div class="section-title">{{ chr($secAscii++) }}. RINCIAN JADWAL KERJA &amp; BOBOT DELIVERABLE (WBS SCHEDULE)</div>
     <table class="report-table">
@@ -482,8 +494,10 @@
         </tr>
     </table>
 
+    <div class="section-spacer"></div>
+
     {{-- SECTION D2: TABEL RINCIAN PENGELUARAN --}}
-    <div class="section-title" style="margin-top: 4px;">{{ $expLetter }}.1 RINCIAN PENGELUARAN BIAYA PROYEK (EXPENSES LIST)</div>
+    <div class="section-title">{{ $expLetter }}.1 RINCIAN PENGELUARAN BIAYA PROYEK (EXPENSES LIST)</div>
     <table class="report-table">
         <thead>
             <tr>
