@@ -85,11 +85,15 @@
          customShowWeekly: true,
          customShowScurve: true,
          customShowExpenses: true,
+         customReportNo: {{ $nextExportNumber ?? 1 }},
          getCustomExportUrl() {
              let url = '{{ route('pmo.projects.export_pdf', $project->id) }}?type=custom';
              url += '&show_weekly=' + (this.customShowWeekly ? '1' : '0');
              url += '&show_scurve=' + (this.customShowScurve ? '1' : '0');
              url += '&show_expenses=' + (this.customShowExpenses ? '1' : '0');
+             if (this.customReportNo) {
+                 url += '&report_no=' + this.customReportNo;
+             }
              return url;
          },
          activeWeek: 1, 
@@ -1974,6 +1978,22 @@
                         <div class="text-[11px] text-slate-500 mt-0.5">Rekapitulasi anggaran nilai kontrak, sisa budget, dan daftar rincian pengeluaran biaya proyek.</div>
                     </div>
                 </label>
+
+                {{-- Pengaturan Nomor Edisi Laporan (Urutan Export) --}}
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 mt-2">
+                    <label class="block text-xs font-bold text-slate-800 mb-1">
+                        Nomor Edisi Laporan PDF:
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono font-semibold text-slate-500">IPNET/PMO-RPT/</span>
+                        <input type="number" 
+                               min="1" 
+                               x-model="customReportNo" 
+                               class="w-20 px-2.5 py-1 text-xs font-bold border border-slate-300 rounded-lg text-center font-mono focus:border-[#8F0A0D] outline-none bg-white">
+                        <span class="text-xs font-mono font-semibold text-slate-500">/XI/{{ now()->format('y') }}</span>
+                    </div>
+                    <p class="text-[10.5px] text-slate-400 mt-1">Otomatis bertambah (1, 2, 3...) setiap kali dokumen PDF di-export.</p>
+                </div>
             </div>
 
             <div class="flex items-center justify-between pt-3 border-t border-slate-100">

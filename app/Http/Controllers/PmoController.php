@@ -587,18 +587,37 @@ class PmoController extends Controller
         $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
         $year2 = now()->format('y');
 
-        // Hitung urutan nomor project resmi PMO (dimulai dari 1 untuk project PMO pertama)
-        $pmoProjectNumber = Project::whereNotIn('name', [
-            'DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti', 'SLA aa', 'SLA a'
-        ])
-        ->where('client', '!=', 'Internal / Umum')
-        ->where('name', 'not like', '%Training%')
-        ->where('name', 'not like', '%Meeting%')
-        ->where('id', '<=', $project->id)
-        ->count();
-        $pmoProjectNumber = max(1, $pmoProjectNumber);
+        // Nomor Seri Edisi Laporan (Opsi 2: Laporan ke-1, ke-2, dst)
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $sessionKey = 'last_pmo_export_' . $project->id;
+        $lastExport = session($sessionKey);
 
-        $docNumber = 'IPNET/PMO-RPT/' . $pmoProjectNumber . '/' . $romanMonth . '/' . $year2;
+        if ($request->filled('report_no')) {
+            $reportNumber = (int) $request->input('report_no');
+            $handoverData['pmo_export_counter'] = max((int)($handoverData['pmo_export_counter'] ?? 0), $reportNumber);
+            $project->handover_data = $handoverData;
+            $project->saveQuietly();
+        } elseif ($lastExport && (time() - ($lastExport['time'] ?? 0) < 10) && ($lastExport['type'] ?? '') === $reportType) {
+            // Jika refresh halaman dalam waktu < 10 detik dengan tipe sama, pertahankan nomor edisi sebelumnya
+            $reportNumber = $lastExport['number'];
+        } else {
+            // Auto-increment nomor seri edisi export untuk proyek ini
+            $currentCounter = (int) ($handoverData['pmo_export_counter'] ?? 0);
+            $newCounter = $currentCounter + 1;
+
+            $handoverData['pmo_export_counter'] = $newCounter;
+            $project->handover_data = $handoverData;
+            $project->saveQuietly();
+
+            $reportNumber = $newCounter;
+            session([$sessionKey => [
+                'number' => $reportNumber,
+                'time'   => time(),
+                'type'   => $reportType,
+            ]]);
+        }
+
+        $docNumber = 'IPNET/PMO-RPT/' . $reportNumber . '/' . $romanMonth . '/' . $year2;
 
         $data['logoBase64'] = $logoBase64;
         $data['docNumber']  = $docNumber;
@@ -1793,8 +1812,11 @@ class PmoController extends Controller
         $sCurveUpdateDate = now()->format('d M Y');
         $divisions = \App\Models\Division::all();
 
+        $nextExportNumber = ((int) ($handoverData['pmo_export_counter'] ?? 0)) + 1;
+
         return compact(
             'project',
+            'nextExportNumber',
             'authUser',
             'isLeadUser',
             'isPmoUser',
