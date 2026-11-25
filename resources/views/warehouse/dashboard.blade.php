@@ -187,35 +187,6 @@
                     </div>
                 </div>
 
-                <!-- SINKRONISASI STATUS INVENTARIS PERANGKAT FISIK (Sesuai Menu Produk & Perangkat) -->
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4 pt-4 border-t border-[#E2E8F0]">
-                    <div class="p-3 bg-white rounded-xl border border-slate-200">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Inventaris</span>
-                        <div class="text-[17px] font-extrabold text-[#1E293B] mt-0.5">{{ $metrics['total_items'] }} <span class="text-[11px] font-normal text-slate-500">Unit</span></div>
-                        <span class="text-[10px] text-slate-400">Seluruh unit terdaftar</span>
-                    </div>
-                    <div class="p-3 bg-white rounded-xl border border-slate-200">
-                        <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Stok Tersedia</span>
-                        <div class="text-[17px] font-extrabold text-emerald-600 mt-0.5">{{ $metrics['ready_stock'] }} <span class="text-[11px] font-normal text-slate-500">Unit</span></div>
-                        <span class="text-[10px] text-slate-400">Ready di gudang</span>
-                    </div>
-                    <div class="p-3 bg-white rounded-xl border border-slate-200">
-                        <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Backup / Spare</span>
-                        <div class="text-[17px] font-extrabold text-amber-600 mt-0.5">{{ $metrics['backup_spare'] }} <span class="text-[11px] font-normal text-slate-500">Unit</span></div>
-                        <span class="text-[10px] text-slate-400">Cadangan maintenance</span>
-                    </div>
-                    <div class="p-3 bg-white rounded-xl border border-slate-200">
-                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Peminjaman POC</span>
-                        <div class="text-[17px] font-extrabold text-blue-600 mt-0.5">{{ $metrics['active_poc'] }} <span class="text-[11px] font-normal text-slate-500">Unit</span></div>
-                        <span class="text-[10px] text-slate-400">Uji coba di pelanggan</span>
-                    </div>
-                    <div class="p-3 bg-white rounded-xl border border-slate-200">
-                        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Pinjaman Disti</span>
-                        <div class="text-[17px] font-extrabold text-slate-700 mt-0.5">{{ $metrics['disti_loan'] }} <span class="text-[11px] font-normal text-slate-500">Unit</span></div>
-                        <span class="text-[10px] text-slate-400">Unit demo vendor</span>
-                    </div>
-                </div>
-
                 <!-- 4 SECONDARY COUNTERS (REFINED FOR SINGLE WAREHOUSE) -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t border-[#E2E8F0]">
                     <div class="flex items-center gap-3">
@@ -556,14 +527,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: '72%',
+                interaction: {
+                    mode: 'nearest',
+                    intersect: false
+                },
                 plugins: {
                     legend: {
                         display: false
                     },
                     tooltip: {
-                        backgroundColor: '#1E293B',
+                        enabled: true,
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
                         titleFont: { size: 12, weight: 'bold' },
                         bodyFont: { size: 12 },
+                        borderColor: '#334155',
+                        borderWidth: 1,
                         padding: 10,
                         cornerRadius: 8,
                         callbacks: {
@@ -595,6 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         label: 'Stok Fisik Tersedia',
                         data: currentStockData,
                         backgroundColor: '#059669',
+                        hoverBackgroundColor: '#047857',
                         borderRadius: 6,
                         maxBarThickness: 18,
                     },
@@ -602,6 +581,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         label: 'Batas Minimum Safety',
                         data: minStockData,
                         backgroundColor: '#F59E0B',
+                        hoverBackgroundColor: '#D97706',
                         borderRadius: 6,
                         maxBarThickness: 18,
                     }
@@ -611,6 +591,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 responsive: true,
                 maintainAspectRatio: false,
                 indexAxis: 'y',
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                    axis: 'y'
+                },
                 scales: {
                     x: {
                         beginAtZero: true,
@@ -648,10 +633,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     },
                     tooltip: {
-                        backgroundColor: '#1E293B',
-                        padding: 10,
+                        enabled: true,
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#FFFFFF',
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyColor: '#F8FAFC',
+                        bodyFont: { size: 12 },
+                        borderColor: '#334155',
+                        borderWidth: 1,
+                        padding: 12,
                         cornerRadius: 8,
+                        boxPadding: 4,
+                        usePointStyle: true,
                         callbacks: {
+                            title: function(items) {
+                                return items.length > 0 ? items[0].label : '';
+                            },
                             label: function(context) {
                                 return ' ' + context.dataset.label + ': ' + context.parsed.x + ' Unit';
                             }
