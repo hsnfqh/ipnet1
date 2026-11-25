@@ -187,8 +187,37 @@
                     </div>
                 </div>
 
+                <!-- SINKRONISASI STATUS INVENTARIS PERANGKAT FISIK (Sesuai Menu Produk & Perangkat) -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4 pt-4 border-t border-[#E2E8F0]">
+                    <div class="p-3 bg-white rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Inventaris</span>
+                        <div class="text-[17px] font-extrabold text-[#1E293B] mt-0.5">{{ $metrics['total_items'] }} <span class="text-[11px] font-normal text-slate-500">Unit</span></div>
+                        <span class="text-[10px] text-slate-400">Seluruh unit terdaftar</span>
+                    </div>
+                    <div class="p-3 bg-white rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Stok Tersedia</span>
+                        <div class="text-[17px] font-extrabold text-emerald-600 mt-0.5">{{ $metrics['ready_stock'] }} <span class="text-[11px] font-normal text-slate-500">Unit</span></div>
+                        <span class="text-[10px] text-slate-400">Ready di gudang</span>
+                    </div>
+                    <div class="p-3 bg-white rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Backup / Spare</span>
+                        <div class="text-[17px] font-extrabold text-amber-600 mt-0.5">{{ $metrics['backup_spare'] }} <span class="text-[11px] font-normal text-slate-500">Unit</span></div>
+                        <span class="text-[10px] text-slate-400">Cadangan maintenance</span>
+                    </div>
+                    <div class="p-3 bg-white rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Peminjaman POC</span>
+                        <div class="text-[17px] font-extrabold text-blue-600 mt-0.5">{{ $metrics['active_poc'] }} <span class="text-[11px] font-normal text-slate-500">Unit</span></div>
+                        <span class="text-[10px] text-slate-400">Uji coba di pelanggan</span>
+                    </div>
+                    <div class="p-3 bg-white rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Pinjaman Disti</span>
+                        <div class="text-[17px] font-extrabold text-slate-700 mt-0.5">{{ $metrics['disti_loan'] }} <span class="text-[11px] font-normal text-slate-500">Unit</span></div>
+                        <span class="text-[10px] text-slate-400">Unit demo vendor</span>
+                    </div>
+                </div>
+
                 <!-- 4 SECONDARY COUNTERS (REFINED FOR SINGLE WAREHOUSE) -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#E2E8F0]">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t border-[#E2E8F0]">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -591,7 +620,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         ticks: {
                             color: '#64748B',
                             font: { size: 11 },
-                            stepSize: 5
+                            precision: 0,
+                            stepSize: 1
                         }
                     },
                     y: {
