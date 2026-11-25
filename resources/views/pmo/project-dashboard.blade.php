@@ -2080,41 +2080,92 @@
     </div>
 
     <!-- ========================================================== -->
-    <!-- MODAL PERIODE TANGGAL PROYEK (UBAH START DATE & DEADLINE)  -->
+    <!-- MODAL PERIODE TANGGAL & SPESIFIKASI TIMELINE PROYEK        -->
     <!-- ========================================================== -->
     <div x-show="showTimelineModal" 
          x-transition.opacity
          style="display: none;"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4"
-             @click.away="showTimelineModal = false">
+         @click.self="showTimelineModal = false"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full p-5 sm:p-6 space-y-4 my-auto max-h-[92vh] overflow-y-auto"
+             x-data="{
+                mStartDate: '{{ $startDate ? $startDate->format('Y-m-d') : ($project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : now()->format('Y-m-d')) }}',
+                mDeadline: '{{ $deadlineDate ? $deadlineDate->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : now()->addDays(30)->format('Y-m-d')) }}',
+                mDuration: {{ $totalProjectDays ?? 30 }},
+                mWeeks: {{ $totalProjectWeeks ?? 5 }},
+                calcFromDates() {
+                    if (!this.mStartDate || !this.mDeadline) return;
+                    const s = new Date(this.mStartDate);
+                    const d = new Date(this.mDeadline);
+                    const diffTime = d - s;
+                    if (diffTime >= 0) {
+                        const days = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                        this.mDuration = days;
+                        this.mWeeks = Math.max(1, Math.ceil(days / 7));
+                    }
+                },
+                calcFromDuration() {
+                    if (!this.mStartDate || !this.mDuration) return;
+                    const s = new Date(this.mStartDate);
+                    s.setDate(s.getDate() + parseInt(this.mDuration, 10) - 1);
+                    this.mDeadline = s.toISOString().split('T')[0];
+                    this.mWeeks = Math.max(1, Math.ceil(this.mDuration / 7));
+                }
+             }">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Ubah Durasi &amp; Periode Proyek</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Sesuaikan durasi hari pelaksanaan, jumlah minggu, dan rentang tanggal oleh PM</p>
+                        <h3 class="text-sm font-bold text-slate-900">Ubah Spesifikasi &amp; Timeline Proyek</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Sesuaikan rentang tanggal, durasi pelaksanaan, nomor SPK, PIC klien, dan metodologi proyek</p>
                     </div>
                 </div>
-                <button type="button" @click="showTimelineModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                <button type="button" @click="showTimelineModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
             <form action="{{ route('pmo.projects.update_timeline', $project->id) }}" method="POST" class="space-y-4">
                 @csrf
-                <div class="space-y-3">
+                <div class="space-y-3.5">
+                    {{-- Row 1: Tanggal Mulai & Deadline Legal (Date Input Nyaman, Kalender Bisa Diklik Bebas) --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-slate-700">Tanggal Mulai (Start Date) <span class="text-[#8F0A0D]">*</span></label>
+                            </div>
+                            <input type="date" 
+                                   name="start_date" 
+                                   x-model="mStartDate"
+                                   @change="calcFromDates()"
+                                   required
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-slate-700">Batas Akhir / Deadline SPK <span class="text-[#8F0A0D]">*</span></label>
+                            </div>
+                            <input type="date" 
+                                   name="deadline" 
+                                   x-model="mDeadline"
+                                   @change="calcFromDates()"
+                                   required
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    {{-- Row 2: Durasi Pelaksanaan (Hari) & Jumlah Minggu (Weeks) --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <div class="flex items-center justify-between mb-1">
                                 <label class="block text-xs font-bold text-slate-700">Durasi Pelaksanaan (Hari)</label>
                                 @if(($maxTaskFinishDay ?? 0) > 0)
                                     <button type="button" 
-                                            @click="document.getElementById('input_estimate_duration').value = {{ $maxTaskFinishDay }}; document.getElementById('input_execution_weeks').value = {{ max(1, (int)ceil($maxTaskFinishDay / 7)) }};" 
+                                            @click="mDuration = {{ $maxTaskFinishDay }}; mWeeks = {{ max(1, (int)ceil($maxTaskFinishDay / 7)) }}; calcFromDuration();" 
                                             class="text-[10px] font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
                                         Ikuti WBS ({{ $maxTaskFinishDay }} Hari)
                                     </button>
@@ -2123,7 +2174,8 @@
                             <input type="number" 
                                    id="input_estimate_duration"
                                    name="estimate_project_duration" 
-                                   value="{{ $totalProjectDays ?? 30 }}" 
+                                   x-model.number="mDuration"
+                                   @input="calcFromDuration()"
                                    min="1" 
                                    max="365"
                                    onwheel="this.blur()"
@@ -2140,7 +2192,7 @@
                             <input type="number" 
                                    id="input_execution_weeks"
                                    name="execution_weeks" 
-                                   value="{{ $totalProjectWeeks ?? 5 }}" 
+                                   x-model.number="mWeeks"
                                    min="1" 
                                    max="52"
                                    onwheel="this.blur()"
@@ -2148,30 +2200,28 @@
                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
                     </div>
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-slate-700">Tanggal Mulai Proyek (Start Date) <span class="text-[#8F0A0D]">*</span></label>
-                            <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+
+                    {{-- Row 3: Customer PIC & Nomor Kontrak/SPK/PO --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Customer's PIC</label>
+                            <input type="text" 
+                                   name="customer_pic" 
+                                   value="{{ $customerPic !== '-' ? $customerPic : ($project->customer_pic_technical ?: '') }}" 
+                                   placeholder="Nama PIC Klien (contoh: Richi Michael)"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
-                        <input type="text" 
-                               name="start_date" 
-                               value="{{ $startDate ? $startDate->format('Y-m-d') : ($project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : '') }}" 
-                               required
-                               placeholder="Pilih Tanggal Mulai (HH/BB/TTTT)"
-                               class="ipnet-datepicker w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
-                    </div>
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-slate-700">Batas Akhir Kontrak SPK (Deadline Legal) <span class="text-[#8F0A0D]">*</span></label>
-                            <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">DD/MM/YYYY</span>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nomor Kontrak / SPK / PO</label>
+                            <input type="text" 
+                                   name="contract_spk_number" 
+                                   value="{{ $contractSpkNumber !== '-' ? $contractSpkNumber : ($project->po_spk_number ?: '') }}" 
+                                   placeholder="Contoh: EP-01KYREAFEJH89..."
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
-                        <input type="text" 
-                               name="deadline" 
-                               value="{{ $deadlineDate ? $deadlineDate->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : '') }}" 
-                               required
-                               placeholder="Pilih Tanggal Target Selesai (HH/BB/TTTT)"
-                               class="ipnet-datepicker w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                     </div>
+
+                    {{-- Row 4: Metodologi Penjadwalan Proyek --}}
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Metodologi Penjadwalan Proyek</label>
                         <select name="schedule_type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
@@ -2182,11 +2232,11 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button type="button" @click="showTimelineModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" @click="showTimelineModal = false" class="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
+                    <button type="submit" class="px-5 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
                         Simpan Perubahan
                     </button>
                 </div>

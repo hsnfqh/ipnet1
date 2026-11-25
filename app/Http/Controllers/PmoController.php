@@ -2052,6 +2052,8 @@ class PmoController extends Controller
             'estimate_project_duration' => 'nullable|integer|min:1|max:365',
             'execution_weeks'           => 'nullable|integer|min:1|max:52',
             'schedule_type'             => 'nullable|in:waterfall,hybrid',
+            'customer_pic'              => 'nullable|string|max:255',
+            'contract_spk_number'       => 'nullable|string|max:100',
         ]);
 
         $startDate = Carbon::parse($validated['start_date']);
@@ -2070,12 +2072,25 @@ class PmoController extends Controller
         if ($request->filled('schedule_type')) {
             $handoverData['schedule_type'] = $request->input('schedule_type');
         }
+        if ($request->has('customer_pic')) {
+            $pic = trim((string)$request->input('customer_pic'));
+            $project->customer_pic_technical = $pic ?: null;
+            $project->customer_pic_business  = $pic ?: null;
+            $handoverData['customer_pic']    = $pic ?: null;
+        }
+        if ($request->has('contract_spk_number')) {
+            $spk = trim((string)$request->input('contract_spk_number'));
+            $project->po_spk_number = $spk ?: null;
+            $project->po_number = $spk ?: null;
+            $handoverData['contract_spk_number'] = $spk ?: null;
+            $handoverData['spk_number']          = $spk ?: null;
+        }
         $project->handover_data = $handoverData;
         $project->save();
 
         $durDays = $request->filled('estimate_project_duration') ? (int) $request->input('estimate_project_duration') : max(1, (int) round($startDate->diffInDays($deadline)) + 1);
 
-        return back()->with('success', "Durasi dan periode tanggal proyek berhasil diperbarui menjadi {$startDate->format('d M Y')} s/d {$deadline->format('d M Y')} ({$durDays} Hari)!");
+        return back()->with('success', "Spesifikasi jadwal, durasi, dan periode tanggal proyek berhasil diperbarui!");
     }
 
     /**
