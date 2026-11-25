@@ -389,8 +389,10 @@ class WarehouseController extends Controller
         }
 
         // Top Produk dengan Stok Fisik Terbanyak di Rak (Sinkron dengan Produk & Perangkat untuk Bar Chart)
-        $topStockProducts = WarehouseItem::select('name', 'product_number as sku', 'warehouse_rack as rack_position', DB::raw('count(*) as current_stock'), DB::raw('1 as min_stock'))
-            ->groupBy('name', 'product_number', 'warehouse_rack')
+        $topStockProducts = WarehouseItem::select('name', DB::raw('MAX(product_number) as sku'), DB::raw('MAX(warehouse_rack) as rack_position'), DB::raw('count(*) as current_stock'), DB::raw('1 as min_stock'))
+            ->whereNotNull('name')
+            ->where('name', '!=', '')
+            ->groupBy('name')
             ->orderBy('current_stock', 'desc')
             ->take(6)
             ->get();

@@ -290,8 +290,13 @@
                         </div>
 
                         <!-- Canvas Doughnut Chart -->
-                        <div class="relative w-full h-[210px] my-2">
+                        <div class="relative w-full h-[210px] my-2 flex items-center justify-center">
                             <canvas id="categoryStockChart"></canvas>
+                            <!-- Dynamic Center Indicator -->
+                            <div id="donutCenterInfo" class="absolute pointer-events-none flex flex-col items-center justify-center text-center transition-all duration-200">
+                                <span id="donutCenterLabel" class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Total Fisik</span>
+                                <span id="donutCenterValue" class="text-[19px] font-extrabold text-[#1E293B] leading-tight">{{ $metrics['total_items'] }} <span class="text-xs font-normal text-slate-500">Unit</span></span>
+                            </div>
                         </div>
                     </div>
 
@@ -502,6 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const catData = @json($categoryBreakdown->pluck('products_sum_current_stock')->map(function($val) { return (int)($val ?? 0); }));
         const totalCatStock = catData.reduce((a, b) => a + b, 0);
         const hasData = catLabels.length > 0 && totalCatStock > 0;
+        const catColors = ['#8F0A0D', '#2563EB', '#059669', '#D97706', '#7C3AED', '#0284C7', '#475569'];
         
         new Chart(categoryCtx, {
             type: 'doughnut',
@@ -509,27 +515,57 @@ document.addEventListener('DOMContentLoaded', function() {
                 labels: hasData ? catLabels : ['Belum Ada Stok Fisik'],
                 datasets: [{
                     data: hasData ? catData : [1],
-                    backgroundColor: hasData ? [
-                        '#8F0A0D', // IPNET Crimson
-                        '#2563EB', // Blue
-                        '#059669', // Emerald
-                        '#D97706', // Amber
-                        '#7C3AED', // Purple
-                        '#0284C7', // Sky
-                        '#475569'  // Slate
-                    ] : ['#E2E8F0'],
+                    backgroundColor: hasData ? catColors : ['#E2E8F0'],
                     borderWidth: 2,
                     borderColor: '#FFFFFF',
-                    hoverOffset: 6
+                    hoverOffset: 8
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '72%',
+                cutout: '70%',
                 interaction: {
                     mode: 'nearest',
-                    intersect: false
+                    intersect: true
+                },
+                onHover: (event, activeElements) => {
+                    const labelEl = document.getElementById('donutCenterLabel');
+                    const valEl = document.getElementById('donutCenterValue');
+                    if (!labelEl || !valEl) return;
+
+                    if (activeElements && activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const label = catLabels[index] || '';
+                        const value = catData[index] || 0;
+                        const pct = totalCatStock > 0 ? ((value / totalCatStock) * 100).toFixed(0) : 0;
+                        const color = catColors[index % catColors.length];
+
+                        labelEl.textContent = label;
+                        labelEl.style.color = color;
+                        valEl.innerHTML = value + ' <span class="text-xs font-normal text-slate-500">Unit (' + pct + '%)</span>';
+                    } else {
+                        labelEl.textContent = 'Total Fisik';
+                        labelEl.style.color = '#94A3B8';
+                        valEl.innerHTML = totalCatStock + ' <span class="text-xs font-normal text-slate-500">Unit</span>';
+                    }
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements && activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const label = catLabels[index] || '';
+                        const value = catData[index] || 0;
+                        const pct = totalCatStock > 0 ? ((value / totalCatStock) * 100).toFixed(0) : 0;
+                        const color = catColors[index % catColors.length];
+
+                        const labelEl = document.getElementById('donutCenterLabel');
+                        const valEl = document.getElementById('donutCenterValue');
+                        if (labelEl && valEl) {
+                            labelEl.textContent = label;
+                            labelEl.style.color = color;
+                            valEl.innerHTML = value + ' <span class="text-xs font-normal text-slate-500">Unit (' + pct + '%)</span>';
+                        }
+                    }
                 },
                 plugins: {
                     legend: {
@@ -538,15 +574,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     tooltip: {
                         enabled: true,
                         backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleFont: { size: 12, weight: 'bold' },
+                        titleColor: '#FFFFFF',
+                        titleFont: { size: 13, weight: 'bold' },
+                        bodyColor: '#F8FAFC',
                         bodyFont: { size: 12 },
                         borderColor: '#334155',
                         borderWidth: 1,
                         padding: 10,
                         cornerRadius: 8,
+                        displayColors: true,
+                        boxPadding: 4,
                         callbacks: {
+                            title: function(items) {
+                                return items.length > 0 ? items[0].label : '';
+                            },
                             label: function(context) {
-                                return ' ' + context.label + ': ' + context.parsed + ' Unit';
+                                const val = context.parsed;
+                                const pct = totalCatStock > 0 ? ((val / totalCatStock) * 100).toFixed(1) : 0;
+                                return ' ' + val + ' Unit (' + pct + '%)';
                             }
                         }
                     }
