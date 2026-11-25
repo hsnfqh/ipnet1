@@ -518,6 +518,8 @@ class ManagedServiceController extends Controller
                 'status_desc'      => $statusDesc,
                 'badge_bg'         => $badgeBg,
                 'dot_color'        => $dotColor,
+                'so_number'        => $project->so_number ?: ($project->handover_data['so_number'] ?? null),
+                'po_spk_number'    => $project->po_spk_number ?: ($project->po_number ?: ($project->contract_number ?: ($project->handover_data['contract_spk_number'] ?? ($project->handover_data['spk_number'] ?? ($project->handover_data['po_spk_number'] ?? null))))),
                 'open_tickets'     => $openTicketsCount,
                 'pm_count'         => $pmCount,
                 'pm_completed_count' => $pmCompletedCount,

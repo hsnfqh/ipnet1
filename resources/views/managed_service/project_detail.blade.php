@@ -306,6 +306,20 @@
                             </span>@endif
                         </div>
                         <p class="text-[12.5px] text-[#64748B] mt-1">{{ $project->name }} &bull; Lokasi: {{ $project->location ?: 'On-Site Klien' }}</p>
+                        @php
+                            $detailSo = $project->so_number ?: ($project->handover_data['so_number'] ?? null);
+                            $detailSpk = $project->po_spk_number ?: ($project->po_number ?: ($project->contract_number ?: ($project->handover_data['contract_spk_number'] ?? ($project->handover_data['spk_number'] ?? ($project->handover_data['po_spk_number'] ?? null)))));
+                        @endphp
+                        <div class="flex items-center gap-2 sm:gap-3 flex-wrap text-[11.5px] text-[#475569] mt-2 font-medium">
+                            <span class="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 transition shadow-2xs">
+                                <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider">No. SO:</span>
+                                <span class="font-bold text-[#1E293B]">{{ $detailSo ?: '—' }}</span>
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 transition shadow-2xs">
+                                <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider">No. PO / SPK / Kontrak:</span>
+                                <span class="font-bold text-[#8F0A0D]">{{ $detailSpk ?: '—' }}</span>
+                            </span>
+                        </div>
                     </div>
 
                     <!-- Right Controls: Switch Project & Actions -->

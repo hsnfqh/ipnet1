@@ -476,6 +476,12 @@
                                                 </div>
                                                 <div class="text-[11px] text-slate-500 font-medium group-hover:text-[#8F0A0D]/80 transition truncate max-w-[280px]">
                                                     {{ $client['name'] }} &bull; <span class="text-slate-600 font-semibold group-hover:text-[#8F0A0D]">Kontrak {{ $client['sla_tier'] }}</span>
+                                                    @if(!empty($client['so_number']) || !empty($client['po_spk_number']))
+                                                        <span class="block text-[10px] text-slate-500 font-medium mt-0.5">
+                                                            @if(!empty($client['so_number'])) SO: <span class="text-slate-700 font-bold">{{ $client['so_number'] }}</span> @endif
+                                                            @if(!empty($client['po_spk_number'])) &bull; SPK: <span class="text-[#8F0A0D] font-bold">{{ $client['po_spk_number'] }}</span> @endif
+                                                        </span>
+                                                    @endif
                                                 </div>
                                             </a>
                                         </td>
