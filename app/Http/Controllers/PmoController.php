@@ -586,7 +586,7 @@ class PmoController extends Controller
         $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
         $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
         $year2 = now()->format('y');
-        $docNumber = 'IPNET/PMO-RPT/' . $project->id . '/' . $romanMonth . '-' . $year2;
+        $docNumber = 'IPNET/PMO-RPT/' . $project->id . '/' . $romanMonth . '/' . $year2;
 
         $data['logoBase64'] = $logoBase64;
         $data['docNumber']  = $docNumber;
