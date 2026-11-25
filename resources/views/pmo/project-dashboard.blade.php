@@ -2499,13 +2499,16 @@
                             required
                             class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
                         <option value="" disabled selected>-- Pilih Judul Tugas (WBS) --</option>
-                        <option value="Implementasi Network">Implementasi Network</option>
+                        <option value="Stagging">Stagging</option>
+                        <option value="Instalasi dan Konfigurasi">Instalasi dan Konfigurasi</option>
+                        <option value="Integrasi">Integrasi</option>
                         <option value="Migrasi">Migrasi</option>
-                        <option value="Standarisasi IP">Standarisasi IP</option>
-                        <option value="Reconfigurasi Firewall Fortinet">Reconfigurasi Firewall Fortinet</option>
-                        <option value="Implementasi TACACS">Implementasi TACACS</option>
                         <option value="Testing dan Komisioning">Testing dan Komisioning</option>
-                        <option value="Fase Penutup">Fase Penutup</option>
+                        <option value="User Acceptance Test">User Acceptance Test</option>
+                        <option value="Monitoring">Monitoring</option>
+                        <option value="Dokumentasi">Dokumentasi</option>
+                        <option value="Sharing Knowledge">Sharing Knowledge</option>
+                        <option value="BAST">BAST</option>
                         <option value="__custom__">Judul Lainnya / Kustom (Ketik Manual)...</option>
                     </select>
 
