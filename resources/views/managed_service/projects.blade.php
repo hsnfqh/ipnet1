@@ -351,16 +351,12 @@
                                                 $pSpk = $p->po_spk_number ?: ($p->po_number ?: ($p->contract_number ?: ($p->handover_data['contract_spk_number'] ?? ($p->handover_data['spk_number'] ?? null))));
                                             @endphp
                                             <div class="flex items-center gap-1.5 flex-wrap mt-1">
-                                                @if($pSo)
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" title="Nomor SO">
-                                                        SO: {{ $pSo }}
-                                                    </span>
-                                                @endif
-                                                @if($pSpk)
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200" title="Nomor PO / SPK / Kontrak">
-                                                        SPK: {{ $pSpk }}
-                                                    </span>
-                                                @endif
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" title="Nomor SO">
+                                                    SO: {{ $pSo ?: '-' }}
+                                                </span>
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200" title="Nomor PO / SPK / Kontrak">
+                                                    SPK: {{ $pSpk ?: '-' }}
+                                                </span>
                                                 @if($p->sla_tier)
                                                     <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                                                         Tier: {{ $p->sla_tier }}

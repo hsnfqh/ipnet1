@@ -313,11 +313,11 @@
                         <div class="flex items-center gap-2 sm:gap-3 flex-wrap text-[11.5px] text-[#475569] mt-2 font-medium">
                             <span class="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 transition shadow-2xs">
                                 <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider">No. SO:</span>
-                                <span class="font-bold text-[#1E293B]">{{ $detailSo ?: '—' }}</span>
+                                <span class="font-bold text-[#1E293B]">{{ $detailSo ?: '-' }}</span>
                             </span>
                             <span class="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 transition shadow-2xs">
                                 <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider">No. PO / SPK / Kontrak:</span>
-                                <span class="font-bold text-[#8F0A0D]">{{ $detailSpk ?: '—' }}</span>
+                                <span class="font-bold text-[#8F0A0D]">{{ $detailSpk ?: '-' }}</span>
                             </span>
                         </div>
                     </div>

@@ -3488,8 +3488,8 @@ class ManagedServiceController extends Controller
         }
 
         $soNumber = !empty($validated['so_number']) 
-            ? $validated['so_number'] 
-            : ('SO-' . date('Y') . '-MS-' . strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $validated['client']), 0, 6)) . rand(10, 99));
+            ? trim($validated['so_number']) 
+            : null;
 
         $handoverData = [
             'source'                 => 'Direct Managed Service Contract',
