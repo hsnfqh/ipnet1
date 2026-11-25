@@ -242,7 +242,7 @@
                 @endif
             </td>
             <td class="label-cell" style="width: 18%;">No. SPK / Kontrak / PO</td>
-            <td style="width: 32%; font-weight: bold; color: #0F172A;">{{ $contractSpkNumber ?? ($project->po_spk_number ?: ($project->contract_number ?: ($project->po_number ?: ($project->handover_data['contract_spk_number'] ?? ($project->handover_data['spk_number'] ?? 'EP-01KYREAFEJH89MWPVDQ6W20NXV'))))) }}</td>
+            <td style="width: 32%; font-weight: bold; color: #0F172A;">{{ $contractSpkNumber ?? ($project->po_spk_number ?: ($project->contract_number ?: ($project->po_number ?: ($project->handover_data['contract_spk_number'] ?? ($project->handover_data['spk_number'] ?? '-'))))) }}</td>
         </tr>
         <tr>
             <td class="label-cell">Periode Pelaksanaan</td>

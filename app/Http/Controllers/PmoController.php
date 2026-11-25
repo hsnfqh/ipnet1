@@ -860,7 +860,9 @@ class PmoController extends Controller
         ->orderBy('id')
         ->get(['id', 'name', 'client', 'status']);
 
-        if ($isPpatkProject && $project->tasks()->count() === 0) {
+        $isManualPmo = !empty($handoverData['is_manual_pmo']) || ($project->sales_name === 'Direct PMO');
+
+        if ($isPpatkProject && !$isManualPmo && $project->tasks()->count() === 0) {
             $this->ensurePpatkProjectData($project);
             $project->load([
                 'pm:id,name,email',
@@ -915,7 +917,7 @@ class PmoController extends Controller
             ?? ($handoverData['spk_number'] 
             ?? ($project->handover_data['contract_spk_number'] 
             ?? ($project->handover_data['spk_number'] 
-            ?? 'EP-01KYREAFEJH89MWPVDQ6W20NXV'))))));
+            ?? '-'))))));
 
         $customerPic = $project->customer_pic_technical 
             ?: ($project->customer_pic_business 
@@ -3942,6 +3944,7 @@ class PmoController extends Controller
             'assigned_teams'    => $cleanTeams,
             'checklist'         => [],
             'so_number'         => $soNumber,
+            'is_manual_pmo'     => true,
             'customer_contacts' => [
                 'name' => $customerPic,
                 'note' => $customerPic,
@@ -4013,16 +4016,16 @@ class PmoController extends Controller
 
             $projectName = $project->name;
 
-            // Cascade delete child relations
-            $project->tasks()->delete();
-            $project->schedules()->delete();
+            // Cascade delete child relations secara permanen agar tidak menyisakan ghost data
+            $project->tasks()->forceDelete();
+            $project->schedules()->forceDelete();
 
             if (\Illuminate\Support\Facades\Schema::hasTable('project_expenses')) {
                 \Illuminate\Support\Facades\DB::table('project_expenses')->where('project_id', $project->id)->delete();
             }
 
             if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
-                \App\Models\ProjectDocument::where('project_id', $project->id)->delete();
+                \App\Models\ProjectDocument::where('project_id', $project->id)->forceDelete();
             }
 
             if (\Illuminate\Support\Facades\Schema::hasTable('project_milestones')) {
@@ -4033,7 +4036,7 @@ class PmoController extends Controller
                 \Illuminate\Support\Facades\DB::table('project_team_members')->where('project_id', $project->id)->delete();
             }
 
-            $project->delete();
+            $project->forceDelete();
 
             \Illuminate\Support\Facades\DB::commit();
 
