@@ -564,7 +564,7 @@
                         </div>
 
                         {{-- 1. Weekly Progress --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportMain = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -581,7 +581,7 @@
                         </a>
 
                         {{-- 2. Curva S --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportMain = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -598,7 +598,7 @@
                         </a>
 
                         {{-- 3. Expenses --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportMain = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -615,7 +615,7 @@
                         </a>
 
                         {{-- 4. Versi Lengkap --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportMain = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1420,7 +1420,7 @@
                         </div>
 
                         {{-- 1. Weekly Progress --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportTab4 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1437,7 +1437,7 @@
                         </a>
 
                         {{-- 2. Curva S --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportTab4 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1454,7 +1454,7 @@
                         </a>
 
                         {{-- 3. Expenses --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportTab4 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1471,7 +1471,7 @@
                         </a>
 
                         {{-- 4. Versi Lengkap --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportTab4 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1630,7 +1630,7 @@
                         </div>
 
                         {{-- 1. Weekly Progress --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportTab5 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1647,7 +1647,7 @@
                         </a>
 
                         {{-- 2. Curva S --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportTab5 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1664,7 +1664,7 @@
                         </a>
 
                         {{-- 3. Expenses --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportTab5 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1681,7 +1681,7 @@
                         </a>
 
                         {{-- 4. Versi Lengkap --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}" 
+                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}&_t={{ time() }}" 
                            target="_blank" 
                            @click="openExportTab5 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">

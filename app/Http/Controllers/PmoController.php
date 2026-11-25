@@ -486,6 +486,9 @@ class PmoController extends Controller
 
     public function exportPdf(Request $request, Project $project)
     {
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
         $reportType = $request->query('type', 'full');
 
         // Penentuan 4 Kategori Laporan:
@@ -592,22 +595,29 @@ class PmoController extends Controller
         $sessionKey = 'last_pmo_export_' . $project->id;
         $lastExport = session($sessionKey);
 
+        // Opsi reset nomor ke 0 jika dipanggil dengan ?reset=1
+        if ($request->has('reset') || $request->input('reset') == '1') {
+            $handoverData['pmo_export_counter'] = 0;
+        }
+
         if ($request->filled('report_no')) {
             $reportNumber = (int) $request->input('report_no');
-            $handoverData['pmo_export_counter'] = max((int)($handoverData['pmo_export_counter'] ?? 0), $reportNumber);
-            $project->handover_data = $handoverData;
-            $project->saveQuietly();
+            $handoverData['pmo_export_counter'] = $reportNumber;
+            \Illuminate\Support\Facades\DB::table('projects')->where('id', $project->id)->update([
+                'handover_data' => json_encode($handoverData)
+            ]);
         } elseif ($lastExport && (time() - ($lastExport['time'] ?? 0) < 10) && ($lastExport['type'] ?? '') === $reportType) {
             // Jika refresh halaman dalam waktu < 10 detik dengan tipe sama, pertahankan nomor edisi sebelumnya
             $reportNumber = $lastExport['number'];
         } else {
-            // Auto-increment nomor seri edisi export untuk proyek ini
+            // Auto-increment nomor seri edisi export untuk proyek ini (dimulai dari 1)
             $currentCounter = (int) ($handoverData['pmo_export_counter'] ?? 0);
             $newCounter = $currentCounter + 1;
 
             $handoverData['pmo_export_counter'] = $newCounter;
-            $project->handover_data = $handoverData;
-            $project->saveQuietly();
+            \Illuminate\Support\Facades\DB::table('projects')->where('id', $project->id)->update([
+                'handover_data' => json_encode($handoverData)
+            ]);
 
             $reportNumber = $newCounter;
             session([$sessionKey => [
@@ -645,7 +655,14 @@ class PmoController extends Controller
             ]);
 
         $cleanTitle = \Illuminate\Support\Str::slug($project->name ?: 'laporan-proyek');
-        return $pdf->stream("{$prefix}-{$cleanTitle}.pdf");
+
+        return response($pdf->output(), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . "{$prefix}-{$cleanTitle}.pdf" . '"',
+            'Cache-Control'       => 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0',
+            'Pragma'              => 'no-cache',
+            'Expires'             => 'Sat, 01 Jan 2000 00:00:00 GMT',
+        ]);
     }
 
     protected function generateSCurveChartBase64(
