@@ -586,7 +586,19 @@ class PmoController extends Controller
         $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
         $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
         $year2 = now()->format('y');
-        $docNumber = 'IPNET/PMO-RPT/' . $project->id . '/' . $romanMonth . '/' . $year2;
+
+        // Hitung urutan nomor project resmi PMO (dimulai dari 1 untuk project PMO pertama)
+        $pmoProjectNumber = Project::whereNotIn('name', [
+            'DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti', 'SLA aa', 'SLA a'
+        ])
+        ->where('client', '!=', 'Internal / Umum')
+        ->where('name', 'not like', '%Training%')
+        ->where('name', 'not like', '%Meeting%')
+        ->where('id', '<=', $project->id)
+        ->count();
+        $pmoProjectNumber = max(1, $pmoProjectNumber);
+
+        $docNumber = 'IPNET/PMO-RPT/' . $pmoProjectNumber . '/' . $romanMonth . '/' . $year2;
 
         $data['logoBase64'] = $logoBase64;
         $data['docNumber']  = $docNumber;
