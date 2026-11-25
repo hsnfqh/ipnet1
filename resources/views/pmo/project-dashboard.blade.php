@@ -252,7 +252,7 @@
                         </button>
                     </div>
 
-                    {{-- Chip 2: Periode Tanggal Proyek (Dari Berapa s/d Berapa) --}}
+                    {{-- Chip 2: Periode Tanggal Proyek (Dari Berapa s/d Berapa Berdasarkan Kontrak) --}}
                     <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <div class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-[#8F0A0D] flex items-center justify-center shrink-0">
@@ -261,15 +261,15 @@
                                 </svg>
                             </div>
                             <div class="min-w-0">
-                                <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Periode Tanggal Proyek</span>
-                                <span class="font-bold text-slate-800 truncate block" title="{{ $projectTimelineText }}">
-                                    {{ $projectTimelineText }}
+                                <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Periode Tanggal Proyek (Kontrak)</span>
+                                <span class="font-bold text-slate-800 truncate block" title="{{ $startDate->format('d M Y') }} s/d {{ $deadlineDate->format('d M Y') }}">
+                                    {{ $startDate->format('d M Y') }} s/d {{ $deadlineDate->format('d M Y') }}
                                 </span>
                             </div>
                         </div>
                         <button type="button" 
                                 @click="showTimelineModal = true" 
-                                title="Ubah Periode Tanggal"
+                                title="Ubah Periode Tanggal & Durasi"
                                 class="w-7 h-7 rounded-lg text-slate-500 hover:text-[#8F0A0D] bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 transition shrink-0 flex items-center justify-center cursor-pointer shadow-xs">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -2089,14 +2089,20 @@
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full p-5 sm:p-6 space-y-4 my-auto max-h-[92vh] overflow-y-auto"
              x-data="{
+                // Periode Kontrak SPK / Legal (Atas)
                 mStartDate: '{{ $startDate ? $startDate->format('Y-m-d') : ($project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : now()->format('Y-m-d')) }}',
                 mDeadline: '{{ $deadlineDate ? $deadlineDate->format('Y-m-d') : ($project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : now()->addDays(30)->format('Y-m-d')) }}',
-                mDuration: {{ $totalProjectDays ?? 30 }},
-                mWeeks: {{ $totalProjectWeeks ?? 5 }},
-                calcFromDates() {
-                    if (!this.mStartDate || !this.mDeadline) return;
-                    const s = new Date(this.mStartDate);
-                    const d = new Date(this.mDeadline);
+
+                // Jadwal Pelaksanaan Implementasi WBS (Bawah - Terpisah Mandiri)
+                mExecStart: '{{ $wbsStartDate ? $wbsStartDate->format('Y-m-d') : ($startDate ? $startDate->format('Y-m-d') : now()->format('Y-m-d')) }}',
+                mExecEnd: '{{ $wbsEndDate ? $wbsEndDate->format('Y-m-d') : ($deadlineDate ? $deadlineDate->format('Y-m-d') : now()->addDays(30)->format('Y-m-d')) }}',
+                mDuration: {{ (int)($totalProjectDays ?? 30) }},
+                mWeeks: {{ (int)($totalProjectWeeks ?? 5) }},
+
+                calcExecFromDates() {
+                    if (!this.mExecStart || !this.mExecEnd) return;
+                    const s = new Date(this.mExecStart);
+                    const d = new Date(this.mExecEnd);
                     const diffTime = d - s;
                     if (diffTime >= 0) {
                         const days = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
@@ -2104,12 +2110,16 @@
                         this.mWeeks = Math.max(1, Math.ceil(days / 7));
                     }
                 },
-                calcFromDuration() {
-                    if (!this.mStartDate || !this.mDuration) return;
-                    const s = new Date(this.mStartDate);
+                calcExecFromDuration() {
+                    if (!this.mExecStart || !this.mDuration) return;
+                    const s = new Date(this.mExecStart);
                     s.setDate(s.getDate() + parseInt(this.mDuration, 10) - 1);
-                    this.mDeadline = s.toISOString().split('T')[0];
+                    this.mExecEnd = s.toISOString().split('T')[0];
                     this.mWeeks = Math.max(1, Math.ceil(this.mDuration / 7));
+                },
+                syncExecEndToContract() {
+                    this.mExecEnd = this.mDeadline;
+                    this.calcExecFromDates();
                 }
              }">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -2121,7 +2131,7 @@
                     </div>
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Ubah Spesifikasi &amp; Timeline Proyek</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Sesuaikan rentang tanggal, durasi pelaksanaan, nomor SPK, PIC klien, dan metodologi proyek</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Sesuaikan rentang tanggal kontrak, jadwal pelaksanaan implementasi, durasi, PIC, dan nomor SPK</p>
                     </div>
                 </div>
                 <button type="button" @click="showTimelineModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition">
@@ -2131,77 +2141,107 @@
 
             <form action="{{ route('pmo.projects.update_timeline', $project->id) }}" method="POST" class="space-y-4">
                 @csrf
-                <div class="space-y-3.5">
-                    {{-- Row 1: Tanggal Mulai & Deadline Legal (Date Input Nyaman, Kalender Bisa Diklik Bebas) --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <label class="block text-xs font-bold text-slate-700">Tanggal Mulai (Start Date) <span class="text-[#8F0A0D]">*</span></label>
-                            </div>
-                            <input type="date" 
-                                   name="start_date" 
-                                   x-model="mStartDate"
-                                   @change="calcFromDates()"
-                                   required
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                <div class="space-y-4">
+                    {{-- Bagian 1: Periode Kontrak / SPK Legal (Atas) --}}
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+                                1. Periode Tanggal Kontrak / SPK (Legal)
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-medium">Dasar Kontrak PO/SPK</span>
                         </div>
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <label class="block text-xs font-bold text-slate-700">Batas Akhir / Deadline SPK <span class="text-[#8F0A0D]">*</span></label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Mulai Kontrak (Start Date SPK) <span class="text-[#8F0A0D]">*</span></label>
+                                <input type="date" 
+                                       name="start_date" 
+                                       x-model="mStartDate"
+                                       required
+                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
                             </div>
-                            <input type="date" 
-                                   name="deadline" 
-                                   x-model="mDeadline"
-                                   @change="calcFromDates()"
-                                   required
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
-                        </div>
-                    </div>
-
-                    {{-- Row 2: Durasi Pelaksanaan (Hari) & Jumlah Minggu (Weeks) --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <label class="block text-xs font-bold text-slate-700">Durasi Pelaksanaan (Hari)</label>
-                                @if(($maxTaskFinishDay ?? 0) > 0)
-                                    <button type="button" 
-                                            @click="mDuration = {{ $maxTaskFinishDay }}; mWeeks = {{ max(1, (int)ceil($maxTaskFinishDay / 7)) }}; calcFromDuration();" 
-                                            class="text-[10px] font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
-                                        Ikuti WBS ({{ $maxTaskFinishDay }} Hari)
-                                    </button>
-                                @endif
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Batas Akhir / Deadline SPK <span class="text-[#8F0A0D]">*</span></label>
+                                <input type="date" 
+                                       name="deadline" 
+                                       x-model="mDeadline"
+                                       required
+                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
                             </div>
-                            <input type="number" 
-                                   id="input_estimate_duration"
-                                   name="estimate_project_duration" 
-                                   x-model.number="mDuration"
-                                   @input="calcFromDuration()"
-                                   min="1" 
-                                   max="365"
-                                   onwheel="this.blur()"
-                                   placeholder="Contoh: 30"
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
-                        </div>
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <label class="block text-xs font-bold text-slate-700">Jumlah Minggu (Weeks)</label>
-                                @if(($maxTaskFinishDay ?? 0) > 0)
-                                    <span class="text-[10px] text-slate-400 font-medium">Kurva S: {{ $totalWeeks }} mg</span>
-                                @endif
-                            </div>
-                            <input type="number" 
-                                   id="input_execution_weeks"
-                                   name="execution_weeks" 
-                                   x-model.number="mWeeks"
-                                   min="1" 
-                                   max="52"
-                                   onwheel="this.blur()"
-                                   placeholder="Contoh: 5"
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none">
                         </div>
                     </div>
 
-                    {{-- Row 3: Customer PIC & Nomor Kontrak/SPK/PO --}}
+                    {{-- Bagian 2: Rencana Pelaksanaan Implementasi (WBS & Kurva S - Bawah, Terpisah Bebas) --}}
+                    <div class="p-3.5 bg-blue-50/40 rounded-xl border border-blue-100 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                                2. Jadwal Pelaksanaan Implementasi (WBS)
+                            </span>
+                            <button type="button" 
+                                    @click="syncExecEndToContract()"
+                                    title="Samakan tanggal akhir pelaksanaan dengan batas kontrak SPK"
+                                    class="text-[10.5px] font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
+                                Samakan Akhir dgn Batas SPK
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Mulai Pelaksanaan WBS</label>
+                                <input type="date" 
+                                       name="execution_start_date" 
+                                       x-model="mExecStart"
+                                       @change="calcExecFromDates()"
+                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-blue-600 outline-none cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Target Selesai WBS</label>
+                                <input type="date" 
+                                       name="execution_end_date" 
+                                       x-model="mExecEnd"
+                                       @change="calcExecFromDates()"
+                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-blue-600 outline-none cursor-pointer">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-[11px] font-semibold text-slate-700">Durasi Pelaksanaan (Hari)</label>
+                                    @if(($maxTaskFinishDay ?? 0) > 0)
+                                        <button type="button" 
+                                                @click="mDuration = {{ $maxTaskFinishDay }}; mWeeks = {{ max(1, (int)ceil($maxTaskFinishDay / 7)) }}; calcExecFromDuration();" 
+                                                class="text-[10px] font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
+                                            Ikuti WBS ({{ $maxTaskFinishDay }} Hari)
+                                        </button>
+                                    @endif
+                                </div>
+                                <input type="number" 
+                                       id="input_estimate_duration"
+                                       name="estimate_project_duration" 
+                                       x-model.number="mDuration"
+                                       @input="calcExecFromDuration()"
+                                       min="1" 
+                                       max="365"
+                                       onwheel="this.blur()"
+                                       placeholder="Contoh: 30"
+                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-blue-600 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Jumlah Minggu (Weeks)</label>
+                                <input type="number" 
+                                       id="input_execution_weeks"
+                                       name="execution_weeks" 
+                                       x-model.number="mWeeks"
+                                       min="1" 
+                                       max="52"
+                                       onwheel="this.blur()"
+                                       placeholder="Contoh: 5"
+                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-blue-600 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Bagian 3: Customer PIC & Nomor Kontrak/SPK/PO --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Customer's PIC</label>
@@ -2221,7 +2261,7 @@
                         </div>
                     </div>
 
-                    {{-- Row 4: Metodologi Penjadwalan Proyek --}}
+                    {{-- Bagian 4: Metodologi Penjadwalan Proyek --}}
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Metodologi Penjadwalan Proyek</label>
                         <select name="schedule_type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">

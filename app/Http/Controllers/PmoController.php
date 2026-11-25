@@ -1214,22 +1214,32 @@ class PmoController extends Controller
         }
 
         // Tentukan Rentang Pelaksanaan WBS (Berdasarkan PM Execution Timeline dari Task WBS)
-        $wbsStartDate = $startDate->copy()->startOfDay();
+        $execStartRaw = !empty($handoverData['execution_start_date']) ? $handoverData['execution_start_date'] : null;
+        $execEndRaw   = !empty($handoverData['execution_end_date']) ? $handoverData['execution_end_date'] : null;
 
-        // Prioritas Durasi Pelaksanaan Proyek (Kurva S):
-        // 1. Jika sudah ada Task WBS ($maxTaskFinishDay > 0), durasi Kurva S otomatis selaras dengan jadwal pengerjaan riil WBS!
-        //    Hal ini mencegah Kurva S datar berbulan-bulan (misal masa kontrak 217 hari padahal WBS teknis cuma 28 hari).
-        if ($maxTaskFinishDay > 0) {
-            if ($estimateDuration && $estimateDuration >= $maxTaskFinishDay && $estimateDuration <= ($maxTaskFinishDay + 14)) {
-                $totalProjectDays = (int) $estimateDuration;
-                $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
-            } else {
-                $totalProjectDays = $maxTaskFinishDay;
-                $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
-            }
-            $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
-        } elseif ($estimateDuration && $estimateDuration <= 180) {
+        // WBS Start Date mandiri & terpisah dari tanggal kontrak SPK
+        if ($execStartRaw) {
+            $wbsStartDate = Carbon::parse($execStartRaw)->startOfDay();
+        } else {
+            $wbsStartDate = $startDate->copy()->startOfDay();
+        }
+
+        // Prioritas Durasi Pelaksanaan Proyek (Kurva S & WBS):
+        // Terpisah murni dari durasi kontrak SPK legal.
+        if ($estimateDuration && (int)$estimateDuration > 0) {
             $totalProjectDays = (int) $estimateDuration;
+            $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
+            if ($execEndRaw) {
+                $wbsEndDate = Carbon::parse($execEndRaw)->endOfDay();
+            } else {
+                $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
+            }
+        } elseif ($execEndRaw) {
+            $wbsEndDate = Carbon::parse($execEndRaw)->endOfDay();
+            $totalProjectDays = max(1, (int) round($wbsStartDate->diffInDays($wbsEndDate)) + 1);
+            $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
+        } elseif ($maxTaskFinishDay > 0) {
+            $totalProjectDays = $maxTaskFinishDay;
             $totalProjectWeeks = $executionWeeks ? (int) $executionWeeks : max(1, (int) ceil($totalProjectDays / 7));
             $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
         } elseif ($isPpatkProject) {
@@ -1243,8 +1253,8 @@ class PmoController extends Controller
             $wbsEndDate = $latestTaskDate->copy()->endOfDay();
         } else {
             // Default awal jika proyek baru dibuat dan belum ada task WBS:
-            // Standar durasi pelaksanaan awal adalah 30 hari (5 minggu), BUKAN seluruh masa kontrak SPK
-            $contractDays = max(1, (int) round($startDate->diffInDays($deadlineDate)));
+            // Standar durasi pelaksanaan implementasi awal adalah 30 hari (5 minggu), BUKAN seluruh masa kontrak SPK
+            $contractDays = max(1, (int) round($startDate->diffInDays($deadlineDate)) + 1);
             $totalProjectDays = min(30, $contractDays);
             $totalProjectWeeks = max(1, (int) ceil($totalProjectDays / 7));
             $wbsEndDate = $wbsStartDate->copy()->addDays(max(0, $totalProjectDays - 1))->endOfDay();
@@ -1252,7 +1262,7 @@ class PmoController extends Controller
 
         // Pastikan totalWeeks dan teks timeline selaras dengan WBS
         $totalWeeks = max(1, $totalProjectWeeks);
-        $projectTimelineText = $wbsStartDate->format('d M Y') . ' s/d ' . $wbsEndDate->format('d M Y') . ' (' . $totalProjectDays . ' Hari Pelaksanaan, Kontrak SPK s/d ' . $deadlineDate->format('d M Y') . ')';
+        $projectTimelineText = $wbsStartDate->format('d M Y') . ' s/d ' . $wbsEndDate->format('d M Y') . ' (' . $totalProjectDays . ' Hari Pelaksanaan)';
 
         // Hitung total durasi WBS dari seluruh task
         $totalTaskDuration = array_sum(array_column($parsedTasks, 'duration'));
@@ -2049,6 +2059,8 @@ class PmoController extends Controller
         $validated = $request->validate([
             'start_date'                => 'required|date',
             'deadline'                  => 'required|date|after_or_equal:start_date',
+            'execution_start_date'      => 'nullable|date',
+            'execution_end_date'        => 'nullable|date',
             'estimate_project_duration' => 'nullable|integer|min:1|max:365',
             'execution_weeks'           => 'nullable|integer|min:1|max:52',
             'schedule_type'             => 'nullable|in:waterfall,hybrid',
@@ -2063,6 +2075,13 @@ class PmoController extends Controller
         $project->deadline = $deadline->format('Y-m-d');
 
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+
+        if ($request->filled('execution_start_date')) {
+            $handoverData['execution_start_date'] = Carbon::parse($request->input('execution_start_date'))->format('Y-m-d');
+        }
+        if ($request->filled('execution_end_date')) {
+            $handoverData['execution_end_date'] = Carbon::parse($request->input('execution_end_date'))->format('Y-m-d');
+        }
         if ($request->filled('estimate_project_duration')) {
             $handoverData['estimate_project_duration'] = (int) $request->input('estimate_project_duration');
         }
@@ -2087,8 +2106,6 @@ class PmoController extends Controller
         }
         $project->handover_data = $handoverData;
         $project->save();
-
-        $durDays = $request->filled('estimate_project_duration') ? (int) $request->input('estimate_project_duration') : max(1, (int) round($startDate->diffInDays($deadline)) + 1);
 
         return back()->with('success', "Spesifikasi jadwal, durasi, dan periode tanggal proyek berhasil diperbarui!");
     }
