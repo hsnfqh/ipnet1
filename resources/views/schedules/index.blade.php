@@ -281,13 +281,18 @@
                             </span>
                             <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
-                                <span style="width:10px; height:10px; border-radius:3px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
-                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Meeting</span>
+                                <span style="width:10px; height:10px; border-radius:3px; background:#EAB308; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Tiket / CM</span>
                             </span>
                             <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
-                                <span style="width:10px; height:10px; border-radius:3px; background:#C81E2C; flex-shrink:0; display:inline-block;"></span>
+                                <span style="width:10px; height:10px; border-radius:3px; background:#EA580C; flex-shrink:0; display:inline-block;"></span>
                                 <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Activity / Task Lainnya</span>
+                            </span>
+                            <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Meeting</span>
                             </span>
                             <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
@@ -1155,9 +1160,36 @@
                                             <span x-show="!form.engineer_ids || form.engineer_ids.length === 0" style="font-size:12px; color:#94A3B8; margin-left:4px;">Tidak ada personel yang ditugaskan</span>
                                         </div>
 
+                                        <!-- Pencarian & Info Khusus Kategori Meeting (Maintenance + Engineer + Sales) -->
+                                        <template x-if="form.category === 'Meeting'">
+                                            <div style="margin-bottom:6px;">
+                                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
+                                                    <div style="position:relative; flex:1;">
+                                                        <input type="text" 
+                                                               x-model="personnelSearch" 
+                                                               placeholder="Cari Maintenance, Engineer, atau Sales..." 
+                                                               style="width:100%; font-size:11.5px; padding:5px 24px 5px 8px; border-radius:7px; border:1px solid #CBD5E1; background:#F8FAFC; outline:none;"
+                                                               onfocus="this.style.background='#FFFFFF'; this.style.borderColor='#8F0A0D';"
+                                                               onblur="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1';">
+                                                        <svg style="position:absolute; right:7px; top:6px; width:12px; height:12px; color:#94A3B8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                                                    </div>
+                                                    <button type="button" 
+                                                            x-show="personnelSearch" 
+                                                            @click="personnelSearch = ''" 
+                                                            style="background:#F1F5F9; border:none; padding:4px 8px; border-radius:6px; font-size:11px; color:#64748B; cursor:pointer;">
+                                                        Reset
+                                                    </button>
+                                                </div>
+                                                <div style="font-size:10.5px; color:#1E40AF; background:#EFF6FF; border:1px solid #DBEAFE; padding:3px 8px; border-radius:6px; display:flex; align-items:center; gap:5px;">
+                                                    <svg style="width:12px; height:12px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    <span>Khusus agenda <strong>Meeting</strong>: Tim Maintenance, Engineer &amp; Sales tersedia untuk dipilih.</span>
+                                                </div>
+                                            </div>
+                                        </template>
+
                                         <!-- Checklist engineer (Hanya untuk yang memiliki akses manajemen) -->
                                         <div x-show="canManageSchedule" style="max-height:170px; overflow-y:auto; border:1.5px solid #CBD5E1; border-radius:9px; background:white; padding:4px;">
-                                            <template x-for="engineer in engineers" :key="engineer.id">
+                                            <template x-for="engineer in getSelectableEngineers()" :key="engineer.id">
                                                 <div @click="toggleEngineer(engineer.id)" 
                                                      style="display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:7px; cursor:pointer; font-size:12.5px; transition:all 0.12s ease; margin-bottom:2px;"
                                                      :style="{ 
@@ -1201,6 +1233,9 @@
                                                     </template>
                                                 </div>
                                             </template>
+                                            <div x-show="getSelectableEngineers().length === 0" style="padding:12px; text-align:center; font-size:11.5px; color:#94A3B8;">
+                                                Tidak ada personel yang sesuai pencarian
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1938,15 +1973,28 @@
     color: #475569 !important;
 }
 
+.jkw-day-item--cm, .jkw-day-item--ticket {
+    background: rgba(234, 179, 8, 0.10) !important;
+    border-left: 4px solid #EAB308 !important;
+}
+.jkw-day-item--cm .jkw-time, .jkw-day-item--ticket .jkw-time {
+    color: #A16207 !important;
+    font-weight: 700 !important;
+}
+.jkw-day-item--cm .jkw-time svg, .jkw-day-item--ticket .jkw-time svg {
+    color: #CA8A04 !important;
+}
+
 .jkw-day-item--task {
-    background: #FDF1F2 !important;
-    border-left: 4px solid #C81E2C !important;
+    background: rgba(234, 88, 12, 0.08) !important;
+    border-left: 4px solid #EA580C !important;
 }
 .jkw-day-item--task .jkw-time {
-    color: #991B1B !important;
+    color: #C2410C !important;
+    font-weight: 700 !important;
 }
 .jkw-day-item--task .jkw-time svg {
-    color: #C81E2C !important;
+    color: #EA580C !important;
 }
 
 .jkw-day-item--project {
@@ -2192,19 +2240,19 @@
 
 .jkw-cat-btn--task {
     background: #FFFFFF !important;
-    color: #C81E2C !important;
-    border: 1.5px solid #FCA5A5 !important;
+    color: #EA580C !important;
+    border: 1.5px solid #FED7AA !important;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
 }
 .jkw-cat-btn--task:hover {
-    background: #FEF2F2 !important;
-    border-color: #F87171 !important;
+    background: #FFF7ED !important;
+    border-color: #FDBA74 !important;
 }
 .jkw-cat-btn--task.is-active {
-    background: #C81E2C !important;
+    background: #EA580C !important;
     color: #FFFFFF !important;
-    border-color: #C81E2C !important;
-    box-shadow: 0 4px 14px rgba(200, 30, 44, 0.35) !important;
+    border-color: #EA580C !important;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35) !important;
 }
 .jkw-cat-btn--task.is-active svg {
     color: #FFFFFF !important;
@@ -2534,8 +2582,10 @@
                 calendarProjects: @json($calendarProjects),
                 projects: @json($projects),
                 engineers: @json($engineers),
+                meetingEngineers: @json($meetingEngineers ?? []),
                 allUsers: @json($allUsers ?? []),
                 msTickets: @json($msTickets ?? []),
+                personnelSearch: '',
                 isMaintenance: @json($isMaintenance ?? false),
                 selectedTicketId: '',
                 isArchitect: @json($isArchitect ?? false),
@@ -2700,8 +2750,14 @@
                     if (lower.includes('cuti') || lower.includes('day off')) {
                         return base + 'background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;';
                     }
-                    if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('maintenance')) {
-                        return base + 'background:#FEF2F2; color:#8F0A0D; border:1px solid #FECACA;';
+                    if (lower.includes('ticket') || lower.includes('tiket') || lower.includes('corrective') || lower.includes('cm') || lower.includes('sla')) {
+                        return base + 'background:#FEFCE8; color:#A16207; border:1px solid #FEF08A;';
+                    }
+                    if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('activity')) {
+                        return base + 'background:#FFF7ED; color:#C2410C; border:1px solid #FED7AA;';
+                    }
+                    if (lower.includes('maintenance') || lower.includes('pm') || lower.includes('preventive')) {
+                        return base + 'background:#ECFDF5; color:#047857; border:1px solid #A7F3D0;';
                     }
                     if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) {
                         return base + 'background:#FDF1F2; color:#8F0A0D; border:1px solid #FECDD3;';
@@ -2728,8 +2784,10 @@
                     if (!cat) return '#2563EB';
                     var lower = String(cat).toLowerCase();
                     if (lower.includes('cuti') || lower.includes('day off')) return '#64748B';
-                    if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('maintenance')) return '#8F0A0D';
-                    if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) return '#C81E2C';
+                    if (lower.includes('ticket') || lower.includes('tiket') || lower.includes('corrective') || lower.includes('cm') || lower.includes('sla')) return '#EAB308';
+                    if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('activity')) return '#EA580C';
+                    if (lower.includes('maintenance') || lower.includes('pm') || lower.includes('preventive')) return '#10B981';
+                    if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) return '#10B981';
                     if (lower.includes('desain') || lower.includes('sow') || lower.includes('review')) return '#2563EB';
                     if (lower.includes('meeting') || lower.includes('principal') || lower.includes('klien')) return '#2563EB';
                     return '#2563EB';
@@ -2738,8 +2796,9 @@
                     if (!cat) return 'Meeting';
                     var lower = String(cat).toLowerCase();
                     if (lower.includes('cuti') || lower.includes('day off')) return 'Day Off / Cuti';
-                    if (lower.includes('task') || lower.includes('kegiatan')) return 'Task / Kegiatan';
-                    if (lower.includes('maintenance')) return 'Preventive Maintenance';
+                    if (lower.includes('ticket') || lower.includes('tiket') || lower.includes('corrective') || lower.includes('cm')) return 'Tiket / CM';
+                    if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('activity')) return 'Activity / Task';
+                    if (lower.includes('maintenance') || lower.includes('pm') || lower.includes('preventive')) return 'Preventive Maintenance (PM)';
                     if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) return 'Sesi PoC & Lab';
                     if (lower.includes('desain') || lower.includes('sow') || lower.includes('review')) return 'Review Desain & SOW';
                     if (lower.includes('meeting')) return 'Meeting Klien / Principal';
@@ -3115,7 +3174,24 @@
                             sCatLower.includes('review')
                         );
 
-                        var isTaskCat = !isDayOff && !isPm && !isMeetingCat && !isPoc && !isDesign;
+                        var isTicketCm = !isDayOff && !isPm && !isMeetingCat && (
+                            sCatLower.includes('ticket') || 
+                            sCatLower.includes('tiket') || 
+                            sCatLower.includes('corrective') || 
+                            sCatLower.includes('cm') || 
+                            sCatLower.includes('troubleshoot') || 
+                            sCatLower.includes('incident') || 
+                            sCatLower.includes('sla') ||
+                            /\b(cm|ticket|tiket)\b/i.test(s.title || '') || 
+                            sTitleLower.includes('corrective') || 
+                            sTitleLower.includes('troubleshoot') || 
+                            sTitleLower.includes('perbaikan') || 
+                            sTitleLower.includes('tiket') ||
+                            !!s.ms_ticket_id ||
+                            !!s.ticket_id
+                        );
+
+                        var isTaskCat = !isDayOff && !isPm && !isMeetingCat && !isPoc && !isDesign && !isTicketCm;
                         var isMeet = isMeetingCat;
                         var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
                         var timeLabel = isDayOff 
@@ -3124,7 +3200,7 @@
                                 ? (sTime + ' WIB') 
                                 : (self.isCommercial 
                                     ? (isPoc ? 'PoC & Demo' : (isPm ? 'Kunjungan PM' : 'Meeting')) 
-                                    : (isPm ? 'Kunjungan PM' : (isTaskCat ? 'Kegiatan' : (isPoc ? 'PoC/Demo' : (s.category || 'Jadwal'))))));
+                                    : (isPm ? 'Kunjungan PM' : (isTicketCm ? 'Tiket / CM' : (isTaskCat ? 'Activity' : (isPoc ? 'PoC/Demo' : (s.category || 'Jadwal')))))));
                         var eventType;
                         var eventColor;
                         if (self.isArchitect) {
@@ -3132,10 +3208,10 @@
                             eventColor = isDayOff ? '#64748B' : (isPm ? '#10B981' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isDesign ? '#2563EB' : '#2563EB'))));
                         } else if (self.isCommercial) {
                             eventType = isPoc ? 'poc' : (isPm ? 'pm' : 'meeting');
-                            eventColor = isPoc ? '#10B981' : (isPm ? '#10B981' : '#C81E2C');
+                            eventColor = isPoc ? '#10B981' : (isPm ? '#10B981' : '#EA580C');
                         } else {
                             // Managed Service & Tim Operasional:
-                            // PM = Hijau (#10B981), Meeting = Biru (#2563EB), Activity lainnya = Merah (#C81E2C)
+                            // PM = Hijau (#10B981), Tiket/CM = Kuning (#EAB308), Activity = Orange (#EA580C), Meeting = Biru (#2563EB), Day Off = Abu-abu (#64748B)
                             if (isDayOff) {
                                 eventType = 'day_off';
                                 eventColor = '#64748B';
@@ -3145,9 +3221,12 @@
                             } else if (isMeetingCat) {
                                 eventType = 'meeting';
                                 eventColor = '#2563EB';
+                            } else if (isTicketCm) {
+                                eventType = 'cm';
+                                eventColor = '#EAB308';
                             } else {
                                 eventType = 'task';
-                                eventColor = '#C81E2C';
+                                eventColor = '#EA580C';
                             }
                         }
                         
@@ -3179,7 +3258,7 @@
 
                         var tooltipPrefix = self.isCommercial
                             ? (isPoc ? 'PoC & Demo: ' : 'Jadwal Meeting: ')
-                            : (isDayOff ? 'Day Off: ' : (isPm ? 'Kegiatan PM: ' : (isMeetingCat ? 'Jadwal Meeting: ' : 'Task/Kegiatan: ')));
+                            : (isDayOff ? 'Day Off: ' : (isPm ? 'Kegiatan PM: ' : (isMeetingCat ? 'Jadwal Meeting: ' : (isTicketCm ? 'Tiket / CM: ' : 'Activity: '))));
 
                         map[d].push({
                             _uid: 'sch-' + s.id,
@@ -3242,7 +3321,7 @@
                                         ? String(t.deadline).split(' ')[1].substring(0, 5) 
                                         : ''));
 
-                            // Klasifikasi Task: PM (Hijau), Meeting (Biru), Task/Activity lainnya (Merah)
+                            // Klasifikasi Task: PM (Hijau), Meeting (Biru), Tiket/CM (Kuning), Activity/Task (Orange)
                             var isPm = !!t.is_pm || 
                                        /\bpm\b/i.test(t.title || '') || 
                                        (t.title || '').toLowerCase().includes('pemeliharaan') || 
@@ -3252,11 +3331,20 @@
                                 (t.title || '').toLowerCase().includes('rapat') || 
                                 (t.title || '').toLowerCase().includes('kick off')
                             );
-                            var taskType = isPm ? 'pm' : (isMeetingTask ? 'meeting' : 'task');
-                            var taskColor = isPm ? '#10B981' : (isMeetingTask ? '#2563EB' : '#C81E2C');
+                            var isTicketCmTask = !isPm && !isMeetingTask && (
+                                (t.title || '').toLowerCase().includes('ticket') || 
+                                (t.title || '').toLowerCase().includes('tiket') || 
+                                (t.title || '').toLowerCase().includes('corrective') || 
+                                /\b(cm|sla)\b/i.test(t.title || '') || 
+                                (t.title || '').toLowerCase().includes('troubleshoot') || 
+                                (t.title || '').toLowerCase().includes('perbaikan') || 
+                                !!t.ms_ticket_id
+                            );
+                            var taskType = isPm ? 'pm' : (isMeetingTask ? 'meeting' : (isTicketCmTask ? 'cm' : 'task'));
+                            var taskColor = isPm ? '#10B981' : (isMeetingTask ? '#2563EB' : (isTicketCmTask ? '#EAB308' : '#EA580C'));
 
                             var creatorName = (t.creator && t.creator.name) ? t.creator.name : (t.creator_name || '');
-                            var taskTimeLabel = dTime ? (dTime + ' WIB') : (isPm ? 'Kunjungan PM' : (isMeetingTask ? 'Meeting' : 'Kegiatan'));
+                            var taskTimeLabel = dTime ? (dTime + ' WIB') : (isPm ? 'Kunjungan PM' : (isMeetingTask ? 'Meeting' : (isTicketCmTask ? 'Tiket / CM' : 'Activity')));
                             var taskEngLabel = '';
                             if (t.engineers && t.engineers.length > 0) {
                                 taskEngLabel = t.engineers.map(function(e) { 
@@ -3273,7 +3361,7 @@
                                 taskEngLabel = t.project.name;
                             }
 
-                            var tooltipText = (isPm ? 'Kegiatan PM: ' : (isMeetingTask ? 'Jadwal Meeting: ' : 'Jadwal Kegiatan: ')) + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (creatorName ? '\nInisiator: ' + creatorName : '') + (taskEngLabel ? '\nTeknisi: ' + taskEngLabel : '');
+                            var tooltipText = (isPm ? 'Kegiatan PM: ' : (isMeetingTask ? 'Jadwal Meeting: ' : (isTicketCmTask ? 'Tiket / CM: ' : 'Activity: '))) + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (creatorName ? '\nInisiator: ' + creatorName : '') + (taskEngLabel ? '\nTeknisi: ' + taskEngLabel : '');
 
                             map[d].push({
                                 _uid: 'task-' + t.id,
@@ -3375,8 +3463,24 @@
                     });
                 },
 
+                getSelectableEngineers: function() {
+                    var list = (this.form.category === 'Meeting' || this.form.category === 'Meeting Klien / Principal')
+                        ? ((this.meetingEngineers && this.meetingEngineers.length > 0) ? this.meetingEngineers : this.engineers)
+                        : this.engineers;
+                    if (this.personnelSearch && this.personnelSearch.trim() !== '') {
+                        var q = this.personnelSearch.trim().toLowerCase();
+                        return list.filter(function(eng) {
+                            var n = (eng.name || '').toLowerCase();
+                            var p = (eng.position || '').toLowerCase();
+                            var r = (eng.role || '').toLowerCase();
+                            return n.includes(q) || p.includes(q) || r.includes(q);
+                        });
+                    }
+                    return list;
+                },
+
                 selectAllEngineers: function() {
-                    this.form.engineer_ids = this.engineers.map(function(e) { return e.id; });
+                    this.form.engineer_ids = this.getSelectableEngineers().map(function(e) { return e.id; });
                     this.form.engineer_id = this.form.engineer_ids[0] || null;
                 },
 
@@ -3387,8 +3491,9 @@
 
                 getEngineerName: function(id) {
                     if (!id) return '-';
-                    var eng = (this.allUsers || []).find(function(u) { return String(u.id) === String(id); })
-                           || this.engineers.find(function(e) { return String(e.id) === String(id); });
+                    var eng = (this.meetingEngineers || []).find(function(u) { return String(u.id) === String(id); })
+                           || (this.allUsers || []).find(function(u) { return String(u.id) === String(id); })
+                           || (this.engineers || []).find(function(e) { return String(e.id) === String(id); });
                     if (eng && eng.name) return eng.name;
                     if (this.selectedSchedule && this.selectedSchedule.engineers) {
                         var sEng = this.selectedSchedule.engineers.find(function(e) { return String(e.id) === String(id); });
@@ -3544,6 +3649,7 @@
                 },
 
                 openModal: function(schedule) {
+                    this.personnelSearch = '';
                     if (schedule) {
                         this.selectedSchedule = schedule;
                         this.modalMode = 'detail';

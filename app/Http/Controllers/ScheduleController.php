@@ -596,14 +596,67 @@ class ScheduleController extends Controller
                 ->get();
         }
 
-        $allUsers = User::active()->select('id', 'name', 'position', 'division_id')->get()->map(fn($u) => [
-            'id' => $u->id,
-            'name' => $u->name,
-            'position' => $u->position ?? '',
-            'division_id' => $u->division_id,
-        ]);
+        $allUsers = User::active()->with('roles')->get()->map(function($u) {
+            $roles = method_exists($u, 'getRoleNames') ? $u->getRoleNames()->toArray() : [];
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'position' => $u->position ?? '',
+                'role' => implode(', ', $roles),
+                'division_id' => $u->division_id,
+            ];
+        });
 
-        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'allUsers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets', 'isCommercial', 'isCommercialOrSolution', 'isExecutive'));
+        // Khusus Tambah Jadwal Kategori Meeting: Menyediakan pilihan peserta mencakup Tim Maintenance + Engineer Teknis + Tim Sales / Presales / BDM
+        $meetingRoles = [
+            'Lead Engineer', 'Engineer', 'Field Engineer', 'Network Engineer', 'Security Engineer',
+            'Senior Network Engineer', 'Senior Security Engineer', 'Field Support', 'Field Support (EOS)',
+            'Maintenance', 'Lead Maintenance', 'Managed Service', 'Engineer L1', 'Engineer L2',
+            'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development',
+            'Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA', 'PMO', 'Project Manager',
+            'Tech Develop', 'Tech.Develp (R&D)', 'CRO', 'Customer Relation Officer'
+        ];
+
+        $meetingUsersQuery = User::active()
+            ->where(function($q) use ($meetingRoles, $validSalesNames) {
+                $q->whereHas('roles', fn($rq) => $rq->whereIn('name', $meetingRoles))
+                  ->orWhereIn('name', array_merge($validSalesNames, [
+                      'Doris', 'Mario', 'Eris', 'Eka Kurnia', 'Ardiansyah', 'Dafa Rizqullah', 'Rorik',
+                      'Helmi Shiamsyah', 'Ignatius Rizky', 'Syaiful Amin', 'Raihan Ghiffary',
+                      'Panca Pangga Ramadhan', 'Dedy Suryana', 'Nugraha Pratama', 'Shiamsyah Azis', 'Agus Prasetyo'
+                  ]))
+                  ->orWhere('position', 'like', '%Engineer%')
+                  ->orWhere('position', 'like', '%Sales%')
+                  ->orWhere('position', 'like', '%Presales%')
+                  ->orWhere('position', 'like', '%Account Manager%')
+                  ->orWhere('position', 'like', '%Maintenance%')
+                  ->orWhere('position', 'like', '%Solution Architect%')
+                  ->orWhere('division_id', 3);
+            })
+            ->with('roles')
+            ->orderBy('name')
+            ->get();
+
+        $meetingEngineers = $meetingUsersQuery->map(function($e) {
+            $isMaint = ($e->division_id == 3) || (method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)']));
+            $roles = method_exists($e, 'getRoleNames') ? $e->getRoleNames()->toArray() : [];
+            return [
+                'id' => $e->id,
+                'name' => $e->name,
+                'position' => $e->position ?? '',
+                'role' => implode(', ', $roles),
+                'division_id' => $e->division_id,
+                'is_maintenance' => (bool)$isMaint,
+            ];
+        })->sortBy(function($e) {
+            $roleStr = strtolower(($e['role'] ?? '') . ' ' . ($e['position'] ?? ''));
+            if ($e['is_maintenance'] || str_contains($roleStr, 'maintenance')) return 1;
+            if (str_contains($roleStr, 'lead engineer') || str_contains($roleStr, 'engineer')) return 2;
+            if (str_contains($roleStr, 'sales') || str_contains($roleStr, 'account manager') || str_contains($roleStr, 'presales') || str_contains($roleStr, 'bdm')) return 3;
+            return 4;
+        })->values();
+
+        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'meetingEngineers', 'allUsers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets', 'isCommercial', 'isCommercialOrSolution', 'isExecutive'));
     }
 
     /**
