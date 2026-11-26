@@ -576,7 +576,7 @@ class PmoController extends Controller
         $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
         $year2 = now()->format('y');
 
-        // Nomor Seri Edisi Laporan (Opsi 2: Laporan ke-1, ke-2, dst)
+        // Nomor Seri Edisi Laporan (Manual Input atau Otomatis)
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
         $sessionKey = 'last_pmo_export_' . $project->id;
         $lastExport = session($sessionKey);
@@ -584,36 +584,72 @@ class PmoController extends Controller
         // Opsi reset nomor ke 0 jika dipanggil dengan ?reset=1
         if ($request->has('reset') || $request->input('reset') == '1') {
             $handoverData['pmo_export_counter'] = 0;
+            unset($handoverData['last_pmo_doc_number']);
         }
 
-        if ($request->filled('report_no')) {
-            $reportNumber = (int) $request->input('report_no');
-            $handoverData['pmo_export_counter'] = $reportNumber;
+        if ($request->filled('doc_number')) {
+            // User memasukkan No. Dokumen secara manual
+            $docNumber = trim((string) $request->input('doc_number'));
+
+            // Simpan sebagai dokumen terakhir
+            $handoverData['last_pmo_doc_number'] = $docNumber;
+
+            // Jika user juga mengoper report_no atau terdapat pola angka di doc_number, update counter edisi
+            if ($request->filled('report_no')) {
+                $reportNumber = (int) $request->input('report_no');
+                $handoverData['pmo_export_counter'] = $reportNumber;
+            } elseif (preg_match('/(?:PMO-RPT\/|\/|#|Edisi\s*)(\d+)/i', $docNumber, $m)) {
+                $reportNumber = (int) $m[1];
+                $handoverData['pmo_export_counter'] = $reportNumber;
+            }
+
             \Illuminate\Support\Facades\DB::table('projects')->where('id', $project->id)->update([
                 'handover_data' => json_encode($handoverData)
             ]);
-        } elseif ($lastExport && (time() - ($lastExport['time'] ?? 0) < 10) && ($lastExport['type'] ?? '') === $reportType) {
+
+            session([$sessionKey => [
+                'doc_number' => $docNumber,
+                'time'       => time(),
+                'type'       => $reportType,
+            ]]);
+        } elseif ($request->filled('report_no')) {
+            $reportNumber = (int) $request->input('report_no');
+            $docNumber = 'IPNET/PMO-RPT/' . $reportNumber . '/' . $romanMonth . '/' . $year2;
+            $handoverData['pmo_export_counter'] = $reportNumber;
+            $handoverData['last_pmo_doc_number'] = $docNumber;
+            \Illuminate\Support\Facades\DB::table('projects')->where('id', $project->id)->update([
+                'handover_data' => json_encode($handoverData)
+            ]);
+
+            session([$sessionKey => [
+                'number'     => $reportNumber,
+                'doc_number' => $docNumber,
+                'time'       => time(),
+                'type'       => $reportType,
+            ]]);
+        } elseif ($lastExport && (time() - ($lastExport['time'] ?? 0) < 10) && ($lastExport['type'] ?? '') === $reportType && !empty($lastExport['doc_number'])) {
             // Jika refresh halaman dalam waktu < 10 detik dengan tipe sama, pertahankan nomor edisi sebelumnya
-            $reportNumber = $lastExport['number'];
+            $docNumber = $lastExport['doc_number'];
         } else {
             // Auto-increment nomor seri edisi export untuk proyek ini (dimulai dari 1)
             $currentCounter = (int) ($handoverData['pmo_export_counter'] ?? 0);
             $newCounter = $currentCounter + 1;
+            $reportNumber = $newCounter;
+            $docNumber = 'IPNET/PMO-RPT/' . $reportNumber . '/' . $romanMonth . '/' . $year2;
 
             $handoverData['pmo_export_counter'] = $newCounter;
+            $handoverData['last_pmo_doc_number'] = $docNumber;
             \Illuminate\Support\Facades\DB::table('projects')->where('id', $project->id)->update([
                 'handover_data' => json_encode($handoverData)
             ]);
 
-            $reportNumber = $newCounter;
             session([$sessionKey => [
-                'number' => $reportNumber,
-                'time'   => time(),
-                'type'   => $reportType,
+                'number'     => $reportNumber,
+                'doc_number' => $docNumber,
+                'time'       => time(),
+                'type'       => $reportType,
             ]]);
         }
-
-        $docNumber = 'IPNET/PMO-RPT/' . $reportNumber . '/' . $romanMonth . '/' . $year2;
 
         $data['logoBase64'] = $logoBase64;
         $data['docNumber']  = $docNumber;
@@ -1812,11 +1848,25 @@ class PmoController extends Controller
         $sCurveUpdateDate = now()->format('d M Y');
         $divisions = \App\Models\Division::all();
 
-        $nextExportNumber = ((int) ($handoverData['pmo_export_counter'] ?? 0)) + 1;
+        $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
+        $romanMonth = $romans[(int) now()->format('n')] ?? 'XI';
+        $year2 = now()->format('y');
+
+        $lastExportNumber = (int) ($handoverData['pmo_export_counter'] ?? 0);
+        $nextExportNumber = $lastExportNumber + 1;
+        $lastDocNumber = !empty($handoverData['last_pmo_doc_number']) 
+            ? $handoverData['last_pmo_doc_number'] 
+            : ($lastExportNumber > 0 ? ('IPNET/PMO-RPT/' . $lastExportNumber . '/' . $romanMonth . '/' . $year2) : null);
+        $nextDocNumber = 'IPNET/PMO-RPT/' . $nextExportNumber . '/' . $romanMonth . '/' . $year2;
 
         return compact(
             'project',
+            'lastExportNumber',
             'nextExportNumber',
+            'lastDocNumber',
+            'nextDocNumber',
+            'romanMonth',
+            'year2',
             'authUser',
             'isLeadUser',
             'isPmoUser',

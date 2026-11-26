@@ -269,6 +269,10 @@
                 @endif
             </td>
         </tr>
+        <tr>
+            <td class="label-cell">No. Dokumen Laporan</td>
+            <td colspan="3" class="font-mono font-bold" style="color: #0F172A; font-size: 7.5pt;">{{ $docNumber }}</td>
+        </tr>
     </table>
 
     @php

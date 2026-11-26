@@ -86,14 +86,26 @@
          customShowScurve: true,
          customShowExpenses: true,
          customReportNo: {{ $nextExportNumber ?? 1 }},
+         exportDocNumber: '{{ $nextDocNumber ?? ('IPNET/PMO-RPT/' . ($nextExportNumber ?? 1) . '/' . ($romanMonth ?? 'XI') . '/' . ($year2 ?? now()->format('y'))) }}',
+         getExportUrl(type) {
+             let url = '{{ route('pmo.projects.export_pdf', $project->id) }}?type=' + type;
+             if (this.exportDocNumber && this.exportDocNumber.trim() !== '') {
+                 url += '&doc_number=' + encodeURIComponent(this.exportDocNumber.trim());
+             }
+             url += '&_t=' + Date.now();
+             return url;
+         },
          getCustomExportUrl() {
              let url = '{{ route('pmo.projects.export_pdf', $project->id) }}?type=custom';
              url += '&show_weekly=' + (this.customShowWeekly ? '1' : '0');
              url += '&show_scurve=' + (this.customShowScurve ? '1' : '0');
              url += '&show_expenses=' + (this.customShowExpenses ? '1' : '0');
-             if (this.customReportNo) {
+             if (this.exportDocNumber && this.exportDocNumber.trim() !== '') {
+                 url += '&doc_number=' + encodeURIComponent(this.exportDocNumber.trim());
+             } else if (this.customReportNo) {
                  url += '&report_no=' + this.customReportNo;
              }
+             url += '&_t=' + Date.now();
              return url;
          },
          activeWeek: 1, 
@@ -557,17 +569,51 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs">
-                                                <div class="px-3 py-2 border-b border-slate-100 bg-slate-50/70 rounded-t-xl flex items-center justify-between">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Kategori Laporan PDF</span>
-                            <span class="text-[10px] font-semibold text-slate-400">4 Pilihan</span>
+                         class="absolute right-0 top-full mt-2 w-84 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 text-xs">
+                        
+                        {{-- Pengaturan No. Dokumen Keluaran (Bisa Diisi Manual & Info Nomor Terakhir) --}}
+                        <div class="px-3.5 pt-1 pb-2.5 border-b border-slate-100 bg-slate-50/80 rounded-t-xl space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Kategori Laporan PDF</span>
+                                @if(!empty($lastDocNumber))
+                                    <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200" title="Nomor Edisi Dokumen Terakhir yang di-Export">
+                                        Edisi Terakhir: #{{ $lastExportNumber }}
+                                    </span>
+                                @else
+                                    <span class="text-[9px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                                        Edisi Awal
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-2xs">
+                                <div class="flex items-center justify-between text-[10px] text-slate-500">
+                                    <span>No. Dokumen Terakhir:</span>
+                                    <span class="font-mono font-bold text-slate-700 truncate max-w-[170px]" title="{{ $lastDocNumber ?: 'Belum pernah export' }}">{{ $lastDocNumber ?: '-' }}</span>
+                                </div>
+                                <div>
+                                    <label class="block text-[10.5px] font-bold text-slate-700 mb-0.5">
+                                        No. Dokumen Keluaran (Manual / Otomatis):
+                                    </label>
+                                    <input type="text" 
+                                           x-model="exportDocNumber" 
+                                           @click.stop 
+                                           placeholder="IPNET/PMO-RPT/..." 
+                                           class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono font-bold text-[#8F0A0D] focus:border-[#8F0A0D] focus:bg-white outline-none">
+                                    <span class="text-[9.5px] text-slate-400 block mt-0.5">Ketik manual untuk menyesuaikan nomor atau biarkan otomatis.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="px-3.5 pt-2 pb-1">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Pilih Dokumen PDF:</span>
                         </div>
 
                         {{-- 1. Weekly Progress --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('weekly')" 
                            target="_blank" 
                            @click="openExportMain = false"
-                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                           class="flex items-start gap-2.5 px-3.5 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
                             <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
                                 1
                             </div>
@@ -581,10 +627,10 @@
                         </a>
 
                         {{-- 2. Curva S --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('scurve')" 
                            target="_blank" 
                            @click="openExportMain = false"
-                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                           class="flex items-start gap-2.5 px-3.5 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
                             <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
                                 2
                             </div>
@@ -598,10 +644,10 @@
                         </a>
 
                         {{-- 3. Expenses --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('expenses')" 
                            target="_blank" 
                            @click="openExportMain = false"
-                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                           class="flex items-start gap-2.5 px-3.5 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
                             <div class="w-6 h-6 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
                                 3
                             </div>
@@ -615,10 +661,10 @@
                         </a>
 
                         {{-- 4. Versi Lengkap --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('full')" 
                            target="_blank" 
                            @click="openExportMain = false"
-                           class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
+                           class="flex items-start gap-2.5 px-3.5 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
                             <div class="w-6 h-6 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5 font-bold text-[11px]">
                                 4
                             </div>
@@ -634,7 +680,7 @@
                         {{-- Opsi Kustomisasi --}}
                         <button type="button" 
                                 @click="openExportMain = false; showExportCustomModal = true"
-                                class="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 transition text-slate-600 hover:text-slate-900 text-left cursor-pointer">
+                                class="w-full flex items-center justify-between px-3.5 py-2 hover:bg-slate-50 transition text-slate-600 hover:text-[#8F0A0D] text-left cursor-pointer">
                             <div class="flex items-center gap-2">
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                                 <span class="text-[11px] font-semibold">Pilih Bagian (Kustom)...</span>
@@ -1420,7 +1466,7 @@
                         </div>
 
                         {{-- 1. Weekly Progress --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('weekly')" 
                            target="_blank" 
                            @click="openExportTab4 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1437,7 +1483,7 @@
                         </a>
 
                         {{-- 2. Curva S --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('scurve')" 
                            target="_blank" 
                            @click="openExportTab4 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1454,7 +1500,7 @@
                         </a>
 
                         {{-- 3. Expenses --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('expenses')" 
                            target="_blank" 
                            @click="openExportTab4 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1471,7 +1517,7 @@
                         </a>
 
                         {{-- 4. Versi Lengkap --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('full')" 
                            target="_blank" 
                            @click="openExportTab4 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1630,7 +1676,7 @@
                         </div>
 
                         {{-- 1. Weekly Progress --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'weekly']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('weekly')" 
                            target="_blank" 
                            @click="openExportTab5 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1647,7 +1693,7 @@
                         </a>
 
                         {{-- 2. Curva S --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'scurve']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('scurve')" 
                            target="_blank" 
                            @click="openExportTab5 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1664,7 +1710,7 @@
                         </a>
 
                         {{-- 3. Expenses --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'expenses']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('expenses')" 
                            target="_blank" 
                            @click="openExportTab5 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1681,7 +1727,7 @@
                         </a>
 
                         {{-- 4. Versi Lengkap --}}
-                        <a href="{{ route('pmo.projects.export_pdf', ['project' => $project->id, 'type' => 'full']) }}&_t={{ time() }}" 
+                        <a :href="getExportUrl('full')" 
                            target="_blank" 
                            @click="openExportTab5 = false"
                            class="flex items-start gap-2.5 px-3 py-2 hover:bg-slate-50 transition text-slate-700 hover:text-slate-900 border-b border-slate-100">
@@ -1979,20 +2025,26 @@
                     </div>
                 </label>
 
-                {{-- Pengaturan Nomor Edisi Laporan (Urutan Export) --}}
-                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 mt-2">
-                    <label class="block text-xs font-bold text-slate-800 mb-1">
-                        Nomor Edisi Laporan PDF:
-                    </label>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-mono font-semibold text-slate-500">IPNET/PMO-RPT/</span>
-                        <input type="number" 
-                               min="1" 
-                               x-model="customReportNo" 
-                               class="w-20 px-2.5 py-1 text-xs font-bold border border-slate-300 rounded-lg text-center font-mono focus:border-[#8F0A0D] outline-none bg-white">
-                        <span class="text-xs font-mono font-semibold text-slate-500">/XI/{{ now()->format('y') }}</span>
+                {{-- Pengaturan Nomor Dokumen Laporan (Keluaran Manual / Terakhir) --}}
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 mt-2 space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-800">Pengaturan No. Dokumen Keluaran</span>
+                        <span class="text-[10.5px] text-slate-500 font-medium">
+                            Dokumen Terakhir: <strong class="font-mono text-slate-700">{{ $lastDocNumber ?: '-' }}</strong>
+                        </span>
                     </div>
-                    <p class="text-[10.5px] text-slate-400 mt-1">Otomatis bertambah (1, 2, 3...) setiap kali dokumen PDF di-export.</p>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-700 mb-1">
+                            No. Dokumen PDF (Bisa Diisi / Diedit Manual):
+                        </label>
+                        <input type="text" 
+                               x-model="exportDocNumber" 
+                               placeholder="Contoh: {{ $nextDocNumber ?? 'IPNET/PMO-RPT/1/' . $romanMonth . '/' . $year2 }}" 
+                               class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold text-[#8F0A0D] focus:border-[#8F0A0D] outline-none">
+                        <p class="text-[10.5px] text-slate-500 mt-1">
+                            Nomor edisi dokumen berurutan otomatis (terakhir edisi: <strong>#{{ $lastExportNumber }}</strong>). Anda bebas mengetik nomor dokumen manual sesuai format keluaran yang diinginkan.
+                        </p>
+                    </div>
                 </div>
             </div>
 
